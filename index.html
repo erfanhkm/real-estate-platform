@@ -153,6 +153,9 @@
       @keyframes tblink{0%,80%,100%{opacity:.25}40%{opacity:1}}
       .ai-sources{display:block;margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
       .ai-sources a{font-weight:600}
+      .chat-cta{display:inline-block;margin-top:10px;background:var(--spruce);color:#fff;border:0;font:inherit;font-size:14.5px;font-weight:700;padding:9px 16px;border-radius:999px;cursor:pointer}
+      .chat-cta:hover{filter:brightness(1.12)}
+      .chat-cta:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
       @media (prefers-reduced-motion: reduce){.tdot{animation:none;opacity:.6}}
       /* floating real-estate AI assistant (all screens, bottom-left) */
       .ai-widget{position:fixed;left:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
@@ -2434,6 +2437,20 @@
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
 
+    /* ---------- Smart in-chat invitations: after a market answer, the assistant
+       points the visitor to this site's own monthly market report (all 4 languages) ---------- */
+    var I18N13 = {
+    en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
+      ai_nl_btn:"Get the free monthly report"},
+    fa:{ai_nl_pitch:"راستی — ما هر ماه یک گزارش رایگان از بازار مسکن BC و کانادا منتشر می‌کنیم: روند قیمت‌ها، حجم معاملات، تغییرات نرخ بهره و اینکه همه‌ی این‌ها برای خریدار و فروشنده چه معنایی دارد — به زبان خودتان. دوست دارید هر ماه در ایمیل‌تان باشد؟ عضویت فقط حدود ۲۰ ثانیه طول می‌کشد: کافی است فرم کوتاه اشتراک را پر کنید.",
+      ai_nl_btn:"دریافت گزارش ماهانه‌ی رایگان"},
+    hi:{ai_nl_pitch:"वैसे — हम हर महीने BC और कनाडा के लिए एक मुफ़्त आवास बाज़ार रिपोर्ट प्रकाशित करते हैं: कीमतों के रुझान, बिक्री गतिविधि, ब्याज दरों में बदलाव, और ख़रीदारों व विक्रेताओं के लिए इनका मतलब — आपकी भाषा में। क्या आप इसे हर महीने अपने इनबॉक्स में चाहते हैं? जुड़ने में बस 20 सेकंड लगते हैं: छोटा सा फ़ॉर्म भर दें।",
+      ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं"},
+    zh:{ai_nl_pitch:"顺便提一下——我们每月发布一份免费的 BC 与加拿大住房市场报告：价格走势、成交动态、利率变化，以及这些对买卖双方意味着什么——并以您的语言发送。想每月在邮箱中收到吗？加入只需约 20 秒：填写简短的订阅表单即可。",
+      ai_nl_btn:"获取免费月度报告"}
+    };
+    for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
+
     /* ---------- home buying assistant: site brain first, live AI + web search second ---------- */
     var AS_FALLBACK = {
       en:"I don't have a specific answer for that yet — I search only this site's own content. I can help with the steps to buy a home in BC, minimum down payments, property transfer tax and the first-time buyer exemption, annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, the site's neighbourhood guides, and typical rents. You can also read the <a href='#guide'>first-time buyer guide</a> or try the <a href='#calculator'>mortgage calculator</a> and <a href='#afford'>affordability estimator</a>.",
@@ -2889,7 +2906,12 @@
       }
       return html;
     }
+    /* Repeat questions are answered from memory, not the live brain, so the
+       free daily quota is spent only on questions not seen yet. */
+    var aiCache = {};
     function askGemini(text, done){
+      var cacheKey = lang + "|" + text.toLowerCase().replace(/\s+/g, " ").trim();
+      if (aiCache[cacheKey]){ done(aiCache[cacheKey]); return; }
       var ctrl = ("AbortController" in window) ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 20000) : null;
       function finish(v){ if (timer) clearTimeout(timer); done(v); }
@@ -2902,9 +2924,40 @@
         return r.json().catch(function(){ return null; }).then(function(d){ return {status: r.status, data: d}; });
       }).then(function(res){
         if (res.status === 200 && res.data && res.data.ok && res.data.reply){
-          finish({html: aiTextToHtml(res.data.reply, res.data.sources), raw: res.data.reply});
+          var out = {html: aiTextToHtml(res.data.reply, res.data.sources), raw: res.data.reply};
+          aiCache[cacheKey] = out;
+          finish(out);
         } else finish(null);
       }).catch(function(){ finish(null); });
+    }
+    /* --- smart cross-promotion: once per visit, right after the assistant
+       answers a market question, it invites the visitor to this site's free
+       monthly market report — the answer first, the invitation second, and
+       the button jumps straight to the signup form. --- */
+    var nlNudged = false;
+    function gotoNewsletter(){
+      if (typeof aiPanel !== "undefined" && aiPanel && aiPanel.classList.contains("open")) setAi(false);
+      var sec = document.getElementById("newsletter");
+      if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"});
+      setTimeout(function(){ var f = $("nlFirst"); if (f) f.focus({preventScroll: true}); }, 650);
+    }
+    function maybeNudge(text){
+      if (nlNudged) return;
+      var marketish = webIntent(text);
+      if (!marketish){
+        var m = text.toLowerCase();
+        for (var i = 0; i < WEB_MARKET.length; i++){ if (m.indexOf(WEB_MARKET[i]) !== -1){ marketish = true; break; } }
+      }
+      if (!marketish) return;
+      nlNudged = true;
+      var pitch = T().ai_nl_pitch, btn = T().ai_nl_btn;
+      if (!pitch || !btn) return;
+      var els = postMsg("bot", esc(pitch) + "<br><button type=\"button\" class=\"chat-cta\">" + esc(btn) + "</button>");
+      els.forEach(function(el){
+        var b = el.querySelector(".chat-cta");
+        if (b) b.addEventListener("click", gotoNewsletter);
+      });
+      pushHistory("assistant", pitch);
     }
     function askChat(input){
       var text = input.value.trim();
@@ -2919,6 +2972,7 @@
       if (local){
         postMsg("bot", local);
         pushHistory("assistant", plainOf(local));
+        maybeNudge(text);
         return;
       }
       var social = socialKind(text);
@@ -2936,10 +2990,19 @@
         if (res){
           postMsg("bot", res.html);
           pushHistory("assistant", res.raw);
+          maybeNudge(text);
         } else {
-          var errHtml = esc(T().ai_err || AS_FALLBACK[lang] || AS_FALLBACK.en);
-          postMsg("bot", errHtml);
-          pushHistory("assistant", plainOf(errHtml));
+          /* Live brain unreachable or out of free quota: still answer from
+             this site's own knowledge base instead of dead-ending. */
+          var fb = findAnswer(text);
+          if (fb){
+            postMsg("bot", fb);
+            pushHistory("assistant", plainOf(fb));
+          } else {
+            var errHtml = esc(T().ai_err || AS_FALLBACK[lang] || AS_FALLBACK.en);
+            postMsg("bot", errHtml);
+            pushHistory("assistant", plainOf(errHtml));
+          }
         }
       });
     }
