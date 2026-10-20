@@ -69,7 +69,7 @@ var API='https://advisor-api.erfanbillion.workers.dev';
 var SELLER_API='https://seller-api.erfanbillion.workers.dev';
 var leads=[];
 function tok(){return sessionStorage.getItem('adv_tok')||'';}
-function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 async function doLogin(){
   var pw=document.getElementById('pw').value;
   var r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
