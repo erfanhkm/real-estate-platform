@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Advisor Portal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+.hidden{display:none!important}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:32px;width:100%;max-width:400px}
+.card h1{font-size:22px;margin-bottom:6px}
+.card p{color:#94a3b8;font-size:14px;margin-bottom:20px}
+input,select,textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:14px;margin-bottom:12px}
+button{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}
+button:hover{background:#2563eb}
+button.danger{background:#dc2626}
+button.ghost{background:#334155}
+.err{color:#f87171;font-size:13px;margin-top:8px;min-height:18px}
+#app{max-width:1100px;margin:0 auto;padding:20px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:20px}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filters select{width:auto;margin:0}
+table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:12px;font-size:14px;border-bottom:1px solid #334155}
+th{color:#94a3b8;font-weight:600;font-size:12px;text-transform:uppercase}
+tr:hover td{background:#243044}
+tr{cursor:pointer}
+.stage{padding:3px 10px;border-radius:20px;font-size:12px;background:#334155}
+.stage.new{background:#1e40af}.stage.contacted{background:#9a3412}.stage.viewing{background:#6d28d9}
+.stage.offer{background:#0e7490}.stage.closed{background:#166534}.stage.dropped{background:#7f1d1d}
+#detail{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+#detail .card{max-width:520px;max-height:90vh;overflow:auto}
+.row{margin-bottom:10px;font-size:14px}
+.row b{color:#94a3b8;display:block;font-size:12px;margin-bottom:2px}
+.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="card">
+    <h1>Advisor Portal</h1>
+    <p>Private — authorized access only.</p>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+    <button onclick="doLogin()">Sign in</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+</div>
+<div id="app" class="hidden">
+  <div class="topbar">
+    <h1>Leads</h1>
+    <div>
+      <button class="ghost" onclick="inviteSeller()">Invite seller</button>
+      <button class="ghost" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
+  <div class="filters">
+    <select id="fStage" onchange="render()"><option value="">All stages</option><option>new</option><option>contacted</option><option>viewing</option><option>offer</option><option>closed</option><option>dropped</option></select>
+    <select id="fIntent" onchange="render()"><option value="">All intents</option><option>buyer</option><option>seller</option><option>investor</option><option>renter</option></select>
+  </div>
+  <table><thead><tr><th>Name</th><th>Intent</th><th>City</th><th>Budget</th><th>Stage</th><th>Date</th></tr></thead><tbody id="rows"></tbody></table>
+</div>
+<div id="detail" class="hidden"><div class="card" id="detailCard"></div></div>
+<script>
+var API='https://advisor-api.erfanbillion.workers.dev';
+var SELLER_API='https://seller-api.erfanbillion.workers.dev';
+var leads=[];
+function tok(){return sessionStorage.getItem('adv_tok')||'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+async function doLogin(){
+  var pw=document.getElementById('pw').value;
+  var r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+  var d=await r.json().catch(function(){return{};});
+  if(d.ok&&d.token){sessionStorage.setItem('adv_tok',d.token);showApp();}
+  else{document.getElementById('loginErr').textContent='Invalid password.';}
+}
+function doLogout(){sessionStorage.removeItem('adv_tok');location.reload();}
+function showApp(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');load();}
+async function load(){
+  var r=await fetch(API+'/api/leads',{headers:{'Authorization':'Bearer '+tok()}});
+  if(r.status===401){doLogout();return;}
+  var d=await r.json();leads=d.leads||[];render();
+}
+function render(){
+  var fs=document.getElementById('fStage').value,fi=document.getElementById('fIntent').value;
+  var html='';
+  leads.forEach(function(l){
+    if(fs&&l.stage!==fs)return;if(fi&&l.intent!==fi)return;
+    html+='<tr onclick="openDetail(\''+l.id+'\')"><td>'+esc(l.name)+'</td><td>'+esc(l.intent)+'</td><td>'+esc(l.city)+'</td><td>'+esc(l.budget)+'</td><td><span class="stage '+esc(l.stage)+'">'+esc(l.stage)+'</span></td><td>'+esc((l.created_at||'').slice(0,10))+'</td></tr>';
+  });
+  document.getElementById('rows').innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#64748b">No leads yet.</td></tr>';
+}
+function openDetail(id){
+  var l=leads.find(function(x){return x.id===id;});if(!l)return;
+  var st=['new','contacted','viewing','offer','closed','dropped'].map(function(s){return '<option value="'+s+'"'+(l.stage===s?' selected':'')+'>'+s+'</option>';}).join('');
+  document.getElementById('detailCard').innerHTML=
+    '<h1 style="margin-bottom:16px">'+esc(l.name)+'</h1>'+
+    '<div class="row"><b>Intent</b>'+esc(l.intent)+'</div>'+
+    '<div class="row"><b>City</b>'+esc(l.city)+'</div>'+
+    '<div class="row"><b>Budget</b>'+esc(l.budget)+'</div>'+
+    '<div class="row"><b>Email</b>'+esc(l.email)+'</div>'+
+    '<div class="row"><b>Phone</b>'+esc(l.phone)+'</div>'+
+    '<div class="row"><b>Message</b>'+esc(l.message)+'</div>'+
+    '<div class="row"><b>Stage</b><select id="dStage">'+st+'</select></div>'+
+    '<div class="row"><b>Notes</b><textarea id="dNotes" rows="4">'+esc(l.notes)+'</textarea></div>'+
+    '<div class="actions"><button onclick="saveDetail(\''+l.id+'\')">Save</button><button class="danger" onclick="delLead(\''+l.id+'\')">Delete</button><button class="ghost" onclick="closeDetail()">Close</button></div>';
+  document.getElementById('detail').classList.remove('hidden');
+}
+function closeDetail(){document.getElementById('detail').classList.add('hidden');}
+async function saveDetail(id){
+  var st=document.getElementById('dStage').value,nt=document.getElementById('dNotes').value;
+  await fetch(API+'/api/leads/'+id,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:JSON.stringify({stage:st,notes:nt})});
+  closeDetail();load();
+}
+async function delLead(id){
+  if(!confirm('Delete this lead?'))return;
+  await fetch(API+'/api/leads/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+tok()}});
+  closeDetail();load();
+}
+async function inviteSeller(){
+  var email=prompt('Seller email:');if(!email)return;
+  var listing=prompt('Listing ID (e.g. R2991001):');if(!listing)return;
+  var r=await fetch(SELLER_API+'/api/seller/invite',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:JSON.stringify({email:email,listingId:listing})});
+  var d=await r.json().catch(function(){return{};});
+  if(d.ok){prompt('Seller account created. Hand this ONE-TIME password to the seller:',d.password);}
+  else{alert('Invite failed: '+(d.error||'unknown'));}
+}
+document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+if(tok())showApp();
+</script>
+</body>
+</html>
