@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-roKhggMztGUIhcMbi66T0YZOWaAqxoes55FXR3qRSPc='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-6knA6uKbaQr5glfzOm0OCv08gwY/PzOexcYXNTcJIKc='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -530,6 +530,8 @@
     }
     var tourViewer = null;
     window.openTour = function(mls){
+      var dEl = document.getElementById("dlg");
+      if (dEl && dEl.open) { try { dEl.close(); } catch(e){} }
       getTour(mls, function(tour){
         if (!tour || !tour.rooms.length) return;
         $("tourModal").style.display = "block";
@@ -2228,6 +2230,8 @@
           return out.join("");
         }
         function showViewing(mls){
+          var dEl2 = document.getElementById("dlg");
+          if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
           var p = MINI[mls];
           var times = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
