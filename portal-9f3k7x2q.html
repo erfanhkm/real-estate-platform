@@ -128,6 +128,7 @@
     <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
     <button class="navbtn" data-nav="contacts"><span class="ic">🗂</span>Contacts</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
+    <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
@@ -295,6 +296,15 @@
         <button class="ghost small" id="vwRefresh">Refresh</button>
       </div>
       <div id="vwList"></div>
+    </section>
+
+    <!-- LISTINGS / AVAILABILITY -->
+    <section id="page-listings" hidden>
+      <div class="pagehead">
+        <div><h1>Listings — viewing availability</h1><div class="mut">Optional: set the exact dates and times the owner can host viewings. When set, the site's Book a viewing shows ONLY those slots (booked ones disappear automatically). Leave a listing unset and all standard slots stay open.</div></div>
+        <button class="ghost small" id="lstRefresh">Refresh</button>
+      </div>
+      <div id="lstAvail"><div class="empty">Loading…</div></div>
     </section>
 
     <!-- USERS -->
@@ -498,7 +508,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","contacts","tours","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","contacts","tours","listings","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -508,6 +518,7 @@
     if (page === "leads") renderLeads();
     if (page === "contacts") loadContacts();
     if (page === "tours") loadTourList();
+    if (page === "listings") loadAvail();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
@@ -768,6 +779,74 @@
   $("usrRefresh").addEventListener("click", loadUsers);
   $("usrSearch").addEventListener("input", renderUsers);
   var usersCache = [], bansCache = [];
+  // ---------- listings: viewing availability ----------
+  var AV_SLOTS = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"];
+  function avRowHtml(d){
+    var checks = AV_SLOTS.map(function(s){
+      var on = d && d.times && d.times.indexOf(s) >= 0;
+      return '<label style="display:inline-flex;gap:4px;align-items:center;font-weight:500;margin:0"><input type="checkbox" class="av-t" value="' + s + '"' + (on ? " checked" : "") + ' style="width:auto"> ' + s + '</label>';
+    }).join("");
+    return '<div class="avrow" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid #eef0ee">' +
+      '<input type="date" class="av-date" value="' + (d ? esc(d.date) : "") + '">' +
+      '<span style="display:inline-flex;gap:10px;flex-wrap:wrap">' + checks + '</span>' +
+      '<button type="button" class="ghost small" data-act="delrow">✕</button></div>';
+  }
+  function renderAvail(listings){
+    if (!listings.length) { $("lstAvail").innerHTML = '<div class="empty">No listings.</div>'; return; }
+    $("lstAvail").innerHTML = listings.map(function(L){
+      var restricted = L.dates && L.dates.length > 0;
+      var badge = restricted ? '<span class="pill" style="background:#fdeeda;color:#8a5a00">🔒 Owner times only · ' + L.dates.length + ' date' + (L.dates.length > 1 ? "s" : "") + '</span>'
+                             : '<span class="pill" style="background:#e6f4ea;color:#1d6b3c">🟢 Open — all standard slots</span>';
+      var rows = (L.dates || []).map(avRowHtml).join("");
+      return '<div class="card" data-mls="' + esc(L.mls) + '">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0">' + esc(L.street) + ', ' + esc(L.city) + '</h2>' + badge + '</div>' +
+        '<div class="mut" style="margin:4px 0 6px">$' + Number(L.price).toLocaleString("en-CA") + ' · MLS ' + esc(L.mls) + '</div>' +
+        '<div class="avrows">' + rows + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="ghost small" data-act="addrow">+ Add date</button>' +
+        '<button type="button" class="btn-spruce" data-act="save">Save availability</button>' +
+        (restricted ? '<button type="button" class="ghost small" data-act="clear">Clear — open all slots</button>' : "") + '</div></div>';
+    }).join("");
+  }
+  function loadAvail(){
+    api(API_URL, "/api/admin/availability").then(function(d){
+      if (!d || !d.ok) { $("lstAvail").innerHTML = '<div class="empty">Could not load.</div>'; return; }
+      renderAvail(d.listings || []);
+    }).catch(function(){ $("lstAvail").innerHTML = '<div class="empty">Could not load.</div>'; });
+  }
+  $("lstRefresh").addEventListener("click", loadAvail);
+  $("lstAvail").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    var card = btn.closest("[data-mls]");
+    var mls = card.getAttribute("data-mls");
+    var act = btn.getAttribute("data-act");
+    if (act === "addrow") {
+      var wrap = card.querySelector(".avrows");
+      var tmp = document.createElement("div");
+      tmp.innerHTML = avRowHtml(null);
+      wrap.appendChild(tmp.firstChild);
+    }
+    if (act === "delrow") { var r = btn.closest(".avrow"); if (r) r.remove(); }
+    if (act === "clear") {
+      if (!confirm("Remove the set availability for this listing? All standard slots will be open again.")) return;
+      api(API_URL, "/api/admin/availability/" + encodeURIComponent(mls), { method: "DELETE" })
+        .then(function(d){ if (d && d.ok) { toast("Availability cleared ✓"); loadAvail(); } else toast("Could not clear", true); })
+        .catch(function(){ toast("Could not clear", true); });
+    }
+    if (act === "save") {
+      var dates = [];
+      Array.prototype.forEach.call(card.querySelectorAll(".avrow"), function(row){
+        var dv = row.querySelector(".av-date").value;
+        var times = [];
+        Array.prototype.forEach.call(row.querySelectorAll(".av-t"), function(cb){ if (cb.checked) times.push(cb.value); });
+        if (dv && times.length) dates.push({ date: dv, times: times });
+      });
+      api(API_URL, "/api/admin/availability/" + encodeURIComponent(mls), { method: "POST", body: JSON.stringify({ dates: dates }) })
+        .then(function(d){ if (d && d.ok) { toast(dates.length ? "Availability saved ✓" : "Availability cleared ✓"); loadAvail(); } else toast("Could not save", true); })
+        .catch(function(){ toast("Could not save", true); });
+    }
+  });
+
   function loadUsers(){
     api(API_URL, "/api/admin/users").then(function(d){
       if (!d || !d.ok) return;
