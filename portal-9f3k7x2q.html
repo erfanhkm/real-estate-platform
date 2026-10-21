@@ -199,7 +199,14 @@
         <div><h1>Market Radar</h1><div class="mut" id="radarCount"></div></div>
         <button class="ghost small" id="radarRefresh">Refresh</button>
       </div>
-      <div class="hint" style="margin-bottom:12px">Your private daily market scan — buyers looking for a home and owners selling directly (FSBO), matched where possible. Only you can see this page; it is not linked anywhere on the public website. The agent scans every morning and adds new finds here.</div>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:700;font-size:15px">📡 Daily market scan</div>
+          <div class="mut" id="radarState">Loading…</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="radarToggle"> <b id="radarToggleLabel">Off</b></label>
+      </div>
+      <div class="hint" style="margin-bottom:12px">Your private daily market scan — buyers looking for a home and owners selling directly (FSBO), matched where possible. Only you can see this page; it is not linked anywhere on the public website.</div>
       <div class="filters">
         <select id="radarStatus">
           <option value="">All statuses</option>
@@ -406,11 +413,32 @@
   $("radarStatus").addEventListener("change", renderRadar);
   $("radarKind").addEventListener("change", renderRadar);
   function loadRadar(){
+    loadRadarSettings();
     api(API_URL, "/api/market-leads").then(function(d){
       mleads = (d && d.ok && d.leads) || [];
       renderRadar();
     }).catch(function(){});
   }
+  function loadRadarSettings(){
+    api(API_URL, "/api/radar-settings").then(function(d){
+      var on = !!(d && d.ok && d.enabled);
+      $("radarToggle").checked = on;
+      syncRadarState(on);
+    }).catch(function(){});
+  }
+  function syncRadarState(on){
+    $("radarToggleLabel").textContent = on ? "On" : "Off";
+    $("radarState").textContent = on ? "On — the agent scans the market every day at 9:00 AM and adds new leads below." : "Off — no scans run at all. Turn it on when you want the daily scan.";
+  }
+  $("radarToggle").addEventListener("change", function(){
+    var on = $("radarToggle").checked;
+    api(API_URL, "/api/radar-settings", { method: "PUT", body: JSON.stringify({ enabled: on }) })
+      .then(function(d){
+        if (d && d.ok){ syncRadarState(d.enabled); toast(d.enabled ? "Daily scan ON — runs every day at 9:00 AM ✓" : "Daily scan OFF"); }
+        else { $("radarToggle").checked = !on; toast("Could not save the switch", true); }
+      })
+      .catch(function(){ $("radarToggle").checked = !on; toast("Could not save the switch", true); });
+  });
   function kindLabel(k){
     return k === "seller" ? "🏷️ Seller (FSBO)" : k === "pair" ? "🔗 Matched pair" : "🛒 Buyer looking";
   }
