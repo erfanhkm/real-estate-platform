@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-roKhggMztGUIhcMbi66T0YZOWaAqxoes55FXR3qRSPc='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -21,9 +22,7 @@
     <meta name="twitter:image" content="https://real-estate-platform-0aei.onrender.com/photos/hero.webp">
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Erfan BC Real Estate — Homes, Mortgage Tools and Advice in 4 Languages","description":"Find your next home in Metro Vancouver with sample listings, Canadian mortgage and affordability calculators, investor tools and a first-time buyer guide — in English, Farsi, Hindi and Chinese. Live MLS search launches after licensing in 2027.","url":"https://real-estate-platform-0aei.onrender.com/","inLanguage":["en","fa","hi","zh"],"isPartOf":{"@type":"WebSite","name":"Erfan BC Real Estate","url":"https://real-estate-platform-0aei.onrender.com/"}}</script>
     <style>.sec-head h1{font-size:clamp(24px,3.4vw,34px)}</style>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Source+Sans+3:wght@400;600;700&family=Vazirmatn:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+SC:wght@400;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="fonts.css" />
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
       :root{
@@ -560,37 +559,37 @@
     }
     var CITIES = ["Burnaby","Coquitlam","Port Coquitlam","Surrey","Vancouver"];
     var LISTINGS = [
-      {mls:"R2991001",price:689000,street:"2108-4981 Kingsway",city:"Burnaby",postal:"V5H 4M2",type:"condo",beds:2,baths:2,sqft:872,lot:null,year:2019,parking:"underground",stalls:1,strata:412,status:"active",listed:"2026-10-08",dom:10,photo:"photos/R2991001.jpg",
+      {mls:"R2991001",price:689000,street:"2108-4981 Kingsway",city:"Burnaby",postal:"V5H 4M2",type:"condo",beds:2,baths:2,sqft:872,lot:null,year:2019,parking:"underground",stalls:1,strata:412,status:"active",listed:"2026-10-08",dom:10,photo:"photos/R2991001.webp",
        features:["balcony","laundry","gym","concierge"],
        desc:{en:"Bright 2-bed corner unit steps to Metrotown SkyTrain. Open plan, quartz counters, balcony with city views.",
              fa:"واحد گوشه‌ای روشن دوخوابه، چند قدمی اسکای‌ترین متروتاون. نقشه‌ی باز، کانتر کوارتز و بالکن با چشم‌انداز شهر.",
              hi:"मेट्रोटाउन स्काईट्रेन से कुछ कदम दूर उजला 2-बेड कॉर्नर यूनिट। ओपन प्लान, क्वार्ट्ज़ काउंटर, शहर के दृश्य वाली बालकनी।",
              zh:"明亮的两卧转角单位,步行可达 Metrotown 天车站。开放式布局,石英台面,阳台享城市景观。"}},
-      {mls:"R2991002",price:749000,street:"45-1188 Inlet Street",city:"Coquitlam",postal:"V3B 6A9",type:"townhouse",beds:3,baths:2.5,sqft:1340,lot:null,year:2016,parking:"garage",stalls:2,strata:285,status:"active",listed:"2026-10-02",dom:16,photo:"photos/R2991002.jpg",
+      {mls:"R2991002",price:749000,street:"45-1188 Inlet Street",city:"Coquitlam",postal:"V3B 6A9",type:"townhouse",beds:3,baths:2.5,sqft:1340,lot:null,year:2016,parking:"garage",stalls:2,strata:285,status:"active",listed:"2026-10-02",dom:16,photo:"photos/R2991002.webp",
        features:["fenced_yard","dbl_garage","fireplace"],
        desc:{en:"End-unit townhouse near Lafarge Lake. Double garage, fenced yard, top-floor primary retreat.",
              fa:"تاون‌هاوس انتهایی نزدیک دریاچه‌ی لافارژ. گاراژ دوبل، حیاط محصور و اتاق‌خواب اصلی در طبقه‌ی بالا.",
              hi:"लाफ़ार्ज झील के पास एंड-यूनिट टाउनहाउस। डबल गैरेज, बाड़ वाला आँगन, ऊपरी मंज़िल पर मुख्य बेडरूम।",
              zh:"位于 Lafarge 湖附近的端户联排别墅。双车位车库、围栏庭院,顶层主卧套房。"}},
-      {mls:"R2991003",price:1299000,street:"7421 18th Avenue",city:"Burnaby",postal:"V3N 1H3",type:"house",beds:4,baths:3,sqft:2310,lot:6012,year:1988,parking:"garage",stalls:2,strata:null,status:"active",listed:"2026-09-28",dom:20,photo:"photos/R2991003.jpg",
+      {mls:"R2991003",price:1299000,street:"7421 18th Avenue",city:"Burnaby",postal:"V3N 1H3",type:"house",beds:4,baths:3,sqft:2310,lot:6012,year:1988,parking:"garage",stalls:2,strata:null,status:"active",listed:"2026-09-28",dom:20,photo:"photos/R2991003.webp",
        features:["reno_kitchen","suite","deck"],
        desc:{en:"Updated family home on a quiet street. Renovated kitchen (2023), legal 1-bed suite potential.",
              fa:"خانه‌ی خانوادگی به‌روز در خیابانی آرام. آشپزخانه‌ی بازسازی‌شده (۲۰۲۳) و قابلیت سوئیت قانونی یک‌خوابه.",
              hi:"शांत सड़क पर नवीनीकृत पारिवारिक घर। 2023 में नवीनीकृत रसोई, कानूनी 1-बेड सूट की संभावना।",
              zh:"位于安静街道的翻新家庭住宅。厨房于 2023 年翻新,具备合法一卧套房潜力。"}},
-      {mls:"R2991004",price:549000,street:"1506-833 Seymour Street",city:"Vancouver",postal:"V6B 0G4",type:"condo",beds:1,baths:1,sqft:618,lot:null,year:2011,parking:"underground",stalls:1,strata:498,status:"active",listed:"2026-10-12",dom:6,photo:"photos/R2991004.jpg",
+      {mls:"R2991004",price:549000,street:"1506-833 Seymour Street",city:"Vancouver",postal:"V6B 0G4",type:"condo",beds:1,baths:1,sqft:618,lot:null,year:2011,parking:"underground",stalls:1,strata:498,status:"active",listed:"2026-10-12",dom:6,photo:"photos/R2991004.webp",
        features:["concierge","rooftop","bike_room"],
        desc:{en:"Downtown 1-bed, 2 blocks to Granville SkyTrain. Floor-to-ceiling windows, 24hr concierge.",
              fa:"یک‌خوابه در مرکز شهر، دو بلوک تا اسکای‌ترین گرنویل. پنجره‌های سرتاسری و پذیرش ۲۴ ساعته.",
              hi:"डाउनटाउन 1-बेड, ग्रानविल स्काईट्रेन से 2 ब्लॉक। फ़र्श से छत तक खिड़कियाँ, 24 घंटे कंसीयर्ज।",
              zh:"市中心一卧单位,距 Granville 天车站仅两个街区。落地窗,24 小时门卫服务。"}},
-      {mls:"R2991005",price:899000,street:"22-15500 102A Avenue",city:"Surrey",postal:"V3R 7B4",type:"townhouse",beds:3,baths:2.5,sqft:1480,lot:null,year:2021,parking:"garage",stalls:2,strata:310,status:"pending",listed:"2026-09-20",dom:28,photo:"photos/R2991005.jpg",
+      {mls:"R2991005",price:899000,street:"22-15500 102A Avenue",city:"Surrey",postal:"V3R 7B4",type:"townhouse",beds:3,baths:2.5,sqft:1480,lot:null,year:2021,parking:"garage",stalls:2,strata:310,status:"pending",listed:"2026-09-20",dom:28,photo:"photos/R2991005.webp",
        features:["ac","ev","playground"],
        desc:{en:"Near-new townhouse in Guildford. Air conditioning, EV-ready garage, steps to parks and schools.",
              fa:"تاون‌هاوس تقریباً نوساز در گیلدفورد. کولر گازی، گاراژ آماده‌ی شارژ خودرو برقی و نزدیک پارک و مدرسه.",
              hi:"गिल्डफ़ोर्ड में लगभग नया टाउनहाउस। एयर कंडीशनिंग, EV-तैयार गैरेज, पार्क और स्कूल पास में।",
              zh:"Guildford 近乎全新的联排别墅。配备空调、电动车充电就绪车库,步行可达公园和学校。"}},
-      {mls:"R2991006",price:425000,street:"309-550 Kirkland Avenue",city:"Port Coquitlam",postal:"V3B 1H2",type:"condo",beds:2,baths:1,sqft:795,lot:null,year:1994,parking:"underground",stalls:1,strata:365,status:"active",listed:"2026-10-05",dom:13,photo:"photos/R2991006.jpg",
+      {mls:"R2991006",price:425000,street:"309-550 Kirkland Avenue",city:"Port Coquitlam",postal:"V3B 1H2",type:"condo",beds:2,baths:1,sqft:795,lot:null,year:1994,parking:"underground",stalls:1,strata:365,status:"active",listed:"2026-10-05",dom:13,photo:"photos/R2991006.webp",
        features:["mt_view","new_roof","storage"],
        desc:{en:"Affordable 2-bed with mountain views. Newer roof (2022), proactive strata, near West Coast Express.",
              fa:"دوخوابه‌ی مقرون‌به‌صرفه با چشم‌انداز کوهستان. سقف نوسازی‌شده (۲۰۲۲)، مدیریت فعال ساختمان و نزدیک قطار West Coast Express.",
@@ -1256,7 +1255,7 @@
         '<span class="badge'+(l.status==="pending"?" pending":"")+'">'+esc(l.status==="pending"?t.pending:t.active)+'</span><button type="button" class="save-btn" data-save="'+l.mls+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
         '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city])+", BC · "+esc(l.postal)+"</div>" +
         '<div class="specs">'+specs+'</div><p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" onclick="openListing(\''+l.mls+'\')">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
+        '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+l.mls+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
     /* ---------- newsletter signup ---------- */
     var NL_URL = "https://newsletter-signup.erfanbillion.workers.dev";
@@ -1659,7 +1658,7 @@
         return "<b>" + fmt(l.price) + "</b> — " + l.beds + " " + esc(t.beds) + " · " + esc(t["type_" + l.type]) + " · " + esc(t.cities[l.city] || l.city)
           + (l.status === "pending" ? " · " + esc(t.pending) : "")
           + " · MLS® " + l.mls
-          + " · <a href=\"#listings\" onclick=\"openListing('" + l.mls + "');return false;\">" + esc(t.view) + "</a>";
+          + " · <a href=\"#listings\" data-open-listing=\"" + l.mls + "\">" + esc(t.view) + "</a>";
       });
       return fill(t.sr_found, {n: hits.length}) + "<br>" + lines.join("<br>");
     }
@@ -2036,10 +2035,10 @@
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", savedOk: "Saved.", passHint: "At least 6 characters" },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", savedOk: "ذخیره شد.", passHint: "حداقل ۶ حرف" },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", savedOk: "सहेजा गया।", passHint: "कम से कम 6 अक्षर" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", savedOk: "已保存。", passHint: "至少 6 个字符" }
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", savedOk: "Saved.", passHint: "At least 8 characters" },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف" },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", savedOk: "已保存。", passHint: "至少 8 个字符" }
         };
         var MINI = {
           "R2991001": ["2108-4981 Kingsway", "Burnaby", 689000],
@@ -2051,6 +2050,23 @@
         };
         function lang(){ try { return localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){ return "en"; } }
         function tt(k){ var d = STR[lang()] || STR.en; return d[k] || STR.en[k] || k; }
+        var TS_KEY = "0x4AAAAAAFbCjECJ3G_8xgJE", tsTries = 0;
+        function tsRenderAll(){
+          var els = document.querySelectorAll(".fx-ts");
+          if (!els.length) return;
+          if (!window.turnstile || !turnstile.render) { if (tsTries++ < 12) setTimeout(tsRenderAll, 400); return; }
+          els.forEach(function(el){ if (el.getAttribute("data-done")) return; el.setAttribute("data-done", "1");
+            try { el._wid = turnstile.render(el, { sitekey: TS_KEY, size: "flexible" }); } catch(e){} });
+        }
+        function tsToken(name){
+          var el = document.querySelector('.fx-ts[data-ts="' + name + '"]');
+          if (!el || !window.turnstile || !turnstile.getResponse) return "";
+          try { return turnstile.getResponse(el._wid) || ""; } catch(e){ return ""; }
+        }
+        function tsReset(name){
+          var el = document.querySelector('.fx-ts[data-ts="' + name + '"]');
+          if (el && window.turnstile && turnstile.reset) { try { turnstile.reset(el._wid); } catch(e){} }
+        }
         function esc2(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
         function money(n){ return "$" + Number(n).toLocaleString("en-US"); }
         var token = ""; try { token = localStorage.getItem("re_user_token") || ""; } catch(e){}
@@ -2101,6 +2117,7 @@
             '<label>' + tt("email") + '</label><input type="email" id="fxEmail" autocomplete="email" required />' +
             '<label>' + tt("password") + '</label><input type="password" id="fxPass" autocomplete="' + (reg ? "new-password" : "current-password") + '" required />' +
             (reg ? '<div style="font-size:13px;color:#5b6660;margin-top:5px">' + tt("passHint") + '</div>' : "") +
+            '<div class="fx-ts" data-ts="auth" style="margin-top:12px"></div>' +
             '<div class="fx-err" id="fxErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + (reg ? tt("register") : tt("signIn")) + '</button>' +
             '<button type="button" class="btn btn-line" id="fxCancel">' + tt("close") + '</button></div></form>';
@@ -2112,14 +2129,18 @@
             e.preventDefault();
             var email = document.getElementById("fxEmail").value, pass = document.getElementById("fxPass").value;
             var err = document.getElementById("fxErr");
-            var payload = reg ? { name: document.getElementById("fxName").value, email: email, password: pass, lang: lang() } : { email: email, password: pass };
+            var tsTok = tsToken("auth");
+            if (reg && window.turnstile && !tsTok) { err.textContent = tt("captchaErr"); tsRenderAll(); return; }
+            var payload = reg ? { name: document.getElementById("fxName").value, email: email, password: pass, lang: lang(), turnstileToken: tsTok } : { email: email, password: pass };
             api(reg ? "/api/user/register" : "/api/user/login", "POST", payload).then(function(d){
               token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e2){}
               me = d.user; loadMe().then(function(){ showAccount(); });
             }).catch(function(er){
-              err.textContent = er.message === "credentials" ? tt("errCreds") : (er.message === "exists" ? tt("errExists") : tt("errGeneric"));
+              err.textContent = er.message === "credentials" ? tt("errCreds") : (er.message === "exists" ? tt("errExists") : (er.message === "captcha" ? tt("captchaErr") : tt("errGeneric")));
+              if (er.message === "captcha") tsReset("auth");
             });
           });
+          tsRenderAll();
         }
         function loadMe(){
           if (!token) return Promise.resolve();
@@ -2174,7 +2195,11 @@
         }
         document.addEventListener("click", function(e){
           var b = e.target && e.target.closest ? e.target.closest("[data-save]") : null;
-          if (b) { e.preventDefault(); toggleSave(b.getAttribute("data-save")); }
+          if (b) { e.preventDefault(); toggleSave(b.getAttribute("data-save")); return; }
+          var ol = e.target && e.target.closest ? e.target.closest("[data-open-listing]") : null;
+          if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
+          var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
+          if (kt && typeof kcToggle === "function") kcToggle(kt);
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
@@ -2213,16 +2238,20 @@
             '<label>' + tt("name") + '</label><input type="text" id="fxVName" value="' + (me ? esc2(me.name) : "") + '" required />' +
             '<label>' + tt("email") + '</label><input type="email" id="fxVEmail" value="' + (me ? esc2(me.email) : "") + '" required />' +
             '<label>' + tt("phone") + '</label><input type="tel" id="fxVPhone" />' +
+            '<div class="fx-ts" data-ts="view" style="margin-top:12px"></div>' +
             '<div class="fx-err" id="fxVErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + tt("confirm") + '</button>' +
             '<button type="button" class="btn btn-line" id="fxVCancel">' + tt("close") + '</button></div></form>');
           document.getElementById("fxVCancel").addEventListener("click", closeFx);
           document.getElementById("fxViewForm").addEventListener("submit", function(e){
             e.preventDefault();
-            var payload = { listingId: mls || "", date: document.getElementById("fxVDate").value, time: document.getElementById("fxVTime").value, name: document.getElementById("fxVName").value, email: document.getElementById("fxVEmail").value, phone: document.getElementById("fxVPhone").value, lang: lang() };
+            var vTok = tsToken("view");
+            if (window.turnstile && !vTok) { document.getElementById("fxVErr").textContent = tt("captchaErr"); tsRenderAll(); return; }
+            var payload = { listingId: mls || "", date: document.getElementById("fxVDate").value, time: document.getElementById("fxVTime").value, name: document.getElementById("fxVName").value, email: document.getElementById("fxVEmail").value, phone: document.getElementById("fxVPhone").value, lang: lang(), turnstileToken: vTok };
             api("/api/viewing", "POST", payload).then(function(){ closeFx(); toast(tt("viewingDone")); })
-              .catch(function(){ document.getElementById("fxVErr").textContent = tt("errGeneric"); });
+              .catch(function(er){ document.getElementById("fxVErr").textContent = (er && er.message === "captcha") ? tt("captchaErr") : tt("errGeneric"); if (er && er.message === "captcha") tsReset("view"); });
           });
+          tsRenderAll();
         }
         var resetBtn = document.getElementById("resetBtn");
         if (resetBtn && resetBtn.parentNode) {
