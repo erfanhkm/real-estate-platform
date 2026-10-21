@@ -131,6 +131,7 @@
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
+    <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
     <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
@@ -285,6 +286,23 @@
         <div class="stat"><div class="n" id="nlZh">–</div><div class="l">中文 (Chinese)</div></div>
       </div>
       <div id="nlGroups"></div>
+    </section>
+
+    <!-- MAINTENANCE -->
+    <section id="page-maintenance" hidden>
+      <div class="pagehead">
+        <div><h1>Site maintenance</h1><div class="mut">Health, SEO and weight checks for every page, service status, and safe data repairs — runs automatically every week, or on demand here</div></div>
+        <button class="btn-spruce small" id="mtRun">Run maintenance now</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="mtChecks">–</div><div class="l">Checks passed</div></div>
+        <div class="stat"><div class="n" id="mtIssues">–</div><div class="l">Issues found</div></div>
+        <div class="stat"><div class="n" id="mtRepairs">–</div><div class="l">Repairs applied</div></div>
+        <div class="stat"><div class="n" id="mtLast">–</div><div class="l">Last run</div></div>
+      </div>
+      <div class="card"><h2>Repairs applied</h2><div id="mtRepairsList"><div class="empty">No run yet</div></div></div>
+      <div class="card"><h2>Checks</h2><div id="mtChecksList"><div class="empty">No run yet — press “Run maintenance now”</div></div></div>
+      <div class="card"><h2>Run history</h2><div id="mtLog"><div class="empty">No runs yet</div></div></div>
     </section>
 
     <!-- TOURS -->
@@ -445,6 +463,7 @@
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
     if (page === "newsletter") loadNewsletter();
+    if (page === "maintenance") loadMaint();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
     b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
@@ -633,6 +652,40 @@
   // ---------- newsletter subscribers ----------
   $("nlRefresh").addEventListener("click", loadNewsletter);
   var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
+  function renderMaint(rep, log){
+    if (!rep){ $("mtChecksList").innerHTML = '<div class="empty">No run yet — press “Run maintenance now”</div>'; return; }
+    var okN = (rep.checks || []).filter(function(c){ return c.ok; }).length;
+    $("mtChecks").textContent = okN + "/" + (rep.checks || []).length;
+    $("mtIssues").textContent = (rep.issues || []).length;
+    $("mtRepairs").textContent = (rep.repairs || []).length;
+    $("mtLast").textContent = String(rep.ts || "").slice(0, 16).replace("T", " ");
+    $("mtRepairsList").innerHTML = (rep.repairs && rep.repairs.length)
+      ? rep.repairs.map(function(r){ return '<div class="tourrow"><div>🔧 ' + esc(r) + '</div></div>'; }).join("")
+      : '<div class="empty">Nothing needed repair</div>';
+    $("mtChecksList").innerHTML = (rep.checks || []).map(function(c){
+      return '<div class="tourrow"><div>' + (c.ok ? "✅" : "❌") + " " + esc(c.name) + '</div><span class="mut">' + esc(c.detail) + '</span></div>';
+    }).join("");
+    $("mtLog").innerHTML = (log && log.length)
+      ? log.map(function(l){ return '<div class="tourrow"><div>' + esc(String(l.ts || "").slice(0, 16).replace("T", " ")) + '</div><span class="mut">' + esc(l.checksOk + "/" + l.checksTotal + " checks ok · " + l.issues + " issues · " + l.repairs + " repairs") + '</span></div>'; }).join("")
+      : '<div class="empty">No runs yet</div>';
+  }
+  function loadMaint(){
+    api(API_URL, "/api/admin/maintenance").then(function(d){
+      if (!d || !d.ok) return;
+      renderMaint(d.last, d.log);
+    }).catch(function(){});
+  }
+  function runMaint(){
+    var btn = $("mtRun");
+    btn.disabled = true; btn.textContent = "Running… (about 20 seconds)";
+    api(API_URL, "/api/admin/maintenance", { method: "POST" }).then(function(d){
+      btn.disabled = false; btn.textContent = "Run maintenance now";
+      if (d && d.ok && d.report) { renderMaint(d.report, null); loadMaint(); toast(d.report.issues.length ? "Done — " + d.report.issues.length + " issue(s) found" : "Done — everything healthy"); }
+      else toast("Maintenance failed", true);
+    }).catch(function(){ btn.disabled = false; btn.textContent = "Run maintenance now"; toast("Maintenance failed", true); });
+  }
+  $("mtRun").addEventListener("click", runMaint);
+
   function loadNewsletter(){
     api(API_URL, "/api/admin/newsletter").then(function(d){
       if (!d || !d.ok) return;
