@@ -1231,11 +1231,17 @@
         (l.sqft ? "<span><b>"+l.sqft.toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
         (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
       var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
+      var cmpBtn = "";
+      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
+        var cOn = cmpSel.indexOf(l.mls) !== -1;
+        var cMax = !cOn && cmpSel.length >= 4;
+        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+l.mls+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
+      }
       return '<article class="card"><div class="ph"><img src="'+l.photo+'" alt="'+esc(t["type_"+l.type])+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
         '<span class="badge'+(l.status==="pending"?" pending":"")+'">'+esc(l.status==="pending"?t.pending:t.active)+"</span></div>" +
         '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city])+", BC · "+esc(l.postal)+"</div>" +
         '<div class="specs">'+specs+'</div><p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" onclick="openListing(\''+l.mls+'\')">'+esc(t.view)+"</button></div></div></article>";
+        '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" onclick="openListing(\''+l.mls+'\')">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
     /* ---------- newsletter signup ---------- */
     var NL_URL = "https://newsletter-signup.erfanbillion.workers.dev";
