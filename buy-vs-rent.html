@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-k48klJ534OhmZjFFpMpr0nsqOIzNRR/oCzEa08f3FDg=' 'sha256-as1y3EMm+LuPl8S+G/q3VMYGdBk8Im1amzYWPlgQT10='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-k48klJ534OhmZjFFpMpr0nsqOIzNRR/oCzEa08f3FDg=' 'sha256-F8HnXs1YZmcIbILvXOOwxAXqYgXBoYiiJDdtT1r8xKg='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -2250,7 +2250,7 @@
           var times = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
-            '<div id="fxVNote" style="font-size:13.5px;color:#8a5a00;margin:0 0 4px"></div>' +
+            '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
             '<form id="fxViewForm">' +
             '<label>' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +
             '<label>' + tt("time") + '</label><select id="fxVTime">' + times + '</select>' +
