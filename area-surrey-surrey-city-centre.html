@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-1JRu0NbIO7B5EFy+Rlon3sEc7Iieh4ADgVPueFZEX9w=' 'sha256-ZCkZhogZbuRHy3ctPWthMuLKgIlwphdtQ/IPQqrpBhU='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-1JRu0NbIO7B5EFy+Rlon3sEc7Iieh4ADgVPueFZEX9w=' 'sha256-s2CW8TpHaStqqOQ45QSFbAXc5G6Yt67PQNlgAhlec7c='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -524,37 +524,37 @@
     }
     var CITIES = ["Burnaby","Coquitlam","Port Coquitlam","Surrey","Vancouver"];
     var LISTINGS = [
-      {mls:"R2991001",price:689000,street:"2108-4981 Kingsway",city:"Burnaby",postal:"V5H 4M2",type:"condo",beds:2,baths:2,sqft:872,lot:null,year:2019,parking:"underground",stalls:1,strata:412,status:"active",listed:"2026-10-08",dom:10,photo:"photos/R2991001.webp",
+      {mls:"R2991001",price:689000,street:"2108-4981 Kingsway",city:"Burnaby",postal:"V5H 4M2",type:"condo",beds:2,baths:2,sqft:872,lot:null,year:2019,parking:"underground",stalls:1,strata:412,tax:2410,status:"active",listed:"2026-10-08",dom:10,photo:"photos/R2991001.webp",
        features:["balcony","laundry","gym","concierge"],
        desc:{en:"Bright 2-bed corner unit steps to Metrotown SkyTrain. Open plan, quartz counters, balcony with city views.",
              fa:"واحد گوشه‌ای روشن دوخوابه، چند قدمی اسکای‌ترین متروتاون. نقشه‌ی باز، کانتر کوارتز و بالکن با چشم‌انداز شهر.",
              hi:"मेट्रोटाउन स्काईट्रेन से कुछ कदम दूर उजला 2-बेड कॉर्नर यूनिट। ओपन प्लान, क्वार्ट्ज़ काउंटर, शहर के दृश्य वाली बालकनी।",
              zh:"明亮的两卧转角单位,步行可达 Metrotown 天车站。开放式布局,石英台面,阳台享城市景观。"}},
-      {mls:"R2991002",price:749000,street:"45-1188 Inlet Street",city:"Coquitlam",postal:"V3B 6A9",type:"townhouse",beds:3,baths:2.5,sqft:1340,lot:null,year:2016,parking:"garage",stalls:2,strata:285,status:"active",listed:"2026-10-02",dom:16,photo:"photos/R2991002.webp",
+      {mls:"R2991002",price:749000,street:"45-1188 Inlet Street",city:"Coquitlam",postal:"V3B 6A9",type:"townhouse",beds:3,baths:2.5,sqft:1340,lot:null,year:2016,parking:"garage",stalls:2,strata:285,tax:3120,status:"active",listed:"2026-10-02",dom:16,photo:"photos/R2991002.webp",
        features:["fenced_yard","dbl_garage","fireplace"],
        desc:{en:"End-unit townhouse near Lafarge Lake. Double garage, fenced yard, top-floor primary retreat.",
              fa:"تاون‌هاوس انتهایی نزدیک دریاچه‌ی لافارژ. گاراژ دوبل، حیاط محصور و اتاق‌خواب اصلی در طبقه‌ی بالا.",
              hi:"लाफ़ार्ज झील के पास एंड-यूनिट टाउनहाउस। डबल गैरेज, बाड़ वाला आँगन, ऊपरी मंज़िल पर मुख्य बेडरूम।",
              zh:"位于 Lafarge 湖附近的端户联排别墅。双车位车库、围栏庭院,顶层主卧套房。"}},
-      {mls:"R2991003",price:1299000,street:"7421 18th Avenue",city:"Burnaby",postal:"V3N 1H3",type:"house",beds:4,baths:3,sqft:2310,lot:6012,year:1988,parking:"garage",stalls:2,strata:null,status:"active",listed:"2026-09-28",dom:20,photo:"photos/R2991003.webp",
+      {mls:"R2991003",price:1299000,street:"7421 18th Avenue",city:"Burnaby",postal:"V3N 1H3",type:"house",beds:4,baths:3,sqft:2310,lot:6012,year:1988,parking:"garage",stalls:2,strata:null,tax:5260,status:"active",listed:"2026-09-28",dom:20,photo:"photos/R2991003.webp",
        features:["reno_kitchen","suite","deck"],
        desc:{en:"Updated family home on a quiet street. Renovated kitchen (2023), legal 1-bed suite potential.",
              fa:"خانه‌ی خانوادگی به‌روز در خیابانی آرام. آشپزخانه‌ی بازسازی‌شده (۲۰۲۳) و قابلیت سوئیت قانونی یک‌خوابه.",
              hi:"शांत सड़क पर नवीनीकृत पारिवारिक घर। 2023 में नवीनीकृत रसोई, कानूनी 1-बेड सूट की संभावना।",
              zh:"位于安静街道的翻新家庭住宅。厨房于 2023 年翻新,具备合法一卧套房潜力。"}},
-      {mls:"R2991004",price:549000,street:"1506-833 Seymour Street",city:"Vancouver",postal:"V6B 0G4",type:"condo",beds:1,baths:1,sqft:618,lot:null,year:2011,parking:"underground",stalls:1,strata:498,status:"active",listed:"2026-10-12",dom:6,photo:"photos/R2991004.webp",
+      {mls:"R2991004",price:549000,street:"1506-833 Seymour Street",city:"Vancouver",postal:"V6B 0G4",type:"condo",beds:1,baths:1,sqft:618,lot:null,year:2011,parking:"underground",stalls:1,strata:498,tax:2050,status:"active",listed:"2026-10-12",dom:6,photo:"photos/R2991004.webp",
        features:["concierge","rooftop","bike_room"],
        desc:{en:"Downtown 1-bed, 2 blocks to Granville SkyTrain. Floor-to-ceiling windows, 24hr concierge.",
              fa:"یک‌خوابه در مرکز شهر، دو بلوک تا اسکای‌ترین گرنویل. پنجره‌های سرتاسری و پذیرش ۲۴ ساعته.",
              hi:"डाउनटाउन 1-बेड, ग्रानविल स्काईट्रेन से 2 ब्लॉक। फ़र्श से छत तक खिड़कियाँ, 24 घंटे कंसीयर्ज।",
              zh:"市中心一卧单位,距 Granville 天车站仅两个街区。落地窗,24 小时门卫服务。"}},
-      {mls:"R2991005",price:899000,street:"22-15500 102A Avenue",city:"Surrey",postal:"V3R 7B4",type:"townhouse",beds:3,baths:2.5,sqft:1480,lot:null,year:2021,parking:"garage",stalls:2,strata:310,status:"pending",listed:"2026-09-20",dom:28,photo:"photos/R2991005.webp",
+      {mls:"R2991005",price:899000,street:"22-15500 102A Avenue",city:"Surrey",postal:"V3R 7B4",type:"townhouse",beds:3,baths:2.5,sqft:1480,lot:null,year:2021,parking:"garage",stalls:2,strata:310,tax:3480,status:"pending",listed:"2026-09-20",dom:28,photo:"photos/R2991005.webp",
        features:["ac","ev","playground"],
        desc:{en:"Near-new townhouse in Guildford. Air conditioning, EV-ready garage, steps to parks and schools.",
              fa:"تاون‌هاوس تقریباً نوساز در گیلدفورد. کولر گازی، گاراژ آماده‌ی شارژ خودرو برقی و نزدیک پارک و مدرسه.",
              hi:"गिल्डफ़ोर्ड में लगभग नया टाउनहाउस। एयर कंडीशनिंग, EV-तैयार गैरेज, पार्क और स्कूल पास में।",
              zh:"Guildford 近乎全新的联排别墅。配备空调、电动车充电就绪车库,步行可达公园和学校。"}},
-      {mls:"R2991006",price:425000,street:"309-550 Kirkland Avenue",city:"Port Coquitlam",postal:"V3B 1H2",type:"condo",beds:2,baths:1,sqft:795,lot:null,year:1994,parking:"underground",stalls:1,strata:365,status:"active",listed:"2026-10-05",dom:13,photo:"photos/R2991006.webp",
+      {mls:"R2991006",price:425000,street:"309-550 Kirkland Avenue",city:"Port Coquitlam",postal:"V3B 1H2",type:"condo",beds:2,baths:1,sqft:795,lot:null,year:1994,parking:"underground",stalls:1,strata:365,tax:1760,status:"active",listed:"2026-10-05",dom:13,photo:"photos/R2991006.webp",
        features:["mt_view","new_roof","storage"],
        desc:{en:"Affordable 2-bed with mountain views. Newer roof (2022), proactive strata, near West Coast Express.",
              fa:"دوخوابه‌ی مقرون‌به‌صرفه با چشم‌انداز کوهستان. سقف نوسازی‌شده (۲۰۲۲)، مدیریت فعال ساختمان و نزدیک قطار West Coast Express.",
@@ -581,7 +581,7 @@
       type_condo:"Condo",type_townhouse:"Townhouse",type_house:"House",
       cities:{Burnaby:"Burnaby",Coquitlam:"Coquitlam","Port Coquitlam":"Port Coquitlam",Surrey:"Surrey",Vancouver:"Vancouver"},
       m_price:"Price",m_type:"Property type",d_beds:"Bedrooms",m_baths:"Bathrooms",m_interior:"Interior area",m_lot:"Lot size",m_year:"Year built",m_parking:"Parking",
-      m_strata:"Strata fee (monthly)",m_dom:"Days on market",m_listed:"Listed",m_mls:"MLS® #",m_features:"Features",m_desc:"Description",na:"Not reported",m_ask:"Ask about this home",
+      m_strata:"Strata fee (monthly)",mc_title:"Estimated monthly cost",mc_mort:"Mortgage (20% down · 4.79% · 25 yrs)",mc_tax:"Property tax",mc_heat:"Heating (est.)",mc_note:"Estimate for illustration only — not a quote.",est_mo:"est. /mo",m_dom:"Days on market",m_listed:"Listed",m_mls:"MLS® #",m_features:"Features",m_desc:"Description",na:"Not reported",m_ask:"Ask about this home",
       parking_garage:"Garage",parking_underground:"Underground",parking_carport:"Carport",parking_street:"Street",parking_none:"None",stalls:" · {n} stall(s)",
       features:{balcony:"Balcony",laundry:"In-suite laundry",gym:"Gym",concierge:"Concierge",fenced_yard:"Fenced yard",dbl_garage:"Double garage",fireplace:"Gas fireplace",reno_kitchen:"Renovated kitchen",suite:"Suite potential",deck:"Deck",ac:"Air conditioning",ev:"EV charging",playground:"Playground",rooftop:"Rooftop deck",bike_room:"Bike room",mt_view:"Mountain view",new_roof:"Newer roof",storage:"Storage locker"},
       calc_title:"Mortgage calculator",calc_sub:"Estimates use the standard Canadian formula (semi-annual compounding). CMHC insurance is included when the down payment is under 20%.",
@@ -619,7 +619,7 @@
       type_condo:"آپارتمان",type_townhouse:"تاون‌هاوس",type_house:"خانه‌ی مستقل",
       cities:{Burnaby:"برنابی",Coquitlam:"کوکیتلام","Port Coquitlam":"پورت کوکیتلام",Surrey:"ساری",Vancouver:"ونکوور"},
       m_price:"قیمت",m_type:"نوع ملک",d_beds:"اتاق خواب",m_baths:"حمام",m_interior:"زیربنا",m_lot:"مساحت زمین",m_year:"سال ساخت",m_parking:"پارکینگ",
-      m_strata:"شارژ ساختمان (ماهانه)",m_dom:"روزهای در بازار",m_listed:"تاریخ ثبت",m_mls:"شماره MLS®",m_features:"امکانات",m_desc:"توضیحات",na:"ثبت نشده",m_ask:"پرسش درباره‌ی این خانه",
+      m_strata:"شارژ ساختمان (ماهانه)",mc_title:"هزینه‌ی ماهانه‌ی تخمینی",mc_mort:"وام (۲۰٪ پیش‌پرداخت · ۴٫۷۹٪ · ۲۵ سال)",mc_tax:"مالیات ملک",mc_heat:"گرمایش (تخمینی)",mc_note:"فقط برآورد برای نمایش — پیشنهاد رسمی نیست.",est_mo:"تخمینی /ماه",m_dom:"روزهای در بازار",m_listed:"تاریخ ثبت",m_mls:"شماره MLS®",m_features:"امکانات",m_desc:"توضیحات",na:"ثبت نشده",m_ask:"پرسش درباره‌ی این خانه",
       parking_garage:"گاراژ",parking_underground:"زیرزمینی",parking_carport:"سرپوشیده",parking_street:"خیابانی",parking_none:"ندارد",stalls:" · {n} جای پارک",
       features:{balcony:"بالکن",laundry:"رختشویی داخل واحد",gym:"باشگاه",concierge:"پذیرش",fenced_yard:"حیاط محصور",dbl_garage:"گاراژ دوبل",fireplace:"شومینه گازی",reno_kitchen:"آشپزخانه بازسازی‌شده",suite:"قابلیت سوئیت",deck:"تراس",ac:"کولر گازی",ev:"شارژر خودرو برقی",playground:"زمین بازی",rooftop:"تراس پشت‌بام",bike_room:"اتاق دوچرخه",mt_view:"چشم‌انداز کوهستان",new_roof:"سقف نوسازی‌شده",storage:"انباری"},
       calc_title:"ماشین‌حساب وام مسکن",calc_sub:"برآورد با فرمول استاندارد کانادا (سود مرکب نیم‌سالانه). اگر پیش‌پرداخت کمتر از ۲۰٪ باشد، بیمه‌ی CMHC هم حساب می‌شود.",
@@ -659,7 +659,7 @@
       type_condo:"कॉन्डो",type_townhouse:"टाउनहाउस",type_house:"अलग मकान",
       cities:{Burnaby:"बर्नाबी",Coquitlam:"कोक्विटलम","Port Coquitlam":"पोर्ट कोक्विटलम",Surrey:"सरी",Vancouver:"वैंकूवर"},
       m_price:"कीमत",m_type:"प्रॉपर्टी प्रकार",d_beds:"बेडरूम",m_baths:"बाथरूम",m_interior:"आंतरिक क्षेत्र",m_lot:"प्लॉट क्षेत्र",m_year:"निर्माण वर्ष",m_parking:"पार्किंग",
-      m_strata:"स्ट्राटा शुल्क (मासिक)",m_dom:"बाज़ार में दिन",m_listed:"सूचीबद्ध तिथि",m_mls:"MLS® नंबर",m_features:"विशेषताएँ",m_desc:"विवरण",na:"उपलब्ध नहीं",m_ask:"इस घर के बारे में पूछें",
+      m_strata:"स्ट्राटा शुल्क (मासिक)",mc_title:"अनुमानित मासिक लागत",mc_mort:"बंधक (20% डाउन · 4.79% · 25 वर्ष)",mc_tax:"संपत्ति कर",mc_heat:"हीटिंग (अनुमानित)",mc_note:"केवल अनुमान — आधिकारिक उद्धरण नहीं।",est_mo:"अनुमानित /माह",m_dom:"बाज़ार में दिन",m_listed:"सूचीबद्ध तिथि",m_mls:"MLS® नंबर",m_features:"विशेषताएँ",m_desc:"विवरण",na:"उपलब्ध नहीं",m_ask:"इस घर के बारे में पूछें",
       parking_garage:"गैरेज",parking_underground:"भूमिगत",parking_carport:"कारपोर्ट",parking_street:"सड़क",parking_none:"नहीं",stalls:" · {n} स्थान",
       features:{balcony:"बालकनी",laundry:"यूनिट में लॉन्ड्री",gym:"जिम",concierge:"कंसीयर्ज",fenced_yard:"बाड़ वाला आँगन",dbl_garage:"डबल गैरेज",fireplace:"गैस फ़ायरप्लेस",reno_kitchen:"नवीनीकृत रसोई",suite:"सूट की संभावना",deck:"डेक",ac:"एयर कंडीशनिंग",ev:"EV चार्जिंग",playground:"खेल का मैदान",rooftop:"रूफ़टॉप डेक",bike_room:"बाइक रूम",mt_view:"पहाड़ का दृश्य",new_roof:"नई छत",storage:"स्टोरेज लॉकर"},
       calc_title:"मॉर्गेज कैलकुलेटर",calc_sub:"अनुमान कनाडाई मानक सूत्र (अर्ध-वार्षिक चक्रवृद्धि) से लगाया जाता है। डाउन पेमेंट 20% से कम होने पर CMHC बीमा शामिल है।",
@@ -698,7 +698,7 @@
       type_condo:"公寓",type_townhouse:"联排别墅",type_house:"独立屋",
       cities:{Burnaby:"本拿比",Coquitlam:"高贵林","Port Coquitlam":"高贵林港",Surrey:"素里",Vancouver:"温哥华"},
       m_price:"价格",m_type:"物业类型",d_beds:"卧室",m_baths:"浴室",m_interior:"室内面积",m_lot:"占地面积",m_year:"建造年份",m_parking:"停车位",
-      m_strata:"管理费(每月)",m_dom:"上市天数",m_listed:"上市日期",m_mls:"MLS® 编号",m_features:"特色",m_desc:"描述",na:"未提供",m_ask:"咨询此房源",
+      m_strata:"管理费(每月)",mc_title:"预计每月费用",mc_mort:"房贷(20%首付 · 4.79% · 25年)",mc_tax:"物业税",mc_heat:"暖气(估算)",mc_note:"仅供参考的估算 — 非正式报价。",est_mo:"估算 /月",m_dom:"上市天数",m_listed:"上市日期",m_mls:"MLS® 编号",m_features:"特色",m_desc:"描述",na:"未提供",m_ask:"咨询此房源",
       parking_garage:"车库",parking_underground:"地下停车",parking_carport:"车棚",parking_street:"路边",parking_none:"无",stalls:" · {n} 个车位",
       features:{balcony:"阳台",laundry:"室内洗衣",gym:"健身房",concierge:"门卫服务",fenced_yard:"围栏庭院",dbl_garage:"双车位车库",fireplace:"燃气壁炉",reno_kitchen:"翻新厨房",suite:"套房潜力",deck:"露台",ac:"空调",ev:"电动车充电",playground:"儿童游乐场",rooftop:"屋顶露台",bike_room:"自行车房",mt_view:"山景",new_roof:"较新屋顶",storage:"储物柜"},
       calc_title:"房贷计算器",calc_sub:"按加拿大标准公式(半年复利)估算。首付低于 20% 时包含 CMHC 保险。",
