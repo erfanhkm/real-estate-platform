@@ -327,31 +327,37 @@
       }
       @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
     </style>
+    <style>
+      .tool-card{text-decoration:none;color:inherit}
+      .tool-card h3{font-size:19px;margin:0 0 6px}
+      .tool-card:hover{border-color:var(--brass)}
+    </style>
   </head>
   <body>
     <header>
       <div class="wrap bar">
-        <a class="brand" href="#top">
+        <a class="brand" href="index.html">
           <span class="mark">E</span>
           <span><b>Erfan BC Real Estate</b><span data-i18n="brand_sub">Metro Vancouver · BC, Canada</span></span>
         </a>
         <nav>
-          <a href="#listings" data-i18n="nav_listings">Listings</a>
+          <a href="listings.html" data-i18n="nav_listings">Listings</a>
           <div class="navtools" id="toolsMenu">
             <button type="button" class="navbtn" id="toolsBtn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_tools">AI Tools</span><span class="caret" aria-hidden="true">▾</span></button>
             <div class="menu" id="toolsList" role="menu">
-              <a href="#calculator" role="menuitem" data-i18n="nav_calculator">Mortgage Calculator</a>
-              <a href="#buyvsrent" role="menuitem" data-i18n="nav_bvr">Buy vs Rent</a>
-              <a href="#afford" role="menuitem" data-i18n="nav_afford">Affordability Estimator</a>
-              <a href="#invest" role="menuitem" data-i18n="nav_invest">Investor Analysis</a>
-              <a href="#match" role="menuitem" data-i18n="nav_match">Match Assistant</a>
-              <a href="#assistant" role="menuitem" data-i18n="nav_assistant">Home Buying Assistant</a>
-              <a href="#compare" role="menuitem" data-i18n="nav_compare">Compare Homes</a>
-              <a href="#seller-tools" role="menuitem" data-i18n="nav_seller">Seller Tools</a>
+              <a href="mortgage-calculator.html" role="menuitem" data-i18n="nav_calculator">Mortgage Calculator</a>
+              <a href="buy-vs-rent.html" role="menuitem" data-i18n="nav_bvr">Buy vs Rent</a>
+              <a href="affordability.html" role="menuitem" data-i18n="nav_afford">Affordability Estimator</a>
+              <a href="investor-analysis.html" role="menuitem" data-i18n="nav_invest">Investor Analysis</a>
+              <a href="ai-assistant.html#match" role="menuitem" data-i18n="nav_match">Match Assistant</a>
+              <a href="ai-assistant.html#assistant" role="menuitem" data-i18n="nav_assistant">Home Buying Assistant</a>
+              <a href="listings.html#compare" role="menuitem" data-i18n="nav_compare">Compare Homes</a>
+              <a href="seller-tools.html" role="menuitem" data-i18n="nav_seller">Seller Tools</a>
             </div>
           </div>
-          <a href="#guide" data-i18n="nav_guide">First-Time Buyers</a>
-          <a href="#contact" data-i18n="nav_contact">Contact</a>
+          <a href="first-time-buyers.html" data-i18n="nav_guide">First-Time Buyers</a>
+          <a href="knowledge-centre.html" data-i18n="kc_title">Knowledge Center</a>
+          <a href="contact.html" data-i18n="nav_contact">Contact</a>
         </nav>
         <div class="langbox" role="group" aria-label="Language">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#a97e2f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -374,9 +380,9 @@
         <h1 data-i18n="hero_title">Find your next home in Metro Vancouver — in your language</h1>
         <p data-i18n="hero_sub">Browse sample homes, run the Canadian mortgage math, and learn the steps to buying — in English, فارسی, हिन्दी or 中文.</p>
         <div class="cta">
-          <a class="btn btn-solid" href="#listings" data-i18n="cta_search">Browse listings</a>
-          <a class="btn btn-ghost" href="#calculator" data-i18n="cta_calc">Calculate a payment</a>
-          <a class="btn btn-ghost" href="#knowledge" data-i18n="cta_kc">Explore the Knowledge Center</a>
+          <a class="btn btn-solid" href="listings.html" data-i18n="cta_search">Browse listings</a>
+          <a class="btn btn-ghost" href="mortgage-calculator.html" data-i18n="cta_calc">Calculate a payment</a>
+          <a class="btn btn-ghost" href="knowledge-centre.html" data-i18n="cta_kc">Explore the Knowledge Center</a>
         </div>
         <div class="stats">
           <div class="stat"><b>6</b><span data-i18n="stat_listings">Sample listings</span></div>
@@ -387,6 +393,30 @@
     </div>
 
     <main class="wrap">
+      <section id="featured">
+        <div class="sec-head">
+          <h2 data-i18n="search_title">Search listings</h2>
+        </div>
+        <div class="grid" id="featuredGrid" style="margin-top:24px"></div>
+        <div style="margin-top:22px"><a class="btn btn-spruce" href="listings.html" data-i18n="cta_search">Browse listings</a></div>
+      </section>
+
+      <section id="tools">
+        <div class="sec-head">
+          <h2 data-i18n="nav_tools">AI Tools</h2>
+        </div>
+        <div class="grid" style="margin-top:24px">
+          <a class="card tool-card" href="mortgage-calculator.html"><div class="body"><h3 data-i18n="calc_title"></h3><p class="desc" data-i18n="calc_sub"></p></div></a>
+          <a class="card tool-card" href="buy-vs-rent.html"><div class="body"><h3 data-i18n="bv_title"></h3><p class="desc" data-i18n="bv_sub"></p></div></a>
+          <a class="card tool-card" href="affordability.html"><div class="body"><h3 data-i18n="af_title"></h3><p class="desc" data-i18n="af_sub"></p></div></a>
+          <a class="card tool-card" href="investor-analysis.html"><div class="body"><h3 data-i18n="iv_title"></h3><p class="desc" data-i18n="iv_sub"></p></div></a>
+          <a class="card tool-card" href="ai-assistant.html"><div class="body"><h3 data-i18n="as_title"></h3><p class="desc" data-i18n="as_sub"></p></div></a>
+          <a class="card tool-card" href="seller-tools.html"><div class="body"><h3 data-i18n="st_title"></h3><p class="desc" data-i18n="st_sub"></p></div></a>
+          <a class="card tool-card" href="first-time-buyers.html"><div class="body"><h3 data-i18n="g_title"></h3><p class="desc" data-i18n="g_sub"></p></div></a>
+          <a class="card tool-card" href="knowledge-centre.html"><div class="body"><h3 data-i18n="kc_title"></h3><p class="desc" data-i18n="kc_sub"></p></div></a>
+        </div>
+      </section>
+
       <section id="newsletter" style="padding-top:36px">
         <div class="nl-band">
           <h2 data-i18n="nl_title">Monthly BC &amp; Canada housing market report</h2>
@@ -407,337 +437,6 @@
           </form>
         </div>
       </section>
-
-      <section id="listings">
-        <div class="sec-head">
-          <h2 data-i18n="search_title">Search listings</h2>
-          <p data-i18n="search_sub">Adjust the filters — results update instantly.</p>
-        </div>
-        <form class="filters" id="searchForm" onsubmit="return false">
-          <div class="field f-search"><label for="q" data-i18n="f_query">Search</label><input id="q" type="search" data-i18n-ph="f_query_ph" placeholder="Address, city, or MLS® #" /></div>
-          <div class="field"><label for="fCity" data-i18n="f_city">City</label><select id="fCity"></select></div>
-          <div class="field"><label for="fType" data-i18n="f_type">Property type</label><select id="fType"></select></div>
-          <div class="field"><label for="fPrice" data-i18n="f_price">Max price</label><select id="fPrice"></select></div>
-          <div class="field"><label for="fBeds" data-i18n="f_beds">Min. bedrooms</label><select id="fBeds"></select></div>
-          <div class="field"><label for="fSort" data-i18n="f_sort">Sort</label><select id="fSort"></select></div>
-        </form>
-        <div class="results-line"><b id="resultCount"></b><button class="linkbtn" id="resetBtn" type="button" data-i18n="reset">Clear filters</button></div>
-        <div class="grid" id="grid"></div>
-      </section>
-
-      <section id="calculator">
-        <div class="sec-head">
-          <h2 data-i18n="calc_title">Mortgage calculator</h2>
-          <p data-i18n="calc_sub">Estimates use the standard Canadian formula (semi-annual compounding). CMHC insurance is included when the down payment is under 20%.</p>
-        </div>
-        <div class="panel calc-grid">
-          <div class="calc-inputs">
-            <div class="field wide"><label for="cPrice" data-i18n="c_price">Home price ($)</label><input id="cPrice" type="number" min="50000" step="5000" value="800000" /></div>
-            <div class="field"><label for="cDown" data-i18n="c_down">Down payment</label><select id="cDown"></select></div>
-            <div class="field"><label for="cRate" data-i18n="c_rate">Annual rate (%)</label><input id="cRate" type="number" min="0.1" max="15" step="0.01" value="4.79" /></div>
-            <div class="field"><label for="cAmort" data-i18n="c_amort">Amortization (years)</label><select id="cAmort"></select></div>
-            <div class="field"><label for="cFreq" data-i18n="c_freq">Payment frequency</label><select id="cFreq"></select></div>
-          </div>
-          <div>
-            <div class="out">
-              <div class="row hero-row"><span id="payLabel">Monthly payment</span><b id="oPay">—</b></div>
-              <div class="row"><span data-i18n="r_mortgage">Mortgage amount</span><b id="oMort">—</b></div>
-              <div class="row" id="cmhcRow"><span data-i18n="r_cmhc">CMHC premium (estimate, added to mortgage)</span><b id="oCmhc">—</b></div>
-              <div class="row"><span data-i18n="r_interest">Total interest</span><b id="oInt">—</b></div>
-              <div class="row"><span data-i18n="r_total">Total of all payments</span><b id="oTotal">—</b></div>
-            </div>
-            <p class="note" id="stressNote"></p>
-            <p class="note" data-i18n="disclaimer">Figures are educational estimates only — not a mortgage offer or financial advice.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="buyvsrent">
-        <div class="sec-head">
-          <h2 data-i18n="bv_title">Buy vs rent calculator</h2>
-          <p data-i18n="bv_sub">Compare the true cost of buying against renting over time. Rent is gone for good; buying builds equity but adds taxes, strata and interest.</p>
-        </div>
-        <div class="panel calc-grid">
-          <div class="calc-inputs">
-            <div class="field"><label for="bvPrice" data-i18n="bv_price">Home price ($)</label><input id="bvPrice" type="number" min="0" step="5000" value="800000" /></div>
-            <div class="field"><label for="bvDown" data-i18n="bv_down">Down payment (%)</label><input id="bvDown" type="number" min="0" max="100" step="1" value="20" /></div>
-            <div class="field"><label for="bvRate" data-i18n="bv_rate">Mortgage rate (%)</label><input id="bvRate" type="number" min="0" max="15" step="0.01" value="4.79" /></div>
-            <div class="field"><label for="bvAmort" data-i18n="bv_amort">Amortization (years)</label><input id="bvAmort" type="number" min="1" max="35" step="1" value="25" /></div>
-            <div class="field"><label for="bvTax" data-i18n="bv_tax">Property tax (per year $)</label><input id="bvTax" type="number" min="0" step="50" value="4200" /></div>
-            <div class="field"><label for="bvStrata" data-i18n="bv_strata">Strata / maintenance (per month $)</label><input id="bvStrata" type="number" min="0" step="10" value="350" /></div>
-            <div class="field"><label for="bvAppr" data-i18n="bv_appr">Home price growth (per year %)</label><input id="bvAppr" type="number" min="-5" max="15" step="0.1" value="3" /></div>
-            <div class="field"><label for="bvRent" data-i18n="bv_rent">Current rent (per month $)</label><input id="bvRent" type="number" min="0" step="50" value="2600" /></div>
-            <div class="field"><label for="bvRentInc" data-i18n="bv_rentinc">Rent increase (per year %)</label><input id="bvRentInc" type="number" min="0" max="10" step="0.1" value="2" /></div>
-            <div class="field"><label for="bvYears" data-i18n="bv_years">Compare over (years)</label><input id="bvYears" type="number" min="1" max="30" step="1" value="10" /></div>
-          </div>
-          <div>
-            <div class="out">
-              <div class="row"><span id="bvCostRentL">Total rent paid</span><b id="bvCostRent">—</b></div>
-              <div class="row"><span data-i18n="bv_spent">Total spent on buying (down payment + payments + tax + strata)</span><b id="bvSpent">—</b></div>
-              <div class="row"><span id="bvEquityL">Your equity at the end</span><b id="bvEquity">—</b></div>
-              <div class="row hero-row"><span data-i18n="bv_cost_buy">Net cost of buying (spending minus equity at the end)</span><b id="bvCostBuy">—</b></div>
-            </div>
-            <div class="verdict" id="bvVerdict"></div>
-            <p class="note" data-i18n="bv_assump">Assumptions: the mortgage payment uses the Canadian semi-annual formula and stays fixed; property tax and strata stay at today's amounts; the home grows at the rate you entered; rent rises once a year. Selling costs, unexpected maintenance, CMHC insurance and investment returns on the down payment are not included — treat this as a planning estimate, not a guarantee.</p>
-          </div>
-        </div>
-        <div class="panel tbl-scroll">
-          <table>
-            <thead><tr>
-              <th data-i18n="bv_th_year">Year</th><th data-i18n="bv_th_rent">Rent paid (total)</th><th data-i18n="bv_th_spent">Spent on buying (total)</th>
-              <th data-i18n="bv_th_value">Home value</th><th data-i18n="bv_th_bal">Mortgage left</th><th data-i18n="bv_th_equity">Equity</th>
-            </tr></thead>
-            <tbody id="bvBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="afford">
-        <div class="sec-head">
-          <h2 data-i18n="af_title">Affordability estimator</h2>
-          <p data-i18n="af_sub">Canadian lenders use two ratios: GDS — housing costs at or under 32% of gross income; TDS — all debts at or under 40% of gross income. The lower of the two sets your ceiling.</p>
-        </div>
-        <div class="panel calc-grid">
-          <div class="calc-inputs">
-            <div class="field wide"><label for="afIncome" data-i18n="af_income">Gross household income (per year $)</label><input id="afIncome" type="number" min="0" step="1000" value="120000" /></div>
-            <div class="field"><label for="afDebts" data-i18n="af_debts">Non-housing debts (per month $)</label><input id="afDebts" type="number" min="0" step="25" value="450" /></div>
-            <div class="field"><label for="afHeat" data-i18n="af_heat">Heating cost (per month $)</label><input id="afHeat" type="number" min="0" step="10" value="120" /></div>
-            <div class="field"><label for="afTax" data-i18n="af_tax">Property tax estimate (per year $)</label><input id="afTax" type="number" min="0" step="50" value="4200" /></div>
-            <div class="field"><label for="afRate" data-i18n="af_rate">Qualifying rate — stress test (%)</label><input id="afRate" type="number" min="0" max="15" step="0.01" value="6.79" /></div>
-            <div class="field"><label for="afAmort" data-i18n="af_amort">Amortization (years)</label><input id="afAmort" type="number" min="1" max="35" step="1" value="25" /></div>
-            <div class="field"><label for="afDown" data-i18n="af_down">Down payment (%)</label><input id="afDown" type="number" min="0" max="100" step="1" value="20" /></div>
-          </div>
-          <div>
-            <div class="out">
-              <div class="row hero-row"><span data-i18n="af_max_price">Maximum home price</span><b id="afMaxPrice">—</b></div>
-              <div class="row"><span data-i18n="af_max_mort">Maximum mortgage</span><b id="afMaxMort">—</b></div>
-              <div class="row"><span data-i18n="af_budget">Max monthly mortgage payment</span><b id="afBudget">—</b></div>
-              <div class="row"><span data-i18n="af_gds_row">GDS (32%) housing limit (per month)</span><b id="afGds">—</b></div>
-              <div class="row"><span data-i18n="af_tds_row">TDS (40%) housing room after other debts (per month)</span><b id="afTds">—</b></div>
-            </div>
-            <p class="note" id="afLimit" style="font-weight:700;color:var(--ink)"></p>
-            <p class="note" data-i18n="af_note">Housing costs in the GDS/TDS formulas are: mortgage payment + property tax + heating (plus 50% of strata fees for condos — not included here, so condo buyers should aim a little lower). Lenders qualify you at the stress-test rate — the higher of your contract rate + 2% or the federal benchmark rate — so enter that qualifying rate above. Estimates only; a lender or mortgage broker confirms the real number.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="invest">
-        <div class="sec-head">
-          <h2 data-i18n="iv_title">Investor analysis</h2>
-          <p data-i18n="iv_sub">Run the numbers on a rental property using your own inputs.</p>
-        </div>
-        <div class="panel calc-grid">
-          <div class="calc-inputs">
-            <div class="field"><label for="ivPrice" data-i18n="iv_price">Purchase price ($)</label><input id="ivPrice" type="number" min="0" step="5000" value="650000" /></div>
-            <div class="field"><label for="ivDown" data-i18n="iv_down">Down payment (%)</label><input id="ivDown" type="number" min="0" max="100" step="1" value="20" /></div>
-            <div class="field"><label for="ivRate" data-i18n="iv_rate">Mortgage rate (%)</label><input id="ivRate" type="number" min="0" max="15" step="0.01" value="4.79" /></div>
-            <div class="field"><label for="ivAmort" data-i18n="iv_amort">Amortization (years)</label><input id="ivAmort" type="number" min="1" max="35" step="1" value="25" /></div>
-            <div class="field"><label for="ivRent" data-i18n="iv_rent">Expected rent (per month $)</label><input id="ivRent" type="number" min="0" step="50" value="2400" /></div>
-            <div class="field"><label for="ivTax" data-i18n="iv_tax">Property tax (per month $)</label><input id="ivTax" type="number" min="0" step="10" value="300" /></div>
-            <div class="field"><label for="ivStrata" data-i18n="iv_strata">Strata (per month $)</label><input id="ivStrata" type="number" min="0" step="10" value="320" /></div>
-            <div class="field"><label for="ivIns" data-i18n="iv_ins">Insurance (per month $)</label><input id="ivIns" type="number" min="0" step="10" value="90" /></div>
-            <div class="field"><label for="ivMaint" data-i18n="iv_maint">Maintenance reserve (per month $)</label><input id="ivMaint" type="number" min="0" step="10" value="100" /></div>
-            <div class="field"><label for="ivVac" data-i18n="iv_vac">Vacancy allowance (%)</label><input id="ivVac" type="number" min="0" max="50" step="0.5" value="5" /></div>
-          </div>
-          <div>
-            <div class="out">
-              <div class="row hero-row"><span data-i18n="iv_cf">Monthly cash flow</span><b id="ivCf">—</b></div>
-              <div class="row"><span data-i18n="iv_noi">Net operating income (per year)</span><b id="ivNoi">—</b></div>
-              <div class="row"><span data-i18n="iv_cap">Cap rate</span><b id="ivCap">—</b></div>
-              <div class="row"><span data-i18n="iv_coc">Cash-on-cash return</span><b id="ivCoc">—</b></div>
-              <div class="row"><span data-i18n="iv_cashin">Cash invested (down payment)</span><b id="ivCashIn">—</b></div>
-            </div>
-            <p class="note" data-i18n="iv_note">These are estimates calculated from the numbers you entered — they are not a guarantee of returns. Vacancy, repairs, taxes and rents change over time; verify every figure for a specific property before you buy. Closing costs are not included in the cash invested.</p>
-            <div class="report-actions">
-              <button class="btn btn-spruce" type="button" id="ivPrintBtn" data-i18n="iv_print_btn">Print report</button>
-              <button class="btn btn-line" type="button" id="ivDownloadBtn" data-i18n="iv_download_btn">Download report (HTML)</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="match">
-        <div class="sec-head">
-          <h2 data-i18n="match_title">Home match assistant</h2>
-          <p data-i18n="match_sub">Tell it your budget and must-haves — it shows only sample listings that fit your stated criteria, with the reason each one fits. A match means the listing fits the criteria you entered — it is not a quality ranking, a recommendation, or an investment guarantee. It never invents a listing.</p>
-        </div>
-        <div class="panel">
-          <form class="match-form" id="matchForm">
-            <div class="field"><label for="mBudget" data-i18n="m_budget">Max budget</label><select id="mBudget"></select></div>
-            <div class="field"><label for="mBeds" data-i18n="m_beds">Min. bedrooms</label><select id="mBeds"></select></div>
-            <div class="field"><label for="mCity" data-i18n="m_city">Preferred city</label><select id="mCity"></select></div>
-            <div class="field"><label for="mType" data-i18n="m_type">Property type</label><select id="mType"></select></div>
-            <button class="btn btn-spruce" type="submit" data-i18n="m_btn">Find my matches</button>
-          </form>
-          <div class="results-line" id="matchLine" style="display:none"><b id="matchCount"></b></div>
-          <div class="grid" id="matchGrid" style="margin-top:6px"></div>
-        </div>
-      </section>
-
-      <section id="assistant">
-        <div class="sec-head">
-          <h2 data-i18n="as_title">Home buying assistant</h2>
-          <p data-i18n="as_sub">Ask about buying a home in BC — the steps, down payments, taxes, the stress test, strata and more. Answers come from this page's guide and calculators; for current market questions the site doesn't cover, the assistant searches the web and answers briefly, with sources.</p>
-        </div>
-        <div class="panel">
-          <div class="chat-log" id="chatLog" aria-live="polite"></div>
-          <div class="chat-chips" id="chatChips"></div>
-          <form class="chat-form" id="chatForm">
-            <input id="chatInput" type="text" data-i18n-ph="as_input_ph" placeholder="Type your question…" autocomplete="off" />
-            <button class="btn btn-spruce" type="submit" data-i18n="as_send">Send</button>
-          </form>
-          <p class="note" data-i18n="as_disclaimer">General information only — not professional, financial or legal advice. Tax rules and thresholds change; verify details at gov.bc.ca or with a licensed professional.</p>
-        </div>
-      </section>
-
-      <section id="compare">
-        <div class="sec-head">
-          <h2 data-i18n="cmp_title">Compare homes</h2>
-          <p data-i18n="cmp_sub">Pick two to four sample listings and see their prices, sizes, fees and features side by side.</p>
-        </div>
-        <div class="verify cmp-banner" data-i18n="cmp_banner">Sample data — for design preview only. Live MLS® data connects after licensing (2027).</div>
-        <div class="panel">
-          <div class="cmp-picker" id="cmpPicker"></div>
-          <div class="cmp-bar">
-            <p class="note"><span data-i18n="cmp_hint">Select 2 to 4 homes to compare side by side.</span> <b id="cmpCount"></b></p>
-            <button class="linkbtn" id="cmpClear" type="button" data-i18n="cmp_clear">Clear</button>
-          </div>
-          <div id="cmpTableWrap"></div>
-        </div>
-      </section>
-
-      <section id="seller-tools">
-        <div class="sec-head">
-          <h2 data-i18n="st_title">Seller tools</h2>
-          <p data-i18n="st_sub">Practical aids for selling your home: a step-by-step preparation checklist, and a drafting aid that turns facts you type in into a plain listing-description draft for you to review and edit.</p>
-        </div>
-        <div class="calc-grid">
-          <div class="panel" style="margin-top:24px">
-            <h3 style="font-size:21px" data-i18n="chk_title">Home-prep checklist</h3>
-            <p class="note" style="margin-top:6px" data-i18n="chk_sub">Tick items off as you finish them — your progress is saved on this device only, and you can print the list to work from.</p>
-            <div style="margin-top:16px">
-              <div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:700" data-i18n="chk_progress_label">Checklist progress</span><b id="chkProgress"></b></div>
-              <div class="bar-track"><div class="bar-fill" id="chkBar" style="width:0%"></div></div>
-            </div>
-            <div id="chkCats"></div>
-            <div class="report-actions">
-              <button class="btn btn-spruce" type="button" id="chkPrintBtn" data-i18n="chk_print">Print checklist</button>
-              <button class="btn btn-line" type="button" id="chkResetBtn" data-i18n="chk_reset">Reset checklist</button>
-            </div>
-          </div>
-          <div class="panel" style="margin-top:24px">
-            <h3 style="font-size:21px" data-i18n="dg_title">Listing-description draft</h3>
-            <p class="note" style="margin-top:6px" data-i18n="dg_sub">A drafting aid, not a copywriting service: enter only facts about your own home and it assembles them into a plain draft. It never adds features, sizes or claims you didn't type.</p>
-            <form id="dgForm" style="margin-top:16px">
-              <div class="calc-inputs">
-                <div class="field"><label for="dgType" data-i18n="m_type">Property type</label><select id="dgType"></select></div>
-                <div class="field"><label for="dgSqft" data-i18n="dg_sqft">Interior size (sq ft)</label><input id="dgSqft" type="number" min="0" step="1" /></div>
-                <div class="field"><label for="dgBeds" data-i18n="d_beds">Bedrooms</label><input id="dgBeds" type="number" min="0" step="1" /></div>
-                <div class="field"><label for="dgBaths" data-i18n="m_baths">Bathrooms</label><input id="dgBaths" type="number" min="0" step="0.5" /></div>
-                <div class="field wide"><label for="dgFeatures" data-i18n="dg_features">Key features (separate with commas)</label><input id="dgFeatures" type="text" data-i18n-ph="dg_features_ph" placeholder="e.g. renovated kitchen, double garage, mountain view" /></div>
-                <div class="field wide"><label for="dgNb" data-i18n="dg_nb">Neighbourhood highlights (separate with commas)</label><input id="dgNb" type="text" data-i18n-ph="dg_nb_ph" placeholder="e.g. quiet street, near SkyTrain, good schools" /></div>
-                <div class="field wide"><label for="dgNotes" data-i18n="dg_notes">Special notes (optional — added to the draft word for word)</label><textarea id="dgNotes" rows="2" data-i18n-ph="dg_notes_ph" placeholder="Anything else, in your own words…"></textarea></div>
-              </div>
-              <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" data-i18n="dg_btn">Generate draft</button></div>
-            </form>
-            <div class="draft-box" id="dgOut">
-              <div class="draft-head" data-i18n="dg_head">DRAFT — for human review before use</div>
-              <p class="draft-note" data-i18n="dg_note">AI-assembled from your inputs only. Verify every fact against the actual property before publishing.</p>
-              <div class="draft-body" id="dgBody"></div>
-              <p class="draft-note" data-i18n="dg_autolang">Written in your current site language — change the language at the top of the page and a generated draft is rewritten in the new language.</p>
-              <div class="report-actions" style="margin-top:12px">
-                <button class="btn btn-line" type="button" id="dgCopyBtn" data-i18n="dg_copy" disabled>Copy draft</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="guide">
-        <div class="sec-head">
-          <h2 data-i18n="g_title">First-time buyer guide — British Columbia</h2>
-          <p data-i18n="g_sub">The steps, the minimum down payments, and the closing costs to budget for when you buy your first home in BC.</p>
-        </div>
-        <div class="panel guide">
-          <div class="verify" data-i18n="g_verify">Tax and rebate rules change: the property transfer tax rates, first-time buyer exemptions and thresholds below are the general BC rules — verify the current figures at gov.bc.ca before you rely on them.</div>
-          <div id="guideBody"></div>
-        </div>
-        <div class="panel" id="fhsa">
-          <h3 style="font-size:22px" data-i18n="fh_title">FHSA contribution tracker</h3>
-          <p class="note" style="margin-top:6px" data-i18n="fh_sub">Enter what you contributed each year to see your remaining room, the amount carried forward, and when you would reach the limit.</p>
-          <div class="calc-grid" style="margin-top:18px">
-            <div>
-              <div class="field"><label for="fhStart" data-i18n="fh_start">Year you opened (or will open) your FHSA</label><input id="fhStart" type="number" min="2023" max="2100" step="1" value="2024" /></div>
-              <div class="fh-rows" id="fhRows" style="margin-top:14px"></div>
-            </div>
-            <div>
-              <div class="out">
-                <div class="row"><span data-i18n="fh_annual">New room each year</span><b>$8,000</b></div>
-                <div class="row"><span data-i18n="fh_limit">Lifetime contribution limit</span><b>$40,000</b></div>
-                <div class="row"><span data-i18n="fh_total">Total contributed so far</span><b id="fhTotal">—</b></div>
-                <div class="row"><span id="fhRoomL">Room available this year</span><b id="fhRoom">—</b></div>
-                <div class="row"><span data-i18n="fh_carry">Unused room carried into next year</span><b id="fhCarry">—</b></div>
-                <div class="row hero-row"><span data-i18n="fh_remain">Lifetime room remaining</span><b id="fhRemain">—</b></div>
-              </div>
-              <div style="margin-top:16px">
-                <div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:700" data-i18n="fh_progress">Progress toward the $40,000 lifetime limit</span><b id="fhPct">0%</b></div>
-                <div class="bar-track"><div class="bar-fill" id="fhBar" style="width:0%"></div></div>
-              </div>
-              <p class="note" id="fhProj" style="font-weight:700;color:var(--ink)"></p>
-            </div>
-          </div>
-          <h3 style="font-size:19px;margin:26px 0 8px" data-i18n="fh_rules_title">Key FHSA rules</h3>
-          <div class="guide">
-            <ul>
-              <li data-i18n="fh_r1">Contributions are tax-deductible — they lower your taxable income in the year you claim the deduction.</li>
-              <li data-i18n="fh_r2">Withdrawals used to buy a qualifying first home are tax-free.</li>
-              <li data-i18n="fh_r3">The account must be closed within 15 years of opening it (or by the end of the year you turn 71).</li>
-              <li data-i18n="fh_r4">You generally count as a first-time buyer if, during the current calendar year or the previous 4 calendar years, you did not live in a home that you or your spouse owned.</li>
-              <li data-i18n="fh_r5">You gain $8,000 of new room for each year you hold the account, up to $40,000 in total. Unused room carries forward, but no more than $8,000 of it can be added in any single year.</li>
-            </ul>
-          </div>
-          <div class="verify" style="margin-top:14px" data-i18n="fh_verify">FHSA rules can change — verify the current rules with the Canada Revenue Agency (CRA) at canada.ca before you rely on them.</div>
-        </div>
-      </section>
-
-      <section id="knowledge">
-        <div class="sec-head">
-          <h2 data-i18n="kc_title">Knowledge Center</h2>
-          <p data-i18n="kc_sub">Plain-language guides to Metro Vancouver neighbourhoods and the rules that shape a BC home purchase — educational only, with sources named so you can verify the details yourself.</p>
-        </div>
-        <h3 class="kc-group" data-i18n="kc_group_areas">Neighbourhood guides — Metro Vancouver</h3>
-        <div class="kc-grid" id="kcAreas"></div>
-        <p class="note" data-i18n="kc_areas_note" style="margin-top:14px">These guides are general and educational; neighbourhoods change over time. Transit routes and schedules: TransLink (translink.ca), as of 2026 — check current schedules before you travel. For market commentary, see BCREA's published market updates, as of 2026 — verify current figures before relying on them.</p>
-        <h3 class="kc-group" data-i18n="kc_group_explain">Market explainers — how BC real estate works</h3>
-        <div class="kc-grid" id="kcExplain"></div>
-      </section>
-
-      <section id="contact">
-        <div class="sec-head">
-          <h2 data-i18n="lead_title">Get in touch</h2>
-          <p data-i18n="lead_sub">Fill in the form — your message is sent straight to the business inbox at erfanbcrealestate@gmail.com, and you'll get a reply in your preferred language.</p>
-        </div>
-        <div class="panel">
-          <div class="verify" data-i18n="licence_notice" style="margin-bottom:18px">Please note: Erfan is not currently a licensed real estate professional. He is preparing for the BC real estate licensing exam and is not affiliated with any brokerage. This site provides educational tools and general information only — it does not offer real estate trading services, representation, or professional advice. For help with an actual purchase or sale, please contact a licensed real estate professional.</div>
-          <form class="lead-grid" id="leadForm">
-            <div class="field"><label for="lName" data-i18n="l_name">Full name</label><input id="lName" required autocomplete="name" /></div>
-            <div class="field"><label for="lEmail" data-i18n="l_email">Email</label><input id="lEmail" type="email" required autocomplete="email" /></div>
-            <div class="field"><label for="lPhone" data-i18n="l_phone">Phone (optional)</label><input id="lPhone" type="tel" autocomplete="tel" /></div>
-            <div class="field"><label for="lIntent" data-i18n="l_intent">I am…</label><select id="lIntent"></select></div>
-            <div class="field"><label for="lCity" data-i18n="l_city">City of interest</label><select id="lCity"></select></div>
-            <div class="field"><label for="lBudget" data-i18n="l_budget">Budget range</label><select id="lBudget"></select></div>
-            <div class="field wide"><label for="lMsg" data-i18n="l_msg">Your message</label><textarea id="lMsg" rows="3" data-i18n-ph="l_msg_ph" placeholder="e.g. Looking for a 2-bed condo near SkyTrain in Burnaby…"></textarea></div>
-            <div class="field"><label for="lLang" data-i18n="l_lang">Preferred reply language</label><select id="lLang">
-              <option value="en">English</option><option value="fa">فارسی</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option>
-            </select></div>
-            <div class="field" style="justify-content:flex-end"><button class="btn btn-spruce" type="submit" id="lSubmitBtn" data-i18n="l_submit">Send message</button></div>
-            <input id="lHoney" name="_honey" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none" />
-          </form>
-          <p class="note" data-i18n="l_delivery" style="margin-top:12px">Submissions from this form are delivered to the business inbox: erfanbcrealestate@gmail.com.</p>
-          <div class="toast" id="leadToast" role="status"></div>
-        </div>
-      </section>
-
     </main>
 
     <footer id="footer">
@@ -772,25 +471,6 @@
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
       </button>
     </div>
-
-    <div id="ivReport" aria-hidden="true"></div>
-    <div id="chkReport" aria-hidden="true"></div>
-
-    <dialog id="dlg">
-      <div class="modal-ph"><img id="dImg" alt="" /><button class="modal-close" id="dClose" aria-label="Close">✕</button><span class="badge" id="dBadge"></span></div>
-      <div class="modal-body">
-        <div class="price" id="dPrice"></div>
-        <div class="addr" id="dAddr"></div>
-        <div class="city" id="dCity"></div>
-        <div class="kv" id="dKv"></div>
-        <h3 style="font-size:17px;margin-bottom:8px" data-i18n="m_features">Features</h3>
-        <div class="chips" id="dFeat"></div>
-        <h3 style="font-size:17px;margin:16px 0 6px" data-i18n="m_desc">Description</h3>
-        <p id="dDesc" style="margin:0;color:var(--muted)"></p>
-        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-spruce" id="dAsk" href="#" data-i18n="m_ask">Ask about this home</a><button class="btn btn-line" id="dTour" hidden style="padding:12px 22px;font-size:15px">🎥 Virtual tour</button></div>
-        <p class="note" data-i18n="licence_short">Erfan is not yet a licensed real estate professional and is not affiliated with any brokerage — inquiries are for general information only.</p>
-      </div>
-    </dialog>
 
     <div id="tourModal" style="position:fixed;inset:0;background:#000;display:none;z-index:200">
       <div id="tourPano" style="position:absolute;inset:0"></div>
@@ -909,7 +589,6 @@
       {name:"Navdeep Singh",intent:"seller",city:"Coquitlam",budget:"b0",stage:"new",source:"open",sample:true},
       {name:"Maryam Ahmadi",intent:"buyer",city:"Port Coquitlam",budget:"b1",stage:"offer",source:"web",sample:true}
     ];
-
     var I18N = {
     en:{brand_sub:"Metro Vancouver · BC, Canada",nav_listings:"Listings",nav_calculator:"Mortgage Calculator",nav_match:"Match Assistant",nav_contact:"Contact",nav_crm:"Advisor Panel",
       banner_tag:"Preview",banner:"Sample listings are shown for design preview. Live MLS® data connects after licensing (2027).",
@@ -1066,7 +745,6 @@
       rights:"© 2026 Erfan BC Real Estate — 加拿大不列颠哥伦比亚省",
       mail_subject:"网站咨询 — {name}",mail_body:"姓名:{name}\n电子邮箱:{email}\n电话:{phone}\n目的:{intent}\n意向城市:{city}\n预算:{budget}\n偏好语言:{lang}\n\n留言:\n{msg}",
       ask_subject:"咨询 MLS® {mls}({addr})"};
-
     /* ---------- Phase-0 modules: buy vs rent, affordability, investor, guide ---------- */
     var I18N2 = {
     en:{nav_bvr:"Buy vs Rent",nav_afford:"Affordability Estimator",nav_invest:"Investor Analysis",nav_guide:"First-Time Buyers",
@@ -1143,7 +821,6 @@
       g_verify:"税费与减免规则会变化:以下的房产转让税税率、首次购房者减免和门槛为 BC 的一般规则 — 在依赖之前,请先到 gov.bc.ca 核实当前数字。"}
     };
     for (var L2 in I18N2) { if (I18N[L2]) { for (var k2 in I18N2[L2]) I18N[L2][k2] = I18N2[L2][k2]; } }
-
     /* ---------- Nav restructure + FHSA tracker strings ---------- */
     var I18N3 = {
     en:{nav_tools:"AI Tools",
@@ -1208,7 +885,6 @@
       fh_verify:"FHSA 规则可能变更 — 依赖之前请先到加拿大税务局(CRA)网站 canada.ca 核实当前规则。"}
     };
     for (var L3 in I18N3) { if (I18N[L3]) { for (var k3 in I18N3[L3]) I18N[L3][k3] = I18N3[L3][k3]; } }
-
     /* ---------- Home buying assistant strings ---------- */
     var I18N4 = {
     en:{nav_assistant:"Home Buying Assistant",
@@ -1237,7 +913,6 @@
       as_disclaimer:"本助手仅提供一般信息,不构成专业、财务或法律建议。税费规则和门槛会变化;请到 gov.bc.ca 或向持牌专业人士核实详情。"}
     };
     for (var L4 in I18N4) { if (I18N[L4]) { for (var k4 in I18N4[L4]) I18N[L4][k4] = I18N4[L4][k4]; } }
-
     /* ---------- Lead form delivery (FormSubmit) strings ---------- */
     var I18N5 = {
     en:{lead_sub:"Fill in the form — your message is sent straight to the business inbox at erfanbcrealestate@gmail.com, and you'll get a reply in your preferred language.",
@@ -1266,7 +941,6 @@
       l_sending:"正在发送…"}
     };
     for (var L5 in I18N5) { if (I18N[L5]) { for (var k5 in I18N5[L5]) I18N[L5][k5] = I18N5[L5][k5]; } }
-
     /* ---------- Compare homes strings ---------- */
     var I18N6 = {
     en:{nav_compare:"Compare Homes",
@@ -1307,7 +981,6 @@
       cmp_home:"房源",cmp_photo:"照片",cmp_address:"地址",cmp_ppsf:"每平方英尺价格",cmp_status:"状态"}
     };
     for (var L6 in I18N6) { if (I18N[L6]) { for (var k6 in I18N6[L6]) I18N[L6][k6] = I18N6[L6][k6]; } }
-
     /* ---------- Investor report export strings ---------- */
     var I18N7 = {
     en:{iv_print_btn:"Print report",iv_download_btn:"Download report (HTML)",
@@ -1332,7 +1005,6 @@
       rp_contact:"对本分析有疑问?请发送电子邮件:"}
     };
     for (var L7 in I18N7) { if (I18N[L7]) { for (var k7 in I18N7[L7]) I18N[L7][k7] = I18N7[L7][k7]; } }
-
     /* ---------- Seller tools strings ---------- */
     var I18N8 = {
     en:{nav_seller:"Seller Tools",
@@ -1409,7 +1081,6 @@
       dg_autolang:"草稿以您当前的网站语言生成——在页面顶部切换语言后,已生成的草稿会以新语言重写。"}
     };
     for (var L8 in I18N8) { if (I18N[L8]) { for (var k8 in I18N8[L8]) I18N[L8][k8] = I18N8[L8][k8]; } }
-
     /* ---------- Floating AI assistant + site search strings ---------- */
     var I18N9 = {
     en:{ai_title:"Real estate assistant",
@@ -1442,7 +1113,6 @@
       sr_intro:"我在本网站上找到了这些："}
     };
     for (var L9 in I18N9) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9[L9][k9]; } }
-
     /* ---------- Pre-licence disclosure (BCFSA advertising compliance) ---------- */
     var I18N9 = {
     en:{licence_notice:"Please note: Erfan is not currently a licensed real estate professional. He is preparing for the BC real estate licensing exam and is not affiliated with any brokerage. This site provides educational tools and general information only — it does not offer real estate trading services, representation, or professional advice. For help with an actual purchase or sale, please contact a licensed real estate professional.",
@@ -1459,7 +1129,6 @@
       licence_short:"Erfan 尚未取得房地产牌照,也不隶属于任何经纪公司——咨询仅供一般信息参考。"}
     };
     for (var L9 in I18N9) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9[L9][k9]; } }
-
     /* ---------- Knowledge Center strings ---------- */
     var I18N10 = {
     en:{cta_kc:"Explore the Knowledge Center",
@@ -1488,7 +1157,6 @@
       kc_areas_note:"这些指南为一般性教育内容;社区会随时间变化。公交线路与时刻:TransLink(translink.ca),截至 2026 年——出行前请查询当前时刻表。市场评论请参阅 BCREA 发布的市场更新(截至 2026 年)——依赖前请核实当前数据。"}
     };
     for (var L10 in I18N10) { if (I18N[L10]) { for (var k10 in I18N10[L10]) I18N[L10][k10] = I18N10[L10][k10]; } }
-
     /* ---------- Newsletter signup strings ---------- */
     var I18N11 = {
     en:{nl_title:"Monthly BC & Canada housing market report",
@@ -1541,438 +1209,6 @@
       nl_err_generic:"出现问题 — 请稍后再试。"}
     };
     for (var L11 in I18N11) { if (I18N[L11]) { for (var k11 in I18N11[L11]) I18N[L11][k11] = I18N11[L11][k11]; } }
-
-    /* ---------- Knowledge Center: expandable article cards ---------- */
-    window.kcToggle = function(btn){
-      var body = btn.parentElement.querySelector(".kc-body");
-      if (!body) return;
-      if (body.hasAttribute("hidden")){
-        body.removeAttribute("hidden");
-        btn.textContent = btn.getAttribute("data-less");
-        btn.setAttribute("aria-expanded", "true");
-      } else {
-        body.setAttribute("hidden", "");
-        btn.textContent = btn.getAttribute("data-more");
-        btn.setAttribute("aria-expanded", "false");
-      }
-    };
-    function kcCard(title, teaser, more, less, body){
-      return '<article class="kc-card"><h4>' + title + '</h4><p class="kc-teaser">' + teaser + '</p>'
-        + '<button type="button" class="btn btn-line kc-btn" data-more="' + more + '" data-less="' + less + '" aria-expanded="false" onclick="kcToggle(this)">' + more + '</button>'
-        + '<div class="kc-body" hidden>' + body + '</div></article>';
-    }
-    function kcSec(h, p){ return "<h5>" + h + "</h5><p>" + p + "</p>"; }
-
-    var KC_AREAS = {
-    en:
-      kcCard("Burnaby — Metrotown",
-        "Burnaby's high-rise downtown, built around a major shopping centre and a SkyTrain hub.",
-        "Read guide", "Close",
-        kcSec("Character", "Metrotown is Burnaby's city centre: a dense cluster of condo towers, offices and retail anchored by Metropolis at Metrotown, one of the largest shopping centres in BC. The streets near the station feel properly urban, while a few blocks out they give way to quieter residential streets and the forested trails of Central Park on the area's western edge.")
-        + kcSec("Getting around", "Metrotown Station on the SkyTrain Expo Line gives a direct ride to downtown Vancouver, and the station doubles as one of the region's busiest bus exchanges. Patterson Station (also Expo Line) serves the west side of the area. Many daily needs — groceries, services, the Bonsor Recreation Complex — are within walking distance of the towers.")
-        + kcSec("Homes", "Mostly condos — high-rise towers near the centre and older low-rise apartment buildings on surrounding streets — with townhouses and single-family houses further out.")
-        + kcSec("Who it suits", "People who want a car-light, transit-first lifestyle; SkyTrain commuters; and downsizers who want shops, services and recreation close at hand."))
-      + kcCard("Coquitlam — Coquitlam Centre",
-        "A family-oriented city centre where the SkyTrain's Evergreen extension meets the West Coast Express.",
-        "Read guide", "Close",
-        kcSec("Character", "Coquitlam's planned downtown, built around the Coquitlam Centre shopping mall. Lafarge Lake and Town Centre Park act as its green living room — walking trails, sports fields and community events — so the centre feels suburban and family-paced even as new towers rise.")
-        + kcSec("Getting around", "Coquitlam Central Station combines the Millennium Line (Evergreen extension) with the West Coast Express commuter train to downtown Vancouver, plus a bus exchange — one of the few Metro Vancouver centres with both SkyTrain and commuter rail.")
-        + kcSec("Homes", "Newer condo towers and townhouses near the station, older low-rise condos and apartments, and single-family homes on the established streets and hills around the centre.")
-        + kcSec("Who it suits", "Families who want parks, schools and community facilities nearby; commuters who like having both SkyTrain and commuter-rail options; buyers looking for newer housing stock in a suburban setting."))
-      + kcCard("Surrey — Surrey City Centre",
-        "Surrey's young, fast-growing downtown, anchored by two SkyTrain stations, a university campus and the main library.",
-        "Read guide", "Close",
-        kcSec("Character", "One of Metro Vancouver's newest downtowns. Office and residential towers are rising around Surrey Central and King George stations alongside the SFU Surrey campus, the City Centre library and Civic Plaza, while older low-rise buildings and houses still line many surrounding streets — a centre visibly in transition.")
-        + kcSec("Getting around", "King George Station is the Expo Line's terminus, and Surrey Central Station pairs SkyTrain with one of the region's busiest bus exchanges, including rapid-bus service along King George Boulevard.")
-        + kcSec("Homes", "High-rise condos near the stations, a growing number of townhouses, and older single-family homes in the surrounding Whalley streets.")
-        + kcSec("Who it suits", "Students and staff at SFU Surrey and KPU; first-time buyers who want direct SkyTrain access; and people who work in Surrey's growing centre and want a short commute."))
-      + kcCard("Vancouver — Downtown",
-        "The region's densest core: condo towers, offices, stadiums and waterfront, all within walking distance.",
-        "Read guide", "Close",
-        kcSec("Character", "The downtown peninsula packs in the business district, Robson and Granville shopping, theatres and stadiums — and distinct residential pockets. The West End is leafy and older, with low- and mid-rise buildings near Stanley Park and English Bay; Yaletown mixes converted warehouses with towers along the seawall; Coal Harbour is quieter waterfront high-rises; Gastown is the heritage district.")
-        + kcSec("Getting around", "Waterfront Station is the region's biggest hub — Expo and Canada Line SkyTrain, the SeaBus to North Vancouver and the West Coast Express — with several more SkyTrain stations across the peninsula and a dense bus network. Most of downtown is walkable, and the seawall paths are made for cycling.")
-        + kcSec("Homes", "Overwhelmingly condos and apartments in mid- and high-rise towers, plus some townhouses; detached houses are rare on the peninsula.")
-        + kcSec("Who it suits", "People who work downtown or want a walk-everywhere lifestyle, and downsizers trading house maintenance for amenities and views."))
-      + kcCard("Richmond",
-        "A flat, riverside city south of Vancouver on the Canada Line — widely known for its restaurants and food scene.",
-        "Read guide", "Close",
-        kcSec("Character", "Richmond occupies islands at the mouth of the Fraser River: flat, largely suburban, and famous across the region for its Asian restaurants, food courts and shopping. The city centre along No. 3 Road is the urban spine, while Steveston, in the southwest, keeps a fishing-village character with its docks and heritage buildings. Vancouver International Airport (YVR) sits on Sea Island, within Richmond.")
-        + kcSec("Getting around", "The Canada Line runs from Richmond–Brighouse and Aberdeen stations to downtown Vancouver and the airport. Buses feed the stations from across the city, and the flat terrain makes cycling practical for local trips.")
-        + kcSec("Homes", "Mainly single-family houses and townhouses, plus low-rise condos — with taller condo towers concentrated near the Canada Line stations in the city centre.")
-        + kcSec("Who it suits", "Families who value flat, bikeable streets and local schools; frequent air travellers; and buyers who want suburban space with a direct SkyTrain link downtown."))
-      + kcCard("Port Coquitlam",
-        "A smaller, residential city where the West Coast Express meets the Coquitlam River trails.",
-        "Read guide", "Close",
-        kcSec("Character", "PoCo feels more small-town than its Tri-Cities neighbours: a compact downtown core along Shaughnessy Street with local shops and cafés, surrounded by established family neighbourhoods. The Coquitlam River and the Traboulay PoCo Trail — a loop trail around the city — give daily life an outdoors focus.")
-        + kcSec("Getting around", "Port Coquitlam Station is on the West Coast Express, with weekday commuter trains to downtown Vancouver. Buses connect to Coquitlam Central Station and the SkyTrain network, and Highway 1 and the Mary Hill Bypass serve drivers.")
-        + kcSec("Homes", "Mostly single-family houses and townhouse complexes, with some low-rise condos near the downtown core and newer development in the Dominion Triangle area in the city's northeast.")
-        + kcSec("Who it suits", "Buyers looking for a quieter, family-focused community with green space at the door, who commute by West Coast Express or by car.")),
-    fa:
-      kcCard("برنابی — متروتاون",
-        "مرکز شهر مرتفع برنابی، ساخته‌شده پیرامون یک مرکز خرید بزرگ و یک قطب اسکای‌ترین.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "متروتاون مرکز شهر برنابی است: مجموعه‌ای متراکم از برج‌های مسکونی، دفاتر و فروشگاه‌ها پیرامون «متروپولیس در متروتاون»، یکی از بزرگ‌ترین مراکز خرید BC. خیابان‌های نزدیک ایستگاه حس‌وحال کاملاً شهری دارند، اما چند بلوک آن‌طرف‌تر به خیابان‌های مسکونی آرام‌تر و مسیرهای جنگلی پارک مرکزی (Central Park) در لبه‌ی غربی محله می‌رسند.")
-        + kcSec("رفت‌وآمد", "ایستگاه متروتاون در خط Expo اسکای‌ترین، مسیر مستقیم به مرکز شهر ونکوور می‌دهد و همین ایستگاه یکی از پرترددترین پایانه‌های اتوبوس منطقه است. ایستگاه پترسون (Patterson، همان خط Expo) بخش غربی محله را پوشش می‌دهد. بسیاری از نیازهای روزمره — خرید روزانه، خدمات و مجتمع تفریحی بانسر (Bonsor) — برای ساکنان برج‌ها در فاصله‌ی پیاده است.")
-        + kcSec("خانه‌ها", "بیشتر آپارتمان است — برج‌های بلند نزدیک مرکز و ساختمان‌های کم‌ارتفاع قدیمی‌تر در خیابان‌های اطراف — و تاون‌هاوس و خانه‌های مستقل در فاصله‌ی دورتر.")
-        + kcSec("مناسب چه کسانی است", "کسانی که سبک زندگی کم‌وابسته به خودرو و متکی به حمل‌ونقل عمومی می‌خواهند؛ مسافران روزانه‌ی اسکای‌ترین؛ و کسانی که خانه‌شان را کوچک می‌کنند و می‌خواهند فروشگاه، خدمات و تفریح نزدیکشان باشد."))
-      + kcCard("کوکیتلام — مرکز کوکیتلام",
-        "مرکز شهری خانواده‌محور که در آن امتداد Evergreen اسکای‌ترین به قطار حومه‌ای West Coast Express می‌رسد.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "مرکز شهر برنامه‌ریزی‌شده‌ی کوکیتلام، ساخته‌شده پیرامون مرکز خرید Coquitlam Centre. دریاچه‌ی لافارژ و پارک Town Centre نقش «اتاق نشیمن سبز» این مرکز را دارند — مسیرهای پیاده‌روی، زمین‌های ورزشی و رویدادهای اجتماعی — پس با وجود برج‌های جدید، ریتم این مرکز حومه‌ای و خانوادگی مانده است.")
-        + kcSec("رفت‌وآمد", "ایستگاه Coquitlam Central سه چیز را کنار هم دارد: خط Millennium (امتداد Evergreen)، قطار حومه‌ای West Coast Express به مرکز شهر ونکوور، و یک پایانه‌ی اتوبوس — یکی از معدود مراکز مترو ونکوور که هم اسکای‌ترین دارد و هم قطار حومه‌ای.")
-        + kcSec("خانه‌ها", "برج‌های آپارتمانی و تاون‌هاوس‌های جدیدتر نزدیک ایستگاه، آپارتمان‌های کم‌ارتفاع قدیمی‌تر، و خانه‌های مستقل در خیابان‌ها و تپه‌های جاافتاده‌ی اطراف مرکز.")
-        + kcSec("مناسب چه کسانی است", "خانواده‌هایی که پارک، مدرسه و امکانات اجتماعی نزدیک می‌خواهند؛ مسافران روزانه‌ای که هم گزینه‌ی اسکای‌ترین را دوست دارند هم قطار حومه‌ای؛ و خریدارانی که دنبال ساختمان‌های جدیدتر در محیطی حومه‌ای‌اند."))
-      + kcCard("ساری — مرکز شهر ساری",
-        "مرکز شهر جوان و به‌سرعت در حال رشد ساری، با دو ایستگاه اسکای‌ترین، یک پردیس دانشگاهی و کتابخانه‌ی اصلی شهر.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "یکی از تازه‌ترین مرکز شهرهای مترو ونکوور. برج‌های اداری و مسکونی پیرامون ایستگاه‌های Surrey Central و King George در کنار پردیس ساری دانشگاه SFU، کتابخانه‌ی مرکز شهر و میدان Civic Plaza در حال بالا رفتن‌اند، اما ساختمان‌های کم‌ارتفاع و خانه‌های قدیمی‌تر هنوز در بسیاری از خیابان‌های اطراف دیده می‌شوند — مرکزی که آشکارا در حال دگرگونی است.")
-        + kcSec("رفت‌وآمد", "ایستگاه King George پایانه‌ی خط Expo است و ایستگاه Surrey Central اسکای‌ترین را با یکی از شلوغ‌ترین پایانه‌های اتوبوس منطقه کنار هم دارد، از جمله سرویس اتوبوس سریع در بلوار King George.")
-        + kcSec("خانه‌ها", "آپارتمان‌های بلندمرتبه نزدیک ایستگاه‌ها، تعداد رو‌به‌رشدی تاون‌هاوس، و خانه‌های مستقل قدیمی‌تر در خیابان‌های اطراف در محله‌ی Whalley.")
-        + kcSec("مناسب چه کسانی است", "دانشجویان و کارکنان SFU ساری و KPU؛ خریداران اولی که دسترسی مستقیم به اسکای‌ترین می‌خواهند؛ و کسانی که در مرکز رو‌به‌رشد ساری کار می‌کنند و رفت‌وآمد کوتاه می‌خواهند."))
-      + kcCard("ونکوور — مرکز شهر",
-        "متراکم‌ترین هسته‌ی منطقه: برج‌های مسکونی، دفاتر، ورزشگاه‌ها و ساحل، همه در فاصله‌ی پیاده.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "شبه‌جزیره‌ی مرکز شهر، منطقه‌ی تجاری، خرید در خیابان‌های Robson و Granville، تئاترها و ورزشگاه‌ها را در خود جا داده — و محله‌های مسکونی متمایزی دارد. West End سرسبز و قدیمی‌تر است، با ساختمان‌های کم‌ و میان‌ارتفاع نزدیک پارک Stanley و خلیج English Bay؛ Yaletown انبارهای تبدیل‌شده را با برج‌ها در امتداد دیوار ساحلی (seawall) ترکیب می‌کند؛ Coal Harbour برج‌های ساحلی آرام‌تری دارد؛ و Gastown منطقه‌ی تاریخی شهر است.")
-        + kcSec("رفت‌وآمد", "ایستگاه Waterfront بزرگ‌ترین قطب منطقه است — خط‌های Expo و Canada اسکای‌ترین، SeaBus به ونکوور شمالی و West Coast Express — به‌علاوه‌ی چند ایستگاه دیگر اسکای‌ترین در سراسر شبه‌جزیره و شبکه‌ی متراکم اتوبوس. بیشتر مرکز شهر پیاده‌پیماست و مسیرهای ساحلی برای دوچرخه ساخته شده‌اند.")
-        + kcSec("خانه‌ها", "تقریباً به‌طور کامل آپارتمان در برج‌های میان‌ و بلندمرتبه، به‌علاوه‌ی تعدادی تاون‌هاوس؛ خانه‌ی مستقل در شبه‌جزیره کمیاب است.")
-        + kcSec("مناسب چه کسانی است", "کسانی که در مرکز شهر کار می‌کنند یا سبک زندگی «همه‌جا پیاده» می‌خواهند، و کسانی که خانه‌شان را کوچک می‌کنند و نگهداری خانه را با امکانات و چشم‌انداز عوض می‌کنند."))
-      + kcCard("ریچموند",
-        "شهری هموار و کنار رودخانه در جنوب ونکوور، روی خط Canada — مشهور به رستوران‌ها و صحنه‌ی غذایی‌اش.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "ریچموند روی جزیره‌هایی در دهانه‌ی رود فریزر قرار دارد: هموار، عمدتاً حومه‌ای، و در سراسر منطقه به رستوران‌های آسیایی، فودکورت‌ها و مراکز خریدش معروف است. مرکز شهر در امتداد جاده‌ی No. 3 ستون فقرات شهری آن است، در حالی که Steveston در جنوب‌غربی با اسکله‌ها و بناهای تاریخی‌اش، حال‌وهوای یک روستای ماهیگیری را نگه داشته است. فرودگاه بین‌المللی ونکوور (YVR) روی جزیره‌ی Sea در محدوده‌ی ریچموند قرار دارد.")
-        + kcSec("رفت‌وآمد", "خط Canada از ایستگاه‌های Richmond–Brighouse و Aberdeen به مرکز شهر ونکوور و فرودگاه می‌رود. اتوبوس‌ها از سراسر شهر به ایستگاه‌ها می‌رسند و زمین هموار، دوچرخه را برای مسیرهای محلی کاربردی می‌کند.")
-        + kcSec("خانه‌ها", "عمدتاً خانه‌های مستقل و تاون‌هاوس، به‌علاوه‌ی آپارتمان‌های کم‌ارتفاع — و برج‌های آپارتمانی بلندترِ متمرکز نزدیک ایستگاه‌های خط Canada در مرکز شهر.")
-        + kcSec("مناسب چه کسانی است", "خانواده‌هایی که خیابان‌های هموار و دوچرخه‌پذیر و مدرسه‌های محلی برایشان مهم است؛ کسانی که زیاد با هواپیما سفر می‌کنند؛ و خریدارانی که فضای حومه‌ای می‌خواهند با یک اتصال مستقیم اسکای‌ترین به مرکز شهر."))
-      + kcCard("پورت کوکیتلام",
-        "شهری کوچک‌تر و مسکونی که در آن West Coast Express به مسیرهای کنار رود کوکیتلام می‌رسد.",
-        "خواندن راهنما", "بستن",
-        kcSec("حال‌وهوا", "پورت کوکیتلام نسبت به همسایه‌هایش در Tri-Cities حس شهری کوچک‌تر دارد: یک مرکز شهر جمع‌وجور در امتداد خیابان Shaughnessy با فروشگاه‌ها و کافه‌های محلی، و دور تا دور آن محله‌های خانوادگی جاافتاده. رود کوکیتلام و مسیر حلقه‌ای Traboulay PoCo — مسیری که دور شهر می‌چرخد — به زندگی روزمره حال‌وهوای طبیعت‌محور می‌دهند.")
-        + kcSec("رفت‌وآمد", "ایستگاه Port Coquitlam روی خط West Coast Express است و در روزهای کاری قطار حومه‌ای به مرکز شهر ونکوور دارد. اتوبوس‌ها به ایستگاه Coquitlam Central و شبکه‌ی اسکای‌ترین وصل می‌شوند و بزرگراه ۱ و کنارگذر Mary Hill هم برای رانندگان است.")
-        + kcSec("خانه‌ها", "بیشتر خانه‌های مستقل و مجتمع‌های تاون‌هاوس، با تعدادی آپارتمان کم‌ارتفاع نزدیک مرکز شهر و ساخت‌وساز جدیدتر در منطقه‌ی Dominion Triangle در شمال‌شرق شهر.")
-        + kcSec("مناسب چه کسانی است", "خریدارانی که جامعه‌ای آرام‌تر و خانواده‌محور با فضای سبز دمِ دست می‌خواهند و با West Coast Express یا خودرو رفت‌وآمد می‌کنند.")),
-    hi:
-      kcCard("बर्नाबी — मेट्रोटाउन",
-        "बर्नाबी का ऊँचा डाउनटाउन, एक बड़े शॉपिंग सेंटर और स्काईट्रेन हब के आसपास बसा।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "मेट्रोटाउन बर्नाबी का सिटी सेंटर है: मेट्रोपोलिस एट मेट्रोटाउन — BC के सबसे बड़े शॉपिंग सेंटरों में से एक — के आसपास कॉन्डो टावरों, दफ़्तरों और दुकानों का घना समूह। स्टेशन के पास की सड़कें पूरी तरह शहरी लगती हैं, जबकि कुछ ब्लॉक आगे वे शांत आवासीय सड़कों और इलाके के पश्चिमी किनारे पर सेंट्रल पार्क के जंगली रास्तों में बदल जाती हैं।")
-        + kcSec("आवागमन", "स्काईट्रेन एक्सपो लाइन पर मेट्रोटाउन स्टेशन डाउनटाउन वैंकूवर तक सीधी सवारी देता है, और यह स्टेशन क्षेत्र के सबसे व्यस्त बस एक्सचेंजों में से एक भी है। पैटरसन स्टेशन (वही एक्सपो लाइन) इलाके के पश्चिमी हिस्से को सेवा देता है। रोज़मर्रा की कई ज़रूरतें — किराना, सेवाएँ और बोनसोर मनोरंजन परिसर — टावरों से पैदल दूरी पर हैं।")
-        + kcSec("घर", "ज़्यादातर कॉन्डो — केंद्र के पास ऊँचे टावर और आसपास की सड़कों पर पुरानी कम-ऊँची अपार्टमेंट इमारतें — और दूर की ओर टाउनहाउस व अलग मकान।")
-        + kcSec("किसके लिए उपयुक्त", "उन लोगों के लिए जो कार-हल्का, ट्रांज़िट-प्रथम जीवन चाहते हैं; स्काईट्रेन से रोज़ आने-जाने वालों के लिए; और छोटा घर लेने वालों के लिए जो दुकानें, सेवाएँ और मनोरंजन पास चाहते हैं।"))
-      + kcCard("कोक्विटलम — कोक्विटलम सेंटर",
-        "एक परिवार-उन्मुख सिटी सेंटर, जहाँ स्काईट्रेन का एवरग्रीन विस्तार वेस्ट कोस्ट एक्सप्रेस से मिलता है।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "कोक्विटलम का नियोजित डाउनटाउन, कोक्विटलम सेंटर मॉल के आसपास बसा है। लाफ़ार्ज झील और टाउन सेंटर पार्क इसके हरे-भरे बैठकखाने जैसे हैं — पैदल रास्ते, खेल के मैदान और सामुदायिक कार्यक्रम — इसलिए नए टावर उठने के बावजूद केंद्र का माहौल उपनगरीय और पारिवारिक बना रहता है।")
-        + kcSec("आवागमन", "कोक्विटलम सेंट्रल स्टेशन तीनों को जोड़ता है: मिलेनियम लाइन (एवरग्रीन विस्तार), डाउनटाउन वैंकूवर के लिए वेस्ट कोस्ट एक्सप्रेस कम्यूटर ट्रेन, और एक बस एक्सचेंज — मेट्रो वैंकूवर के उन गिने-चुने केंद्रों में से एक जहाँ स्काईट्रेन और कम्यूटर रेल दोनों हैं।")
-        + kcSec("घर", "स्टेशन के पास नए कॉन्डो टावर और टाउनहाउस, पुराने कम-ऊँचे कॉन्डो व अपार्टमेंट, और केंद्र के आसपास की स्थापित सड़कों व पहाड़ियों पर अलग मकान।")
-        + kcSec("किसके लिए उपयुक्त", "वे परिवार जो पार्क, स्कूल और सामुदायिक सुविधाएँ पास चाहते हैं; वे यात्री जिन्हें स्काईट्रेन और कम्यूटर-रेल दोनों विकल्प पसंद हैं; और वे खरीदार जो उपनगरीय माहौल में नई आवासीय इमारतें चाहते हैं।"))
-      + kcCard("सरी — सरी सिटी सेंटर",
-        "सरी का युवा, तेज़ी से बढ़ता डाउनटाउन — दो स्काईट्रेन स्टेशन, एक विश्वविद्यालय परिसर और शहर की मुख्य लाइब्रेरी इसके आधार हैं।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "मेट्रो वैंकूवर के सबसे नए डाउनटाउनों में से एक। सरी सेंट्रल और किंग जॉर्ज स्टेशनों के आसपास दफ़्तर और आवासीय टावर उठ रहे हैं, SFU सरी परिसर, सिटी सेंटर लाइब्रेरी और सिविक प्लाज़ा के साथ; जबकि पुरानी कम-ऊँची इमारतें और मकान अब भी कई आसपास की सड़कों पर हैं — एक केंद्र जो साफ़ तौर पर बदल रहा है।")
-        + kcSec("आवागमन", "किंग जॉर्ज स्टेशन एक्सपो लाइन का अंतिम स्टेशन है, और सरी सेंट्रल स्टेशन स्काईट्रेन को क्षेत्र के सबसे व्यस्त बस एक्सचेंजों में से एक के साथ जोड़ता है, जिसमें किंग जॉर्ज बुलेवार्ड पर रैपिड-बस सेवा भी है।")
-        + kcSec("घर", "स्टेशनों के पास ऊँचे कॉन्डो, बढ़ती संख्या में टाउनहाउस, और आसपास की व्हैली सड़कों पर पुराने अलग मकान।")
-        + kcSec("किसके लिए उपयुक्त", "SFU सरी और KPU के छात्र व कर्मचारी; पहली बार खरीदार जो सीधी स्काईट्रेन पहुँच चाहते हैं; और वे लोग जो सरी के बढ़ते केंद्र में काम करते हैं और छोटी यात्रा चाहते हैं।"))
-      + kcCard("वैंकूवर — डाउनटाउन",
-        "क्षेत्र का सबसे घना केंद्र: कॉन्डो टावर, दफ़्तर, स्टेडियम और तट — सब पैदल दूरी पर।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "डाउनटाउन प्रायद्वीप में व्यापारिक ज़िला, रॉबसन और ग्रानविल की शॉपिंग, थिएटर और स्टेडियम समाए हैं — और अलग-अलग आवासीय हिस्से भी। वेस्ट एंड हरा-भरा और पुराना है, स्टैनली पार्क और इंग्लिश बे के पास कम- व मध्यम-ऊँची इमारतों के साथ; येलटाउन सीवॉल के किनारे बदले हुए गोदामों और टावरों का मिश्रण है; कोल हार्बर शांत तटीय ऊँची इमारतों वाला है; और गैसटाउन शहर का विरासत ज़िला है।")
-        + kcSec("आवागमन", "वाटरफ़्रंट स्टेशन क्षेत्र का सबसे बड़ा हब है — एक्सपो और कनाडा लाइन स्काईट्रेन, उत्तरी वैंकूवर के लिए सीबस और वेस्ट कोस्ट एक्सप्रेस — साथ ही प्रायद्वीप भर में कई और स्काईट्रेन स्टेशन और घना बस नेटवर्क। डाउनटाउन का अधिकांश हिस्सा पैदल चलने योग्य है, और तटीय रास्ते साइकिल के लिए बने हैं।")
-        + kcSec("घर", "लगभग पूरी तरह मध्यम- व ऊँची इमारतों में कॉन्डो और अपार्टमेंट, साथ में कुछ टाउनहाउस; प्रायद्वीप पर अलग मकान दुर्लभ हैं।")
-        + kcSec("किसके लिए उपयुक्त", "वे लोग जो डाउनटाउन में काम करते हैं या 'हर जगह पैदल' वाली जीवनशैली चाहते हैं, और छोटा घर लेने वाले जो रखरखाव की जगह सुविधाओं और दृश्यों को चुनते हैं।"))
-      + kcCard("रिचमंड",
-        "कनाडा लाइन पर वैंकूवर के दक्षिण में एक समतल, नदी-किनारे का शहर — अपने रेस्तराँ और भोजन के लिए व्यापक रूप से जाना जाता है।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "रिचमंड फ्रेज़र नदी के मुहाने पर द्वीपों पर बसा है: समतल, बड़े पैमाने पर उपनगरीय, और पूरे क्षेत्र में अपने एशियाई रेस्तराँ, फ़ूड कोर्ट और शॉपिंग के लिए प्रसिद्ध। नंबर 3 रोड के किनारे का सिटी सेंटर इसका शहरी आधार है, जबकि दक्षिण-पश्चिम में स्टीवस्टन अपने बंदरगाहों और विरासत इमारतों के साथ मछली पकड़ने वाले गाँव का चरित्र बनाए रखता है। वैंकूवर अंतरराष्ट्रीय हवाई अड्डा (YVR) सी आइलैंड पर, रिचमंड के भीतर है।")
-        + kcSec("आवागमन", "कनाडा लाइन रिचमंड–ब्रिघाउस और एबरडीन स्टेशनों से डाउनटाउन वैंकूवर और हवाई अड्डे तक जाती है। बसें पूरे शहर से स्टेशनों तक जाती हैं, और समतल भूमि स्थानीय यात्राओं के लिए साइकिल को व्यावहारिक बनाती है।")
-        + kcSec("घर", "मुख्यतः अलग मकान और टाउनहाउस, साथ में कम-ऊँचे कॉन्डो — और सिटी सेंटर में कनाडा लाइन स्टेशनों के पास केंद्रित ऊँचे कॉन्डो टावर।")
-        + kcSec("किसके लिए उपयुक्त", "वे परिवार जो समतल, साइकिल-योग्य सड़कों और स्थानीय स्कूलों को महत्व देते हैं; बार-बार हवाई यात्रा करने वाले; और वे खरीदार जो उपनगरीय जगह के साथ डाउनटाउन तक सीधा स्काईट्रेन संपर्क चाहते हैं।"))
-      + kcCard("पोर्ट कोक्विटलम",
-        "एक छोटा, आवासीय शहर जहाँ वेस्ट कोस्ट एक्सप्रेस कोक्विटलम नदी के रास्तों से मिलती है।",
-        "गाइड पढ़ें", "बंद करें",
-        kcSec("माहौल", "पोर्ट कोक्विटलम अपने ट्राई-सिटी पड़ोसियों की तुलना में छोटे शहर जैसा लगता है: शॉनेसी स्ट्रीट के किनारे स्थानीय दुकानों और कैफ़े वाला सघन डाउनटाउन, और चारों ओर स्थापित पारिवारिक इलाके। कोक्विटलम नदी और ट्राबुले पोको ट्रेल — शहर के चारों ओर घूमने वाला रास्ता — रोज़मर्रा की ज़िंदगी को बाहर-प्रकृति का केंद्र देते हैं।")
-        + kcSec("आवागमन", "पोर्ट कोक्विटलम स्टेशन वेस्ट कोस्ट एक्सप्रेस पर है, जहाँ से सप्ताह के कार्यदिवसों में डाउनटाउन वैंकूवर के लिए कम्यूटर ट्रेनें चलती हैं। बसें कोक्विटलम सेंट्रल स्टेशन और स्काईट्रेन नेटवर्क से जुड़ती हैं, और हाईवे 1 व मैरी हिल बाईपास ड्राइवरों के लिए हैं।")
-        + kcSec("घर", "ज़्यादातर अलग मकान और टाउनहाउस परिसर, डाउनटाउन के पास कुछ कम-ऊँचे कॉन्डो, और शहर के उत्तर-पूर्व में डोमिनियन ट्रायंगल क्षेत्र में नया विकास।")
-        + kcSec("किसके लिए उपयुक्त", "वे खरीदार जो दरवाज़े पर हरियाली के साथ शांत, परिवार-केंद्रित समुदाय चाहते हैं, और वेस्ट कोस्ट एक्सप्रेस या कार से आते-जाते हैं।")),
-    zh:
-      kcCard("本拿比——Metrotown",
-        "本拿比的高层市中心,围绕一座大型购物中心和天车枢纽而建。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "Metrotown 是本拿比的市中心:以 Metropolis at Metrotown(BC 最大的购物中心之一)为核心,聚集了公寓高楼、办公楼和零售商铺。车站附近的街道充满都市感,而几个街区之外,则是较安静的住宅街道,以及社区西缘中央公园(Central Park)的林间小径。")
-        + kcSec("交通出行", "天车博览线(Expo Line)的 Metrotown 站可直达温哥华市中心,该站同时也是本地区最繁忙的公交枢纽之一。Patterson 站(同为博览线)服务社区西侧。对于高楼居民来说,日常所需——买菜、服务、Bonsor 娱乐中心——都在步行范围内。")
-        + kcSec("住房类型", "以公寓为主——市中心附近的高层塔楼和周边街道上较旧的低层公寓楼——再往外则有联排别墅和独立屋。")
-        + kcSec("适合人群", "想要少用车、以公交为主生活方式的人;乘坐天车通勤的人;以及希望商店、服务和娱乐近在咫尺的换小房者。"))
-      + kcCard("高贵林——Coquitlam Centre",
-        "一个以家庭为导向的市中心,天车常青线延长线在此与西海岸快线交汇。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "高贵林规划中的市中心,围绕 Coquitlam Centre 购物中心而建。Lafarge 湖和市中心公园(Town Centre Park)是它的“绿色客厅”——步行道、运动场和社区活动一应俱全——因此即便新塔楼不断拔起,这里依然保持着郊区般、以家庭为主的节奏。")
-        + kcSec("交通出行", "Coquitlam Central 站集三者于一体:千禧线(常青线延长线)、前往温哥华市中心的西海岸快线通勤列车,以及公交枢纽——是温哥华都会区少数同时拥有天车和通勤铁路的中心之一。")
-        + kcSec("住房类型", "车站附近有较新的公寓塔楼和联排别墅,还有较旧的低层公寓,以及中心周边成熟街道和山坡上的独立屋。")
-        + kcSec("适合人群", "希望公园、学校和社区设施近在身边的家庭;喜欢同时拥有天车和通勤铁路两种选择的通勤者;以及想在郊区环境中寻找较新住房的买家。"))
-      + kcCard("素里——Surrey City Centre",
-        "素里年轻而快速成长的市中心,以两个天车站、一所大学校园和市立图书馆为核心。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "这是温哥华都会区最新的市中心之一。办公和住宅塔楼正围绕 Surrey Central 和 King George 两站拔地而起,旁边是 SFU 素里校园、市中心图书馆和市政广场,而许多周边街道上仍保留着较旧的低层建筑和房屋——一个明显处于转型中的中心。")
-        + kcSec("交通出行", "King George 站是博览线的终点站,Surrey Central 站则将天车与本地区最繁忙的公交枢纽之一结合在一起,包括沿 King George 大道的快速公交服务。")
-        + kcSec("住房类型", "车站附近的高层公寓、数量不断增加的联排别墅,以及周边 Whalley 街道上较旧的独立屋。")
-        + kcSec("适合人群", "SFU 素里校区和 KPU 的学生与教职人员;希望直达天车的首次购房者;以及在素里不断成长的市中心工作、希望通勤时间短的人。"))
-      + kcCard("温哥华——市中心",
-        "本地区密度最高的核心:公寓塔楼、办公楼、体育场和海滨,全部步行可达。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "市中心半岛汇集了商业区、Robson 和 Granville 的购物街、剧院和体育场——还有各具特色的住宅片区。西区(West End)绿树成荫、建筑较旧,中低层建筑靠近史丹利公园和英吉利湾;耶鲁镇(Yaletown)将改建仓库与塔楼沿海堤步道(seawall)相融合;煤港(Coal Harbour)是较安静的海滨高层区;煤气镇(Gastown)则是城市的历史街区。")
-        + kcSec("交通出行", "Waterfront 站是本地区最大的枢纽——天车博览线和加拿大线、海上巴士(SeaBus)前往北温哥华,以及西海岸快线——半岛上还有数个天车站和密集的公交网络。市中心大部分区域适合步行,海堤步道则是为骑行而建。")
-        + kcSec("住房类型", "绝大多数是中高层塔楼中的公寓,外加少量联排别墅;半岛上的独立屋十分罕见。")
-        + kcSec("适合人群", "在市中心工作或想要“处处步行”生活方式的人,以及愿意以免去房屋维护换取便利设施和景观的换小房者。"))
-      + kcCard("列治文",
-        "位于温哥华以南、加拿大线沿线的平坦临河城市——以餐厅和美食闻名。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "列治文位于菲沙河口的岛屿上:地势平坦,以郊区风貌为主,凭借亚洲餐厅、美食广场和购物场所闻名全区。沿 3 号路(No. 3 Road)的市中心是城市的主轴,而西南部的史蒂夫斯顿(Steveston)则以码头和历史建筑保留着渔村风情。温哥华国际机场(YVR)位于海岛(Sea Island)上,在列治文范围内。")
-        + kcSec("交通出行", "加拿大线从 Richmond–Brighouse 站和 Aberdeen 站前往温哥华市中心和机场。公交从全市各地汇集到各车站,平坦的地形也让骑行成为实用的本地出行方式。")
-        + kcSec("住房类型", "以独立屋和联排别墅为主,外加低层公寓——较高的公寓塔楼集中在市中心加拿大线车站附近。")
-        + kcSec("适合人群", "重视平坦易骑行街道和本地学校的家庭;经常乘飞机出行的人;以及想要郊区空间又希望天车直达市中心的买家。"))
-      + kcCard("高贵林港",
-        "一座较小的住宅城市,西海岸快线在此与高贵林河步道相遇。",
-        "阅读指南", "收起",
-        kcSec("氛围特色", "与三联市(Tri-Cities)的邻居相比,高贵林港更有小镇气息:沿 Shaughnessy 街的紧凑市中心有本地商店和咖啡馆,四周是成熟的家庭社区。高贵林河和环绕全市的 Traboulay PoCo 步道,让日常生活以户外为重心。")
-        + kcSec("交通出行", "Port Coquitlam 站位于西海岸快线上,工作日有通勤列车前往温哥华市中心。公交连接 Coquitlam Central 站和天车网络,1 号高速公路和 Mary Hill 绕道则服务驾车者。")
-        + kcSec("住房类型", "以独立屋和联排别墅小区为主,市中心附近有一些低层公寓,城市东北部的 Dominion Triangle 地区有较新的开发项目。")
-        + kcSec("适合人群", "希望社区更安静、以家庭为主且绿地近在门口,并乘坐西海岸快线或驾车通勤的买家。"))
-    };
-
-    function kcVerify(t){ return '<p class="kc-verify">' + t + "</p>"; }
-    var KC_EXPLAIN = {
-    en:
-      kcCard("How BC's property transfer tax works",
-        "The provincial tax most buyers pay on top of the purchase price — how it's calculated, and who can be exempt.",
-        "Read explainer", "Close",
-        "<p>The property transfer tax (PTT) is a BC provincial tax the buyer pays when a property transfer is registered with the Land Title and Survey Authority. It's charged on top of the purchase price and is normally paid on completion day — so it belongs in your closing-cost budget, not your mortgage.</p>"
-        + "<p>The tax is tiered, based on the property's fair market value: 1% on the first $200,000, 2% on the portion between $200,000 and $2,000,000, and 3% on the portion above $2,000,000. An additional 2% applies to the residential portion of a property's value above $3,000,000.</p>"
-        + "<p>Exemptions can remove some or all of the tax. Qualifying first-time buyers may receive a full or partial exemption, newly built homes have their own exemption program, and an additional property transfer tax applies to foreign buyers in specified areas of BC. Each program has its own eligibility rules and value limits.</p>"
-        + kcVerify("Rates, thresholds and exemption rules change — verify the current figures at the official source: gov.bc.ca (property transfer tax)."))
-      + kcCard("The federal mortgage stress test, explained",
-        "Why you have to qualify for your mortgage at a higher rate than the one you'll actually pay.",
-        "Read explainer", "Close",
-        "<p>The stress test is a federal affordability check: your lender must confirm you could still afford your payments if rates rose. You qualify at a higher qualifying rate — the greater of your actual contract rate plus 2%, or the federal benchmark rate.</p>"
-        + "<p>The test applies to insured mortgages under federal mortgage rules, and to uninsured mortgages at federally regulated lenders under OSFI's B-20 guideline. Passing the test doesn't change your real payment — you pay at your contract rate. It simply means your budget has a built-in cushion, and it's why the maximum mortgage you qualify for is smaller than a calculation at the contract rate alone would suggest.</p>"
-        + kcVerify("Verify the current benchmark rate and rules at the official source: CMHC (cmhc-schl.gc.ca)."))
-      + kcCard("Subjects (conditions) in a BC offer",
-        "The conditions that protect a buyer between writing an offer and the deal becoming firm.",
-        "Read explainer", "Close",
-        "<p>In BC, an offer is usually written as a Contract of Purchase and Sale with subjects — conditions that must be satisfied by a deadline (subject removal) before the contract becomes firm. Subjects protect the buyer while they do their due diligence; the seller knows the deal isn't final until they're removed.</p>"
-        + "<p>Common subjects include financing (the lender fully approves the mortgage), a home inspection the buyer is satisfied with, review of strata documents for strata properties (minutes, financials, depreciation report, bylaws), review of title, and sometimes the sale of the buyer's existing home.</p>"
-        + "<p>If a subject genuinely can't be satisfied, the buyer can usually let the contract end and recover the deposit, as the contract provides. Once subjects are removed and the deposit is paid, the contract is binding — walking away can mean losing the deposit and facing legal claims, which is why conditions should never be waived casually.</p>"
-        + kcVerify("Verify current consumer guidance at the official source: BC Financial Services Authority — BCFSA (bcfsa.ca)."))
-      + kcCard("Strata vs freehold ownership",
-        "Two different ways of owning a home in BC — and why the difference shapes your costs and rules.",
-        "Read explainer", "Close",
-        "<p><b>Freehold</b> means you own the land and the building outright — the typical detached house. There's no strata corporation and no monthly strata fee; you're responsible for all maintenance, repairs and insurance yourself, and municipal bylaws are the main rules that apply.</p>"
-        + "<p><b>Strata</b> ownership means you own your individual unit (a strata lot) plus a shared interest in the property's common areas — roofs, hallways, grounds, amenities — which are owned and managed collectively through a strata corporation made up of all the owners. Most condos in BC, and many townhouses, are strata.</p>"
-        + "<p>Strata owners pay monthly strata fees that fund building insurance, maintenance and a contingency reserve fund for future major repairs, and they live under the strata's bylaws and rules, which can restrict things like pets, rentals and renovations. Before buying a strata property, reviewing the strata documents is one of the most important steps in the process.</p>"
-        + kcVerify("Verify the current rules at the official source: gov.bc.ca (strata housing) and BCFSA (bcfsa.ca).")),
-    fa:
-      kcCard("مالیات انتقال ملک BC چگونه کار می‌کند",
-        "مالیات استانی‌ای که بیشتر خریداران علاوه بر قیمت خرید می‌پردازند — نحوه‌ی محاسبه و اینکه چه کسانی معاف می‌شوند.",
-        "خواندن توضیح", "بستن",
-        "<p>مالیات انتقال ملک (PTT) مالیات استانی BC است که خریدار هنگام ثبت انتقال ملک در اداره‌ی ثبت اسناد زمین (Land Title) می‌پردازد. این مالیات علاوه بر قیمت خرید است و معمولاً در روز تکمیل معامله پرداخت می‌شود — پس جای آن در بودجه‌ی هزینه‌های پایانی است، نه در وام.</p>"
-        + "<p>این مالیات پلکانی و بر اساس ارزش منصفانه‌ی بازار ملک محاسبه می‌شود: ۱٪ روی ۲۰۰ هزار دلار اول، ۲٪ روی بخش بین ۲۰۰ هزار تا ۲ میلیون دلار، و ۳٪ روی بخش بالای ۲ میلیون دلار. ۲٪ اضافی هم روی بخش مسکونیِ ارزش ملک بالاتر از ۳ میلیون دلار اعمال می‌شود.</p>"
-        + "<p>معافیت‌ها می‌توانند بخشی یا همه‌ی این مالیات را حذف کنند. خریداران اولی واجد شرایط ممکن است معافیت کامل یا نسبی بگیرند، خانه‌های نوساز برنامه‌ی معافیت جداگانه‌ی خود را دارند، و در مناطق مشخصی از BC مالیات اضافی انتقال برای خریداران خارجی اعمال می‌شود. هر برنامه قواعد احراز شرایط و سقف‌های قیمتی خودش را دارد.</p>"
-        + kcVerify("نرخ‌ها، آستانه‌ها و قواعد معافیت تغییر می‌کنند — ارقام و قواعد جاری را در منبع رسمی بررسی کنید: gov.bc.ca (مالیات انتقال ملک)."))
-      + kcCard("تست استرس وام مسکن فدرال، به زبان ساده",
-        "چرا باید برای وام‌تان با نرخی بالاتر از نرخ واقعی‌تان واجد شرایط شوید.",
-        "خواندن توضیح", "بستن",
-        "<p>تست استرس یک بررسی فدرال توان پرداخت است: وام‌دهنده باید مطمئن شود که اگر نرخ‌ها بالا بروند، باز هم از پس اقساط برمی‌آیید. شما با یک «نرخ احتسابی» بالاتر واجد شرایط می‌شوید — بیشترِ نرخ قرارداد واقعی‌تان به‌علاوه‌ی ۲٪، یا نرخ معیار فدرال.</p>"
-        + "<p>این تست برای وام‌های بیمه‌شده تحت قواعد فدرال وام اعمال می‌شود و برای وام‌های بدون بیمه در وام‌دهنده‌های تحت نظارت فدرال، تحت دستورالعمل B-20 نهاد OSFI. قبولی در تست، قسط واقعی‌تان را تغییر نمی‌دهد — شما با نرخ قراردادتان پرداخت می‌کنید؛ فقط یعنی بودجه‌تان یک حاشیه‌ی اطمینان داخلی دارد و به همین دلیل حداکثر وامی که واجد شرایطش می‌شوید کمتر از محاسبه‌ی صرف با نرخ قرارداد است.</p>"
-        + kcVerify("نرخ معیار و قواعد جاری را در منبع رسمی بررسی کنید: CMHC ‏(cmhc-schl.gc.ca)."))
-      + kcCard("شروط (subjects) در یک پیشنهاد خرید در BC",
-        "شرط‌هایی که بین نوشتن پیشنهاد و قطعی‌شدن معامله از خریدار محافظت می‌کنند.",
-        "خواندن توضیح", "بستن",
-        "<p>در BC، پیشنهاد خرید معمولاً به‌صورت «قرارداد خرید و فروش» با شروط نوشته می‌شود — شرط‌هایی که باید تا یک مهلت مشخص (برداشتن شروط) برآورده شوند تا قرارداد قطعی شود. شروط در مدت بررسی دقیق (due diligence) از خریدار محافظت می‌کنند و فروشنده می‌داند معامله تا برداشته‌شدن آن‌ها نهایی نیست.</p>"
-        + "<p>شروط رایج شامل تأمین مالی (تأیید کامل وام توسط وام‌دهنده)، بازرسی خانه با نتیجه‌ی رضایت‌بخش برای خریدار، بررسی اسناد ساختمان برای ملک‌های strata (صورت‌جلسه‌ها، صورت‌های مالی، گزارش استهلاک، اساسنامه)، بررسی سند مالکیت، و گاهی فروش خانه‌ی فعلی خریدار است.</p>"
-        + "<p>اگر شرطی واقعاً برآورده نشود، خریدار معمولاً می‌تواند بگذارد قرارداد پایان یابد و ودیعه‌اش را، طبق مفاد قرارداد، پس بگیرد. اما وقتی شروط برداشته شد و ودیعه پرداخت شد، قرارداد الزام‌آور است — عقب‌نشینی می‌تواند یعنی از دست دادن ودیعه و ادعاهای حقوقی؛ به همین دلیل هرگز نباید شروط را سرسری حذف کرد.</p>"
-        + kcVerify("راهنمای جاری مصرف‌کنندگان را در منبع رسمی بررسی کنید: سازمان خدمات مالی BC — ‏BCFSA ‏(bcfsa.ca)."))
-      + kcCard("مالکیت strata در برابر freehold",
-        "دو شیوه‌ی متفاوت مالکیت خانه در BC — و اینکه چرا این تفاوت هزینه‌ها و قواعد شما را شکل می‌دهد.",
-        "خواندن توضیح", "بستن",
-        "<p><b>مالکیت آزاد (freehold)</b> یعنی زمین و ساختمان کاملاً مال شماست — نمونه‌ی معمولش خانه‌ی مستقل است. شرکت مدیریت ساختمان و شارژ ماهانه‌ای در کار نیست؛ همه‌ی نگهداری، تعمیرات و بیمه با خودتان است و قواعد اصلی همان مقررات شهرداری است.</p>"
-        + "<p><b>مالکیت strata</b> یعنی شما مالک واحد خودتان (strata lot) هستید به‌علاوه‌ی سهمی مشترک از بخش‌های مشترک ملک — سقف، راهروها، محوطه و امکانات — که به‌صورت جمعی از طریق شرکت strata متشکل از همه‌ی مالکان اداره می‌شود. بیشتر آپارتمان‌های BC و بسیاری از تاون‌هاوس‌ها strata هستند.</p>"
-        + "<p>مالکان strata شارژ ماهانه می‌پردازند که بیمه‌ی ساختمان، نگهداری و صندوق ذخیره‌ی احتیاطی برای تعمیرات اساسی آینده را تأمین می‌کند و تابع اساسنامه و قواعد strata هستند که می‌تواند چیزهایی مثل حیوان خانگی، اجاره‌دادن و بازسازی را محدود کند. پیش از خرید ملک strata، بررسی اسناد ساختمان یکی از مهم‌ترین قدم‌هاست.</p>"
-        + kcVerify("قواعد جاری را در منبع رسمی بررسی کنید: gov.bc.ca (مسکن strata) و BCFSA ‏(bcfsa.ca).")),
-    hi:
-      kcCard("BC का संपत्ति हस्तांतरण कर कैसे काम करता है",
-        "वह प्रांतीय कर जो अधिकांश खरीदार खरीद कीमत के ऊपर देते हैं — यह कैसे गिना जाता है, और कौन छूट पा सकता है।",
-        "व्याख्या पढ़ें", "बंद करें",
-        "<p>संपत्ति हस्तांतरण कर (PTT) एक BC प्रांतीय कर है जो खरीदार तब देता है जब संपत्ति का हस्तांतरण लैंड टाइटल कार्यालय में पंजीकृत होता है। यह खरीद कीमत के ऊपर लगता है और आमतौर पर समापन दिवस पर चुकाया जाता है — इसलिए यह आपकी समापन लागत के बजट में आता है, मॉर्गेज में नहीं।</p>"
-        + "<p>यह कर संपत्ति के उचित बाज़ार मूल्य पर स्तरों में लगता है: पहले $200,000 पर 1%, $200,000 से $2,000,000 के हिस्से पर 2%, और $2,000,000 से ऊपर के हिस्से पर 3%। संपत्ति के मूल्य के $3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% भी लगता है।</p>"
-        + "<p>छूटें इस कर का कुछ हिस्सा या पूरा कर हटा सकती हैं। पात्र पहली बार खरीदार पूर्ण या आंशिक छूट पा सकते हैं, नए बने घरों का अपना छूट कार्यक्रम है, और BC के निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर लगता है। हर कार्यक्रम के अपने पात्रता नियम और मूल्य सीमाएँ हैं।</p>"
-        + kcVerify("दरें, सीमाएँ और छूट नियम बदलते रहते हैं — वर्तमान आंकड़े आधिकारिक स्रोत पर जाँचें: gov.bc.ca (संपत्ति हस्तांतरण कर)।"))
-      + kcCard("संघीय मॉर्गेज स्ट्रेस टेस्ट, सरल शब्दों में",
-        "आपको अपने मॉर्गेज के लिए उस दर से ऊँची दर पर योग्य क्यों होना पड़ता है जो आप वास्तव में चुकाएँगे।",
-        "व्याख्या पढ़ें", "बंद करें",
-        "<p>स्ट्रेस टेस्ट एक संघीय सामर्थ्य जाँच है: आपके ऋणदाता को यह पुष्टि करनी होती है कि दरें बढ़ने पर भी आप किस्तें चुका सकेंगे। आप ऊँची योग्यता दर पर योग्य होते हैं — आपकी वास्तविक अनुबंध दर + 2%, या संघीय बेंचमार्क दर, जो भी अधिक हो।</p>"
-        + "<p>यह टेस्ट संघीय मॉर्गेज नियमों के तहत बीमित मॉर्गेज पर, और संघीय नियमन वाले ऋणदाताओं पर OSFI के B-20 दिशानिर्देश के तहत गैर-बीमित मॉर्गेज पर लागू होता है। टेस्ट पास करने से आपकी असली किस्त नहीं बदलती — आप अनुबंध दर पर ही चुकाते हैं। इसका मतलब बस इतना है कि आपके बजट में अंतर्निहित सुरक्षा है, और यही कारण है कि आप जितने मॉर्गेज के लिए योग्य होते हैं वह केवल अनुबंध दर की गणना से कम होता है।</p>"
-        + kcVerify("वर्तमान बेंचमार्क दर और नियम आधिकारिक स्रोत पर जाँचें: CMHC (cmhc-schl.gc.ca)।"))
-      + kcCard("BC ऑफ़र में शर्तें (subjects)",
-        "वे शर्तें जो ऑफ़र लिखने और सौदा पक्का होने के बीच खरीदार की रक्षा करती हैं।",
-        "व्याख्या पढ़ें", "बंद करें",
-        "<p>BC में ऑफ़र आमतौर पर ख़रीद-बिक्री अनुबंध (Contract of Purchase and Sale) के रूप में शर्तों (subjects) के साथ लिखा जाता है — ऐसी शर्तें जो एक समय-सीमा (subject removal) तक पूरी होनी चाहिए, तभी अनुबंध पक्का होता है। ये शर्तें खरीदार की सावधानीपूर्वक जाँच (due diligence) के दौरान उसकी रक्षा करती हैं, और विक्रेता जानता है कि शर्तें हटने तक सौदा अंतिम नहीं है।</p>"
-        + "<p>आम शर्तों में वित्तपोषण (ऋणदाता मॉर्गेज को पूरी तरह मंज़ूरी दे), खरीदार को संतुष्ट करने वाला गृह निरीक्षण, स्ट्राटा प्रॉपर्टी के लिए स्ट्राटा दस्तावेज़ों की समीक्षा (कार्यवृत्त, वित्तीय विवरण, मूल्यह्रास रिपोर्ट, उपनियम), टाइटल की समीक्षा, और कभी-कभी खरीदार के मौजूदा घर की बिक्री शामिल हैं।</p>"
-        + "<p>यदि कोई शर्त सचमुच पूरी न हो सके, तो खरीदार आमतौर पर अनुबंध को समाप्त होने दे सकता है और, अनुबंध के अनुसार, जमा वापस पा सकता है। लेकिन शर्तें हट जाने और जमा दे दिए जाने के बाद अनुबंध बाध्यकारी हो जाता है — पीछे हटने का अर्थ जमा खोना और कानूनी दावे हो सकते हैं, इसलिए शर्तें कभी लापरवाही से नहीं हटानी चाहिए।</p>"
-        + kcVerify("वर्तमान उपभोक्ता मार्गदर्शन आधिकारिक स्रोत पर जाँचें: BC Financial Services Authority — BCFSA (bcfsa.ca)।"))
-      + kcCard("स्ट्राटा बनाम फ़्रीहोल्ड स्वामित्व",
-        "BC में घर के मालिक होने के दो अलग तरीके — और यह अंतर आपकी लागतों व नियमों को कैसे आकार देता है।",
-        "व्याख्या पढ़ें", "बंद करें",
-        "<p><b>फ़्रीहोल्ड</b> का अर्थ है कि ज़मीन और इमारत पूरी तरह आपकी है — इसका सामान्य उदाहरण अलग मकान है। कोई स्ट्राटा कॉर्पोरेशन नहीं, कोई मासिक स्ट्राटा शुल्क नहीं; सारा रखरखाव, मरम्मत और बीमा आपकी ज़िम्मेदारी है, और मुख्य नियम नगरपालिका के उपनियम होते हैं।</p>"
-        + "<p><b>स्ट्राटा</b> स्वामित्व का अर्थ है कि आप अपनी व्यक्तिगत इकाई (strata lot) के मालिक हैं, साथ ही संपत्ति के साझा क्षेत्रों — छत, गलियारे, मैदान, सुविधाएँ — में साझा हित रखते हैं, जिनका स्वामित्व और प्रबंधन सभी मालिकों से बनी स्ट्राटा कॉर्पोरेशन के माध्यम से सामूहिक रूप से होता है। BC के अधिकांश कॉन्डो, और कई टाउनहाउस, स्ट्राटा हैं।</p>"
-        + "<p>स्ट्राटा मालिक मासिक शुल्क देते हैं जो भवन बीमा, रखरखाव और भविष्य की बड़ी मरम्मत के लिए आकस्मिक आरक्षित निधि को वित्त देता है, और वे स्ट्राटा के उपनियमों व नियमों के अधीन रहते हैं, जो पालतू जानवरों, किराए और नवीनीकरण जैसी चीज़ें सीमित कर सकते हैं। स्ट्राटा प्रॉपर्टी खरीदने से पहले स्ट्राटा दस्तावेज़ों की समीक्षा इस प्रक्रिया के सबसे महत्वपूर्ण चरणों में से एक है।</p>"
-        + kcVerify("वर्तमान नियम आधिकारिक स्रोत पर जाँचें: gov.bc.ca (स्ट्राटा आवास) और BCFSA (bcfsa.ca)।")),
-    zh:
-      kcCard("BC 房产转让税如何运作",
-        "大多数买家在房价之外还要缴纳的省级税——如何计算,以及谁可以获得减免。",
-        "阅读解析", "收起",
-        "<p>房产转让税(PTT)是 BC 省的一种税,买家在土地产权局(Land Title)登记产权转让时缴纳。它在房价之外另行收取,通常在成交日支付——因此应计入您的过户费用预算,而不是房贷。</p>"
-        + "<p>该税按房产公平市场价值分级征收:首 $200,000 按 1%,$200,000 至 $2,000,000 的部分按 2%,$2,000,000 以上的部分按 3%。房产价值中 $3,000,000 以上的住宅部分还另加 2%。</p>"
-        + "<p>减免可以免除部分或全部税款。符合条件的首次购房者可获得全额或部分减免;新建房屋有其专门的减免计划;在 BC 的指定地区,外国买家还需缴纳额外转让税。每个计划都有自己的资格规则和价值上限。</p>"
-        + kcVerify("税率、门槛和减免规则会变化——请在官方来源核实当前数据:gov.bc.ca(房产转让税)。"))
-      + kcCard("联邦房贷压力测试解析",
-        "为什么您必须按高于实际利率的水平通过房贷资格审核。",
-        "阅读解析", "收起",
-        "<p>压力测试是一项联邦负担能力审查:贷款机构必须确认,即使利率上升,您仍能负担月供。您需要按一个较高的“审核利率”通过审核——即您的实际合同利率加 2% 与联邦基准利率中的较高者。</p>"
-        + "<p>该测试适用于联邦房贷规则下的保险型房贷,以及受联邦监管的贷款机构依据 OSFI 的 B-20 指引发放的非保险型房贷。通过测试并不会改变您的实际月供——您仍按合同利率还款。它只是意味着您的预算内置了缓冲垫,这也是您能获得的最高贷款额小于仅按合同利率计算结果的原因。</p>"
-        + kcVerify("请在官方来源核实当前基准利率和规则:CMHC(cmhc-schl.gc.ca)。"))
-      + kcCard("BC 报价中的附带条件(subjects)",
-        "在写下报价到交易成为定局之间保护买家的条件。",
-        "阅读解析", "收起",
-        "<p>在 BC,报价通常以《买卖合同》(Contract of Purchase and Sale)的形式写成,并带有附带条件(subjects)——这些条件必须在截止日期(条件移除日)前满足,合同才能成为定局。在买家进行尽职调查期间,这些条件起到保护作用;卖家也知道,在条件移除之前,交易尚未最终确定。</p>"
-        + "<p>常见的条件包括:贷款(贷款机构完全批准房贷)、令买家满意的验房、对物业管理类房产审阅物业文件(会议记录、财务报表、折旧报告、附例)、审阅产权,以及有时包括买家先出售自有房屋。</p>"
-        + "<p>如果某项条件确实无法满足,买家通常可以让合同按其条款终止并取回定金。但一旦条件被移除、定金已支付,合同即具约束力——退出可能意味着损失定金并面临法律索赔,因此绝不应草率放弃条件。</p>"
-        + kcVerify("请在官方来源核实当前消费者指南:BC 金融服务管理局——BCFSA(bcfsa.ca)。"))
-      + kcCard("物业管理(strata)与完全产权(freehold)的区别",
-        "在 BC 拥有住房的两种不同方式——以及这一区别为何会影响您的费用和规则。",
-        "阅读解析", "收起",
-        "<p><b>完全产权(freehold)</b>意味着您完全拥有土地和建筑——典型的独立屋就是如此。没有物业公司,也没有每月管理费;所有维护、维修和保险都由您自己负责,主要适用的规则是市政附例。</p>"
-        + "<p><b>物业管理(strata)</b>产权意味着您拥有自己的独立单位(strata lot),同时对房产的公共区域——屋顶、走廊、场地、配套设施——拥有共同权益,这些区域由全体业主组成的物业公司集体拥有和管理。BC 的大多数公寓以及许多联排别墅都是 strata 形式。</p>"
-        + "<p>strata 业主每月缴纳管理费,用于建筑保险、维护以及为未来重大维修设立的应急储备金,并且必须遵守 strata 的附例和规则,这些规则可能限制养宠物、出租和装修等事项。购买 strata 房产前,审阅物业文件是整个过程中最重要的步骤之一。</p>"
-        + kcVerify("请在官方来源核实当前规则:gov.bc.ca(strata 住房)与 BCFSA(bcfsa.ca)。"))
-    };
-    function renderKnowledge(){
-      $("kcAreas").innerHTML = KC_AREAS[lang] || KC_AREAS.en;
-      $("kcExplain").innerHTML = KC_EXPLAIN[lang] || KC_EXPLAIN.en;
-    }
-
-    var GUIDE = {
-    en:"<h3>The buying steps in BC</h3><ol>"
-      +"<li><b>Get pre-approved.</b> A lender or mortgage broker confirms your budget using the GDS/TDS ratios and the stress test — before you start shopping.</li>"
-      +"<li><b>Save your down payment and closing costs.</b> First-time buyers can use the FHSA (First Home Savings Account) and the RRSP Home Buyers' Plan.</li>"
-      +"<li><b>Set your search criteria.</b> Cities, property type, must-haves and a budget range — so you can compare new listings against the same yardstick.</li>"
-      +"<li><b>View homes and compare.</b> For condos and townhouses, read the strata documents: meeting minutes, the depreciation report, and any special levies.</li>"
-      +"<li><b>Write an offer.</b> Price, deposit, dates, and subject conditions (financing, inspection, strata documents) with clear deadlines.</li>"
-      +"<li><b>Remove subjects and pay the deposit.</b> Once the conditions are met, the contract is firm and the deposit is held in trust.</li>"
-      +"<li><b>Complete the purchase.</b> Your lawyer or notary registers the transfer, the property transfer tax is paid, and the balance is due on the completion date.</li>"
-      +"<li><b>Possession day.</b> You get the keys — and start budgeting for property tax, insurance, strata and maintenance.</li></ol>"
-      +"<h3>Minimum down payment</h3><ul>"
-      +"<li><b>Under $500,000:</b> 5% of the purchase price.</li>"
-      +"<li><b>$500,000 to $999,999:</b> 5% of the first $500,000, plus 10% of the portion above $500,000.</li>"
-      +"<li><b>$1,000,000 and over:</b> 20% of the purchase price.</li>"
-      +"<li>With less than 20% down, mortgage default insurance (CMHC) is required and the premium is added to your mortgage. Homes priced at $1.5M and over are not eligible for insured mortgages — verify the current eligibility rules.</li></ul>"
-      +"<h3>BC property transfer tax (PTT)</h3><ul>"
-      +"<li>1% on the first $200,000 of the price.</li>"
-      +"<li>2% on the portion from $200,000 to $2,000,000.</li>"
-      +"<li>3% on the portion above $2,000,000 (an additional 2% can apply to the residential portion above $3,000,000).</li>"
-      +"<li><b>First-time buyer exemption:</b> qualifying first-time buyers can be fully or partially exempt on homes up to a threshold value. Eligibility and thresholds change — verify the current rules at gov.bc.ca before relying on them.</li>"
-      +"<li>Newly built homes may qualify for a separate exemption, and an additional property transfer tax for foreign buyers can apply in specified areas.</li></ul>"
-      +"<h3>Closing costs to budget for</h3><ul>"
-      +"<li>Property transfer tax (above).</li>"
-      +"<li>Legal / notary fees and disbursements.</li>"
-      +"<li>Home inspection and appraisal fees.</li>"
-      +"<li>Title insurance and registration fees.</li>"
-      +"<li>GST (5%) on newly built homes — not charged on resale homes.</li>"
-      +"<li>Adjustments (prepaid property taxes, utilities, strata fees), moving costs, and utility hookups.</li>"
-      +"<li><b>Rule of thumb:</b> budget roughly 1.5%–4% of the purchase price for closing costs, on top of your down payment.</li></ul>",
-    fa:"<h3>مراحل خرید خانه در BC</h3><ol>"
-      +"<li><b>پیش‌تأیید بگیرید.</b> وام‌دهنده یا کارگزار وام، پیش از شروع جست‌وجو، با نسبت‌های GDS/TDS و تست استرس بودجه‌تان را تأیید می‌کند.</li>"
-      +"<li><b>پیش‌پرداخت و هزینه‌های پایانی را پس‌انداز کنید.</b> خریداران اولی می‌توانند از حساب FHSA (پس‌انداز خانه‌ی اول) و طرح Home Buyers' Plan از RRSP استفاده کنند.</li>"
-      +"<li><b>معیارهای جست‌وجو را مشخص کنید.</b> شهر، نوع ملک، بایدها و بازه‌ی بودجه — تا فایل‌های جدید را با یک معیار ثابت مقایسه کنید.</li>"
-      +"<li><b>خانه‌ها را ببینید و مقایسه کنید.</b> برای آپارتمان و تاون‌هاوس، اسناد ساختمان را بخوانید: صورت‌جلسه‌ها، گزارش استهلاک و هزینه‌های ویژه (levy).</li>"
-      +"<li><b>پیشنهاد (آفر) بنویسید.</b> قیمت، ودیعه، تاریخ‌ها و شروط (تأمین مالی، بازرسی، اسناد ساختمان) با مهلت مشخص.</li>"
-      +"<li><b>شروط را بردارید و ودیعه را بپردازید.</b> با برآورده‌شدن شرط‌ها قرارداد قطعی می‌شود و ودیعه نزد امانی نگه داشته می‌شود.</li>"
-      +"<li><b>معامله را کامل کنید.</b> وکیل یا دفتر اسناد رسمی انتقال را ثبت می‌کند، مالیات انتقال ملک پرداخت می‌شود و مانده در روز تکمیل (completion) سررسید است.</li>"
-      +"<li><b>روز تحویل (possession).</b> کلیدها را می‌گیرید — و بودجه‌بندی مالیات ملک، بیمه، شارژ و نگهداری شروع می‌شود.</li></ol>"
-      +"<h3>حداقل پیش‌پرداخت</h3><ul>"
-      +"<li><b>کمتر از ۵۰۰ هزار دلار:</b> ۵٪ قیمت خرید.</li>"
-      +"<li><b>۵۰۰ هزار تا ۹۹۹٬۹۹۹ دلار:</b> ۵٪ از ۵۰۰ هزار دلار اول، به‌علاوه‌ی ۱۰٪ از بخش بالاتر از ۵۰۰ هزار دلار.</li>"
-      +"<li><b>۱ میلیون دلار و بیشتر:</b> ۲۰٪ قیمت خرید.</li>"
-      +"<li>با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی نکول وام (CMHC) الزامی است و حق بیمه‌اش به وام اضافه می‌شود. خانه‌های ۱٫۵ میلیون دلار به بالا واجد شرایط وام بیمه‌شده نیستند — قواعد جاری احراز صلاحیت را بررسی کنید.</li></ul>"
-      +"<h3>مالیات انتقال ملک BC ‏(PTT)</h3><ul>"
-      +"<li>۱٪ روی ۲۰۰ هزار دلار اول قیمت.</li>"
-      +"<li>۲٪ روی بخش ۲۰۰ هزار تا ۲ میلیون دلار.</li>"
-      +"<li>۳٪ روی بخش بالاتر از ۲ میلیون دلار (۲٪ اضافی می‌تواند روی بخش مسکونی بالاتر از ۳ میلیون دلار اعمال شود).</li>"
-      +"<li><b>معافیت خریدار اولی:</b> خریداران اولی واجد شرایط می‌توانند برای خانه‌هایی تا یک سقف قیمتی، معافیت کامل یا نسبی بگیرند. شرایط و سقف‌ها تغییر می‌کنند — پیش از اتکا، قواعد جاری را در gov.bc.ca بررسی کنید.</li>"
-      +"<li>خانه‌های نوساز ممکن است مشمول معافیت جداگانه‌ای شوند و در مناطق مشخص، مالیات اضافی انتقال برای خریداران خارجی اعمال می‌شود.</li></ul>"
-      +"<h3>هزینه‌های پایانی که باید بودجه‌بندی کنید</h3><ul>"
-      +"<li>مالیات انتقال ملک (بالا).</li>"
-      +"<li>هزینه‌های وکیل / دفتر اسناد رسمی و مخارج اداری.</li>"
-      +"<li>هزینه‌ی بازرسی خانه و ارزیابی (appraisal).</li>"
-      +"<li>بیمه‌ی مالکیت (title insurance) و هزینه‌های ثبت.</li>"
-      +"<li>مالیات GST ‏(۵٪) روی خانه‌های نوساز — روی خانه‌های دست‌دوم اعمال نمی‌شود.</li>"
-      +"<li>تعدیل‌ها (مالیات ملک، آب‌وبرق و شارژ پیش‌پرداخت‌شده)، هزینه‌ی اسباب‌کشی و اتصال خدمات.</li>"
-      +"<li><b>قاعده‌ی سرانگشتی:</b> برای هزینه‌های پایانی، علاوه بر پیش‌پرداخت، حدود ۱٫۵ تا ۴٪ قیمت خرید را کنار بگذارید.</li></ul>",
-    hi:"<h3>BC में खरीद के चरण</h3><ol>"
-      +"<li><b>पूर्व-अनुमोदन लें।</b> ऋणदाता या मॉर्गेज ब्रोकर, खोज शुरू करने से पहले, GDS/TDS अनुपात और स्ट्रेस टेस्ट से आपका बजट पुष्टि करता है।</li>"
-      +"<li><b>डाउन पेमेंट और समापन लागत बचाएँ।</b> पहली बार खरीदार FHSA (First Home Savings Account) और RRSP Home Buyers' Plan का उपयोग कर सकते हैं।</li>"
-      +"<li><b>अपने खोज मानदंड तय करें।</b> शहर, प्रॉपर्टी प्रकार, अनिवार्य चीज़ें और एक बजट सीमा — ताकि आप नई लिस्टिंग की तुलना एक ही पैमाने से कर सकें।</li>"
-      +"<li><b>घर देखें और तुलना करें।</b> कॉन्डो और टाउनहाउस के लिए स्ट्राटा दस्तावेज़ पढ़ें: बैठक कार्यवृत्त (minutes), मूल्यह्रास रिपोर्ट और कोई विशेष शुल्क (levy)।</li>"
-      +"<li><b>ऑफ़र लिखें।</b> कीमत, जमा, तिथियाँ और स्पष्ट समय-सीमा वाले शर्त-विषय (वित्तपोषण, निरीक्षण, स्ट्राटा दस्तावेज़)।</li>"
-      +"<li><b>शर्तें हटाएँ और जमा दें।</b> शर्तें पूरी होते ही अनुबंध पक्का हो जाता है और जमा ट्रस्ट में रखा जाता है।</li>"
-      +"<li><b>खरीद पूरी करें।</b> आपका वकील या नोटरी हस्तांतरण पंजीकृत करता है, संपत्ति हस्तांतरण कर चुकता होता है और शेष राशि समापन तिथि पर देय होती है।</li>"
-      +"<li><b>कब्ज़े का दिन।</b> आपको चाबियाँ मिलती हैं — और संपत्ति कर, बीमा, स्ट्राटा व रखरखाव का बजट शुरू होता है।</li></ol>"
-      +"<h3>न्यूनतम डाउन पेमेंट</h3><ul>"
-      +"<li><b>$500,000 से कम:</b> खरीद कीमत का 5%।</li>"
-      +"<li><b>$500,000 से $999,999:</b> पहले $500,000 का 5%, और $500,000 से ऊपर के हिस्से का 10%।</li>"
-      +"<li><b>$1,000,000 और अधिक:</b> खरीद कीमत का 20%।</li>"
-      +"<li>20% से कम डाउन पेमेंट पर मॉर्गेज चूक बीमा (CMHC) अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ता है। $1.5M और अधिक कीमत के घर बीमित मॉर्गेज के पात्र नहीं हैं — वर्तमान पात्रता नियम जाँचें।</li></ul>"
-      +"<h3>BC संपत्ति हस्तांतरण कर (PTT)</h3><ul>"
-      +"<li>कीमत के पहले $200,000 पर 1%।</li>"
-      +"<li>$200,000 से $2,000,000 के हिस्से पर 2%।</li>"
-      +"<li>$2,000,000 से ऊपर के हिस्से पर 3% ($3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% लग सकता है)।</li>"
-      +"<li><b>पहली बार खरीदार छूट:</b> पात्र पहली बार खरीदार एक सीमा मूल्य तक के घरों पर पूर्ण या आंशिक छूट पा सकते हैं। पात्रता और सीमाएँ बदलती रहती हैं — भरोसा करने से पहले gov.bc.ca पर वर्तमान नियम जाँचें।</li>"
-      +"<li>नए बने घरों को अलग छूट मिल सकती है, और निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर लग सकता है।</li></ul>"
-      +"<h3>बजट में रखने योग्य समापन लागतें</h3><ul>"
-      +"<li>संपत्ति हस्तांतरण कर (ऊपर)।</li>"
-      +"<li>वकील / नोटरी शुल्क और खर्चे।</li>"
-      +"<li>गृह निरीक्षण और मूल्यांकन (appraisal) शुल्क।</li>"
-      +"<li>टाइटल बीमा और पंजीकरण शुल्क।</li>"
-      +"<li>नए बने घरों पर GST (5%) — पुनर्विक्रय घरों पर नहीं लगता।</li>"
-      +"<li>समायोजन (पूर्व-चुकता संपत्ति कर, उपयोगिताएँ, स्ट्राटा शुल्क), स्थानांतरण लागत और उपयोगिता कनेक्शन।</li>"
-      +"<li><b>सामान्य नियम:</b> डाउन पेमेंट के अलावा, समापन लागतों के लिए खरीद कीमत का लगभग 1.5%–4% बजट रखें।</li></ul>",
-    zh:"<h3>在 BC 买房的步骤</h3><ol>"
-      +"<li><b>先取得预批。</b>在开始看房前,贷款机构或房贷经纪会用 GDS/TDS 比率和压力测试确认您的预算。</li>"
-      +"<li><b>存够首付和过户费用。</b>首次购房者可以使用 FHSA(首次购房储蓄账户)和 RRSP 的购房者计划(Home Buyers' Plan)。</li>"
-      +"<li><b>确定您的搜索标准。</b>城市、物业类型、必备条件和预算范围——这样您就能用同一把尺子比较新房源。</li>"
-      +"<li><b>看房并比较。</b>购买公寓和联排别墅时,务必阅读物业文件:会议记录、折旧报告和任何特别征费。</li>"
-      +"<li><b>提交报价(offer)。</b>价格、定金、日期和附带条件(贷款、验房、物业文件),并设定明确的截止日期。</li>"
-      +"<li><b>移除条件并支付定金。</b>条件满足后合同即成定局,定金由信托保管。</li>"
-      +"<li><b>完成交易。</b>您的律师或公证人登记过户,缴纳房产转让税,余款在成交日到期。</li>"
-      +"<li><b>交房日。</b>您拿到钥匙 — 同时开始为地税、保险、管理费和维护做预算。</li></ol>"
-      +"<h3>最低首付</h3><ul>"
-      +"<li><b>$500,000 以下:</b>房价的 5%。</li>"
-      +"<li><b>$500,000 至 $999,999:</b>首 $500,000 的 5%,加上超出 $500,000 部分的 10%。</li>"
-      +"<li><b>$1,000,000 及以上:</b>房价的 20%。</li>"
-      +"<li>首付低于 20% 时必须购买房贷违约保险(CMHC),保费计入贷款。$150 万及以上的房屋不符合保险型房贷资格 — 请核实当前资格规则。</li></ul>"
-      +"<h3>BC 房产转让税(PTT)</h3><ul>"
-      +"<li>房价首 $200,000 部分:1%。</li>"
-      +"<li>$200,000 至 $2,000,000 部分:2%。</li>"
-      +"<li>$2,000,000 以上部分:3%($3,000,000 以上的住宅部分可能另加 2%)。</li>"
-      +"<li><b>首次购房者减免:</b>符合条件的首次购房者,在门槛价值以内的房屋可获全额或部分减免。资格和门槛会变化 — 依赖之前请先到 gov.bc.ca 核实当前规则。</li>"
-      +"<li>新建房屋可能另有减免;在指定地区,外国买家可能需缴纳额外转让税。</li></ul>"
-      +"<h3>需要预算的过户费用</h3><ul>"
-      +"<li>房产转让税(见上)。</li>"
-      +"<li>律师 / 公证费及杂费。</li>"
-      +"<li>验房费和评估费。</li>"
-      +"<li>产权保险和登记费。</li>"
-      +"<li>新建房屋的 GST(5%)— 二手房不收取。</li>"
-      +"<li>调整项(预付的地税、水电费、管理费)、搬家费和开通水电的费用。</li>"
-      +"<li><b>经验法则:</b>除首付外,过户费用约为房价的 1.5%–4%。</li></ul>"
-    };
-
     var lang = "en";
     try { var saved = localStorage.getItem("erfan-re-lang"); if (saved && I18N[saved]) lang = saved; } catch(e){}
     function T(){ return I18N[lang]; }
@@ -1980,7 +1216,6 @@
     function $(id){ return document.getElementById(id); }
     function fill(tpl, obj){ var s = tpl; for (var k in obj) s = s.split("{"+k+"}").join(obj[k]); return s; }
     function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-
     /* ---------- option builders (preserve selection) ---------- */
     function keep(sel, build, defVal){ var v = sel.value; sel.innerHTML = ""; build(sel); if (v && sel.querySelector('option[value="'+v+'"]')) sel.value = v; else if (defVal && sel.querySelector('option[value="'+defVal+'"]')) sel.value = defVal; }
     function opt(sel, val, label){ var o = document.createElement("option"); o.value = val; o.textContent = label; sel.appendChild(o); }
@@ -1990,8 +1225,6 @@
     function buildPriceSelect(sel){ opt(sel, "", T().any_price); PRICES.forEach(function(p){ opt(sel, String(p), fmt(p)); }); }
     function buildBedsSelect(sel){ opt(sel, "0", T().any); [1,2,3,4].forEach(function(n){ opt(sel, String(n), n + "+"); }); }
     function buildSortSelect(sel){ [["featured","s_featured"],["price-asc","s_price_asc"],["price-desc","s_price_desc"],["newest","s_newest"],["dom","s_dom"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); }
-
-    /* ---------- listing cards ---------- */
     function cardHTML(l, why){
       var t = T();
       var specs = "<span><b>"+l.beds+"</b> "+t.beds+"</span><span><b>"+l.baths+"</b> "+t.baths+"</span>" +
@@ -2004,178 +1237,6 @@
         '<div class="specs">'+specs+'</div><p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
         '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" onclick="openListing(\''+l.mls+'\')">'+esc(t.view)+"</button></div></div></article>";
     }
-    function filteredListings(){
-      var q = $("q").value.trim().toLowerCase(), city = $("fCity").value, type = $("fType").value,
-          price = $("fPrice").value, beds = parseInt($("fBeds").value||"0",10), sort = $("fSort").value;
-      var out = LISTINGS.filter(function(l){
-        if (city && l.city !== city) return false;
-        if (type && l.type !== type) return false;
-        if (price && l.price > parseInt(price,10)) return false;
-        if (l.beds < beds) return false;
-        if (q){ var hay = (l.street+" "+l.city+" "+l.mls).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
-        return true;
-      });
-      if (sort === "price-asc") out.sort(function(a,b){return a.price-b.price;});
-      if (sort === "price-desc") out.sort(function(a,b){return b.price-a.price;});
-      if (sort === "newest") out.sort(function(a,b){return b.listed.localeCompare(a.listed);});
-      if (sort === "dom") out.sort(function(a,b){return b.dom-a.dom;});
-      return out;
-    }
-    function renderListings(){
-      var list = filteredListings(), t = T();
-      $("resultCount").textContent = fill(t.results, {n: list.length});
-      $("grid").innerHTML = list.length ? list.map(function(l){ return cardHTML(l, null); }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
-    }
-
-    /* ---------- detail dialog ---------- */
-    var dlg = $("dlg"), current = null;
-    window.openListing = function(mls){
-      var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
-      $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
-      var b = $("dBadge"); b.textContent = l.status === "pending" ? t.pending : t.active; b.className = "badge" + (l.status === "pending" ? " pending" : "");
-      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = t.cities[l.city] + ", BC · " + l.postal;
-      function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
-      $("dKv").innerHTML =
-        kv(t.m_type, t["type_"+l.type]) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
-        kv(t.m_interior, l.sqft ? l.sqft.toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_lot, l.lot ? l.lot.toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_year, l.year || t.na) + kv(t.m_parking, t["parking_"+l.parking] + fill(t.stalls, {n: l.stalls})) +
-        kv(t.m_strata, l.strata ? fmt(l.strata) : t.na) + kv(t.m_dom, l.dom) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
-      $("dFeat").innerHTML = l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("");
-      $("dDesc").textContent = l.desc[lang] || l.desc.en;
-      $("dAsk").href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.ask_subject, {mls: l.mls, addr: l.street + ", " + l.city}));
-      $("dTour").hidden = true;
-      getTour(l.mls, function(tour){
-        if (tour && tour.enabled && tour.rooms.length && current === l) $("dTour").hidden = false;
-      });
-      $("dTour").onclick = function(){ openTour(l.mls); };
-      $("tourClose").onclick = closeTour;
-      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
-    };
-    $("dClose").addEventListener("click", function(){ dlg.close(); });
-    dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
-
-    /* ---------- mortgage calculator ---------- */
-    function buildCalcSelects(){
-      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
-      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
-      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
-    }
-    function paymentFor(principal, annualPct, years, perYear){
-      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
-      if (r <= 0) return principal / n;
-      return principal * r / (1 - Math.pow(1 + r, -n));
-    }
-    function calc(){
-      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
-          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
-          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
-      var down = price * downPct / 100, base = price - down, ltv = base / price * 100, premRate = 0;
-      if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
-      var premium = base * premRate, principal = base + premium;
-      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
-      $("payLabel").textContent = t["pay_" + freq];
-      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
-      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
-      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
-      var qual = paymentFor(principal, rate + 2, years, 12);
-      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
-    }
-
-    /* ---------- match assistant ---------- */
-    function buildMatchSelects(){
-      keep($("mBudget"), function(sel){ opt(sel, "", T().any_price); PRICES.concat([2000000]).forEach(function(p){ opt(sel, String(p), fmt(p)); }); });
-      keep($("mBeds"), function(sel){ buildBedsSelect(sel); });
-      keep($("mCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("mType"), function(sel){ buildTypeSelect(sel); });
-    }
-    $("matchForm").addEventListener("submit", function(e){
-      e.preventDefault(); var t = T();
-      var budget = $("mBudget").value ? parseInt($("mBudget").value, 10) : Infinity,
-          beds = parseInt($("mBeds").value || "0", 10), city = $("mCity").value, type = $("mType").value;
-      var hits = LISTINGS.filter(function(l){
-        return l.price <= budget && l.beds >= beds && (!city || l.city === city) && (!type || l.type === type);
-      });
-      $("matchLine").style.display = ""; $("matchCount").textContent = fill(t.m_matches, {n: hits.length});
-      $("matchGrid").innerHTML = hits.length ? hits.map(function(l){
-        var why = [];
-        if (isFinite(budget)) why.push(fill(t.why_under, {x: fmt(budget - l.price)}));
-        why.push(fill(t.why_beds, {n: l.beds})); why.push(fill(t.why_city, {city: t.cities[l.city]}));
-        if (l.strata && l.strata <= 350) why.push(fill(t.why_strata, {x: fmt(l.strata)}));
-        return cardHTML(l, why);
-      }).join("") : '<div class="empty">'+esc(t.m_none)+"</div>";
-      $("matchGrid").scrollIntoView({behavior:"smooth", block:"nearest"});
-    });
-
-    /* ---------- lead form + CRM ---------- */
-    function buildLeadSelects(){
-      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
-      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
-    }
-    function renderCRM(){
-      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
-      var t = T();
-      $("crmBody").innerHTML = LEADS.map(function(ld){
-        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
-        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
-          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
-          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
-          td(t.th_budget, esc(t[ld.budget] || "—")) +
-          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
-          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
-      }).join("");
-    }
-    $("leadForm").addEventListener("submit", function(e){
-      e.preventDefault(); var t = T();
-      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
-          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
-          msg = $("lMsg").value.trim(), plang = $("lLang").value;
-      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）"};
-      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
-      renderCRM();
-      var toast = $("leadToast");
-      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
-      function mailtoFallback(){
-        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
-          city: city ? t.cities[city] : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
-        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body);
-        showToast(t.l_fallback);
-      }
-      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
-      btn.disabled = true; btn.textContent = t.l_sending;
-      var payload = {
-        name: name, email: email, phone: phone || "—",
-        intent: t["intent_"+intent], city: city ? t.cities[city] : "—", budget: t[budget],
-        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
-        _subject: "New lead — Erfan BC Real Estate preview site",
-        _template: "table", _captcha: "false",
-        _honey: $("lHoney").value
-      };
-      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
-      try {
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form"})
-        }).catch(function(){});
-      } catch(e){}
-      fetch("https://formsubmit.co/ajax/" + EMAIL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify(payload)
-      }).then(function(res){
-        if (!res.ok) throw new Error("FormSubmit send failed");
-        return res.json();
-      }).then(function(){
-        showToast(t.l_success);
-      }).catch(function(){
-        mailtoFallback();
-      }).then(function(){
-        btn.disabled = false; btn.textContent = btnLabel;
-      });
-    });
-
     /* ---------- newsletter signup ---------- */
     var NL_URL = "https://newsletter-signup.erfanbillion.workers.dev";
     function nlShowStatus(kind, text){
@@ -2245,188 +1306,8 @@
         nlResetTurnstile();
       });
     });
-
-    /* ---------- buy vs rent ---------- */
+    /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    function bvrCalc(){
-      var t = T();
-      var price = numVal("bvPrice", 800000), downPct = numVal("bvDown", 20), rate = numVal("bvRate", 4.79),
-          amort = Math.max(1, Math.round(numVal("bvAmort", 25))), taxYr = numVal("bvTax", 4200),
-          strataMo = numVal("bvStrata", 350), appr = numVal("bvAppr", 3), rentMo = numVal("bvRent", 2600),
-          rentInc = numVal("bvRentInc", 2), yrs = Math.min(30, Math.max(1, Math.round(numVal("bvYears", 10))));
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1;
-      function balAt(m){
-        if (L <= 0) return 0;
-        if (r <= 0) return Math.max(0, L - P * m);
-        return Math.max(0, L * Math.pow(1 + r, m) - P * ((Math.pow(1 + r, m) - 1) / r));
-      }
-      var rentCum = 0, spentCum = down, rows = "", lastEquity = Math.max(0, price - L);
-      for (var y = 1; y <= yrs; y++){
-        var bal = balAt(Math.min(y, amort) * 12);
-        var payYr = y <= amort ? P * 12 : 0;
-        rentCum += rentMo * 12 * Math.pow(1 + rentInc / 100, y - 1);
-        spentCum += payYr + taxYr + strataMo * 12;
-        var value = price * Math.pow(1 + appr / 100, y);
-        var equity = value - bal; lastEquity = equity;
-        rows += "<tr><td data-th=\"" + esc(t.bv_th_year) + "\">" + y + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_rent) + "\">" + fmt(rentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_spent) + "\">" + fmt(spentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_value) + "\">" + fmt(value) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_bal) + "\">" + fmt(bal) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_equity) + "\">" + fmt(equity) + "</td></tr>";
-      }
-      $("bvBody").innerHTML = rows;
-      var costBuy = spentCum - lastEquity, diff = rentCum - costBuy;
-      $("bvCostRentL").textContent = fill(t.bv_cost_rent, {n: yrs});
-      $("bvEquityL").textContent = fill(t.bv_equity, {n: yrs});
-      $("bvCostRent").textContent = fmt(rentCum);
-      $("bvSpent").textContent = fmt(spentCum);
-      $("bvEquity").textContent = fmt(lastEquity);
-      $("bvCostBuy").textContent = fmt(costBuy);
-      var vd = $("bvVerdict");
-      if (Math.abs(diff) < Math.max(rentCum, costBuy, 1) * 0.02){ vd.className = "verdict"; vd.textContent = fill(t.bv_tie, {n: yrs}); }
-      else if (diff > 0){ vd.className = "verdict"; vd.textContent = fill(t.bv_win_buy, {x: fmt(diff), n: yrs}); }
-      else { vd.className = "verdict rent"; vd.textContent = fill(t.bv_win_rent, {x: fmt(-diff), n: yrs}); }
-    }
-
-    /* ---------- affordability (GDS / TDS) ---------- */
-    function affordCalc(){
-      var t = T();
-      var income = numVal("afIncome", 120000), debts = numVal("afDebts", 450), taxYr = numVal("afTax", 4200),
-          heat = numVal("afHeat", 120), rate = numVal("afRate", 6.79),
-          amort = Math.max(1, numVal("afAmort", 25)), downPct = numVal("afDown", 20);
-      var gds = 0.32 * income / 12, tdsRoom = 0.40 * income / 12 - debts;
-      var isGds = gds <= tdsRoom;
-      var housingCap = Math.max(0, Math.min(gds, tdsRoom));
-      var payBudget = Math.max(0, housingCap - taxYr / 12 - heat);
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = amort * 12;
-      var maxMort = r > 0 ? payBudget * (1 - Math.pow(1 + r, -n)) / r : payBudget * n;
-      var maxPrice = downPct >= 100 ? 0 : (downPct <= 0 ? maxMort : maxMort / (1 - downPct / 100));
-      $("afMaxPrice").textContent = fmt(maxPrice);
-      $("afMaxMort").textContent = fmt(maxMort);
-      $("afBudget").textContent = fmt(payBudget);
-      $("afGds").textContent = fmt(gds);
-      $("afTds").textContent = fmt(Math.max(0, tdsRoom));
-      $("afLimit").textContent = isGds ? t.af_limit_gds : t.af_limit_tds;
-    }
-
-    /* ---------- investor analysis ---------- */
-    function investCalc(){
-      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
-          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
-          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
-      var effRent = rent * (1 - vac / 100), opex = tax + strata + ins + maint;
-      var noiYr = (effRent - opex) * 12, cf = effRent - opex - P;
-      var cap = price > 0 ? noiYr / price * 100 : 0, coc = down > 0 ? cf * 12 / down * 100 : 0;
-      var cfEl = $("ivCf"); cfEl.textContent = fmt(cf); cfEl.className = cf < 0 ? "neg" : "";
-      $("ivNoi").textContent = fmt(noiYr);
-      $("ivCap").textContent = cap.toFixed(2) + "%";
-      var cocEl = $("ivCoc"); cocEl.textContent = coc.toFixed(2) + "%"; cocEl.className = coc < 0 ? "neg" : "";
-      $("ivCashIn").textContent = fmt(down);
-    }
-
-    /* ---------- investor report export (print view + downloadable HTML) ---------- */
-    var RP_LOCALES = {en:"en-CA", fa:"fa-IR", hi:"hi-IN", zh:"zh-CN"};
-    var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）"};
-    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#1c2420;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
-      + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
-      + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
-      + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
-      + "h1,h2{font-family:Georgia,serif}"
-      + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
-      + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
-      + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
-      + ".rp-wrap{max-width:720px;margin:0 auto;color:#1c2420}"
-      + ".rp-brand{font-size:20px;font-weight:800;color:#0f3d29}"
-      + ".rp-brandsub{color:#5c665f;font-size:13.5px;margin-top:2px}"
-      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0f3d29}"
-      + ".rp-meta{color:#5c665f;font-size:14px;margin:0 0 6px}"
-      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0f3d29}"
-      + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
-      + ".rp-table th{text-align:start;font-weight:600;color:#3f4a43;padding:8px 10px;border-bottom:1px solid #ddd5c4}"
-      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #ddd5c4}"
-      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#5c665f;border:1px solid #ddd5c4;border-radius:9px;padding:12px 14px}"
-      + ".rp-foot{margin-top:16px;font-size:14.5px}"
-      + ".rp-foot a{color:#17573c;font-weight:700}";
-    function reportData(){
-      var t = T();
-      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
-          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
-          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0; /* same payment investCalc uses internally */
-      return {
-        inputs: [
-          [t.iv_price, fmt(price)],
-          [t.iv_down, downPct + "%"],
-          [t.iv_rate, rate + "%"],
-          [t.iv_amort, amort + " " + t.rp_years],
-          [t.iv_rent, fmt(rent)],
-          [t.iv_tax, fmt(tax)],
-          [t.iv_strata, fmt(strata)],
-          [t.iv_ins, fmt(ins)],
-          [t.iv_maint, fmt(maint)],
-          [t.iv_vac, vac + "%"]
-        ],
-        outputs: [
-          [t.rp_pay, fmt(P)],
-          [t.iv_cf, $("ivCf").textContent],
-          [t.iv_noi, $("ivNoi").textContent],
-          [t.iv_cap, $("ivCap").textContent],
-          [t.iv_coc, $("ivCoc").textContent],
-          [t.iv_cashin, $("ivCashIn").textContent]
-        ]
-      };
-    }
-    function rpTable(rows){
-      return '<table class="rp-table"><tbody>' + rows.map(function(r){
-        return '<tr><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>";
-      }).join("") + "</tbody></table>";
-    }
-    function reportHTML(){
-      var t = T(), d = reportData();
-      var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
-      return '<div class="rp-wrap">'
-        + '<div class="rp-brand">Erfan BC Real Estate</div>'
-        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
-        + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
-        + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
-        + '<h2 class="rp-h">' + esc(t.rp_inputs) + "</h2>" + rpTable(d.inputs)
-        + '<h2 class="rp-h">' + esc(t.rp_outputs) + "</h2>" + rpTable(d.outputs)
-        + '<p class="rp-disc">' + esc(t.rp_disclaimer) + "</p>"
-        + '<p class="rp-foot">' + esc(t.rp_contact) + ' <a href="mailto:' + EMAIL + '">' + EMAIL + "</a></p>"
-        + "</div>";
-    }
-    function buildReport(){
-      var root = $("ivReport");
-      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
-      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
-      root.innerHTML = reportHTML();
-    }
-    function downloadReport(){
-      var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
-      var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
-        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
-        + "<title>" + esc(T().rp_title) + " — Erfan BC Real Estate</title>"
-        + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
-      var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url; a.download = "investment-analysis-report-" + lang + ".html";
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
-    }
-    $("ivPrintBtn").addEventListener("click", function(){ buildReport(); window.print(); });
-    $("ivDownloadBtn").addEventListener("click", downloadReport);
-    window.addEventListener("beforeprint", buildReport);
-
-    /* ---------- first-time buyer guide ---------- */
-    function renderGuide(){ $("guideBody").innerHTML = GUIDE[lang] || GUIDE.en; }
-
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -2434,58 +1315,6 @@
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTools(); });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
-
-    /* ---------- FHSA contribution tracker ---------- */
-    var FH_CUR = new Date().getFullYear();
-    var fhAmounts = {};
-    function fhStartYear(){
-      var s = parseInt($("fhStart").value, 10);
-      if (isNaN(s)) s = FH_CUR;
-      return Math.min(Math.max(s, 2023), FH_CUR);
-    }
-    function fhBuildRows(){
-      var start = fhStartYear(), box = $("fhRows"), html = "";
-      for (var y = start; y <= FH_CUR; y++){
-        var v = fhAmounts[y] != null ? fhAmounts[y] : "";
-        html += '<div class="field"><label for="fhAmt' + y + '">' + y + " — " + esc(T().fh_contrib) + '</label><input id="fhAmt' + y + '" type="number" min="0" max="40000" step="100" data-year="' + y + '" value="' + v + '" /></div>';
-      }
-      box.innerHTML = html;
-      box.querySelectorAll("input").forEach(function(inp){
-        inp.addEventListener("input", function(){ fhAmounts[inp.getAttribute("data-year")] = inp.value; fhsaCalc(false); });
-      });
-    }
-    function fhsaCalc(rebuild){
-      if (rebuild !== false) fhBuildRows();
-      var t = T(), start = fhStartYear();
-      var total = 0, roomNow = 0;
-      for (var y = start; y <= FH_CUR; y++){
-        var accruedBefore = Math.min((y - start) * 8000, 40000);
-        var unusedPrev = Math.max(0, accruedBefore - total);
-        var avail = Math.max(0, Math.min(8000 + Math.min(unusedPrev, 8000), 40000 - total));
-        var raw = parseFloat(fhAmounts[y]); if (isNaN(raw) || raw < 0) raw = 0;
-        total += Math.min(raw, avail);
-        if (y === FH_CUR) roomNow = avail;
-      }
-      var accruedAll = Math.min((FH_CUR - start + 1) * 8000, 40000);
-      var unusedAll = Math.max(0, accruedAll - total);
-      var remain = Math.max(0, 40000 - total);
-      var carryNext = Math.min(unusedAll, 8000, remain);
-      $("fhTotal").textContent = fmt(total);
-      $("fhRoomL").textContent = fill(t.fh_room, {y: FH_CUR});
-      $("fhRoom").textContent = fmt(roomNow);
-      $("fhCarry").textContent = fmt(carryNext);
-      $("fhRemain").textContent = fmt(remain);
-      var pct = Math.min(100, total / 400);
-      $("fhPct").textContent = (Math.round(pct * 10) / 10) + "%";
-      $("fhBar").style.width = pct + "%";
-      var pace = total / (FH_CUR - start + 1), proj = $("fhProj");
-      if (remain <= 0) proj.textContent = t.fh_proj_done;
-      else if (pace > 0) proj.textContent = fill(t.fh_proj, {x: fmt(pace), y: FH_CUR + Math.ceil(remain / pace) - 1});
-      else proj.textContent = t.fh_proj_none;
-    }
-    $("fhStart").addEventListener("input", function(){ fhsaCalc(true); });
-    $("fhStart").addEventListener("change", function(){ fhsaCalc(true); });
-
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
     en:{ai_sub:"Site answers first — web search for current market questions",
@@ -2806,6 +1635,7 @@
       return fill(t.sr_found, {n: hits.length}) + "<br>" + lines.join("<br>");
     }
     /* --- site search: sections + the live Knowledge Center cards on this page --- */
+    var PAGE_OF = {"listings":"#listings","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"#newsletter","contact":"contact.html"};
     var SECTIONS_IDX = [
       {id:"listings", key:"search_title", kw:"search listings homes browse mls"},
       {id:"calculator", key:"calc_title", kw:"mortgage calculator payment loan interest"},
@@ -2838,13 +1668,13 @@
       SECTIONS_IDX.forEach(function(s){
         var hay = ((T()[s.key] || "") + " " + (I18N.en[s.key] || "") + " " + s.kw).toLowerCase();
         var sc = score(hay);
-        if (sc > 0) found.push({sc: sc, html: "<a href=\"#" + s.id + "\">" + esc(T()[s.key] || s.key) + "</a>"});
+        if (sc > 0) found.push({sc: sc, html: "<a href=\"" + (PAGE_OF[s.id] || ("#" + s.id)) + "\">" + esc(T()[s.key] || s.key) + "</a>"});
       });
       document.querySelectorAll(".kc-card").forEach(function(card){
         var h = card.querySelector("h4");
         if (!h) return;
         var sc = score(card.textContent.toLowerCase());
-        if (sc >= Math.min(2, toks.length)) found.push({sc: sc, html: "<a href=\"#knowledge\">" + esc(h.textContent) + "</a>"});
+        if (sc >= Math.min(2, toks.length)) found.push({sc: sc, html: "<a href=\"knowledge-centre.html\">" + esc(h.textContent) + "</a>"});
       });
       if (!found.length) return null;
       found.sort(function(a, b){ return b.sc - a.sc; });
@@ -3088,7 +1918,7 @@
         }
       });
     }
-    $("chatForm").addEventListener("submit", function(e){
+    if ($("chatForm")) $("chatForm").addEventListener("submit", function(e){
       e.preventDefault();
       askChat($("chatInput"));
     });
@@ -3097,7 +1927,7 @@
       askChat($("aiInput"));
     });
     ["chatInput", "aiInput"].forEach(function(id){
-      $(id).addEventListener("input", updateChipsVisibility);
+      var chatEl = $(id); if (chatEl) chatEl.addEventListener("input", updateChipsVisibility);
     });
     /* --- floating widget open / close --- */
     var aiPanel = $("aiPanel"), aiFab = $("aiFab");
@@ -3112,237 +1942,11 @@
       if (e.key === "Escape" && aiPanel.classList.contains("open")) setAi(false);
       if (e.key === "Escape" && $("tourModal").style.display === "block") closeTour();
     });
-
-    /* ---------- compare homes (reads only the LISTINGS data above) ---------- */
-    var cmpSel = [LISTINGS[0].mls, LISTINGS[1].mls];
-    function cmpRows(t){
-      return [
-        ["cmp_photo", function(l){ return '<img class="cmp-img" src="'+l.photo+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />'; }],
-        ["m_price", function(l){ return "<b>"+fmt(l.price)+"</b>"; }],
-        ["cmp_ppsf", function(l){ return l.sqft ? fmt(Math.round(l.price / l.sqft)) : "—"; }],
-        ["cmp_address", function(l){ return esc(l.street); }],
-        ["f_city", function(l){ return esc(t.cities[l.city] || l.city); }],
-        ["m_type", function(l){ return esc(t["type_"+l.type]); }],
-        ["d_beds", function(l){ return String(l.beds); }],
-        ["m_baths", function(l){ return String(l.baths); }],
-        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
-        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
-        ["m_year", function(l){ return String(l.year); }],
-        ["m_strata", function(l){ return l.strata ? fmt(l.strata) : "—"; }],
-        ["m_parking", function(l){ return esc(t["parking_"+l.parking]) + fill(t.stalls, {n: l.stalls}); }],
-        ["cmp_status", function(l){ return esc(l.status === "pending" ? t.pending : t.active); }],
-        ["m_dom", function(l){ return String(l.dom); }],
-        ["m_mls", function(l){ return esc(l.mls); }],
-        ["m_features", function(l){ return '<div class="chips">'+l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("")+"</div>"; }]
-      ];
+    /* ---------- home featured listings (build-generated shim) ---------- */
+    window.openListing = function(){ window.location.href = "listings.html"; };
+    function renderFeatured(){
+      $("featuredGrid").innerHTML = LISTINGS.map(function(l){ return cardHTML(l, null); }).join("");
     }
-    function renderCompare(){
-      var t = T();
-      $("cmpPicker").innerHTML = LISTINGS.map(function(l){
-        var on = cmpSel.indexOf(l.mls) !== -1;
-        var maxed = !on && cmpSel.length >= 4;
-        return '<div class="cmp-pick'+(on ? " on" : "")+'"><img src="'+l.photo+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-          '<div class="cmp-pick-body"><div class="cmp-price">'+fmt(l.price)+'</div><div class="cmp-addr">'+esc(l.street)+'</div>' +
-          '<div class="cmp-meta">'+esc(t.cities[l.city] || l.city)+" · "+l.beds+" "+esc(t.beds)+" · "+l.baths+" "+esc(t.baths)+'</div>' +
-          '<button type="button" class="btn '+(on ? "btn-line" : "btn-spruce")+' cmp-toggle" data-mls="'+l.mls+'" aria-pressed="'+(on ? "true" : "false")+'"'+(maxed ? " disabled" : "")+">"+esc(on ? t.cmp_remove : t.cmp_add)+"</button>" +
-          "</div></div>";
-      }).join("");
-      $("cmpPicker").querySelectorAll(".cmp-toggle").forEach(function(btn){
-        btn.addEventListener("click", function(){
-          var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
-          if (i !== -1) cmpSel.splice(i, 1);
-          else if (cmpSel.length < 4) cmpSel.push(mls);
-          renderCompare();
-        });
-      });
-      $("cmpCount").textContent = fill(t.cmp_count, {n: cmpSel.length});
-      var sel = LISTINGS.filter(function(l){ return cmpSel.indexOf(l.mls) !== -1; });
-      if (sel.length < 2){
-        $("cmpTableWrap").innerHTML = '<div class="empty">'+esc(t.cmp_need)+"</div>";
-        return;
-      }
-      var html = '<div class="tbl-scroll"><table class="cmp-table"><thead><tr><th scope="col">'+esc(t.cmp_home)+"</th>" +
-        sel.map(function(l){ return '<th scope="col">'+esc(l.street)+'<div class="mls">'+esc(t.cities[l.city] || l.city)+" · MLS® "+esc(l.mls)+"</div></th>"; }).join("") +
-        "</tr></thead><tbody>";
-      cmpRows(t).forEach(function(row){
-        html += '<tr><th scope="row">'+esc(t[row[0]])+"</th>" +
-          sel.map(function(l){ return '<td data-th="'+esc(l.street)+'">'+row[1](l)+"</td>"; }).join("") + "</tr>";
-      });
-      html += "</tbody></table></div>";
-      $("cmpTableWrap").innerHTML = html;
-    }
-    $("cmpClear").addEventListener("click", function(){ cmpSel = []; renderCompare(); });
-
-    /* ---------- seller tools: home-prep checklist + listing-description draft ---------- */
-    var CHECKLIST = [
-      {cat:"ext", items:["ext1","ext2","ext3","ext4","ext5"]},
-      {cat:"dec", items:["dec1","dec2","dec3","dec4","dec5"]},
-      {cat:"rep", items:["rep1","rep2","rep3","rep4","rep5"]},
-      {cat:"cln", items:["cln1","cln2","cln3","cln4","cln5"]},
-      {cat:"stg", items:["stg1","stg2","stg3","stg4","stg5"]},
-      {cat:"pho", items:["pho1","pho2","pho3","pho4","pho5"]}
-    ];
-    var prepDone = {};
-    try { var pd = JSON.parse(localStorage.getItem("erfan-re-prep") || "{}"); if (pd && typeof pd === "object") prepDone = pd; } catch(e){}
-    function savePrep(){ try { localStorage.setItem("erfan-re-prep", JSON.stringify(prepDone)); } catch(e){} }
-    function countChk(){
-      var total = 0, done = 0;
-      CHECKLIST.forEach(function(g){ g.items.forEach(function(key){ total++; if (prepDone[key]) done++; }); });
-      return {total: total, done: done};
-    }
-    function updateChkProgress(){
-      var t = T(), c = countChk();
-      $("chkProgress").textContent = fill(t.chk_progress, {d: c.done, n: c.total});
-      $("chkBar").style.width = (c.total ? c.done / c.total * 100 : 0) + "%";
-    }
-    function renderChecklist(){
-      var t = T(), html = "";
-      CHECKLIST.forEach(function(g){
-        html += '<div class="chk-cat"><h4>' + esc(t["cat_" + g.cat]) + "</h4>";
-        g.items.forEach(function(key){
-          var on = !!prepDone[key];
-          html += '<label class="chk-item' + (on ? " done" : "") + '"><input type="checkbox" data-chk="' + key + '"' + (on ? " checked" : "") + ' /><span>' + esc(t[key]) + "</span></label>";
-        });
-        html += "</div>";
-      });
-      $("chkCats").innerHTML = html;
-      updateChkProgress();
-    }
-    $("chkCats").addEventListener("change", function(e){
-      var inp = e.target;
-      if (!inp.getAttribute || !inp.getAttribute("data-chk")) return;
-      var key = inp.getAttribute("data-chk");
-      if (inp.checked) prepDone[key] = true; else delete prepDone[key];
-      savePrep();
-      var lbl = inp.closest("label"); if (lbl) lbl.classList.toggle("done", inp.checked);
-      updateChkProgress();
-    });
-    $("chkResetBtn").addEventListener("click", function(){ prepDone = {}; savePrep(); renderChecklist(); });
-    function buildChkReport(){
-      var t = T(), c = countChk();
-      var html = '<div class="rp-wrap"><div class="rp-brand">Erfan BC Real Estate</div>'
-        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
-        + '<h1 class="rp-title">' + esc(t.chk_title) + "</h1>"
-        + '<p class="rp-meta">' + esc(fill(t.chk_progress, {d: c.done, n: c.total})) + "</p>";
-      CHECKLIST.forEach(function(g){
-        html += '<h2 class="rp-h">' + esc(t["cat_" + g.cat]) + '</h2><ul class="chk-print-list">';
-        g.items.forEach(function(key){ html += "<li>" + (prepDone[key] ? "☑ " : "☐ ") + esc(t[key]) + "</li>"; });
-        html += "</ul>";
-      });
-      html += "</div>";
-      var root = $("chkReport");
-      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
-      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
-      root.innerHTML = html;
-    }
-    $("chkPrintBtn").addEventListener("click", function(){
-      buildChkReport();
-      document.body.classList.add("print-chk");
-      window.print();
-    });
-    window.addEventListener("afterprint", function(){ document.body.classList.remove("print-chk"); });
-
-    /* listing-description draft: template assembly from the visitor's own inputs only */
-    var dgVals = null;
-    function cleanTail(s){ return s.replace(/[\s.。।,，、;؛]+$/, "").trim(); }
-    var DRAFT_BUILD = {
-      en: function(v, type){
-        var head = [];
-        if (v.beds) head.push(v.beds + "-bedroom");
-        if (v.baths) head.push(v.baths + "-bathroom");
-        var s = "This " + (head.length ? head.join(", ") + " " : "") + type.toLowerCase();
-        if (v.sqft) s += " offers " + Number(v.sqft).toLocaleString("en-US") + " sq ft of interior living space";
-        s += ".";
-        if (v.features) s += " Key features: " + v.features + ".";
-        if (v.nb) s += " Neighbourhood highlights: " + v.nb + ".";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      fa: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " اتاق خواب");
-        if (v.baths) seg.push(v.baths + " حمام");
-        var s = "این " + type;
-        if (seg.length && v.sqft) s += " دارای " + seg.join(" و ") + " است و زیربنای آن " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع است.";
-        else if (seg.length) s += " دارای " + seg.join(" و ") + " است.";
-        else if (v.sqft) s += " زیربنای " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع دارد.";
-        else s += " برای فروش عرضه شده است.";
-        if (v.features) s += " امکانات کلیدی: " + v.features + ".";
-        if (v.nb) s += " نکات برجسته‌ی محله: " + v.nb + ".";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      hi: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " बेडरूम");
-        if (v.baths) seg.push(v.baths + " बाथरूम");
-        var s = "यह " + type;
-        if (seg.length) s += " " + seg.join(" और ") + " के साथ आता है";
-        if (v.sqft) s += (seg.length ? " और" : "") + " इसका आंतरिक क्षेत्र " + Number(v.sqft).toLocaleString("en-US") + " वर्ग फुट है";
-        s += "।";
-        if (v.features) s += " मुख्य विशेषताएँ: " + v.features + "।";
-        if (v.nb) s += " इलाके की मुख्य बातें: " + v.nb + "।";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      zh: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " 间卧室");
-        if (v.baths) seg.push(v.baths + " 间浴室");
-        var s = "这套" + type;
-        if (seg.length) s += "设有" + seg.join("和");
-        if (v.sqft) s += (seg.length ? "," : "") + "室内面积为 " + Number(v.sqft).toLocaleString("en-US") + " 平方英尺";
-        s += "。";
-        if (v.features) s += "主要特色:" + v.features + "。";
-        if (v.nb) s += "社区亮点:" + v.nb + "。";
-        if (v.notes) s += v.notes;
-        return s;
-      }
-    };
-    function buildDraftText(){
-      if (!dgVals) return "";
-      var type = T()["type_" + dgVals.type] || dgVals.type;
-      return (DRAFT_BUILD[lang] || DRAFT_BUILD.en)(dgVals, type);
-    }
-    function renderDraft(){
-      if (!dgVals){ $("dgBody").textContent = T().dg_placeholder; $("dgCopyBtn").disabled = true; return; }
-      $("dgBody").textContent = buildDraftText();
-      $("dgCopyBtn").disabled = false;
-    }
-    $("dgForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      dgVals = {
-        type: $("dgType").value,
-        beds: $("dgBeds").value.trim(),
-        baths: $("dgBaths").value.trim(),
-        sqft: $("dgSqft").value.trim(),
-        features: cleanTail($("dgFeatures").value.trim()),
-        nb: cleanTail($("dgNb").value.trim()),
-        notes: $("dgNotes").value.trim()
-      };
-      renderDraft();
-      $("dgOut").scrollIntoView({behavior: "smooth", block: "nearest"});
-    });
-    function copyFallback(text){
-      var ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand("copy"); } catch(e){}
-      ta.remove();
-    }
-    $("dgCopyBtn").addEventListener("click", function(){
-      if (!dgVals) return;
-      var text = buildDraftText(), btn = this;
-      function done(){ btn.textContent = T().dg_copied; setTimeout(function(){ btn.textContent = T().dg_copy; }, 1800); }
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ copyFallback(text); done(); });
-      else { copyFallback(text); done(); }
-    });
-    function renderSellerTools(){
-      keep($("dgType"), function(sel){ ["condo","townhouse","house"].forEach(function(tp){ opt(sel, tp, T()["type_" + tp]); }); }, "condo");
-      renderChecklist();
-      renderDraft();
-    }
-
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -3352,28 +1956,11 @@
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      keep($("fCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("fType"), function(sel){ buildTypeSelect(sel); });
-      keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
-      keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
-      keep($("fSort"), function(sel){ buildSortSelect(sel); });
-      buildCalcSelects(); buildMatchSelects(); buildLeadSelects();
-      $("lLang").value = lang;
       $("nlLang").value = lang;
-      renderListings(); calc(); bvrCalc(); affordCalc(); investCalc(); renderGuide(); renderCRM(); fhsaCalc(true); renderAssistantLang(); renderCompare(); renderSellerTools(); renderKnowledge(); buildReport();
-      $("matchGrid").innerHTML = ""; $("matchLine").style.display = "none";
-      if (dlg.open && current) openListing(current.mls);
+      renderAssistantLang(); renderFeatured();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["q","fCity","fType","fPrice","fBeds","fSort"].forEach(function(id){ $(id).addEventListener("input", renderListings); $(id).addEventListener("change", renderListings); });
-    $("resetBtn").addEventListener("click", function(){ $("q").value = ""; $("fCity").value = ""; $("fType").value = ""; $("fPrice").value = ""; $("fBeds").value = "0"; $("fSort").value = "featured"; renderListings(); });
-    ["cPrice","cDown","cRate","cAmort","cFreq"].forEach(function(id){ $(id).addEventListener("input", calc); $(id).addEventListener("change", calc); });
-    ["bvPrice","bvDown","bvRate","bvAmort","bvTax","bvStrata","bvAppr","bvRent","bvRentInc","bvYears"].forEach(function(id){ $(id).addEventListener("input", bvrCalc); $(id).addEventListener("change", bvrCalc); });
-    ["afIncome","afDebts","afTax","afHeat","afRate","afAmort","afDown"].forEach(function(id){ $(id).addEventListener("input", affordCalc); $(id).addEventListener("change", affordCalc); });
-    ["ivPrice","ivDown","ivRate","ivAmort","ivRent","ivTax","ivStrata","ivIns","ivMaint","ivVac"].forEach(function(id){ $(id).addEventListener("input", investCalc); $(id).addEventListener("change", investCalc); });
     applyLang(lang, false);
-    </script>
-    <script>
     /* Lightweight first-party traffic stats for the private admin portal.
        Sends aggregate counts only (page, event, language, referrer host) — no cookies, no personal data. */
     (function(){
