@@ -126,6 +126,7 @@
     <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
     <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
+    <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
     <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
@@ -190,6 +191,30 @@
         </table>
         <div class="empty" id="emptyMsg" hidden>No leads match. New contact-form submissions appear here automatically.</div>
       </div>
+    </section>
+
+    <!-- MARKET RADAR -->
+    <section id="page-radar" hidden>
+      <div class="pagehead">
+        <div><h1>Market Radar</h1><div class="mut" id="radarCount"></div></div>
+        <button class="ghost small" id="radarRefresh">Refresh</button>
+      </div>
+      <div class="hint" style="margin-bottom:12px">Your private daily market scan — buyers looking for a home and owners selling directly (FSBO), matched where possible. Only you can see this page; it is not linked anywhere on the public website. The agent scans every morning and adds new finds here.</div>
+      <div class="filters">
+        <select id="radarStatus">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
+        <select id="radarKind">
+          <option value="">Buyers + sellers</option>
+          <option value="buyer">Buyers looking</option>
+          <option value="seller">Sellers (FSBO)</option>
+          <option value="pair">Matched pairs</option>
+        </select>
+      </div>
+      <div id="radarList"><div class="empty">Loading…</div></div>
     </section>
 
     <!-- TOURS -->
@@ -337,7 +362,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","tours"].forEach(function(p){
+    ["overview","leads","tours","radar"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -346,6 +371,7 @@
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
     if (page === "tours") loadTourList();
+    if (page === "radar") loadRadar();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
     b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
@@ -372,7 +398,75 @@
   $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("loginBtn").click(); });
   $("logoutBtn").addEventListener("click", signOut);
 
-  function loadAll(){ loadLeads(); loadTourList(); loadOverview(); }
+  function loadAll(){ loadLeads(); loadTourList(); loadOverview(); loadRadar(); }
+
+  // ---------- market radar ----------
+  var mleads = [];
+  $("radarRefresh").addEventListener("click", loadRadar);
+  $("radarStatus").addEventListener("change", renderRadar);
+  $("radarKind").addEventListener("change", renderRadar);
+  function loadRadar(){
+    api(API_URL, "/api/market-leads").then(function(d){
+      mleads = (d && d.ok && d.leads) || [];
+      renderRadar();
+    }).catch(function(){});
+  }
+  function kindLabel(k){
+    return k === "seller" ? "🏷️ Seller (FSBO)" : k === "pair" ? "🔗 Matched pair" : "🛒 Buyer looking";
+  }
+  function renderRadar(){
+    var sf = $("radarStatus").value, kf = $("radarKind").value;
+    var rows = mleads.filter(function(l){
+      return (!sf || l.status === sf) && (!kf || l.kind === kf);
+    });
+    var newCount = mleads.filter(function(l){ return l.status === "new"; }).length;
+    $("radarCount").textContent = rows.length + " shown · " + newCount + " new of " + mleads.length + " total";
+    var box = $("radarList");
+    if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">Nothing here yet. The agent adds new market finds every morning.</div></div>'; return; }
+    box.innerHTML = "";
+    rows.forEach(function(l){
+      var card = document.createElement("div"); card.className = "card";
+      var conf = typeof l.confidence === "number" ? l.confidence : 0;
+      var confColor = conf >= 70 ? "#22c55e" : conf >= 45 ? "#eab308" : "#ef4444";
+      var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
+        '<span class="chip">' + kindLabel(l.kind) + '</span>' +
+        '<span class="chip" style="background:' + confColor + ';color:#0c111d;font-weight:700">Confidence ' + conf + '</span>' +
+        (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
+        '<span class="mut" style="margin-left:auto">' + esc(fmtDate(l.created_at)) + '</span></div>';
+      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
+      var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
+      if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
+      if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
+      if (l.match && l.match.url){
+        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match:</b> <a href="' + esc(l.match.url) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.match.title || "listing") + ' ↗</a>' +
+          (l.match.price ? ' · ' + esc(l.match.price) : '') +
+          (l.match.note ? '<div class="mut" style="margin-top:4px">' + esc(l.match.note) + '</div>' : '') + '</div>';
+      }
+      if (l.risk) html += '<div style="margin-top:8px;font-size:13px;color:#fbbf24">⚠ Biggest risk: ' + esc(l.risk) + '</div>';
+      html += '<div class="row2">' +
+        '<a href="' + esc(l.url) + '" target="_blank" rel="noopener"><button class="small">Open post</button></a>' +
+        (l.status !== "contacted" ? '<button class="ghost small" data-act="contacted">✓ I contacted them</button>' : "") +
+        (l.status !== "dismissed" ? '<button class="ghost small" data-act="dismissed">✕ Dismiss</button>' : '<button class="ghost small" data-act="new">↩ Restore</button>') +
+        '<button class="ghost small" data-act="delete">Delete</button>' +
+        '</div>';
+      card.innerHTML = html;
+      card.querySelectorAll("[data-act]").forEach(function(b){
+        b.addEventListener("click", function(){
+          var act = b.getAttribute("data-act");
+          if (act === "delete"){
+            if (!confirm("Delete this lead permanently?")) return;
+            api(API_URL, "/api/market-leads/" + encodeURIComponent(l.id), { method: "DELETE" })
+              .then(function(){ toast("Deleted"); loadRadar(); }).catch(function(){ toast("Delete failed", true); });
+          } else {
+            api(API_URL, "/api/market-leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ status: act }) })
+              .then(function(d){ if (d && d.ok){ toast("Updated ✓"); loadRadar(); } else toast("Could not update", true); })
+              .catch(function(){ toast("Could not update", true); });
+          }
+        });
+      });
+      box.appendChild(card);
+    });
+  }
 
   // ---------- overview ----------
   function loadOverview(){
