@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-zeMRcnTPVgQKbBioMi94KoMDMZFoGN3VCNbv0/l5+xI=' 'sha256-evzCOKwwZ6ZKuHCVgR+ncGLKOyAyFpLBvwC1A9J3QBQ='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-zeMRcnTPVgQKbBioMi94KoMDMZFoGN3VCNbv0/l5+xI=' 'sha256-KRSjUIzRUolCzqMjAYbjfb8rJRJdHPJxA2mKixXoTNM='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Seller Tools — Home Prep Checklist and Description Drafter | Erfan BC Real Estate</title>
     <meta name="description" content="Prepare your home for sale with a 30-point checklist and draft a listing description from the facts of your home — free seller tools for BC homeowners.">
@@ -2313,6 +2315,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
