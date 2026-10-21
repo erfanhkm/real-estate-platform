@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-t43mKyBOwSJDdc+m6s4MBNDjPy1ivy4yGKZoWA6I4j8='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-Y0Y0DLy5ldptQyA6xPJS53+6zK4nlLnf4kEoNJgt4NA='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Erfan BC Real Estate — Homes, Mortgage Tools and Advice in 4 Languages</title>
     <meta name="description" content="Find your next home in Metro Vancouver with sample listings, Canadian mortgage and affordability calculators, investor tools and a first-time buyer guide — in English, Farsi, Hindi and Chinese. Live MLS search launches after licensing in 2027.">
@@ -2265,6 +2267,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
