@@ -126,10 +126,12 @@
     <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
     <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
     <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
+    <button class="navbtn" data-nav="contacts"><span class="ic">🗂</span>Contacts</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
+    <button class="navbtn" data-nav="users"><span class="ic">👤</span>Users</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
@@ -151,6 +153,10 @@
         <div class="stat"><div class="n" id="sUsers">–</div><div class="l">Registered visitors</div></div>
         <div class="stat"><div class="n" id="sViewPend">–</div><div class="l">Viewings to confirm</div></div>
         <div class="stat"><div class="n" id="sMailQ">–</div><div class="l">Emails queued (unsent)</div></div>
+      </div>
+      <div class="card">
+        <h2>🗓 Your desk today</h2>
+        <div id="deskBody"><div class="empty">Loading…</div></div>
       </div>
       <div class="card">
         <h2>Latest leads</h2>
@@ -199,6 +205,25 @@
         </table>
         <div class="empty" id="emptyMsg" hidden>No leads match. New contact-form submissions appear here automatically.</div>
       </div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section id="page-contacts" hidden>
+      <div class="pagehead">
+        <div><h1>Contacts</h1><div class="mut" id="ctCount">Every person in one file — registered visitors, leads and viewing guests merged by email, scored automatically</div></div>
+        <button class="ghost small" id="ctRefresh">Refresh</button>
+      </div>
+      <div class="filters">
+        <input type="search" id="ctSearch" placeholder="Search name or email…">
+        <select id="ctTier">
+          <option value="">All contacts</option>
+          <option value="hot">🔥 Hot</option>
+          <option value="warm">Warm</option>
+          <option value="cold">Cold</option>
+          <option value="follow">⏰ Needs follow-up</option>
+        </select>
+      </div>
+      <div id="ctList"><div class="empty">Loading…</div></div>
     </section>
 
     <!-- MARKET RADAR -->
@@ -266,10 +291,33 @@
     <!-- VIEWINGS -->
     <section id="page-viewings" hidden>
       <div class="pagehead">
-        <div><h1>Viewing bookings</h1><div class="mut">Requested from listing pages — confirm each one with the visitor</div></div>
+        <div><h1>Viewing bookings</h1><div class="mut">Requested from listing pages — confirming queues the visitor a confirmation email; cancelling also removes the calendar event</div></div>
         <button class="ghost small" id="vwRefresh">Refresh</button>
       </div>
       <div id="vwList"></div>
+    </section>
+
+    <!-- USERS -->
+    <section id="page-users" hidden>
+      <div class="pagehead">
+        <div><h1>Registered users</h1><div class="mut" id="usrCount">Accounts created on the website</div></div>
+        <button class="ghost small" id="usrRefresh">Refresh</button>
+      </div>
+      <div class="card">
+        <h2>🚫 Ban an email address</h2>
+        <div class="mut" style="margin-bottom:10px">A banned address cannot register, sign in, book a viewing or send the contact form. Gmail addresses are matched without dots or +tags, so aliases can't dodge the ban. Banning also signs the person out everywhere immediately.</div>
+        <div class="row2" style="margin-top:0">
+          <input id="banEmail" type="email" placeholder="email@example.com" style="flex:1 1 220px">
+          <input id="banReason" type="text" placeholder="Reason (optional)" style="flex:1 1 180px">
+          <button class="btn-spruce" id="banBtn">Ban</button>
+        </div>
+        <div id="banList" style="margin-top:12px"></div>
+      </div>
+      <div class="filters">
+        <input type="search" id="usrSearch" placeholder="Search name or email…">
+      </div>
+      <div id="usrList"><div class="empty">Loading…</div></div>
+      <div class="hint">Deleting a user removes their account, saved homes, searches and sessions. Their leads and viewing bookings stay — they are your business records.</div>
     </section>
 
     <!-- NEWSLETTER -->
@@ -450,7 +498,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","tours","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","contacts","tours","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -458,10 +506,12 @@
     });
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
+    if (page === "contacts") loadContacts();
     if (page === "tours") loadTourList();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
+    if (page === "users") loadUsers();
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
   }
@@ -647,7 +697,135 @@
     api(API_URL, "/api/admin/mailq").then(function(d){
       if (d && d.ok) $("sMailQ").textContent = (d.mail || []).filter(function(m){ return !m.sent; }).length;
     }).catch(function(){});
+    loadDesk();
   }
+  function loadDesk(){
+    api(API_URL, "/api/admin/desk").then(function(d){
+      if (!d || !d.ok) return;
+      var h = "";
+      h += '<div class="tourrow"><div>📅 <b>' + d.viewingsToday + '</b> showing' + (d.viewingsToday === 1 ? "" : "s") + ' today · <b>' + (d.upcomingViewings || []).length + '</b> upcoming</div><span class="mut">' + esc(d.today) + '</span></div>';
+      (d.upcomingViewings || []).slice(0, 3).forEach(function(v){
+        h += '<div class="tourrow"><div>🏠 ' + esc(v.date) + ' · ' + esc(v.time) + ' — ' + esc(v.listing || "") + '</div><span class="mut">' + esc(v.name) + ' · ' + esc(v.status) + '</span></div>';
+      });
+      h += '<div class="tourrow"><div>⏰ <b>' + d.followUpCount + '</b> contact' + (d.followUpCount === 1 ? "" : "s") + ' waiting 24h+ for a follow-up</div><span class="mut">🔥 ' + d.hotCount + ' hot · ✉️ ' + d.mailUnsent + ' emails queued</span></div>';
+      (d.followUps || []).forEach(function(f){
+        h += '<div class="tourrow"><div>↳ ' + esc(f.name || f.email) + ' <span class="mut">(' + esc(f.kind) + ')</span></div><span class="mut">waiting ' + f.hours + 'h · score ' + f.score + '</span></div>';
+      });
+      h += '<div class="tourrow"><div>🆕 <b>' + d.newLeads24h + '</b> new lead' + (d.newLeads24h === 1 ? "" : "s") + ' in the last 24h</div><span class="mut">' + d.usersTotal + ' registered users</span></div>';
+      $("deskBody").innerHTML = h;
+    }).catch(function(){ $("deskBody").innerHTML = '<div class="empty">Could not load the desk summary.</div>'; });
+  }
+
+  // ---------- contacts (unified desk files) ----------
+  $("ctRefresh").addEventListener("click", loadContacts);
+  $("ctSearch").addEventListener("input", renderContacts);
+  $("ctTier").addEventListener("change", renderContacts);
+  var contactsCache = [];
+  function loadContacts(){
+    api(API_URL, "/api/admin/contacts").then(function(d){
+      contactsCache = (d && d.ok && d.contacts) || [];
+      renderContacts();
+    }).catch(function(){ $("ctList").innerHTML = '<div class="empty">Could not load contacts.</div>'; });
+  }
+  function tierBadge(c){
+    if (c.tier === "hot") return '<span class="stage s-closed">🔥 hot · ' + c.score + '</span>';
+    if (c.tier === "warm") return '<span class="stage s-viewing">warm · ' + c.score + '</span>';
+    return '<span class="stage s-dropped">cold · ' + c.score + '</span>';
+  }
+  function renderContacts(){
+    var q = ($("ctSearch").value || "").toLowerCase();
+    var tf = $("ctTier").value;
+    var rows = contactsCache.filter(function(c){
+      if (tf === "follow" && !c.followUp) return false;
+      if (tf && tf !== "follow" && c.tier !== tf) return false;
+      if (q && (String(c.name) + " " + String(c.email)).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    $("ctCount").textContent = rows.length + " of " + contactsCache.length + " contacts — merged by email, scored automatically";
+    $("ctList").innerHTML = rows.length ? rows.map(function(c, ix){
+      var bits = [];
+      if (c.isUser) bits.push("👤 account");
+      if (c.phone) bits.push("📞 " + esc(c.phone));
+      if (c.savedCount) bits.push("❤️ " + c.savedCount + " saved");
+      if (c.searchCount) bits.push("🔎 " + c.searchCount + " searches");
+      if (c.viewings.length) bits.push("📅 " + c.viewings.length + " viewing" + (c.viewings.length === 1 ? "" : "s"));
+      if (c.leads.length) bits.push("✉️ " + c.leads.length + " lead" + (c.leads.length === 1 ? "" : "s"));
+      var tags = (c.tags || []).map(function(t){ return '<span class="stage s-contacted">' + esc(t) + '</span>'; }).join(" ");
+      var act = "";
+      (c.viewings || []).slice(0, 3).forEach(function(v){ act += '<div class="kv"><b>Viewing</b>' + esc(v.date) + ' ' + esc(v.time) + ' · ' + esc(v.listingId || "") + ' · ' + esc(v.status) + '</div>'; });
+      (c.leads || []).slice(0, 3).forEach(function(l){ act += '<div class="kv"><b>Lead</b>' + esc(String(l.created_at || "").slice(0, 10)) + ' · ' + esc(l.intent || "") + ' · ' + esc(l.stage || "") + (l.message ? ' — ' + esc(String(l.message).slice(0, 140)) : '') + '</div>'; });
+      if (c.profile && (c.profile.budget || c.profile.intent || (c.profile.areas || []).length)) act += '<div class="kv"><b>Profile</b>' + esc([c.profile.intent, c.profile.budget, (c.profile.areas || []).join(", ")].filter(Boolean).join(" · ")) + '</div>';
+      if (c.lastLogin) act += '<div class="kv"><b>Last sign-in</b>' + esc(fmtDate(c.lastLogin)) + '</div>';
+      return '<div class="lead"><div class="lead-top"><b>' + esc(c.name || c.email) + '</b>' + tierBadge(c) + '</div>' +
+        '<div class="mut">' + esc(c.email) + (bits.length ? ' · ' + bits.join(" · ") : "") + '</div>' +
+        (tags ? '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">' + tags + '</div>' : "") +
+        (c.followUp ? '<div style="margin-top:6px;color:#fbbf24">⏰ Waiting ' + c.followUp.hours + 'h for a follow-up (' + esc(c.followUp.kind) + ')</div>' : "") +
+        (act ? '<div style="margin-top:8px">' + act + '</div>' : "") + '</div>';
+    }).join("") : '<div class="empty">No contacts match.</div>';
+  }
+
+  // ---------- users: delete + ban by email ----------
+  $("usrRefresh").addEventListener("click", loadUsers);
+  $("usrSearch").addEventListener("input", renderUsers);
+  var usersCache = [], bansCache = [];
+  function loadUsers(){
+    api(API_URL, "/api/admin/users").then(function(d){
+      if (!d || !d.ok) return;
+      usersCache = d.users || []; bansCache = d.bans || [];
+      renderUsers();
+    }).catch(function(){ $("usrList").innerHTML = '<div class="empty">Could not load users.</div>'; });
+  }
+  function renderUsers(){
+    $("usrCount").textContent = usersCache.length + " registered accounts";
+    $("banList").innerHTML = bansCache.length ? bansCache.map(function(b){
+      return '<div class="tourrow"><div>🚫 <b>' + esc(b.email) + '</b>' + (b.reason ? ' <span class="mut">— ' + esc(b.reason) + '</span>' : "") + '</div><span style="display:flex;gap:8px;align-items:center"><span class="mut">' + esc(String(b.at || "").slice(0, 10)) + '</span><button class="ghost small" data-unban="' + esc(b.email) + '">Unban</button></span></div>';
+    }).join("") : '<div class="empty">No banned addresses.</div>';
+    Array.prototype.forEach.call($("banList").querySelectorAll("[data-unban]"), function(b){
+      b.addEventListener("click", function(){
+        api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
+          .then(function(){ toast("Address unbanned"); loadUsers(); }).catch(function(){ toast("Could not unban", true); });
+      });
+    });
+    var q = ($("usrSearch").value || "").toLowerCase();
+    var rows = usersCache.filter(function(u){ return !q || (String(u.name) + " " + String(u.email)).toLowerCase().indexOf(q) >= 0; });
+    $("usrList").innerHTML = rows.length ? rows.map(function(u){
+      return '<div class="lead"><div class="lead-top"><b>' + esc(u.name || "—") + '</b>' + (u.banned ? '<span class="stage s-dropped">🚫 banned</span>' : '<span class="stage s-new">active</span>') + '</div>' +
+        '<div class="mut">' + esc(u.email) + ' · joined ' + esc(String(u.created_at || "").slice(0, 10)) + (u.lastLogin ? ' · last sign-in ' + esc(fmtDate(u.lastLogin)) : ' · never signed in again') + '</div>' +
+        '<div class="mut">❤️ ' + u.savedCount + ' saved · 🔎 ' + u.searchCount + ' searches' + (u.phone ? ' · 📞 ' + esc(u.phone) : '') + (u.intent ? ' · ' + esc(u.intent) : '') + '</div>' +
+        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+        (u.banned ? '<button class="ghost small" data-uunban="' + esc(u.email) + '">Unban</button>' : '<button class="ghost small" data-uban="' + esc(u.email) + '">🚫 Ban</button>') +
+        '<button class="ghost small" data-udel="' + esc(u.email) + '">🗑 Delete user</button></div></div>';
+    }).join("") : '<div class="empty">No users match.</div>';
+    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-udel]"), function(b){
+      b.addEventListener("click", function(){
+        var em = b.getAttribute("data-udel");
+        if (!confirm("Delete the account for " + em + "?\nTheir saved homes, searches and sessions are removed. Their leads and bookings stay as your business records.")) return;
+        api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "DELETE" })
+          .then(function(){ toast("User deleted"); loadUsers(); }).catch(function(){ toast("Could not delete", true); });
+      });
+    });
+    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-uban]"), function(b){
+      b.addEventListener("click", function(){
+        var em = b.getAttribute("data-uban");
+        if (!confirm("Ban " + em + "?\nThey will be signed out everywhere and blocked from registering, signing in, booking and the contact form.")) return;
+        api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "POST", body: JSON.stringify({ action: "ban" }) })
+          .then(function(){ toast("Address banned"); loadUsers(); }).catch(function(){ toast("Could not ban", true); });
+      });
+    });
+    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-uunban]"), function(b){
+      b.addEventListener("click", function(){
+        api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-uunban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
+          .then(function(){ toast("Address unbanned"); loadUsers(); }).catch(function(){ toast("Could not unban", true); });
+      });
+    });
+  }
+  $("banBtn").addEventListener("click", function(){
+    var em = ($("banEmail").value || "").trim();
+    if (!em) { toast("Enter an email address first", true); return; }
+    api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "POST", body: JSON.stringify({ action: "ban", reason: $("banReason").value || "" }) })
+      .then(function(d){ if (d && d.ok) { toast("Address banned"); $("banEmail").value = ""; $("banReason").value = ""; loadUsers(); } else toast("Could not ban — check the address", true); })
+      .catch(function(){ toast("Could not ban", true); });
+  });
 
   // ---------- newsletter subscribers ----------
   $("nlRefresh").addEventListener("click", loadNewsletter);
@@ -721,9 +899,10 @@
       if (!d || !d.ok) return;
       var list = d.viewings || [];
       $("vwList").innerHTML = list.length ? list.map(function(v){
-        var home = v.listingId ? ('<div class="mut">' + esc(v.listingId) + '</div>') : "";
+        var home = v.listingId ? ('<div class="mut">' + esc(v.listingId) + (v.gcalEventId ? ' · 📆 on your calendar' : '') + '</div>') : "";
+        var VW_LABEL = { new: "↩ Reopen", confirmed: "✓ Confirm", done: "✓ Mark done", cancelled: "✕ Cancel" };
         var btns = VW_ST.filter(function(s){ return s !== v.status; }).map(function(s){
-          return '<button class="ghost small" data-vw="' + v.id + '" data-st="' + s + '">' + s + '</button>';
+          return '<button class="ghost small" data-vw="' + v.id + '" data-st="' + s + '">' + (VW_LABEL[s] || s) + '</button>';
         }).join(" ");
         return '<div class="lead"><div class="lead-top"><b>' + esc(v.name) + '</b><span class="stage s-' + (v.status === "new" ? "new" : v.status === "confirmed" ? "contacted" : v.status === "done" ? "closed" : "dropped") + '">' + esc(v.status) + '</span></div>' +
           '<div class="mut">📅 ' + esc(v.date) + ' · ' + esc(v.time) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</div>' + home +
