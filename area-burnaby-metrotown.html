@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-5ZWi/6ewFVD1gSwb1JOXfTp94ddnnPCJOMGVU0vNzAU=' 'sha256-+n6gEepkCoAQ3XjG3rhF6+YF+zGJg200RCs78q+8k0k='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-5ZWi/6ewFVD1gSwb1JOXfTp94ddnnPCJOMGVU0vNzAU=' 'sha256-BigWC4NFuxcHEMh4CF2QB9SCKDZ167h5VMrWUQ9lYKs='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Burnaby — Metrotown Neighbourhood Guide — Homes &amp; Living | Erfan BC Real Estate</title>
     <meta name="description" content="Burnaby's high-rise downtown, built around a major shopping centre and a SkyTrain hub. A local guide to Metrotown: character, getting around, homes and prices, and who it suits.">
@@ -2443,6 +2445,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
