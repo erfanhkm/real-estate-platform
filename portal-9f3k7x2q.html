@@ -723,6 +723,12 @@
         h += '<div class="tourrow"><div>↳ ' + esc(f.name || f.email) + ' <span class="mut">(' + esc(f.kind) + ')</span></div><span class="mut">waiting ' + f.hours + 'h · score ' + f.score + '</span></div>';
       });
       h += '<div class="tourrow"><div>🆕 <b>' + d.newLeads24h + '</b> new lead' + (d.newLeads24h === 1 ? "" : "s") + ' in the last 24h</div><span class="mut">' + d.usersTotal + ' registered users</span></div>';
+      if ((d.tasksDue || []).length) {
+        h += '<div class="tourrow"><div>✅ <b>' + d.tasksDueCount + '</b> task' + (d.tasksDueCount === 1 ? "" : "s") + ' due</div><span class="mut">today & overdue</span></div>';
+        d.tasksDue.forEach(function(t){
+          h += '<div class="tourrow"><div>☐ ' + esc(t.text) + ' <span class="mut">— ' + esc(t.name) + '</span></div><span class="mut">' + (t.overdue ? '<b style="color:#f87171">overdue · ' : '') + esc(t.due) + (t.overdue ? '</b>' : '') + '</span><button type="button" class="ghost small" data-desk-task-done="' + esc(t.id) + '">✓ Done</button></div>';
+        });
+      }
       $("deskBody").innerHTML = h;
     }).catch(function(){ $("deskBody").innerHTML = '<div class="empty">Could not load the desk summary.</div>'; });
   }
@@ -767,13 +773,60 @@
       (c.leads || []).slice(0, 3).forEach(function(l){ act += '<div class="kv"><b>Lead</b>' + esc(String(l.created_at || "").slice(0, 10)) + ' · ' + esc(l.intent || "") + ' · ' + esc(l.stage || "") + (l.message ? ' — ' + esc(String(l.message).slice(0, 140)) : '') + '</div>'; });
       if (c.profile && (c.profile.budget || c.profile.intent || (c.profile.areas || []).length)) act += '<div class="kv"><b>Profile</b>' + esc([c.profile.intent, c.profile.budget, (c.profile.areas || []).join(", ")].filter(Boolean).join(" · ")) + '</div>';
       if (c.lastLogin) act += '<div class="kv"><b>Last sign-in</b>' + esc(fmtDate(c.lastLogin)) + '</div>';
+      var KIND_ICON = { registered: "👤", lead: "✉️", viewing: "📅", view: "👀", save: "❤️", unsave: "💔", search: "🔎" };
+      var tl = "";
+      (c.activity || []).slice(0, 12).forEach(function(a){
+        tl += '<div class="kv">' + (KIND_ICON[a.kind] || "•") + ' <b>' + esc(a.kind) + '</b>' + esc(a.label ? ' ' + a.label : '') + ' <span class="mut">' + esc(fmtDate(a.ts)) + '</span></div>';
+      });
+      var todayV = new Date().toLocaleDateString("en-CA");
+      var tk = "";
+      (c.openTasks || []).forEach(function(t){
+        var late = t.due < todayV;
+        tk += '<div class="kv">☐ ' + esc(t.text) + ' <span class="mut">· due ' + esc(t.due) + (late ? ' · <b style="color:#f87171">overdue</b>' : '') + '</span> <button type="button" class="ghost small" data-task-done="' + esc(t.id) + '">✓ Done</button> <button type="button" class="ghost small" data-task-del="' + esc(t.id) + '">✕</button></div>';
+      });
+      tk += '<div class="kv" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input type="text" placeholder="New task — e.g. Call about the showing" data-task-text="' + esc(c.email) + '" style="flex:1 1 200px"><input type="date" data-task-due="' + esc(c.email) + '" value="' + todayV + '"><button type="button" class="ghost small" data-task-add="' + esc(c.email) + '">+ Add task</button></div>';
       return '<div class="lead"><div class="lead-top"><b>' + esc(c.name || c.email) + '</b>' + tierBadge(c) + '</div>' +
         '<div class="mut">' + esc(c.email) + (bits.length ? ' · ' + bits.join(" · ") : "") + '</div>' +
         (tags ? '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">' + tags + '</div>' : "") +
         (c.followUp ? '<div style="margin-top:6px;color:#fbbf24">⏰ Waiting ' + c.followUp.hours + 'h for a follow-up (' + esc(c.followUp.kind) + ')</div>' : "") +
-        (act ? '<div style="margin-top:8px">' + act + '</div>' : "") + '</div>';
+        (act ? '<div style="margin-top:8px">' + act + '</div>' : "") +
+        '<div style="margin-top:8px"><div class="mut" style="margin-bottom:2px">✅ Tasks</div>' + tk + '</div>' +
+        (tl ? '<div style="margin-top:8px"><div class="mut" style="margin-bottom:2px">🕘 Activity</div>' + tl + '</div>' : "") + '</div>';
     }).join("") : '<div class="empty">No contacts match.</div>';
   }
+
+  // ---------- contact tasks (delegated) ----------
+  function taskPatch(id, body){
+    return api(API_URL, "/api/admin/tasks/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(body) });
+  }
+  $("ctList").addEventListener("click", function(e){
+    var doneB = e.target.closest("[data-task-done]");
+    var delB = e.target.closest("[data-task-del]");
+    var addB = e.target.closest("[data-task-add]");
+    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadContacts(); }).catch(function(){ toast("Could not update the task", true); }); return; }
+    if (delB) {
+      api(API_URL, "/api/admin/tasks/" + encodeURIComponent(delB.getAttribute("data-task-del")), { method: "DELETE" })
+        .then(function(){ toast("Task deleted"); loadContacts(); }).catch(function(){ toast("Could not delete the task", true); });
+      return;
+    }
+    if (addB) {
+      var email = addB.getAttribute("data-task-add");
+      var card = addB.closest(".lead");
+      var textEl = card.querySelector('[data-task-text="' + CSS.escape(email) + '"]');
+      var dueEl = card.querySelector('[data-task-due="' + CSS.escape(email) + '"]');
+      var text = textEl ? textEl.value.trim() : "";
+      var due = dueEl ? dueEl.value : "";
+      if (!text || !due) { toast("Write the task and pick a due date", true); return; }
+      api(API_URL, "/api/admin/tasks", { method: "POST", body: JSON.stringify({ email: email, text: text, due: due }) })
+        .then(function(d){ if (d && d.ok) { toast("Task added ✓"); loadContacts(); } else toast("Could not add the task", true); })
+        .catch(function(){ toast("Could not add the task", true); });
+    }
+  });
+  $("deskBody").addEventListener("click", function(e){
+    var b = e.target.closest("[data-desk-task-done]");
+    if (!b) return;
+    taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadDesk(); }).catch(function(){ toast("Could not update the task", true); });
+  });
 
   // ---------- users: delete + ban by email ----------
   $("usrRefresh").addEventListener("click", loadUsers);
