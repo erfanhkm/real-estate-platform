@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-AjReqGea1qXXH2i6zQsEG46G0FpKsB1wyG9mBndBnuM=' 'sha256-ckDW+Q/5+32b4nlaJJZ30uxL9NILXfNXwDHJxllKcNE='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-AjReqGea1qXXH2i6zQsEG46G0FpKsB1wyG9mBndBnuM=' 'sha256-OP9+3MBwbdWdsnf9uk8dX3ru+4w0n4VQh9j0GTXxuy8='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>AI Home Match Assistant | Erfan BC Real Estate</title>
     <meta name="description" content="Tell the assistant what you need — budget, city, beds — and get matched sample homes with a fit score, plus answers to BC buying questions in 4 languages.">
@@ -2175,6 +2177,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
