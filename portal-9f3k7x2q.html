@@ -450,7 +450,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","tours","radar","traffic","viewings","newsletter"].forEach(function(p){
+    ["overview","leads","tours","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
