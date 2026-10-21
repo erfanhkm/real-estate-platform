@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NveqqntdyGiCASNhVt6BbPL/7DmpMWBe0opWXND+bj0=' 'sha256-zccyOyPDcoKqdRlW3FTnxRQK4vFHoBPWULh05hEiLgU='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NveqqntdyGiCASNhVt6BbPL/7DmpMWBe0opWXND+bj0=' 'sha256-nU+wUctDwvTsUmkbnWdUZDl5ET/JWE91kycbzEc4t4A='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Canadian Mortgage Calculator | Erfan BC Real Estate</title>
     <meta name="description" content="Calculate your monthly mortgage payment with Canadian semi-annual compounding, CMHC insurance rules and amortization schedules — free, in 4 languages.">
@@ -2152,6 +2154,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
