@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /portal-9f3k7x2q.html
+
+Sitemap: https://real-estate-platform-0aei.onrender.com/sitemap.xml
