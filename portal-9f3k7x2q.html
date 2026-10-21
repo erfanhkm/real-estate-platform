@@ -129,6 +129,8 @@
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
+    <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
+    <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
     <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
@@ -145,6 +147,9 @@
         <div class="stat"><div class="n" id="stClosed">–</div><div class="l">Closed deals</div></div>
         <div class="stat"><div class="n" id="stTours">–</div><div class="l">Listings with a tour</div></div>
         <div class="stat"><div class="n" id="stLive">–</div><div class="l">Tours live on site</div></div>
+        <div class="stat"><div class="n" id="sUsers">–</div><div class="l">Registered visitors</div></div>
+        <div class="stat"><div class="n" id="sViewPend">–</div><div class="l">Viewings to confirm</div></div>
+        <div class="stat"><div class="n" id="sMailQ">–</div><div class="l">Emails queued (unsent)</div></div>
       </div>
       <div class="card">
         <h2>Latest leads</h2>
@@ -255,6 +260,31 @@
         <div class="card" style="margin-bottom:0"><h2>Where visitors come from</h2><div id="tblRef"></div></div>
       </div>
       <div class="hint" style="margin-top:12px">Tracking starts from today — the counters fill up as people visit the site. Direct visits (no referrer) are not listed.</div>
+    </section>
+
+    <!-- VIEWINGS -->
+    <section id="page-viewings" hidden>
+      <div class="pagehead">
+        <div><h1>Viewing bookings</h1><div class="mut">Requested from listing pages — confirm each one with the visitor</div></div>
+        <button class="ghost small" id="vwRefresh">Refresh</button>
+      </div>
+      <div id="vwList"></div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section id="page-newsletter" hidden>
+      <div class="pagehead">
+        <div><h1>Newsletter subscribers</h1><div class="mut">Everyone who signed up on the site, grouped by language — the monthly newsletter audience is taken from this list</div></div>
+        <button class="ghost small" id="nlRefresh">Refresh</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="nlTotal">–</div><div class="l">Total subscribers</div></div>
+        <div class="stat"><div class="n" id="nlEn">–</div><div class="l">English</div></div>
+        <div class="stat"><div class="n" id="nlFa">–</div><div class="l">فارسی (Farsi)</div></div>
+        <div class="stat"><div class="n" id="nlHi">–</div><div class="l">हिन्दी (Hindi)</div></div>
+        <div class="stat"><div class="n" id="nlZh">–</div><div class="l">中文 (Chinese)</div></div>
+      </div>
+      <div id="nlGroups"></div>
     </section>
 
     <!-- TOURS -->
@@ -402,7 +432,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","tours","radar","traffic"].forEach(function(p){
+    ["overview","leads","tours","radar","traffic","viewings","newsletter"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -413,6 +443,8 @@
     if (page === "tours") loadTourList();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
+    if (page === "viewings") loadViewings();
+    if (page === "newsletter") loadNewsletter();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
     b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
@@ -589,6 +621,68 @@
     $("ovLeads").innerHTML = latest.length ? latest.map(function(l){
       return '<div class="tourrow"><div><b>' + esc(l.name) + '</b> <span class="mut">' + esc(l.intent) + (l.city ? " · " + esc(l.city) : "") + '</span></div><span class="stage s-' + esc(l.stage) + '">' + esc(l.stage) + '</span></div>';
     }).join("") : '<div class="empty">No leads yet — they appear here as soon as someone sends the contact form.</div>';
+    api(API_URL, "/api/admin/users").then(function(d){ if (d && d.ok) $("sUsers").textContent = d.count; }).catch(function(){});
+    api(API_URL, "/api/admin/viewings").then(function(d){
+      if (d && d.ok) $("sViewPend").textContent = (d.viewings || []).filter(function(v){ return v.status === "new"; }).length;
+    }).catch(function(){});
+    api(API_URL, "/api/admin/mailq").then(function(d){
+      if (d && d.ok) $("sMailQ").textContent = (d.mail || []).filter(function(m){ return !m.sent; }).length;
+    }).catch(function(){});
+  }
+
+  // ---------- newsletter subscribers ----------
+  $("nlRefresh").addEventListener("click", loadNewsletter);
+  var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
+  function loadNewsletter(){
+    api(API_URL, "/api/admin/newsletter").then(function(d){
+      if (!d || !d.ok) return;
+      $("nlTotal").textContent = d.count;
+      $("nlEn").textContent = (d.byLang || {}).en || 0;
+      $("nlFa").textContent = (d.byLang || {}).fa || 0;
+      $("nlHi").textContent = (d.byLang || {}).hi || 0;
+      $("nlZh").textContent = (d.byLang || {}).zh || 0;
+      var subs = d.subscribers || [];
+      $("nlGroups").innerHTML = NL_LANGS.map(function(pair){
+        var rows = subs.filter(function(s){ return s.lang === pair[0]; });
+        var body = rows.length ? rows.map(function(s){
+          return '<div class="tourrow"><div><b>' + esc(s.name || "—") + '</b> <span class="mut">' + esc(s.email) + '</span></div>' +
+            '<span style="display:flex;gap:8px;align-items:center"><span class="mut">' + esc(String(s.created_at || "").slice(0, 10)) + '</span>' +
+            '<button class="ghost small" data-nldel="' + esc(s.email) + '">Remove</button></span></div>';
+        }).join("") : '<div class="empty">No subscribers in this language yet.</div>';
+        return '<div class="card"><h2>' + pair[1] + ' (' + rows.length + ')</h2>' + body + '</div>';
+      }).join("");
+      Array.prototype.forEach.call($("nlGroups").querySelectorAll("[data-nldel]"), function(b){
+        b.addEventListener("click", function(){
+          api(API_URL, "/api/admin/newsletter?email=" + encodeURIComponent(b.getAttribute("data-nldel")), { method: "DELETE" })
+            .then(function(){ toast("Subscriber removed"); loadNewsletter(); }).catch(function(){ toast("Could not remove"); });
+        });
+      });
+    }).catch(function(){});
+  }
+
+  // ---------- viewings ----------
+  $("vwRefresh").addEventListener("click", loadViewings);
+  var VW_ST = ["new", "confirmed", "done", "cancelled"];
+  function loadViewings(){
+    api(API_URL, "/api/admin/viewings").then(function(d){
+      if (!d || !d.ok) return;
+      var list = d.viewings || [];
+      $("vwList").innerHTML = list.length ? list.map(function(v){
+        var home = v.listingId ? ('<div class="mut">' + esc(v.listingId) + '</div>') : "";
+        var btns = VW_ST.filter(function(s){ return s !== v.status; }).map(function(s){
+          return '<button class="ghost small" data-vw="' + v.id + '" data-st="' + s + '">' + s + '</button>';
+        }).join(" ");
+        return '<div class="lead"><div class="lead-top"><b>' + esc(v.name) + '</b><span class="stage s-' + (v.status === "new" ? "new" : v.status === "confirmed" ? "contacted" : v.status === "done" ? "closed" : "dropped") + '">' + esc(v.status) + '</span></div>' +
+          '<div class="mut">📅 ' + esc(v.date) + ' · ' + esc(v.time) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</div>' + home +
+          '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + btns + '</div></div>';
+      }).join("") : '<div class="empty">No viewing requests yet.</div>';
+      Array.prototype.forEach.call($("vwList").querySelectorAll("[data-vw]"), function(b){
+        b.addEventListener("click", function(){
+          api(API_URL, "/api/admin/viewings/" + b.getAttribute("data-vw"), { method: "PATCH", body: JSON.stringify({ status: b.getAttribute("data-st") }) })
+            .then(function(){ toast("Viewing updated"); loadViewings(); }).catch(function(){ toast("Could not update"); });
+        });
+      });
+    }).catch(function(){});
   }
 
   // ---------- leads ----------
