@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-Xka6GLxMb9ZaqeGRPReObbIVNrNtC8p7w/6mQu/hlH8=' 'sha256-sTTheV600CukQY3lpCI7vRt4S3eK9javriLPJ1cjL+w='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-Xka6GLxMb9ZaqeGRPReObbIVNrNtC8p7w/6mQu/hlH8=' 'sha256-7cWOKxzrVJckcYaFd2BtYpv4yHLL5I9ywLlx1Msmpmo='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Real Estate Investment Analysis — Cap Rate and Cash Flow | Erfan BC Real Estate</title>
     <meta name="description" content="Analyse BC rental investments: cap rate, cash flow, cash-on-cash return and mortgage stress tests, with a printable report.">
@@ -2269,6 +2271,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
