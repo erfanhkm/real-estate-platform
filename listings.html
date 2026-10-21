@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-nTJCG7t7aZntEuPZ0kCrlj5HNXTJQa1tDddkgH4sdfY=' 'sha256-k5rhPGkQb9FaJH5CVBUgrFFrCaaF/QJ4uqelaZy9tSg='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-nTJCG7t7aZntEuPZ0kCrlj5HNXTJQa1tDddkgH4sdfY=' 'sha256-tWZ5bBwIz9HOsDFPkDatV71i5O0GX/u3nDXuWMEgl2c='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -1247,7 +1247,7 @@
       }
       return '<article class="card"><div class="ph"><img src="'+l.photo+'" alt="'+esc(t["type_"+l.type])+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
         '<span class="badge'+(l.status==="pending"?" pending":"")+'">'+esc(l.status==="pending"?t.pending:t.active)+'</span><button type="button" class="save-btn" data-save="'+l.mls+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#5d686f">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city])+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#a8842f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#5d686f">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city])+", BC · "+esc(l.postal)+"</div>" +
         '<div class="specs">'+specs+'</div><p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
         '<div class="foot"><span class="mls">MLS® '+l.mls+" · "+l.dom+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+l.mls+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
@@ -1289,8 +1289,8 @@
         kv(t.m_year, l.year || t.na) + kv(t.m_parking, t["parking_"+l.parking] + fill(t.stalls, {n: l.stalls})) +
         kv(t.m_strata, l.strata ? fmt(l.strata) : t.na) + kv(t.m_dom, l.dom) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
       var mc = monthlyCost(l);
-      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#faf5ea;border:1px solid #e5d9bd;border-radius:12px;padding:12px 14px">' +
-        '<div style="font-weight:700;margin-bottom:6px">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
+      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#faf5ea;border:1px solid #e5d9bd;border-radius:12px;padding:12px 14px;color:#26313b">' +
+        '<div style="font-weight:700;margin-bottom:6px;color:#0b2239">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
         '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px">' +
         '<span>' + esc(t.mc_mort) + '</span><b>' + fmt(Math.round(mc.mort)) + '</b>' +
         (mc.strata ? '<span>' + esc(t.m_strata) + '</span><b>' + fmt(mc.strata) + '</b>' : "") +
@@ -2363,7 +2363,7 @@
           var times = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
-            '<div id="fxVNote" style="font-size:13.5px;color:#8a5a00;margin:0 0 4px"></div>' +
+            '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
             '<form id="fxViewForm">' +
             '<label>' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +
             '<label>' + tt("time") + '</label><select id="fxVTime">' + times + '</select>' +
