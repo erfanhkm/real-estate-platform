@@ -1,135 +1,680 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Advisor Portal</title>
+<title>Site Admin — Erfan BC Real Estate</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
-.hidden{display:none!important}
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:32px;width:100%;max-width:400px}
-.card h1{font-size:22px;margin-bottom:6px}
-.card p{color:#94a3b8;font-size:14px;margin-bottom:20px}
-input,select,textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:14px;margin-bottom:12px}
-button{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}
-button:hover{background:#2563eb}
-button.danger{background:#dc2626}
-button.ghost{background:#334155}
-.err{color:#f87171;font-size:13px;margin-top:8px;min-height:18px}
-#app{max-width:1100px;margin:0 auto;padding:20px}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.topbar h1{font-size:20px}
-.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.filters select{width:auto;margin:0}
-table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
-th,td{text-align:left;padding:12px;font-size:14px;border-bottom:1px solid #334155}
-th{color:#94a3b8;font-weight:600;font-size:12px;text-transform:uppercase}
-tr:hover td{background:#243044}
-tr{cursor:pointer}
-.stage{padding:3px 10px;border-radius:20px;font-size:12px;background:#334155}
-.stage.new{background:#1e40af}.stage.contacted{background:#9a3412}.stage.viewing{background:#6d28d9}
-.stage.offer{background:#0e7490}.stage.closed{background:#166534}.stage.dropped{background:#7f1d1d}
-#detail{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
-#detail .card{max-width:520px;max-height:90vh;overflow:auto}
-.row{margin-bottom:10px;font-size:14px}
-.row b{color:#94a3b8;display:block;font-size:12px;margin-bottom:2px}
-.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  :root { color-scheme: dark; --bg:#0c111d; --panel:#151d2e; --panel2:#1a2438; --line:#2a3550; --txt:#e8ecf4; --mut:#9aa4b8; --acc:#3b82f6; --acc2:#2563eb; --good:#22c55e; --warn:#eab308; --bad:#ef4444; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--txt); min-height: 100vh; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  .mut { color: var(--mut); font-size: 13px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  input, select, textarea { background: var(--bg); color: var(--txt); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 14px; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--acc); outline-offset: -1px; }
+  button { background: var(--acc); color: #fff; border: 0; border-radius: 9px; padding: 10px 18px; font-size: 14px; cursor: pointer; font-weight: 600; }
+  button:hover { background: var(--acc2); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--txt); font-weight: 500; }
+  button.ghost:hover { background: var(--panel2); }
+  button.danger { background: #b91c1c; }
+  button.small { padding: 6px 12px; font-size: 13px; }
+  .err { color: #f87171; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .ok { color: #4ade80; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  /* login */
+  #loginView { max-width: 400px; margin: 12vh auto 0; padding: 0 16px; }
+  #loginView .card { padding: 26px; }
+  #loginView input { margin-bottom: 12px; }
+  .brand { text-align: center; margin-bottom: 18px; }
+  .brand .logo { font-size: 34px; }
+  /* layout */
+  #appView { display: flex; min-height: 100vh; }
+  #side { width: 228px; flex: 0 0 228px; background: var(--panel); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+  #side .brand2 { padding: 4px 10px 16px; }
+  #side .brand2 b { font-size: 16px; display: block; }
+  .navbtn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; color: var(--txt); border: 0; border-radius: 9px; padding: 11px 12px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .navbtn:hover { background: var(--panel2); }
+  .navbtn.on { background: var(--acc); color: #fff; }
+  .navbtn .ic { font-size: 16px; width: 20px; text-align: center; }
+  #side .sp { flex: 1; }
+  #main { flex: 1; min-width: 0; padding: 22px 22px 64px; max-width: 1060px; margin: 0 auto; width: 100%; }
+  .pagehead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  /* stats */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .stat .n { font-size: 30px; font-weight: 800; line-height: 1.1; }
+  .stat .l { color: var(--mut); font-size: 12.5px; margin-top: 4px; }
+  /* leads table */
+  .filters { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .filters select, .filters input { width: auto; }
+  .filters input { flex: 1; min-width: 160px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--mut); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--panel2); }
+  .stage { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; background: var(--line); white-space: nowrap; }
+  .stage.s-new { background: #1d4ed8; } .stage.s-contacted { background: #0e7490; } .stage.s-viewing { background: #a16207; }
+  .stage.s-offer { background: #7c3aed; } .stage.s-closed { background: #15803d; } .stage.s-dropped { background: #52525b; }
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; background: var(--line); white-space: nowrap; }
+  .chip.live { background: #15803d; } .chip.draft { background: #52525b; }
+  .empty { color: var(--mut); text-align: center; padding: 36px 0; }
+  /* detail modal */
+  #detail { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 40; }
+  #detail.open { display: flex; }
+  #detail .card { max-width: 560px; width: 100%; max-height: 90vh; overflow: auto; margin: 0; }
+  .kv { margin: 8px 0; font-size: 14px; }
+  .kv b { color: var(--mut); font-weight: 600; display: inline-block; min-width: 90px; }
+  .row2 { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+  .row2 select { width: auto; }
+  textarea { min-height: 90px; resize: vertical; margin-top: 6px; }
+  /* tours */
+  .tourrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tourrow:last-child { border-bottom: 0; }
+  .drop { border: 2px dashed var(--line); border-radius: 12px; padding: 26px; text-align: center; color: var(--mut); cursor: pointer; transition: .15s; }
+  .drop:hover, .drop.over { border-color: var(--acc); color: var(--txt); background: var(--panel2); }
+  .room { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .room img { width: 76px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+  .room input { flex: 1; min-width: 140px; }
+  .toggle { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; }
+  .toggle input { width: 22px; height: 22px; accent-color: var(--acc); }
+  .hint { font-size: 13px; color: var(--mut); margin-top: 6px; line-height: 1.55; }
+  .steps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .steps span { font-size: 12.5px; color: var(--mut); background: var(--panel2); border: 1px solid var(--line); padding: 5px 11px; border-radius: 20px; }
+  /* hotspot + preview modals */
+  #hsModal, #pvModal { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: none; z-index: 50; flex-direction: column; }
+  #hsModal.open, #pvModal.open { display: flex; }
+  #hsPano, #pvPano { flex: 1; min-height: 0; position: relative; }
+  #hsBar { padding: 12px 16px; display: flex; gap: 10px; align-items: center; background: var(--panel); flex-wrap: wrap; }
+  #hsBar select { width: auto; }
+  /* toast */
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f9d55; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.bad { background: #b91c1c; }
+  @media (max-width: 760px) {
+    #appView { flex-direction: column; }
+    #side { width: 100%; flex: none; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
+    #side .brand2 { padding: 4px 8px; } #side .sp { display: none; }
+    .navbtn { width: auto; padding: 9px 11px; }
+    #main { padding: 16px 14px 56px; }
+    table, thead, tbody, th, td, tr { display: block; } thead { display: none; }
+    td { border: 0; padding: 4px 0; } tbody tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
+  }
 </style>
 </head>
 <body>
-<div id="login">
+
+<div id="loginView">
+  <div class="brand">
+    <div class="logo">🏠</div>
+    <h1>Site Admin</h1>
+    <div class="mut" style="margin-top:6px">Erfan BC Real Estate — owner access only</div>
+  </div>
   <div class="card">
-    <h1>Advisor Portal</h1>
-    <p>Private — authorized access only.</p>
-    <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
-    <button onclick="doLogin()">Sign in</button>
+    <input type="password" id="pw" placeholder="Admin password" autocomplete="current-password">
+    <button id="loginBtn" style="width:100%">Sign in</button>
     <div class="err" id="loginErr"></div>
   </div>
 </div>
-<div id="app" class="hidden">
-  <div class="topbar">
-    <h1>Leads</h1>
-    <div>
-      <button class="ghost" onclick="inviteSeller()">Invite seller</button>
-      <button class="ghost" onclick="doLogout()">Log out</button>
-    </div>
-  </div>
-  <div class="filters">
-    <select id="fStage" onchange="render()"><option value="">All stages</option><option>new</option><option>contacted</option><option>viewing</option><option>offer</option><option>closed</option><option>dropped</option></select>
-    <select id="fIntent" onchange="render()"><option value="">All intents</option><option>buyer</option><option>seller</option><option>investor</option><option>renter</option></select>
-  </div>
-  <table><thead><tr><th>Name</th><th>Intent</th><th>City</th><th>Budget</th><th>Stage</th><th>Date</th></tr></thead><tbody id="rows"></tbody></table>
+
+<div id="appView" hidden>
+  <aside id="side">
+    <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
+    <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
+    <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
+    <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
+    <div class="sp"></div>
+    <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
+    <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
+  </aside>
+
+  <main id="main">
+    <!-- OVERVIEW -->
+    <section id="page-overview">
+      <div class="pagehead"><h1>Overview</h1><button class="ghost small" id="ovRefresh">Refresh</button></div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stTotal">–</div><div class="l">Total leads</div></div>
+        <div class="stat"><div class="n" id="stNew">–</div><div class="l">New leads</div></div>
+        <div class="stat"><div class="n" id="stProg">–</div><div class="l">In progress</div></div>
+        <div class="stat"><div class="n" id="stClosed">–</div><div class="l">Closed deals</div></div>
+        <div class="stat"><div class="n" id="stTours">–</div><div class="l">Listings with a tour</div></div>
+        <div class="stat"><div class="n" id="stLive">–</div><div class="l">Tours live on site</div></div>
+      </div>
+      <div class="card">
+        <h2>Latest leads</h2>
+        <div id="ovLeads"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h2>Quick actions</h2>
+        <div class="row2" style="margin-top:2px">
+          <button id="qaLeads">👥 Review leads</button>
+          <button class="ghost" id="qaTour">🔄 Add / edit a virtual tour</button>
+          <button class="ghost" id="qaSite">🌐 Open the website</button>
+        </div>
+        <div class="hint">Everything on the website that changes — leads from the contact form and virtual tours — is managed right here. Page content and listings are updated by your developer (Muse) for now; full listing management arrives with the live MLS feed.</div>
+      </div>
+    </section>
+
+    <!-- LEADS -->
+    <section id="page-leads" hidden>
+      <div class="pagehead">
+        <div><h1>Leads</h1><div class="mut" id="leadCount"></div></div>
+        <button class="ghost small" id="refreshBtn">Refresh</button>
+      </div>
+      <div class="filters">
+        <input type="search" id="leadSearch" placeholder="Search name, email, city…">
+        <select id="stageFilter">
+          <option value="">All stages</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="viewing">Viewing</option>
+          <option value="offer">Offer</option>
+          <option value="closed">Closed</option>
+          <option value="dropped">Dropped</option>
+        </select>
+        <select id="intentFilter">
+          <option value="">All intents</option>
+          <option value="buyer">Buyer</option>
+          <option value="seller">Seller</option>
+          <option value="investor">Investor</option>
+          <option value="renter">Renter</option>
+        </select>
+      </div>
+      <div class="card" style="padding:8px 14px">
+        <table>
+          <thead><tr><th>Name</th><th>Intent</th><th>City</th><th>Budget</th><th>Stage</th><th>Received</th></tr></thead>
+          <tbody id="leadRows"></tbody>
+        </table>
+        <div class="empty" id="emptyMsg" hidden>No leads match. New contact-form submissions appear here automatically.</div>
+      </div>
+    </section>
+
+    <!-- TOURS -->
+    <section id="page-tours" hidden>
+      <div class="pagehead"><h1>Virtual Tours</h1><button class="ghost small" id="tourRefresh">Refresh</button></div>
+      <div class="steps"><span>1 · Pick a listing</span><span>2 · Upload 360° photos</span><span>3 · Name the rooms</span><span>4 · Link rooms with hotspots</span><span>5 · Turn it on &amp; save</span></div>
+
+      <div class="card">
+        <h2>Listings with tours</h2>
+        <div id="tourList"><div class="empty">Loading…</div></div>
+        <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:14px">
+          <div class="mut" style="margin-bottom:8px">Start a tour for a listing — type its MLS® / listing ID, or pick a sample listing:</div>
+          <div class="row2" style="margin-top:0">
+            <input id="newListingId" placeholder="e.g. R2991001" style="width:220px;flex:0 1 220px">
+            <select id="samplePick" style="width:auto">
+              <option value="">Sample listings…</option>
+              <option>R2991001</option><option>R2991002</option><option>R2991003</option>
+              <option>R2991004</option><option>R2991005</option><option>R2991006</option>
+            </select>
+            <button id="openTourBtn">Open tour editor</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tourEditor" hidden>
+        <div class="card">
+          <div class="pagehead" style="margin-bottom:6px">
+            <h2>Tour editor — <span id="edListing"></span></h2>
+            <span class="chip draft" id="edStatus">Draft</span>
+          </div>
+          <div class="mut">Upload one 360° panorama per room (JPG/PNG, up to 15 MB). Photos are stored as you upload them; names, order, hotspots and publishing are applied when you press Save.</div>
+          <div class="drop" id="dropZone" style="margin-top:14px">
+            📷 <b>Tap to choose photos</b> or drop them here
+            <input type="file" id="fileInput" accept="image/*" multiple hidden>
+          </div>
+          <div class="err" id="upErr"></div>
+          <div class="ok" id="upOk"></div>
+          <div id="roomList" style="margin-top:12px"></div>
+        </div>
+
+        <div class="card">
+          <h2>Link rooms (hotspots)</h2>
+          <div class="mut">A hotspot is a doorway: visitors click it to walk into the next room — like Google Street View.</div>
+          <div id="hsList" style="margin-top:8px"></div>
+          <div class="row2">
+            <select id="hsRoom" style="width:auto"></select>
+            <button class="small" id="hsAdd">Place a hotspot…</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Publish</h2>
+          <div style="margin-bottom:12px">
+            <div class="mut" style="margin-bottom:6px">Walkthrough video (optional) — paste a YouTube link:</div>
+            <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=…">
+          </div>
+          <label class="toggle"><input type="checkbox" id="enableTour"> <b>Show this tour on the website</b></label>
+          <div class="hint">When the tour is on, a “Virtual Tour” button appears on that listing on the main website.</div>
+          <div class="row2">
+            <button id="saveBtn">Save tour</button>
+            <button class="ghost" id="previewBtn">Preview</button>
+            <button class="ghost" id="closeEditorBtn">Close editor</button>
+          </div>
+          <div class="err" id="saveErr"></div>
+          <div class="ok" id="saveOk"></div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
-<div id="detail" class="hidden"><div class="card" id="detailCard"></div></div>
+
+<div id="detail"><div class="card">
+  <h1 id="dName" style="margin-bottom:12px"></h1>
+  <div id="dBody"></div>
+  <div class="kv"><b>Notes</b></div>
+  <textarea id="dNotes" placeholder="Private notes about this lead…"></textarea>
+  <div class="row2">
+    <select id="dStage">
+      <option value="new">New</option>
+      <option value="contacted">Contacted</option>
+      <option value="viewing">Viewing</option>
+      <option value="offer">Offer</option>
+      <option value="closed">Closed</option>
+      <option value="dropped">Dropped</option>
+    </select>
+    <button id="dSave">Save</button>
+    <button class="danger" id="dDelete">Delete</button>
+    <button class="ghost" id="dClose">Close</button>
+  </div>
+  <div class="err" id="dErr"></div>
+</div></div>
+
+<div id="hsModal">
+  <div id="hsPano"></div>
+  <div id="hsBar">
+    <span id="hsMsg" class="mut">Click on the panorama where the doorway is…</span>
+    <select id="hsTarget"></select>
+    <button class="small" id="hsSave" disabled>Save hotspot</button>
+    <button class="ghost small" id="hsCancel">Cancel</button>
+  </div>
+</div>
+
+<div id="pvModal">
+  <div id="pvPano"></div>
+  <button id="pvClose" style="position:absolute;top:14px;right:14px;z-index:51">✕ Close</button>
+</div>
+
+<div id="toast"></div>
+
 <script>
-var API='https://advisor-api.erfanbillion.workers.dev';
-var SELLER_API='https://seller-api.erfanbillion.workers.dev';
-var leads=[];
-function tok(){return sessionStorage.getItem('adv_tok')||'';}
-function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-async function doLogin(){
-  var pw=document.getElementById('pw').value;
-  var r=await fetch(API+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
-  var d=await r.json().catch(function(){return{};});
-  if(d.ok&&d.token){sessionStorage.setItem('adv_tok',d.token);showApp();}
-  else{document.getElementById('loginErr').textContent='Invalid password.';}
-}
-function doLogout(){sessionStorage.removeItem('adv_tok');location.reload();}
-function showApp(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');load();}
-async function load(){
-  var r=await fetch(API+'/api/leads',{headers:{'Authorization':'Bearer '+tok()}});
-  if(r.status===401){doLogout();return;}
-  var d=await r.json();leads=d.leads||[];render();
-}
-function render(){
-  var fs=document.getElementById('fStage').value,fi=document.getElementById('fIntent').value;
-  var html='';
-  leads.forEach(function(l){
-    if(fs&&l.stage!==fs)return;if(fi&&l.intent!==fi)return;
-    html+='<tr onclick="openDetail(\''+l.id+'\')"><td>'+esc(l.name)+'</td><td>'+esc(l.intent)+'</td><td>'+esc(l.city)+'</td><td>'+esc(l.budget)+'</td><td><span class="stage '+esc(l.stage)+'">'+esc(l.stage)+'</span></td><td>'+esc((l.created_at||'').slice(0,10))+'</td></tr>';
+(function(){
+  "use strict";
+  var API_URL = "https://advisor-api.erfanbillion.workers.dev";
+  var TOUR_API_URL = "https://seller-api.erfanbillion.workers.dev";
+  var SITE_URL = "https://real-estate-platform-0aei.onrender.com";
+  var token = sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || "";
+  var leads = [];
+  var toursCache = [];
+  var currentId = null;
+  var edListingId = "";
+  var tour = { enabled:false, rooms:[], hotspots:[], videoUrl:"" };
+  var pendingHs = null;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function toast(msg, bad){
+    var t = $("toast"); t.textContent = msg; t.className = "show" + (bad ? " bad" : "");
+    setTimeout(function(){ t.className = ""; }, 2600);
+  }
+  function api(base, path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({}, opts.headers || {});
+    if (!(opts.body instanceof FormData)) opts.headers["Content-Type"] = "application/json";
+    if (token) opts.headers["Authorization"] = "Bearer " + token;
+    return fetch(base + path, opts).then(function(r){
+      if (r.status === 401){ signOut(); throw new Error("signed out"); }
+      return r.json();
+    });
+  }
+  function fmtDate(iso){ try { var d = new Date(iso); return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); } catch(e){ return ""; } }
+
+  function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
+  function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
+  function signOut(){ token = ""; sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; showLogin(); }
+
+  // ---------- navigation ----------
+  function go(page){
+    ["overview","leads","tours"].forEach(function(p){
+      $("page-" + p).hidden = p !== page;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
+      b.classList.toggle("on", b.getAttribute("data-nav") === page);
+    });
+    if (page === "overview") loadOverview();
+    if (page === "leads") renderLeads();
+    if (page === "tours") loadTourList();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
+    b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
   });
-  document.getElementById('rows').innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#64748b">No leads yet.</td></tr>';
-}
-function openDetail(id){
-  var l=leads.find(function(x){return x.id===id;});if(!l)return;
-  var st=['new','contacted','viewing','offer','closed','dropped'].map(function(s){return '<option value="'+s+'"'+(l.stage===s?' selected':'')+'>'+s+'</option>';}).join('');
-  document.getElementById('detailCard').innerHTML=
-    '<h1 style="margin-bottom:16px">'+esc(l.name)+'</h1>'+
-    '<div class="row"><b>Intent</b>'+esc(l.intent)+'</div>'+
-    '<div class="row"><b>City</b>'+esc(l.city)+'</div>'+
-    '<div class="row"><b>Budget</b>'+esc(l.budget)+'</div>'+
-    '<div class="row"><b>Email</b>'+esc(l.email)+'</div>'+
-    '<div class="row"><b>Phone</b>'+esc(l.phone)+'</div>'+
-    '<div class="row"><b>Message</b>'+esc(l.message)+'</div>'+
-    '<div class="row"><b>Stage</b><select id="dStage">'+st+'</select></div>'+
-    '<div class="row"><b>Notes</b><textarea id="dNotes" rows="4">'+esc(l.notes)+'</textarea></div>'+
-    '<div class="actions"><button onclick="saveDetail(\''+l.id+'\')">Save</button><button class="danger" onclick="delLead(\''+l.id+'\')">Delete</button><button class="ghost" onclick="closeDetail()">Close</button></div>';
-  document.getElementById('detail').classList.remove('hidden');
-}
-function closeDetail(){document.getElementById('detail').classList.add('hidden');}
-async function saveDetail(id){
-  var st=document.getElementById('dStage').value,nt=document.getElementById('dNotes').value;
-  await fetch(API+'/api/leads/'+id,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:JSON.stringify({stage:st,notes:nt})});
-  closeDetail();load();
-}
-async function delLead(id){
-  if(!confirm('Delete this lead?'))return;
-  await fetch(API+'/api/leads/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+tok()}});
-  closeDetail();load();
-}
-async function inviteSeller(){
-  var email=prompt('Seller email:');if(!email)return;
-  var listing=prompt('Listing ID (e.g. R2991001):');if(!listing)return;
-  var r=await fetch(SELLER_API+'/api/seller/invite',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:JSON.stringify({email:email,listingId:listing})});
-  var d=await r.json().catch(function(){return{};});
-  if(d.ok){prompt('Seller account created. Hand this ONE-TIME password to the seller:',d.password);}
-  else{alert('Invite failed: '+(d.error||'unknown'));}
-}
-document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-if(tok())showApp();
+  $("qaLeads").addEventListener("click", function(){ go("leads"); });
+  $("qaTour").addEventListener("click", function(){ go("tours"); });
+  $("qaSite").addEventListener("click", function(){ window.open(SITE_URL, "_blank"); });
+  $("ovRefresh").addEventListener("click", loadOverview);
+
+  // ---------- login ----------
+  $("loginBtn").addEventListener("click", function(){
+    var pw = $("pw").value;
+    $("loginErr").textContent = "";
+    $("loginBtn").disabled = true;
+    fetch(API_URL + "/api/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({password: pw}) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        $("loginBtn").disabled = false;
+        if (d && d.ok && d.token){ token = d.token; sessionStorage.setItem("admin_token", token); $("pw").value = ""; showApp(); loadAll(); }
+        else { $("loginErr").textContent = "Wrong password. Try again."; }
+      })
+      .catch(function(){ $("loginBtn").disabled = false; $("loginErr").textContent = "Could not reach the server."; });
+  });
+  $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("loginBtn").click(); });
+  $("logoutBtn").addEventListener("click", signOut);
+
+  function loadAll(){ loadLeads(); loadTourList(); loadOverview(); }
+
+  // ---------- overview ----------
+  function loadOverview(){
+    var byStage = { new:0, contacted:0, viewing:0, offer:0, closed:0, dropped:0 };
+    leads.forEach(function(l){ if (byStage[l.stage] != null) byStage[l.stage]++; });
+    $("stTotal").textContent = leads.length;
+    $("stNew").textContent = byStage.new;
+    $("stProg").textContent = byStage.contacted + byStage.viewing + byStage.offer;
+    $("stClosed").textContent = byStage.closed;
+    $("stTours").textContent = toursCache.length;
+    $("stLive").textContent = toursCache.filter(function(t){ return t.enabled; }).length;
+    var latest = leads.slice(0, 5);
+    $("ovLeads").innerHTML = latest.length ? latest.map(function(l){
+      return '<div class="tourrow"><div><b>' + esc(l.name) + '</b> <span class="mut">' + esc(l.intent) + (l.city ? " · " + esc(l.city) : "") + '</span></div><span class="stage s-' + esc(l.stage) + '">' + esc(l.stage) + '</span></div>';
+    }).join("") : '<div class="empty">No leads yet — they appear here as soon as someone sends the contact form.</div>';
+  }
+
+  // ---------- leads ----------
+  $("refreshBtn").addEventListener("click", loadLeads);
+  $("stageFilter").addEventListener("change", renderLeads);
+  $("intentFilter").addEventListener("change", renderLeads);
+  $("leadSearch").addEventListener("input", renderLeads);
+
+  function loadLeads(){
+    api(API_URL, "/api/leads").then(function(d){
+      leads = (d && d.ok && d.leads) || [];
+      renderLeads(); loadOverview();
+    }).catch(function(){});
+  }
+  function renderLeads(){
+    var sf = $("stageFilter").value, inf = $("intentFilter").value;
+    var q = ($("leadSearch").value || "").toLowerCase();
+    var rows = leads.filter(function(l){
+      if (sf && l.stage !== sf) return false;
+      if (inf && l.intent !== inf) return false;
+      if (q && (String(l.name) + " " + String(l.email || "") + " " + String(l.city || "")).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    $("leadCount").textContent = rows.length + " of " + leads.length + " lead" + (leads.length === 1 ? "" : "s");
+    $("emptyMsg").hidden = rows.length > 0;
+    $("leadRows").innerHTML = rows.map(function(l){
+      return '<tr data-id="' + esc(l.id) + '"><td><b>' + esc(l.name) + '</b></td><td>' + esc(l.intent) + '</td><td>' + esc(l.city || "—") + '</td><td>' + esc(l.budget || "—") + '</td><td><span class="stage s-' + esc(l.stage) + '">' + esc(l.stage) + '</span></td><td>' + esc(fmtDate(l.created_at)) + '</td></tr>';
+    }).join("");
+    Array.prototype.forEach.call($("leadRows").querySelectorAll("tr"), function(tr){
+      tr.addEventListener("click", function(){ openDetail(tr.getAttribute("data-id")); });
+    });
+  }
+  function openDetail(id){
+    var l = null;
+    for (var i = 0; i < leads.length; i++) if (leads[i].id === id) l = leads[i];
+    if (!l) return;
+    currentId = id;
+    $("dName").textContent = l.name;
+    $("dBody").innerHTML =
+      '<div class="kv"><b>Intent</b>' + esc(l.intent) + '</div>' +
+      '<div class="kv"><b>City</b>' + esc(l.city || "—") + '</div>' +
+      '<div class="kv"><b>Budget</b>' + esc(l.budget || "—") + '</div>' +
+      '<div class="kv"><b>Email</b>' + (l.email ? '<a href="mailto:' + esc(l.email) + '" style="color:#93c5fd">' + esc(l.email) + '</a>' : "—") + '</div>' +
+      '<div class="kv"><b>Phone</b>' + esc(l.phone || "—") + '</div>' +
+      '<div class="kv"><b>Source</b>' + esc(l.source || "—") + '</div>' +
+      '<div class="kv"><b>Received</b>' + esc(fmtDate(l.created_at)) + '</div>' +
+      (l.message ? '<div class="kv"><b>Message</b><br>' + esc(l.message).replace(/\n/g, "<br>") + '</div>' : "");
+    $("dNotes").value = l.notes || "";
+    $("dStage").value = l.stage || "new";
+    $("dErr").textContent = "";
+    $("detail").classList.add("open");
+  }
+  $("dClose").addEventListener("click", function(){ $("detail").classList.remove("open"); });
+  $("detail").addEventListener("click", function(e){ if (e.target === $("detail")) $("detail").classList.remove("open"); });
+  $("dSave").addEventListener("click", function(){
+    $("dErr").textContent = "";
+    api(API_URL, "/api/leads/" + encodeURIComponent(currentId), { method: "PATCH", body: JSON.stringify({ stage: $("dStage").value, notes: $("dNotes").value }) })
+      .then(function(d){
+        if (d && d.ok){ $("detail").classList.remove("open"); toast("Lead saved ✓"); loadLeads(); }
+        else $("dErr").textContent = "Could not save.";
+      })
+      .catch(function(){ $("dErr").textContent = "Could not reach the server."; });
+  });
+  $("dDelete").addEventListener("click", function(){
+    if (!confirm("Delete this lead permanently?")) return;
+    api(API_URL, "/api/leads/" + encodeURIComponent(currentId), { method: "DELETE" })
+      .then(function(){ $("detail").classList.remove("open"); toast("Lead deleted"); loadLeads(); })
+      .catch(function(){ $("dErr").textContent = "Could not reach the server."; });
+  });
+
+  // ---------- tours ----------
+  $("tourRefresh").addEventListener("click", loadTourList);
+  function loadTourList(){
+    api(TOUR_API_URL, "/api/admin/tours").then(function(d){
+      toursCache = (d && d.ok && d.tours) || [];
+      renderTourList(); loadOverview();
+    }).catch(function(){});
+  }
+  function renderTourList(){
+    var box = $("tourList");
+    if (!toursCache.length){ box.innerHTML = '<div class="empty">No tours yet — start one below.</div>'; return; }
+    box.innerHTML = "";
+    toursCache.forEach(function(t){
+      var div = document.createElement("div"); div.className = "tourrow";
+      div.innerHTML = '<div><b>' + esc(t.listingId) + '</b> <span class="mut">' + t.rooms + ' room' + (t.rooms === 1 ? "" : "s") + '</span></div>' +
+        '<div style="display:flex;gap:8px;align-items:center"><span class="chip ' + (t.enabled ? "live" : "draft") + '">' + (t.enabled ? "● Live" : "Draft") + '</span>' +
+        '<button class="ghost small">Edit</button></div>';
+      div.querySelector("button").addEventListener("click", function(){ openEditor(t.listingId); });
+      box.appendChild(div);
+    });
+  }
+  $("samplePick").addEventListener("change", function(){ if ($("samplePick").value) $("newListingId").value = $("samplePick").value; });
+  $("openTourBtn").addEventListener("click", function(){
+    var id = $("newListingId").value.trim();
+    if (!/^[A-Za-z0-9-]{1,40}$/.test(id)){ toast("Enter a valid listing ID first", true); return; }
+    openEditor(id);
+  });
+  $("closeEditorBtn").addEventListener("click", function(){ $("tourEditor").hidden = true; edListingId = ""; });
+
+  function openEditor(listingId){
+    edListingId = listingId;
+    $("edListing").textContent = listingId;
+    $("tourEditor").hidden = false;
+    $("saveErr").textContent = ""; $("saveOk").textContent = ""; $("upErr").textContent = ""; $("upOk").textContent = "";
+    api(TOUR_API_URL, "/api/admin/tour?listingId=" + encodeURIComponent(listingId)).then(function(d){
+      tour = (d && d.ok && d.tour) || { enabled:false, rooms:[], hotspots:[], videoUrl:"" };
+      $("videoUrl").value = tour.videoUrl || "";
+      $("enableTour").checked = !!tour.enabled;
+      syncEdStatus(); renderRooms(); renderHs();
+      $("tourEditor").scrollIntoView({ behavior: "smooth", block: "start" });
+    }).catch(function(){ toast("Could not load the tour", true); });
+  }
+  function syncEdStatus(){
+    var s = $("edStatus");
+    s.textContent = tour.enabled ? "● Live on site" : "Draft";
+    s.className = "chip " + (tour.enabled ? "live" : "draft");
+  }
+
+  // rooms + upload
+  function renderRooms(){
+    var box = $("roomList"); box.innerHTML = "";
+    if (!tour.rooms.length) box.innerHTML = '<div class="hint">No rooms yet — upload the first panorama above.</div>';
+    tour.rooms.forEach(function(r, i){
+      var div = document.createElement("div"); div.className = "room";
+      div.innerHTML = '<img src="' + esc(r.url) + '" alt="">' +
+        '<input data-i="' + i + '" value="' + esc(r.name) + '" placeholder="Room name (e.g. Living Room)">' +
+        '<button class="ghost small" data-up="' + i + '">↑</button>' +
+        '<button class="ghost small" data-dn="' + i + '">↓</button>' +
+        '<button class="ghost small" data-del="' + esc(r.id) + '">Delete</button>';
+      box.appendChild(div);
+    });
+    box.querySelectorAll("input").forEach(function(inp){
+      inp.addEventListener("change", function(){ tour.rooms[+inp.getAttribute("data-i")].name = inp.value; });
+    });
+    box.querySelectorAll("[data-del]").forEach(function(b){
+      b.addEventListener("click", function(){
+        if (!confirm("Delete this panorama?")) return;
+        api(TOUR_API_URL, "/api/admin/panorama/" + encodeURIComponent(edListingId) + "/" + encodeURIComponent(b.getAttribute("data-del")), { method:"DELETE" })
+          .then(function(){ toast("Panorama deleted"); openEditor(edListingId); loadTourList(); })
+          .catch(function(){ toast("Delete failed", true); });
+      });
+    });
+    box.querySelectorAll("[data-up],[data-dn]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var i = +(b.getAttribute("data-up") !== null ? b.getAttribute("data-up") : b.getAttribute("data-dn"));
+        var j = b.hasAttribute("data-up") ? i - 1 : i + 1;
+        if (j < 0 || j >= tour.rooms.length) return;
+        var tmp = tour.rooms[i]; tour.rooms[i] = tour.rooms[j]; tour.rooms[j] = tmp;
+        renderRooms(); renderHs();
+      });
+    });
+    var sel = $("hsRoom"); sel.innerHTML = "";
+    tour.rooms.forEach(function(r){
+      var o = document.createElement("option"); o.value = r.id; o.textContent = r.name || r.id; sel.appendChild(o);
+    });
+  }
+  function uploadFiles(files){
+    if (!files || !files.length || !edListingId) return;
+    $("upErr").textContent = ""; $("upOk").textContent = "Uploading " + files.length + " photo(s)…";
+    var chain = Promise.resolve(), done = 0;
+    Array.prototype.forEach.call(files, function(f){
+      chain = chain.then(function(){
+        var fd = new FormData(); fd.append("file", f); fd.append("listingId", edListingId);
+        return fetch(TOUR_API_URL + "/api/admin/panorama", { method:"POST", headers: token ? {"Authorization":"Bearer "+token} : {}, body: fd })
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            done++;
+            if (d && d.ok){ tour.rooms.push({ id: d.id, name: "", url: d.url }); }
+            else { $("upErr").textContent = "One upload failed (" + ((d && d.error) || "error") + ")."; }
+            $("upOk").textContent = "Uploaded " + done + " / " + files.length;
+          });
+      });
+    });
+    chain.then(function(){ $("fileInput").value = ""; renderRooms(); renderHs(); })
+      .catch(function(){ $("upErr").textContent = "Upload failed. Try again."; });
+  }
+  $("dropZone").addEventListener("click", function(){ $("fileInput").click(); });
+  $("fileInput").addEventListener("change", function(){ uploadFiles($("fileInput").files); });
+  $("dropZone").addEventListener("dragover", function(e){ e.preventDefault(); $("dropZone").classList.add("over"); });
+  $("dropZone").addEventListener("dragleave", function(){ $("dropZone").classList.remove("over"); });
+  $("dropZone").addEventListener("drop", function(e){ e.preventDefault(); $("dropZone").classList.remove("over"); uploadFiles(e.dataTransfer.files); });
+
+  // hotspots
+  function renderHs(){
+    var box = $("hsList"); box.innerHTML = "";
+    if (!tour.hotspots.length) box.innerHTML = '<div class="hint">No hotspots yet.</div>';
+    var names = {}; tour.rooms.forEach(function(r){ names[r.id] = r.name || r.id; });
+    tour.hotspots.forEach(function(h, i){
+      var div = document.createElement("div");
+      div.className = "hint"; div.style.marginBottom = "6px";
+      div.innerHTML = "📍 " + esc(names[h.from] || h.from) + " → " + esc(names[h.to] || h.to) +
+        ' <button class="ghost small" data-hsdel="' + i + '">Remove</button>';
+      box.appendChild(div);
+    });
+    box.querySelectorAll("[data-hsdel]").forEach(function(b){
+      b.addEventListener("click", function(){ tour.hotspots.splice(+b.getAttribute("data-hsdel"), 1); renderHs(); });
+    });
+  }
+  function loadPannellum(cb){
+    if (window.pannellum) return cb();
+    var l = document.createElement("link"); l.rel = "stylesheet";
+    l.href = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"; document.head.appendChild(l);
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
+    s.onload = cb; document.head.appendChild(s);
+  }
+  var hsViewer = null;
+  $("hsAdd").addEventListener("click", function(){
+    var fromId = $("hsRoom").value;
+    if (!fromId) return;
+    var room = null;
+    tour.rooms.forEach(function(r){ if (r.id === fromId) room = r; });
+    if (!room) return;
+    var tgt = $("hsTarget"); tgt.innerHTML = "";
+    tour.rooms.forEach(function(r){
+      if (r.id === fromId) return;
+      var o = document.createElement("option"); o.value = r.id; o.textContent = r.name || r.id; tgt.appendChild(o);
+    });
+    if (!tgt.options.length){ toast("Add at least one more room first", true); return; }
+    pendingHs = null; $("hsSave").disabled = true;
+    $("hsMsg").textContent = "Click on the panorama where the doorway is…";
+    $("hsModal").classList.add("open");
+    loadPannellum(function(){
+      $("hsPano").innerHTML = "";
+      hsViewer = pannellum.viewer("hsPano", { type: "equirectangular", panorama: room.url, autoLoad: true });
+      hsViewer.on("click", function(e){
+        try {
+          var c = hsViewer.mouseEventToCoords(e);
+          pendingHs = { yaw: c[0], pitch: c[1], from: fromId };
+          $("hsMsg").textContent = "Hotspot at yaw " + Math.round(c[0]) + "°, pitch " + Math.round(c[1]) + "° — choose the target room, then Save.";
+          $("hsSave").disabled = false;
+        } catch (err){}
+      });
+    });
+  });
+  $("hsCancel").addEventListener("click", function(){ $("hsModal").classList.remove("open"); });
+  $("hsSave").addEventListener("click", function(){
+    if (!pendingHs) return;
+    tour.hotspots.push({ from: pendingHs.from, to: $("hsTarget").value, yaw: pendingHs.yaw, pitch: pendingHs.pitch, text: "" });
+    $("hsModal").classList.remove("open");
+    renderHs();
+  });
+
+  // save / preview
+  $("saveBtn").addEventListener("click", function(){
+    $("saveErr").textContent = ""; $("saveOk").textContent = "Saving…";
+    tour.videoUrl = $("videoUrl").value.trim();
+    tour.enabled = $("enableTour").checked;
+    var payload = Object.assign({}, tour, { listingId: edListingId });
+    api(TOUR_API_URL, "/api/admin/tour", { method: "PUT", body: JSON.stringify(payload) })
+      .then(function(d){
+        if (d && d.ok){ if (d.tour) tour = d.tour; $("saveOk").textContent = ""; toast(tour.enabled ? "Saved — tour is LIVE on the website ✓" : "Saved as draft ✓"); syncEdStatus(); renderRooms(); renderHs(); loadTourList(); }
+        else { $("saveErr").textContent = (d && d.error === "no_rooms") ? "Upload at least one panorama before enabling the tour." : "Could not save."; $("saveOk").textContent = ""; }
+      })
+      .catch(function(){ $("saveErr").textContent = "Could not reach the server."; $("saveOk").textContent = ""; });
+  });
+  var pvViewer = null;
+  $("previewBtn").addEventListener("click", function(){
+    if (!tour.rooms.length){ toast("Upload a panorama first", true); return; }
+    $("pvModal").classList.add("open");
+    loadPannellum(function(){ $("pvPano").innerHTML = ""; pvViewer = pannellum.viewer("pvPano", scenesConfig()); });
+  });
+  $("pvClose").addEventListener("click", function(){
+    $("pvModal").classList.remove("open");
+    if (pvViewer){ try { pvViewer.destroy(); } catch(e){} pvViewer = null; }
+    $("pvPano").innerHTML = "";
+  });
+  function scenesConfig(){
+    var scenes = {}, first = null;
+    tour.rooms.forEach(function(r, i){
+      var id = "room" + i; if (i === 0) first = id;
+      scenes[id] = { title: r.name || ("Room " + (i+1)), type: "equirectangular", panorama: r.url, hotSpots: [] };
+      r._sid = id;
+    });
+    var idOf = {}; tour.rooms.forEach(function(r){ idOf[r.id] = r._sid; });
+    tour.hotspots.forEach(function(h){
+      var f = idOf[h.from], tto = idOf[h.to];
+      if (f && tto && scenes[f]){
+        var targetName = ""; tour.rooms.forEach(function(r){ if (r.id === h.to) targetName = r.name || ""; });
+        scenes[f].hotSpots.push({ pitch: h.pitch, yaw: h.yaw, type: "scene", text: targetName, sceneId: tto });
+      }
+    });
+    return { default: { firstScene: first, sceneFadeDuration: 1000 }, scenes: scenes };
+  }
+
+  if (token) { showApp(); loadAll(); } else { showLogin(); }
+})();
 </script>
 </body>
 </html>
