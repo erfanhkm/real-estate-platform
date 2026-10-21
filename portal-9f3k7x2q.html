@@ -32,6 +32,7 @@
   .brand .logo { font-size: 34px; }
   /* layout */
   #appView { display: flex; min-height: 100vh; }
+  #appView[hidden], #loginView[hidden] { display: none !important; }
   #side { width: 228px; flex: 0 0 228px; background: var(--panel); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
   #side .brand2 { padding: 4px 10px 16px; }
   #side .brand2 b { font-size: 16px; display: block; }
@@ -337,7 +338,7 @@
   var API_URL = "https://advisor-api.erfanbillion.workers.dev";
   var TOUR_API_URL = "https://seller-api.erfanbillion.workers.dev";
   var SITE_URL = "https://real-estate-platform-0aei.onrender.com";
-  var token = sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || "";
+  var token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || "";
   var leads = [];
   var toursCache = [];
   var currentId = null;
@@ -365,7 +366,7 @@
 
   function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
   function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
-  function signOut(){ token = ""; sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; showLogin(); }
+  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; showLogin(); }
 
   // ---------- navigation ----------
   function go(page){
@@ -397,7 +398,7 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         $("loginBtn").disabled = false;
-        if (d && d.ok && d.token){ token = d.token; sessionStorage.setItem("admin_token", token); $("pw").value = ""; showApp(); loadAll(); }
+        if (d && d.ok && d.token){ token = d.token; localStorage.setItem("admin_token", token); $("pw").value = ""; showApp(); loadAll(); }
         else { $("loginErr").textContent = "Wrong password. Try again."; }
       })
       .catch(function(){ $("loginBtn").disabled = false; $("loginErr").textContent = "Could not reach the server."; });
