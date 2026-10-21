@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gBitQGskPw/0+vlLKcHy4X05BhMD4vwwn+jLgt+/Ab8=' 'sha256-tWZ5bBwIz9HOsDFPkDatV71i5O0GX/u3nDXuWMEgl2c='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gBitQGskPw/0+vlLKcHy4X05BhMD4vwwn+jLgt+/Ab8=' 'sha256-7jaHxmlL9YHxYlGG9N3rTECw9WTkXzvKwAcoAvtZ5GA='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>7421 18th Avenue, Burnaby — $1,299,000 | Erfan BC Real Estate</title>
     <meta name="description" content="4 bed, 3 bath House for sale at 7421 18th Avenue, Burnaby for <meta name="description" content=",299,000 (MLS® R2991003). Updated family home on a quiet street. Renovated kitchen (2023), legal 1-bed suite potential. Sample listing — live MLS® data connects after licensing.">
@@ -414,7 +416,7 @@
           <h2 data-i18n="search_title">Search listings</h2>
           <p data-i18n="search_sub">Adjust the filters — results update instantly.</p>
         </div>
-        <form class="filters" id="searchForm" onsubmit="return false">
+        <form class="filters" id="searchForm">
           <div class="field f-search"><label for="q" data-i18n="f_query">Search</label><input id="q" type="search" data-i18n-ph="f_query_ph" placeholder="Address, city, or MLS® #" /></div>
           <div class="field"><label for="fCity" data-i18n="f_city">City</label><select id="fCity"></select></div>
           <div class="field"><label for="fType" data-i18n="f_type">Property type</label><select id="fType"></select></div>
@@ -2345,6 +2347,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
