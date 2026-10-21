@@ -2,9 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-ucv+nkZcigTg6MzKsCD3Dy8BYV81uobFNgPas4FBVNI=' 'sha256-jVGrC9rEo0qW0n2xoo7IaAA5r6YuzCtTEHtCObzyjNo='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-ucv+nkZcigTg6MzKsCD3Dy8BYV81uobFNgPas4FBVNI=' 'sha256-yTJtlsijOy8fDk/5AclLuKdVo0Zl+DmL6GNQ6wY6XjM='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b2239" />
+    <link rel="preload" href="fonts/playfair-var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="data:," />
     <title>Contact | Erfan BC Real Estate</title>
     <meta name="description" content="Ask a question or request a consultation about buying or selling a home in Metro Vancouver — replies in English, Farsi, Hindi or Chinese.">
@@ -2200,6 +2202,9 @@
           if (ol) { e.preventDefault(); if (typeof openListing === "function") openListing(ol.getAttribute("data-open-listing")); return; }
           var kt = e.target && e.target.closest ? e.target.closest("[data-kc-toggle]") : null;
           if (kt && typeof kcToggle === "function") kcToggle(kt);
+        });
+        document.addEventListener("submit", function(e){
+          if (e.target && e.target.id === "searchForm") e.preventDefault();
         });
         var grid = document.getElementById("grid");
         if (grid && window.MutationObserver) new MutationObserver(function(){ paintSaves(); }).observe(grid, { childList: true });
