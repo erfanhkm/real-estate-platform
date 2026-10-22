@@ -492,9 +492,10 @@
     <!-- MAINTENANCE -->
     <section id="page-maintenance" hidden>
       <div class="pagehead">
-        <div><h1>Site maintenance</h1><div class="mut">Health, SEO and weight checks for every page, service status, and safe data repairs — runs automatically every week, or on demand here</div></div>
+        <div><h1>Site maintenance</h1><div class="mut">Health, SEO and weight checks for every page, service status, and safe data repairs — runs automatically every night at midnight, or on demand here. Each run also measures site speed and clears + rebuilds the worker caches.</div></div>
         <button class="btn-spruce small" id="mtRun">Run maintenance now</button>
       </div>
+      <div id="mtSpeed"></div>
       <div class="stats">
         <div class="stat"><div class="n" id="mtChecks">–</div><div class="l">Checks passed</div></div>
         <div class="stat"><div class="n" id="mtIssues">–</div><div class="l">Issues found</div></div>
@@ -1787,7 +1788,18 @@
   // ---------- newsletter subscribers ----------
   $("nlRefresh").addEventListener("click", loadNewsletter);
   var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
+  var mtSpeedLog = [];
   function renderMaint(rep, log){
+    if (rep && rep.speed) {
+      var BAND = { excellent: ["#22c55e", "🟢", "Excellent"], good: ["#eab308", "🟡", "Good"], poor: ["#f97316", "🟠", "Poor"], terrible: ["#ef4444", "🔴", "Terrible"] };
+      var sp = rep.speed, bd = BAND[sp.band] || BAND.good;
+      var hist = (mtSpeedLog || []).slice(0, 7).map(function(h){ var hb = BAND[h.band] || BAND.good; return '<span title="' + esc(h.at || "") + ' · ' + h.score + '" style="display:inline-block;width:14px;height:' + Math.max(4, Math.round((h.score || 0) / 5)) + 'px;background:' + hb[0] + ';margin-right:3px;border-radius:2px;vertical-align:bottom"></span>'; }).join("");
+      $("mtSpeed").innerHTML = '<div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><div style="font-size:46px;line-height:1">' + bd[1] + '</div><div><div class="mut">Site speed</div><b style="font-size:27px;color:' + bd[0] + '">' + sp.score + '/100 · ' + bd[2] + '</b><div class="mut">Measured ' + esc(fmtDate(sp.at)) + ' · 🟢 85+ excellent · 🟡 65+ good · 🟠 40+ poor · 🔴 under 40 terrible</div></div><div style="flex:1 1 280px">' +
+        '<div class="kv"><b>API data read</b>' + sp.kvMs + ' ms</div>' +
+        '<div class="kv"><b>Homepage load</b>' + (sp.homeMs === null || sp.homeMs === undefined ? 'unreachable' : sp.homeMs + ' ms') + ' · ' + sp.homeKB + ' KB</div>' +
+        '<div class="kv"><b>Listings page load</b>' + (sp.listMs === null || sp.listMs === undefined ? 'unreachable' : sp.listMs + ' ms') + ' · ' + sp.listKB + ' KB</div>' +
+        (hist ? '<div class="kv"><b>Recent runs</b><span>' + hist + '</span></div>' : "") + '</div></div>';
+    }
     if (!rep){ $("mtChecksList").innerHTML = '<div class="empty">No run yet — press “Run maintenance now”</div>'; return; }
     var okN = (rep.checks || []).filter(function(c){ return c.ok; }).length;
     $("mtChecks").textContent = okN + "/" + (rep.checks || []).length;
@@ -1807,6 +1819,7 @@
   function loadMaint(){
     api(API_URL, "/api/admin/maintenance").then(function(d){
       if (!d || !d.ok) return;
+      mtSpeedLog = d.speedLog || [];
       renderMaint(d.last, d.log);
     }).catch(function(){});
   }
