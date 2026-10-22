@@ -105,6 +105,7 @@
     td { border: 0; padding: 4px 0; } tbody tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
   }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -116,6 +117,7 @@
   </div>
   <div class="card">
     <input type="password" id="pw" placeholder="Admin password" autocomplete="current-password">
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAFbCjECJ3G_8xgJE" data-theme="dark" style="margin-bottom:12px"></div>
     <button id="loginBtn" style="width:100%">Sign in</button>
     <div class="err" id="loginErr"></div>
   </div>
@@ -537,16 +539,19 @@
   // ---------- login ----------
   $("loginBtn").addEventListener("click", function(){
     var pw = $("pw").value;
+    var tsEl = document.querySelector('input[name="cf-turnstile-response"]');
+    var tsTok = tsEl ? tsEl.value : "";
     $("loginErr").textContent = "";
+    if (!tsTok){ $("loginErr").textContent = "Please complete the security check."; return; }
     $("loginBtn").disabled = true;
-    fetch(API_URL + "/api/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({password: pw}) })
+    fetch(API_URL + "/api/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({password: pw, turnstileToken: tsTok}) })
       .then(function(r){ return r.json(); })
       .then(function(d){
         $("loginBtn").disabled = false;
         if (d && d.ok && d.token){ token = d.token; localStorage.setItem("admin_token", token); $("pw").value = ""; showApp(); loadAll(); }
-        else { $("loginErr").textContent = "Wrong password. Try again."; }
+        else { if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = (d && d.error === "captcha") ? "Security check failed. Please try again." : "Wrong password. Try again."; }
       })
-      .catch(function(){ $("loginBtn").disabled = false; $("loginErr").textContent = "Could not reach the server."; });
+      .catch(function(){ $("loginBtn").disabled = false; if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = "Could not reach the server."; });
   });
   $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("loginBtn").click(); });
   $("logoutBtn").addEventListener("click", signOut);
