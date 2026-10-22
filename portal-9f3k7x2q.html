@@ -161,6 +161,7 @@
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
+    <button class="navbtn" id="gsBtn"><span class="ic">🔍</span>Search <span class="mut">Ctrl+K</span></button>
     <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
   </aside>
 
@@ -225,10 +226,19 @@
       </div>
       <div class="card" style="padding:8px 14px">
         <table>
-          <thead><tr><th>Name</th><th>Intent</th><th>City</th><th>Budget</th><th>Stage</th><th>Received</th></tr></thead>
+          <thead><tr><th style="width:36px"><input type="checkbox" id="leadAll" title="Select this page"></th><th>Name</th><th>Intent</th><th>City</th><th>Budget</th><th>Stage</th><th>Received</th></tr></thead>
           <tbody id="leadRows"></tbody>
         </table>
         <div class="empty" id="emptyMsg" hidden>No leads match. New contact-form submissions appear here automatically.</div>
+        <div id="bulkBar" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 2px;border-top:1px solid #22384f;margin-top:6px">
+          <b id="bulkCount"></b>
+          <select id="bulkStage"><option value="new">New</option><option value="contacted">Contacted</option><option value="viewing">Viewing</option><option value="offer">Offer</option><option value="closed">Closed</option><option value="dropped">Dropped</option></select>
+          <button type="button" class="ghost small" id="bulkApply">Set stage</button>
+          <button type="button" class="ghost small" id="bulkCsv">Export CSV</button>
+          <button type="button" class="ghost small" id="bulkDel">Delete</button>
+          <button type="button" class="ghost small" id="bulkClear">Clear selection</button>
+        </div>
+        <div id="leadPager" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:8px 2px"></div>
       </div>
     </section>
 
@@ -651,7 +661,24 @@
     var t = $("toast"); t.textContent = msg; t.className = "show" + (bad ? " bad" : "");
     setTimeout(function(){ t.className = ""; }, 2600);
   }
-  function api(base, path, opts){
+  // ---------- GET cache: instant renders, background revalidation ----------
+  // GET responses are kept in memory + localStorage; a stale entry renders
+  // instantly and refreshes in the background, re-rendering the current page
+  // only when the data actually changed and no form/editor is open. Any
+  // mutation clears the whole cache; sign-out clears it too.
+  var _pcache = {}, _reval = {}, currentPage = "overview";
+  (function(){ try { for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0){ var e = JSON.parse(localStorage.getItem(k)); if (e && e.d) _pcache[k.slice(4)] = e; } } } catch(e){} })();
+  function cacheStore(key, d){ _pcache[key] = { t: Date.now(), d: d }; try { var s = JSON.stringify(_pcache[key]); if (s.length < 400000) localStorage.setItem("pc1:" + key, s); } catch(e){} }
+  function cacheClear(){ _pcache = {}; try { var ks = []; for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0) ks.push(k); } ks.forEach(function(k){ localStorage.removeItem(k); }); } catch(e){} }
+  function clone(d){ return d == null ? d : JSON.parse(JSON.stringify(d)); }
+  function portalBusy(){
+    if (currentPage === "site" || currentPage === "listings") return true;
+    if (typeof crmOpen !== "undefined" && crmOpen) return true;
+    var det = $("detail"); if (det && det.classList.contains("open")) return true;
+    var te = $("tourEditor"); if (te && !te.hidden) return true;
+    return false;
+  }
+  function rawFetch(base, path, opts){
     opts = opts || {};
     opts.headers = Object.assign({}, opts.headers || {});
     if (!(opts.body instanceof FormData)) opts.headers["Content-Type"] = "application/json";
@@ -661,14 +688,34 @@
       return r.json();
     });
   }
+  function api(base, path, opts){
+    opts = opts || {};
+    var method = (opts.method || "GET").toUpperCase();
+    if (method !== "GET") return rawFetch(base, path, opts).then(function(d){ cacheClear(); return d; });
+    var key = base + path;
+    if (opts.fresh) delete _pcache[key];
+    var hit = _pcache[key];
+    if (hit) {
+      if (Date.now() - hit.t > 45000 && !_reval[key]) {
+        _reval[key] = 1;
+        rawFetch(base, path, {}).then(function(d){
+          delete _reval[key];
+          if (d && d.ok && JSON.stringify(d) !== JSON.stringify(hit.d)) { cacheStore(key, d); if (!portalBusy()) go(currentPage); }
+        }).catch(function(){ delete _reval[key]; });
+      }
+      return Promise.resolve(clone(hit.d));
+    }
+    return rawFetch(base, path, opts).then(function(d){ if (d && d.ok) cacheStore(key, d); return d; });
+  }
   function fmtDate(iso){ try { var d = new Date(iso); return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); } catch(e){ return ""; } }
 
   function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
   function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
-  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; showLogin(); }
+  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} showLogin(); }
 
   // ---------- navigation ----------
   function go(page){
+    currentPage = page;
     ["overview","leads","crm","tours","listings","site","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
@@ -693,7 +740,7 @@
   $("qaLeads").addEventListener("click", function(){ go("leads"); });
   $("qaTour").addEventListener("click", function(){ go("tours"); });
   $("qaSite").addEventListener("click", function(){ window.open(SITE_URL, "_blank"); });
-  $("ovRefresh").addEventListener("click", loadOverview);
+  $("ovRefresh").addEventListener("click", function(){ cacheClear(); loadOverview(); });
 
   // ---------- login ----------
   $("loginBtn").addEventListener("click", function(){
@@ -715,10 +762,15 @@
   $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("loginBtn").click(); });
   $("logoutBtn").addEventListener("click", signOut);
 
-  function loadAll(){ loadLeads(); loadTourList(); loadOverview(); loadRadar(); }
+  function loadAll(){
+    loadOverview();
+    var warm = function(){ loadLeads(); loadTourList(); loadRadar(); };
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2500 });
+    else setTimeout(warm, 1200);
+  }
 
   // ---------- traffic stats ----------
-  $("statsRefresh").addEventListener("click", loadStats);
+  $("statsRefresh").addEventListener("click", function(){ cacheClear(); loadStats(); });
   function topRows(obj, limit){
     var arr = Object.keys(obj || {}).map(function(k){ return [k, obj[k]]; });
     arr.sort(function(a, b){ return b[1] - a[1]; });
@@ -939,6 +991,7 @@
   var bansCache = [];
   var crmData = { contacts: [], analytics: null, matches: [], leads: [] };
   var crmView = "people", crmOpen = null, crmMatchCtx = null;
+  var crmShowN = 30;
   function fmt$(n){ return "$" + Number(n || 0).toLocaleString("en-CA"); }
   function refreshContacts(){ if (!$("page-crm").hidden) loadCRM(); }
   function taskPatch(id, body){
@@ -982,12 +1035,12 @@
       .then(function(d){ if (d && d.ok) { toast("Address banned"); $("banEmail").value = ""; $("banReason").value = ""; loadCRM(); } else toast("Could not ban — check the address", true); })
       .catch(function(){ toast("Could not ban", true); });
   });
-  $("crmRefresh").addEventListener("click", loadCRM);
+  $("crmRefresh").addEventListener("click", function(){ cacheClear(); loadCRM(); });
   $("crmSearch").addEventListener("input", function(){ if (!crmOpen) renderCRMMain(); });
-  ["crmTier", "crmStageF", "crmFlag", "crmSort"].forEach(function(id){ $(id).addEventListener("change", function(){ crmOpen = null; renderCRMMain(); }); });
+  ["crmTier", "crmStageF", "crmFlag", "crmSort"].forEach(function(id){ $(id).addEventListener("change", function(){ crmOpen = null; crmShowN = 30; renderCRMMain(); }); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(b){
     b.addEventListener("click", function(){
-      crmView = b.getAttribute("data-crmview"); crmOpen = null;
+      crmView = b.getAttribute("data-crmview"); crmOpen = null; crmShowN = 30;
       Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x === b); });
       renderCRMMain();
     });
@@ -1131,8 +1184,10 @@
     $("crmCount").textContent = crmView === "follow"
       ? rows.length + " people need attention today"
       : rows.length + " of " + crmData.contacts.length + " people — merged by email, scored automatically";
+    var shown = rows.slice(0, crmShowN);
     $("crmMain").innerHTML = rows.length
-      ? rows.map(function(c){ return crmCard(c, crmView === "follow" ? c._reasons : null); }).join("")
+      ? shown.map(function(c){ return crmCard(c, crmView === "follow" ? c._reasons : null); }).join("") +
+        (rows.length > shown.length ? '<div style="text-align:center;padding:12px"><button type="button" class="ghost" data-show-more="1">Show more (' + (rows.length - shown.length) + ' more)</button></div>' : "")
       : '<div class="empty">' + (crmView === "follow" ? "Nothing needs attention — all caught up 🎉" : "No people match.") + '</div>';
   }
   function crmProfile(c){
@@ -1274,6 +1329,8 @@
   });
   $("crmMain").addEventListener("click", function(e){
     var openB = e.target.closest("[data-open-profile]");
+    var smB = e.target.closest("[data-show-more]");
+    if (smB) { crmShowN += 30; renderCRMMain(); return; }
     if (openB) { crmOpen = openB.getAttribute("data-open-profile"); renderCRMMain(); window.scrollTo(0, 0); return; }
     if (e.target.closest("[data-back-list]")) { crmOpen = null; renderCRMMain(); return; }
     var outB = e.target.closest("[data-outreach]");
@@ -1944,10 +2001,10 @@
   }
 
   // ---------- leads ----------
-  $("refreshBtn").addEventListener("click", loadLeads);
-  $("stageFilter").addEventListener("change", renderLeads);
-  $("intentFilter").addEventListener("change", renderLeads);
-  $("leadSearch").addEventListener("input", renderLeads);
+  $("refreshBtn").addEventListener("click", function(){ cacheClear(); loadLeads(); });
+  $("stageFilter").addEventListener("change", function(){ leadPage = 1; renderLeads(); });
+  $("intentFilter").addEventListener("change", function(){ leadPage = 1; renderLeads(); });
+  $("leadSearch").addEventListener("input", function(){ leadPage = 1; renderLeads(); });
 
   function loadLeads(){
     api(API_URL, "/api/leads").then(function(d){
@@ -1966,13 +2023,92 @@
     });
     $("leadCount").textContent = rows.length + " of " + leads.length + " lead" + (leads.length === 1 ? "" : "s");
     $("emptyMsg").hidden = rows.length > 0;
-    $("leadRows").innerHTML = rows.map(function(l){
-      return '<tr data-id="' + esc(l.id) + '"><td><b>' + esc(l.name) + '</b></td><td>' + esc(l.intent) + '</td><td>' + esc(l.city || "—") + '</td><td>' + esc(l.budget || "—") + '</td><td><span class="stage s-' + esc(l.stage) + '">' + esc(l.stage) + '</span></td><td>' + esc(fmtDate(l.created_at)) + '</td></tr>';
+    var pages = Math.max(1, Math.ceil(rows.length / LEAD_PP));
+    if (leadPage > pages) leadPage = pages;
+    var pageRows = rows.slice((leadPage - 1) * LEAD_PP, leadPage * LEAD_PP);
+    $("leadRows").innerHTML = pageRows.map(function(l){
+      return '<tr data-id="' + esc(l.id) + '"><td><input type="checkbox" class="leadSelBox" data-sel="' + esc(l.id) + '"' + (leadSel[l.id] ? " checked" : "") + '></td><td><b>' + esc(l.name) + '</b></td><td>' + esc(l.intent) + '</td><td>' + esc(l.city || "—") + '</td><td>' + esc(l.budget || "—") + '</td><td><span class="stage s-' + esc(l.stage) + '">' + esc(l.stage) + '</span></td><td>' + esc(fmtDate(l.created_at)) + '</td></tr>';
     }).join("");
     Array.prototype.forEach.call($("leadRows").querySelectorAll("tr"), function(tr){
-      tr.addEventListener("click", function(){ openDetail(tr.getAttribute("data-id")); });
+      tr.addEventListener("click", function(e){ if (e.target && e.target.tagName === "INPUT") return; openDetail(tr.getAttribute("data-id")); });
     });
+    Array.prototype.forEach.call($("leadRows").querySelectorAll(".leadSelBox"), function(box){
+      box.addEventListener("change", function(){
+        if (box.checked) leadSel[box.getAttribute("data-sel")] = 1; else delete leadSel[box.getAttribute("data-sel")];
+        renderBulkBar();
+      });
+    });
+    var allBox = $("leadAll");
+    if (allBox) { allBox.checked = pageRows.length > 0 && pageRows.every(function(l){ return leadSel[l.id]; }); }
+    $("leadPager").innerHTML = rows.length > LEAD_PP
+      ? '<button type="button" class="ghost small" id="leadPrev"' + (leadPage <= 1 ? " disabled" : "") + '>‹ Prev</button><span class="mut">Page ' + leadPage + " of " + pages + '</span><button type="button" class="ghost small" id="leadNext"' + (leadPage >= pages ? " disabled" : "") + '>Next ›</button>'
+      : "";
+    var pv = $("leadPrev"), nx = $("leadNext");
+    if (pv) pv.addEventListener("click", function(){ if (leadPage > 1) { leadPage--; renderLeads(); } });
+    if (nx) nx.addEventListener("click", function(){ leadPage++; renderLeads(); });
+    renderBulkBar();
   }
+  var leadSel = {}, leadPage = 1;
+  var LEAD_PP = 25;
+  function selectedLeads(){ return leads.filter(function(l){ return leadSel[l.id]; }); }
+  function renderBulkBar(){
+    var n = selectedLeads().length;
+    $("bulkBar").style.display = n ? "flex" : "none";
+    if (n) $("bulkCount").textContent = n + " selected";
+  }
+  $("leadAll").addEventListener("change", function(){
+    var boxes = $("leadRows").querySelectorAll(".leadSelBox");
+    Array.prototype.forEach.call(boxes, function(box){
+      if ($("leadAll").checked) leadSel[box.getAttribute("data-sel")] = 1; else delete leadSel[box.getAttribute("data-sel")];
+    });
+    renderLeads();
+  });
+  $("bulkClear").addEventListener("click", function(){ leadSel = {}; renderLeads(); });
+  $("bulkApply").addEventListener("click", function(){
+    var sel = selectedLeads(), st = $("bulkStage").value;
+    if (!sel.length) return;
+    var chain = Promise.resolve(), failed = 0;
+    sel.forEach(function(l){
+      chain = chain.then(function(){
+        return api(API_URL, "/api/leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ stage: st, notes: l.notes || "" }) })
+          .then(function(d){ if (!d || !d.ok) failed++; }).catch(function(){ failed++; });
+      });
+    });
+    chain.then(function(){
+      leadSel = {};
+      toast(failed ? ("Stage updated with " + failed + " failure(s)") : ("Stage set to " + st + " for " + sel.length + " lead" + (sel.length === 1 ? "" : "s") + " ✓"), !!failed);
+      loadLeads();
+    });
+  });
+  $("bulkDel").addEventListener("click", function(){
+    var sel = selectedLeads();
+    if (!sel.length) return;
+    if (!confirm("Delete " + sel.length + " lead" + (sel.length === 1 ? "" : "s") + " permanently?")) return;
+    var chain = Promise.resolve(), failed = 0;
+    sel.forEach(function(l){
+      chain = chain.then(function(){
+        return api(API_URL, "/api/leads/" + encodeURIComponent(l.id), { method: "DELETE" })
+          .then(function(d){ if (d && d.ok === false) failed++; }).catch(function(){ failed++; });
+      });
+    });
+    chain.then(function(){
+      leadSel = {};
+      toast(failed ? ("Deleted with " + failed + " failure(s)") : (sel.length + " lead" + (sel.length === 1 ? "" : "s") + " deleted ✓"), !!failed);
+      loadLeads();
+    });
+  });
+  $("bulkCsv").addEventListener("click", function(){
+    var sel = selectedLeads();
+    if (!sel.length) return;
+    var cell = function(v){ return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; };
+    var lines = [["Name","Email","Phone","Intent","City","Budget","Stage","Received","Notes"].join(",")];
+    sel.forEach(function(l){ lines.push([l.name, l.email, l.phone, l.intent, l.city, l.budget, l.stage, l.created_at, l.notes].map(cell).join(",")); });
+    var blob = new Blob([lines.join("\r\n")], { type: "text/csv" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "leads-export.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  });
   function openDetail(id){
     var l = null;
     for (var i = 0; i < leads.length; i++) if (leads[i].id === id) l = leads[i];
@@ -2012,7 +2148,7 @@
   });
 
   // ---------- tours ----------
-  $("tourRefresh").addEventListener("click", loadTourList);
+  $("tourRefresh").addEventListener("click", function(){ cacheClear(); loadTourList(); });
   function loadTourList(){
     api(TOUR_API_URL, "/api/admin/tours").then(function(d){
       toursCache = (d && d.ok && d.tours) || [];
@@ -2226,8 +2362,97 @@
     return { default: { firstScene: first, sceneFadeDuration: 1000 }, scenes: scenes };
   }
 
+  // ---------- global search (Ctrl+K) ----------
+  var gsItems = null, gsShown = [], gsIdx = 0, gsTimer = null;
+  function gsBuild(){
+    return Promise.all([
+      api(API_URL, "/api/leads").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/contacts").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/listings").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/viewings").catch(function(){ return null; })
+    ]).then(function(rs){
+      var items = [];
+      var ld = (rs[0] && rs[0].leads) || [];
+      if (ld.length) leads = ld;
+      ld.forEach(function(l){
+        items.push({ kind: "Lead", icon: "🧲", title: l.name || "(no name)", sub: [l.intent, l.city, l.stage].filter(Boolean).join(" · "), hay: (l.name + " " + (l.email || "") + " " + (l.city || "") + " " + (l.phone || "")).toLowerCase(),
+          act: function(){ go("leads"); openDetail(l.id); } });
+      });
+      ((rs[1] && rs[1].contacts) || []).forEach(function(c){
+        items.push({ kind: "Person", icon: "👤", title: c.name || c.email, sub: [c.email, c.tier, "score " + (c.score || 0)].filter(Boolean).join(" · "), hay: ((c.name || "") + " " + c.email + " " + (c.phone || "")).toLowerCase(),
+          act: function(){ crmView = "people"; crmOpen = c.email; go("crm"); } });
+      });
+      var lst = rs[2];
+      if (lst && lst.ok) {
+        var seen = {};
+        ((lst.listings || []).concat(lst.seeds || [])).forEach(function(r){
+          if (!r || !r.mls || seen[r.mls]) return; seen[r.mls] = 1;
+          items.push({ kind: "Listing", icon: "🏠", title: (r.street || "") + ", " + (r.city || ""), sub: "$" + Number(r.price || 0).toLocaleString("en-CA") + " · MLS " + r.mls + " · " + (r.type || ""), hay: ((r.street || "") + " " + (r.city || "") + " " + r.mls).toLowerCase(),
+            act: function(){ go("listings"); api(API_URL, "/api/admin/listings").then(function(d){ if (d && d.ok) { lstData = d; renderListingRows(); var rec = lstFindRec(r.mls); if (rec) openListingEditor(rec); } }).catch(function(){}); } });
+        });
+      }
+      ((rs[3] && rs[3].viewings) || []).forEach(function(v){
+        items.push({ kind: "Viewing", icon: "📅", title: (v.name || "") + " — " + (v.date || "") + " " + (v.time || ""), sub: [v.listingId, v.status, v.email].filter(Boolean).join(" · "), hay: ((v.name || "") + " " + (v.email || "") + " " + (v.listingId || "") + " " + (v.date || "")).toLowerCase(),
+          act: function(){ go("viewings"); } });
+      });
+      gsItems = items;
+      return items;
+    });
+  }
+  function gsRender(){
+    var q = ($("gsInput").value || "").trim().toLowerCase();
+    gsShown = !q ? [] : gsItems.filter(function(it){ return it.hay.indexOf(q) !== -1; }).slice(0, 30);
+    if (gsIdx >= gsShown.length) gsIdx = Math.max(0, gsShown.length - 1);
+    if (!q) { $("gsResults").innerHTML = '<div class="empty">Start typing — results come from leads, CRM people, listings and viewings.</div>'; return; }
+    if (!gsShown.length) { $("gsResults").innerHTML = '<div class="empty">No matches.</div>'; return; }
+    var lastKind = "";
+    $("gsResults").innerHTML = gsShown.map(function(it, i){
+      var head = it.kind !== lastKind ? '<div class="mut" style="padding:8px 10px 2px;font-size:11px;letter-spacing:.08em">' + esc(it.kind.toUpperCase()) + "S</div>" : "";
+      lastKind = it.kind;
+      return head + '<button type="button" data-gs="' + i + '" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:9px 10px;border:0;border-radius:9px;cursor:pointer;color:#eef4fa;background:' + (i === gsIdx ? "#1d3a55" : "transparent") + '">' + '<span>' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + "</span></span></button>";
+    }).join("");
+    Array.prototype.forEach.call($("gsResults").querySelectorAll("[data-gs]"), function(b){
+      b.addEventListener("click", function(){ gsPick(Number(b.getAttribute("data-gs"))); });
+    });
+  }
+  function gsPick(i){
+    var it = gsShown[i];
+    if (!it) return;
+    gsClose();
+    it.act();
+  }
+  function gsOpen(){
+    if (!token) return;
+    var ov = $("gsOverlay");
+    ov.hidden = false; ov.style.display = "flex";
+    $("gsInput").value = ""; gsIdx = 0;
+    if (gsItems) { gsRender(); }
+    else { $("gsResults").innerHTML = '<div class="empty">Loading…</div>'; gsBuild().then(gsRender).catch(function(){ $("gsResults").innerHTML = '<div class="empty">Could not load the search index.</div>'; }); }
+    setTimeout(function(){ $("gsInput").focus(); }, 30);
+  }
+  function gsClose(){ var ov = $("gsOverlay"); ov.hidden = true; ov.style.display = "none"; }
+  $("gsBtn").addEventListener("click", gsOpen);
+  $("gsOverlay").addEventListener("click", function(e){ if (e.target === $("gsOverlay")) gsClose(); });
+  $("gsInput").addEventListener("input", function(){ clearTimeout(gsTimer); gsTimer = setTimeout(function(){ gsIdx = 0; gsRender(); }, 120); });
+  $("gsInput").addEventListener("keydown", function(e){
+    if (e.key === "ArrowDown") { e.preventDefault(); if (gsIdx < gsShown.length - 1) { gsIdx++; gsRender(); } }
+    else if (e.key === "ArrowUp") { e.preventDefault(); if (gsIdx > 0) { gsIdx--; gsRender(); } }
+    else if (e.key === "Enter") { e.preventDefault(); gsPick(gsIdx); }
+  });
+  document.addEventListener("keydown", function(e){
+    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); if (token) gsOpen(); }
+    else if (e.key === "Escape" && !$("gsOverlay").hidden) gsClose();
+  });
+
   if (token) { showApp(); loadAll(); } else { showLogin(); }
 })();
 </script>
+<div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(5,13,24,.6);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
+  <div style="background:#0d1f33;border:1px solid #28455f;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
+    <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #22384f;color:#eef4fa;outline:none">
+    <div id="gsResults" style="max-height:56vh;overflow:auto;padding:8px"></div>
+    <div class="mut" style="padding:8px 14px;border-top:1px solid #22384f;font-size:12px">↑↓ to move · Enter to open · Esc to close</div>
+  </div>
+</div>
 </body>
 </html>
