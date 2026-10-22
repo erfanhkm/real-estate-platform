@@ -257,10 +257,10 @@
           <option value="dismissed">Dismissed</option>
         </select>
         <select id="radarKind">
-          <option value="">Buyers + sellers</option>
+          <option value="pair" selected>🎯 Matched pairs only</option>
+          <option value="">All leads</option>
           <option value="buyer">Buyers looking</option>
           <option value="seller">Sellers (FSBO)</option>
-          <option value="pair">Matched pairs</option>
         </select>
       </div>
       <div id="radarList"><div class="empty">Loading…</div></div>
@@ -698,7 +698,7 @@
   }
   function syncRadarState(on){
     $("radarToggleLabel").textContent = on ? "On" : "Off";
-    $("radarState").textContent = on ? "On — the agent scans the market every day at 9:00 AM and adds new leads below." : "Off — no scans run at all. Turn it on when you want the daily scan.";
+    $("radarState").textContent = on ? "On — a deep scan runs every 3 hours and only matched pairs are stored and shown here." : "Off — no scans run at all. Turn it on when you want the 3-hourly deep scan.";
   }
   $("radarToggle").addEventListener("change", function(){
     var on = $("radarToggle").checked;
@@ -720,7 +720,7 @@
     var newCount = mleads.filter(function(l){ return l.status === "new"; }).length;
     $("radarCount").textContent = rows.length + " shown · " + newCount + " new of " + mleads.length + " total";
     var box = $("radarList");
-    if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">Nothing here yet. The agent adds new market finds every morning.</div></div>'; return; }
+    if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">No matched pairs yet. While the radar is on, a deep scan runs every 3 hours and only matched pairs appear here.</div></div>'; return; }
     box.innerHTML = "";
     rows.forEach(function(l){
       var card = document.createElement("div"); card.className = "card";
@@ -875,6 +875,7 @@
   }
 
   // ---------- contact tasks (delegated) ----------
+  function refreshContacts(){ loadContacts(); setTimeout(loadContacts, 900); }
   function taskPatch(id, body){
     return api(API_URL, "/api/admin/tasks/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(body) });
   }
@@ -882,10 +883,10 @@
     var doneB = e.target.closest("[data-task-done]");
     var delB = e.target.closest("[data-task-del]");
     var addB = e.target.closest("[data-task-add]");
-    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadContacts(); }).catch(function(){ toast("Could not update the task", true); }); return; }
+    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); refreshContacts(); }).catch(function(){ toast("Could not update the task", true); }); return; }
     if (delB) {
       api(API_URL, "/api/admin/tasks/" + encodeURIComponent(delB.getAttribute("data-task-del")), { method: "DELETE" })
-        .then(function(){ toast("Task deleted"); loadContacts(); }).catch(function(){ toast("Could not delete the task", true); });
+        .then(function(){ toast("Task deleted"); refreshContacts(); }).catch(function(){ toast("Could not delete the task", true); });
       return;
     }
     if (addB) {
@@ -897,14 +898,14 @@
       var due = dueEl ? dueEl.value : "";
       if (!text || !due) { toast("Write the task and pick a due date", true); return; }
       api(API_URL, "/api/admin/tasks", { method: "POST", body: JSON.stringify({ email: email, text: text, due: due }) })
-        .then(function(d){ if (d && d.ok) { toast("Task added ✓"); loadContacts(); } else toast("Could not add the task", true); })
+        .then(function(d){ if (d && d.ok) { toast("Task added ✓"); refreshContacts(); } else toast("Could not add the task", true); })
         .catch(function(){ toast("Could not add the task", true); });
     }
   });
   $("deskBody").addEventListener("click", function(e){
     var b = e.target.closest("[data-desk-task-done]");
     if (!b) return;
-    taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadDesk(); }).catch(function(){ toast("Could not update the task", true); });
+    taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadDesk(); setTimeout(loadDesk, 900); }).catch(function(){ toast("Could not update the task", true); });
   });
 
   // ---------- users: delete + ban by email ----------
@@ -1186,8 +1187,8 @@
     if (!listings.length) { $("lstAvail").innerHTML = '<div class="empty">No listings.</div>'; return; }
     $("lstAvail").innerHTML = listings.map(function(L){
       var restricted = L.dates && L.dates.length > 0;
-      var badge = restricted ? '<span class="pill" style="background:#fdeeda;color:#8a5a00">🔒 Owner times only · ' + L.dates.length + ' date' + (L.dates.length > 1 ? "s" : "") + '</span>'
-                             : '<span class="pill" style="background:#1d3049;color:#9fc3e8">🟢 Open — all standard slots</span>';
+      var badge = restricted ? '<span class="pill" data-avbadge="1" style="background:#fdeeda;color:#8a5a00">🔒 Owner times only · ' + L.dates.length + ' date' + (L.dates.length > 1 ? "s" : "") + '</span>'
+                             : '<span class="pill" data-avbadge="1" style="background:#1d3049;color:#9fc3e8">🟢 Open — all standard slots</span>';
       var rows = (L.dates || []).map(avRowHtml).join("");
       return '<div class="card" data-mls="' + esc(L.mls) + '">' +
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0">' + esc(L.street) + ', ' + esc(L.city) + '</h2>' + badge + '</div>' +
@@ -1205,6 +1206,12 @@
     }).catch(function(){ $("lstAvail").innerHTML = '<div class="empty">Could not load.</div>'; });
   }
   $("lstRefresh").addEventListener("click", loadAvail);
+  function avBadgeSet(card, n){
+    var b = card.querySelector("[data-avbadge]");
+    if (!b) return;
+    if (n > 0) { b.setAttribute("style", "background:#fdeeda;color:#8a5a00"); b.textContent = "🔒 Owner times only · " + n + " date" + (n > 1 ? "s" : ""); }
+    else { b.setAttribute("style", "background:#1d3049;color:#9fc3e8"); b.textContent = "🟢 Open — all standard slots"; }
+  }
   $("lstAvail").addEventListener("click", function(e){
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
@@ -1221,7 +1228,7 @@
     if (act === "clear") {
       if (!confirm("Remove the set availability for this listing? All standard slots will be open again.")) return;
       api(API_URL, "/api/admin/availability/" + encodeURIComponent(mls), { method: "DELETE" })
-        .then(function(d){ if (d && d.ok) { toast("Availability cleared ✓"); loadAvail(); } else toast("Could not clear", true); })
+        .then(function(d){ if (d && d.ok) { toast("Availability cleared ✓"); avBadgeSet(card, 0); var rw = card.querySelector(".avrows"); if (rw) rw.innerHTML = ""; btn.remove(); setTimeout(loadAvail, 2500); } else toast("Could not clear", true); })
         .catch(function(){ toast("Could not clear", true); });
     }
     if (act === "save") {
@@ -1233,7 +1240,7 @@
         if (dv && times.length) dates.push({ date: dv, times: times });
       });
       api(API_URL, "/api/admin/availability/" + encodeURIComponent(mls), { method: "POST", body: JSON.stringify({ dates: dates }) })
-        .then(function(d){ if (d && d.ok) { toast(dates.length ? "Availability saved ✓" : "Availability cleared ✓"); loadAvail(); } else toast("Could not save", true); })
+        .then(function(d){ if (d && d.ok) { toast(dates.length ? "Availability saved ✓" : "Availability cleared ✓"); avBadgeSet(card, dates.length); setTimeout(loadAvail, 2500); } else toast("Could not save", true); })
         .catch(function(){ toast("Could not save", true); });
     }
   });
