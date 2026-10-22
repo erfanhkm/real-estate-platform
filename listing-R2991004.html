@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NQtA6wzv/dxIqDMSRuJCMlvYmWofJwbtxFFEBE63Qmo=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-xhQfeqKop6oeEaLvm9WDCxz9WS3MH4I9w0AAgYmdfgY='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NQtA6wzv/dxIqDMSRuJCMlvYmWofJwbtxFFEBE63Qmo=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-5kYW9G0mUYYHQAMblQ4K9fjdFt9e3+boPPKVBhhP0kc='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -2082,6 +2082,7 @@
       keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
       keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
       keep($("fSort"), function(sel){ buildSortSelect(sel); });
+      if (window.__applyPortalTexts) window.__applyPortalTexts();
       renderListings(); renderAssistantLang(); renderCompare();
       if (dlg.open && current) openListing(current.mls);
       if (window.__applyPortalTexts) window.__applyPortalTexts();

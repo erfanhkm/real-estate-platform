@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NveqqntdyGiCASNhVt6BbPL/7DmpMWBe0opWXND+bj0=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-/JkBUdgaaNYbCvUMIKAmCxxK5w5PvMYQPj7KqWGl7Yo='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-NveqqntdyGiCASNhVt6BbPL/7DmpMWBe0opWXND+bj0=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-+HCNvxb3Fh1NUuE62kHTDLh/m8KIMcpkpjyGkzcR1lU='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -1891,6 +1891,7 @@
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       buildCalcSelects();
+      if (window.__applyPortalTexts) window.__applyPortalTexts();
       calc(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }

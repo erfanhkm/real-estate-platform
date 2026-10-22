@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-Xka6GLxMb9ZaqeGRPReObbIVNrNtC8p7w/6mQu/hlH8=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-2QOnbciA4Ika0RFdzWF7B+15dsgXTW8CAVYAXyKvnEc='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-Xka6GLxMb9ZaqeGRPReObbIVNrNtC8p7w/6mQu/hlH8=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-QmPYF/QJoMm1rpGmoSmO6xpLJSR5wt3bv5M0SxJb3vg='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -2008,6 +2008,7 @@
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
+      if (window.__applyPortalTexts) window.__applyPortalTexts();
       investCalc(); renderAssistantLang(); buildReport();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }

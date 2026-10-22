@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-dLlO7h62Xe5PqP5qvpw3PTjN8nwvfFyz0OTmPgxzRcU='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-dCm3mVqQLUgX5yjQD3yxcyk3/FzcGSXy+C+3OhSSMV4=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-3JN+F6hgk8oOB5RD+nCpBRq9LrqNz2rfcC0TIAljRkk='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -1259,6 +1259,17 @@
     function buildPriceSelect(sel){ opt(sel, "", T().any_price); PRICES.forEach(function(p){ opt(sel, String(p), fmt(p)); }); }
     function buildBedsSelect(sel){ opt(sel, "0", T().any); [1,2,3,4].forEach(function(n){ opt(sel, String(n), n + "+"); }); }
     function buildSortSelect(sel){ [["featured","s_featured"],["price-asc","s_price_asc"],["price-desc","s_price_desc"],["newest","s_newest"],["dom","s_dom"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); }
+    function monthlyCost(l){
+      // Self-contained on purpose: paymentFor() lives in the calculator module,
+      // which is not present on every page this card/dialog code ships to.
+      var principal = l.price * 0.8;
+      var r = Math.pow(1 + (window.__portalRate || 4.79) / 200, 2 / 12) - 1, n = 25 * 12;
+      var mort = principal * r / (1 - Math.pow(1 + r, -n));
+      var strata = l.strata || 0;
+      var tax = (l.tax || 0) / 12;
+      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
+      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
+    }
     function cardHTML(l, why){
       var t = T();
       var specs = "<span><b>"+l.beds+"</b> "+t.beds+"</span><span><b>"+l.baths+"</b> "+t.baths+"</span>" +
@@ -2005,6 +2016,7 @@
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       $("nlLang").value = lang;
+      if (window.__applyPortalTexts) window.__applyPortalTexts();
       renderAssistantLang(); renderFeatured();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
