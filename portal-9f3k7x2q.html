@@ -36,6 +36,11 @@
   #side { width: 228px; flex: 0 0 228px; background: var(--panel); border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
   #side .brand2 { padding: 4px 10px 16px; }
   #side .brand2 b { font-size: 16px; display: block; }
+
+  .lf { display: block; }
+  .lf > span { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: var(--mut); }
+  .lf input, .lf select, .lf textarea { width: 100%; }
+  .lfgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
   .navbtn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; color: var(--txt); border: 0; border-radius: 9px; padding: 11px 12px; font-size: 14px; font-weight: 500; cursor: pointer; }
   .navbtn:hover { background: var(--panel2); }
   .navbtn.on { background: var(--acc); color: #fff; }
@@ -131,6 +136,7 @@
     <button class="navbtn" data-nav="contacts"><span class="ic">🗂</span>Contacts</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
+    <button class="navbtn" data-nav="site"><span class="ic">🧩</span>Site content</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
@@ -300,13 +306,80 @@
       <div id="vwList"></div>
     </section>
 
-    <!-- LISTINGS / AVAILABILITY -->
+    <!-- LISTINGS -->
     <section id="page-listings" hidden>
       <div class="pagehead">
-        <div><h1>Listings — viewing availability</h1><div class="mut">Optional: set the exact dates and times the owner can host viewings. When set, the site's Book a viewing shows ONLY those slots (booked ones disappear automatically). Leave a listing unset and all standard slots stay open.</div></div>
-        <button class="ghost small" id="lstRefresh">Refresh</button>
+        <div><h1>Listings</h1><div class="mut">Add, edit, hide or remove the homes shown on your website — changes go live immediately, no deploy needed. Built-in samples can be edited (your version replaces the sample), hidden, or restored.</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-spruce" id="lstAdd">＋ Add listing</button><button class="ghost small" id="lstRefresh">Refresh</button></div>
+      </div>
+      <div id="lstEditor"></div>
+      <div id="lstList"><div class="empty">Loading…</div></div>
+      <div class="pagehead" style="margin-top:28px">
+        <div><h1 style="font-size:20px">Viewing availability</h1><div class="mut">Optional: set the exact dates and times the owner can host viewings. When set, the site's Book a viewing shows ONLY those slots (booked ones disappear automatically). Leave a listing unset and all standard slots stay open.</div></div>
       </div>
       <div id="lstAvail"><div class="empty">Loading…</div></div>
+    </section>
+
+    <!-- SITE CONTENT / SETTINGS -->
+    <section id="page-site" hidden>
+      <div class="pagehead">
+        <div><h1>Site content &amp; settings</h1><div class="mut">Everything here appears on the live website within a minute of saving. Leave a field empty to keep the built-in default.</div></div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Brand &amp; contact</h2>
+        <div class="lfgrid">
+          <label class="lf"><span>Business name shown on the site</span><input id="st_brand" placeholder="Erfan BC Real Estate"></label>
+          <label class="lf"><span>Public contact email</span><input id="st_email" placeholder="erfanbcrealestate@gmail.com"></label>
+          <label class="lf"><span>Public phone (optional)</span><input id="st_phone" placeholder="604-…"></label>
+          <label class="lf"><span>Default mortgage rate (%) for calculators</span><input id="st_rate" type="number" min="0.5" max="15" step="0.01" placeholder="4.79"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Viewing hours</h2>
+        <div class="mut" style="margin-bottom:10px">The standard slots visitors can book on any listing (the availability editor above uses the same hours).</div>
+        <div class="lfgrid">
+          <label class="lf"><span>First slot</span><input id="st_slotStart" type="time"></label>
+          <label class="lf"><span>Last slot</span><input id="st_slotEnd" type="time"></label>
+          <label class="lf"><span>Every (minutes)</span><input id="st_slotStep" type="number" min="5" max="120" step="5"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Homepage hero</h2>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px">
+          <div id="st_heroPreview" style="width:220px;height:110px;border-radius:8px;background:#e8e4da"></div>
+          <div style="flex:1 1 260px">
+            <label class="lf"><span>Hero photo — upload a file</span><input type="file" id="st_heroFile" accept="image/*"></label>
+            <label class="lf" style="margin-top:8px"><span>…or a photo URL (https://)</span><input id="st_heroPhotoUrl" placeholder="https://…"></label>
+            <label style="display:flex;gap:6px;align-items:center;font-weight:500;margin-top:8px"><input type="checkbox" id="st_heroRemove" style="width:auto"> Use the built-in hero photo</label>
+          </div>
+        </div>
+        <div class="lfgrid">
+          <label class="lf"><span>Headline (English)</span><input id="st_heroTitle_en"></label>
+          <label class="lf"><span>Headline (فارسی)</span><input id="st_heroTitle_fa" dir="rtl"></label>
+          <label class="lf"><span>Headline (हिन्दी)</span><input id="st_heroTitle_hi"></label>
+          <label class="lf"><span>Headline (中文)</span><input id="st_heroTitle_zh"></label>
+        </div>
+        <div class="lfgrid" style="margin-top:10px">
+          <label class="lf"><span>Sub-headline (English)</span><textarea id="st_heroSub_en" rows="2"></textarea></label>
+          <label class="lf"><span>Sub-headline (فارسی)</span><textarea id="st_heroSub_fa" rows="2" dir="rtl"></textarea></label>
+          <label class="lf"><span>Sub-headline (हिन्दी)</span><textarea id="st_heroSub_hi" rows="2"></textarea></label>
+          <label class="lf"><span>Sub-headline (中文)</span><textarea id="st_heroSub_zh" rows="2"></textarea></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Announcement bar</h2>
+        <div class="mut" style="margin-bottom:10px">Shown at the top of every page (e.g. an open house). Leave all four empty to hide the bar.</div>
+        <div class="lfgrid">
+          <label class="lf"><span>Announcement (English)</span><input id="st_ann_en"></label>
+          <label class="lf"><span>Announcement (فارسی)</span><input id="st_ann_fa" dir="rtl"></label>
+          <label class="lf"><span>Announcement (हिन्दी)</span><input id="st_ann_hi"></label>
+          <label class="lf"><span>Announcement (中文)</span><input id="st_ann_zh"></label>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn-spruce" id="stSave">Save site settings</button>
+        <span class="mut" id="stErr" style="color:#a33"></span>
+      </div>
     </section>
 
     <!-- USERS -->
@@ -510,7 +583,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","contacts","tours","listings","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","contacts","tours","listings","site","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -520,7 +593,8 @@
     if (page === "leads") renderLeads();
     if (page === "contacts") loadContacts();
     if (page === "tours") loadTourList();
-    if (page === "listings") loadAvail();
+    if (page === "listings") { loadListings(); loadAvail(); }
+    if (page === "site") loadSiteSettings();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
@@ -837,6 +911,265 @@
   $("usrRefresh").addEventListener("click", loadUsers);
   $("usrSearch").addEventListener("input", renderUsers);
   var usersCache = [], bansCache = [];
+  // ---------- listings: full portal manager ----------
+  var lstData = null, lstPhotoData = undefined, lstOrigPhoto = "";
+  function downscaleImage(file, cb){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var max = 1600, w = img.naturalWidth || 1, h = img.naturalHeight || 1;
+      var sc = Math.min(1, max / Math.max(w, h));
+      var c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      var out = null;
+      try { out = c.toDataURL("image/webp", 0.82); } catch (e) {}
+      if (!out || out.indexOf("data:image/webp") !== 0) out = c.toDataURL("image/jpeg", 0.85);
+      cb(out);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); cb(null); };
+    img.src = url;
+  }
+  function lstPhotoSrc(rec, isSeed){
+    if (!rec || !rec.photo) return isSeed && rec ? SITE_URL + "/photos/" + rec.mls + ".webp" : "";
+    if (rec.photo === "upload") return API_URL + "/api/lphoto/" + encodeURIComponent(rec.mls);
+    return rec.photo;
+  }
+  function loadListings(){
+    api(API_URL, "/api/admin/listings").then(function(d){
+      if (!d || !d.ok) { $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; return; }
+      lstData = d; renderListingRows();
+    }).catch(function(){ $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; });
+  }
+  function renderListingRows(){
+    var d = lstData; if (!d) return;
+    var byMls = {};
+    (d.listings || []).forEach(function(r){ byMls[r.mls] = r; });
+    var deleted = {};
+    (d.deletedSeeds || []).forEach(function(m){ deleted[m] = 1; });
+    var rows = [];
+    (d.seeds || []).forEach(function(s){
+      var over = byMls[s.mls];
+      var rec = over || s;
+      var state = deleted[s.mls] ? '<span class="pill" style="background:#f6dede;color:#8a2020">Hidden</span>'
+        : over ? '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Your version</span>'
+        : '<span class="pill" style="background:#1d3049;color:#9fc3e8">Built-in sample</span>';
+      var btns = deleted[s.mls]
+        ? '<button type="button" class="ghost small" data-lact="restore" data-mls="' + esc(s.mls) + '">Restore</button>'
+        : '<button type="button" class="ghost small" data-lact="edit" data-mls="' + esc(s.mls) + '">Edit</button>' +
+          (over ? '<button type="button" class="ghost small" data-lact="reset" data-mls="' + esc(s.mls) + '">Reset to sample</button>' : "") +
+          '<button type="button" class="ghost small" data-lact="hide" data-mls="' + esc(s.mls) + '">Hide</button>';
+      rows.push(lstRowHtml(rec, true, state, btns));
+    });
+    (d.listings || []).forEach(function(r){
+      if ((d.seeds || []).some(function(s){ return s.mls === r.mls; })) return;
+      var state = '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Your listing</span>';
+      var btns = '<button type="button" class="ghost small" data-lact="edit" data-mls="' + esc(r.mls) + '">Edit</button>' +
+        '<button type="button" class="ghost small" data-lact="del" data-mls="' + esc(r.mls) + '">Delete</button>';
+      rows.push(lstRowHtml(r, false, state, btns));
+    });
+    $("lstList").innerHTML = rows.length ? rows.join("") : '<div class="empty">No listings yet.</div>';
+  }
+  function lstRowHtml(rec, isSeed, state, btns){
+    var src = lstPhotoSrc(rec, isSeed);
+    var thumb = src ? '<img src="' + esc(src) + '" alt="" style="width:96px;height:68px;object-fit:cover;border-radius:8px;flex:0 0 auto">' : '<div style="width:96px;height:68px;border-radius:8px;background:#e8e4da;flex:0 0 auto"></div>';
+    var status = rec.status === "pending" ? '<span class="pill" style="background:#fdeeda;color:#8a5a00">Pending</span>'
+      : rec.status === "sold" ? '<span class="pill" style="background:#f6dede;color:#8a2020">Sold</span>'
+      : '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Active</span>';
+    return '<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">' + thumb +
+      '<div style="flex:1 1 260px"><h2 style="margin:0 0 2px">' + esc(rec.street) + ', ' + esc(rec.city) + '</h2>' +
+      '<div class="mut">$' + Number(rec.price).toLocaleString("en-CA") + ' · MLS ' + esc(rec.mls) + ' · ' + esc(rec.type) + ' · ' + esc(rec.beds) + ' bed</div></div>' +
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + status + state + btns + '</div></div>';
+  }
+  function lstFindRec(mls){
+    if (!lstData) return null;
+    var c = (lstData.listings || []).filter(function(r){ return r.mls === mls; })[0];
+    if (c) return c;
+    return (lstData.seeds || []).filter(function(s){ return s.mls === mls; })[0] || null;
+  }
+  function openListingEditor(rec){
+    lstPhotoData = undefined;
+    lstOrigPhoto = rec && rec.photo ? rec.photo : "";
+    var isNew = !rec;
+    rec = rec || { mls: "", street: "", city: "", postal: "", type: "condo", price: "", beds: 2, baths: 1, sqft: "", lot: "", year: "", parking: "", stalls: "", strata: "", tax: "", status: "active", listed: new Date().toISOString().slice(0, 10), features: [], desc: { en: "", fa: "", hi: "", zh: "" }, photo: "" };
+    var desc = rec.desc || {};
+    var f = function(id, label, val, attrs){
+      return '<label class="lf"><span>' + label + '</span><input id="' + id + '" value="' + esc(val == null ? "" : String(val)) + '"' + (attrs || "") + '></label>';
+    };
+    var src = lstPhotoSrc(rec, !isNew && !rec._custom);
+    $("lstEditor").innerHTML = '<div class="card">' +
+      '<h2 style="margin-top:0">' + (isNew ? "Add a listing" : "Edit listing — " + esc(rec.mls)) + '</h2>' +
+      '<div class="lfgrid">' +
+      f("lf_mls", "MLS® # / listing ID", rec.mls, isNew ? "" : " readonly") +
+      f("lf_street", "Street address", rec.street) +
+      f("lf_city", "City", rec.city) +
+      f("lf_postal", "Postal code", rec.postal) +
+      '<label class="lf"><span>Type</span><select id="lf_type">' + ["condo", "townhouse", "house", "duplex", "apartment", "land"].map(function(t){ return '<option value="' + t + '"' + (rec.type === t ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></label>' +
+      f("lf_price", "Price ($)", rec.price, ' type="number" min="0" step="1000"') +
+      f("lf_beds", "Bedrooms", rec.beds, ' type="number" min="0" step="0.5"') +
+      f("lf_baths", "Bathrooms", rec.baths, ' type="number" min="0" step="0.5"') +
+      f("lf_sqft", "Interior sqft", rec.sqft, ' type="number" min="0"') +
+      f("lf_lot", "Lot sqft", rec.lot, ' type="number" min="0"') +
+      f("lf_year", "Year built", rec.year, ' type="number" min="1800" max="2100"') +
+      f("lf_parking", "Parking (e.g. garage, underground)", rec.parking) +
+      f("lf_stalls", "Parking stalls", rec.stalls, ' type="number" min="0"') +
+      f("lf_strata", "Strata fee / month ($)", rec.strata, ' type="number" min="0"') +
+      f("lf_tax", "Property tax / year ($)", rec.tax, ' type="number" min="0"') +
+      '<label class="lf"><span>Status</span><select id="lf_status">' + ["active", "pending", "sold"].map(function(t){ return '<option value="' + t + '"' + (rec.status === t ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></label>' +
+      f("lf_listed", "Listed date", rec.listed, ' type="date"') +
+      '</div>' +
+      '<label class="lf" style="margin-top:10px"><span>Features (comma-separated)</span><input id="lf_features" value="' + esc((rec.features || []).join(", ")) + '"></label>' +
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;align-items:flex-start">' +
+        (src ? '<img id="lf_preview" src="' + esc(src) + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">' : '<div id="lf_preview" style="width:180px;height:120px;border-radius:8px;background:#e8e4da"></div>') +
+        '<div style="flex:1 1 260px"><label class="lf"><span>Photo — upload a file</span><input type="file" id="lf_file" accept="image/*"></label>' +
+        '<label class="lf" style="margin-top:8px"><span>…or a photo URL (https://)</span><input id="lf_photoUrl" value="' + esc(rec.photo && rec.photo !== "upload" ? rec.photo : "") + '" placeholder="https://…"></label>' +
+        '<label style="display:flex;gap:6px;align-items:center;font-weight:500;margin-top:8px"><input type="checkbox" id="lf_photoRemove" style="width:auto"> Remove photo</label></div>' +
+      '</div>' +
+      '<label class="lf" style="margin-top:12px"><span>Description (English)</span><textarea id="lf_desc_en" rows="3">' + esc(desc.en || "") + '</textarea></label>' +
+      '<label class="lf" style="margin-top:8px"><span>Description (فارسی — optional)</span><textarea id="lf_desc_fa" rows="2" dir="rtl">' + esc(desc.fa || "") + '</textarea></label>' +
+      '<label class="lf" style="margin-top:8px"><span>Description (हिन्दी — optional)</span><textarea id="lf_desc_hi" rows="2">' + esc(desc.hi || "") + '</textarea></label>' +
+      '<label class="lf" style="margin-top:8px"><span>Description (中文 — optional)</span><textarea id="lf_desc_zh" rows="2">' + esc(desc.zh || "") + '</textarea></label>' +
+      '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn-spruce" id="lf_save">Save listing — goes live immediately</button>' +
+      '<button type="button" class="ghost" id="lf_cancel">Cancel</button></div>' +
+      '<div class="mut" id="lf_err" style="color:#a33;margin-top:8px"></div>' +
+      '</div>';
+    $("lstEditor").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("lf_file").addEventListener("change", function(){
+      var file = this.files && this.files[0];
+      if (!file) return;
+      downscaleImage(file, function(dataUrl){
+        if (!dataUrl) { $("lf_err").textContent = "Could not read that image."; return; }
+        lstPhotoData = dataUrl;
+        $("lf_preview").outerHTML = '<img id="lf_preview" src="' + dataUrl + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">';
+      });
+    });
+    $("lf_cancel").addEventListener("click", function(){ $("lstEditor").innerHTML = ""; });
+    $("lf_save").addEventListener("click", saveListingFromForm);
+  }
+  function saveListingFromForm(){
+    var v = function(id){ return $(id).value.trim(); };
+    var numOrNull = function(id){ var s = v(id); return s === "" ? null : Number(s); };
+    var listing = {
+      mls: v("lf_mls"), street: v("lf_street"), city: v("lf_city"), postal: v("lf_postal"),
+      type: $("lf_type").value, price: Number(v("lf_price")), beds: Number(v("lf_beds")), baths: Number(v("lf_baths")),
+      sqft: numOrNull("lf_sqft"), lot: numOrNull("lf_lot"), year: numOrNull("lf_year"),
+      parking: v("lf_parking"), stalls: numOrNull("lf_stalls"), strata: numOrNull("lf_strata"), tax: numOrNull("lf_tax"),
+      status: $("lf_status").value, listed: v("lf_listed"),
+      features: v("lf_features") ? v("lf_features").split(",").map(function(x){ return x.trim(); }).filter(Boolean) : [],
+      desc: { en: v("lf_desc_en"), fa: v("lf_desc_fa"), hi: v("lf_desc_hi"), zh: v("lf_desc_zh") },
+      photo: lstOrigPhoto
+    };
+    var body = { listing: listing };
+    var urlVal = v("lf_photoUrl");
+    if (lstPhotoData) { body.photoData = lstPhotoData; }
+    else if ($("lf_photoRemove").checked) { listing.photo = ""; body.photoData = ""; }
+    else if (urlVal) { listing.photo = urlVal; if (lstOrigPhoto === "upload") body.photoData = ""; }
+    $("lf_err").textContent = "";
+    api(API_URL, "/api/admin/listings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+      if (d && d.ok) { toast("Listing saved — live on the site ✓"); $("lstEditor").innerHTML = ""; loadListings(); loadAvail(); }
+      else { $("lf_err").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
+    }).catch(function(){ $("lf_err").textContent = "Could not save — connection problem."; });
+  }
+  $("lstAdd").addEventListener("click", function(){ openListingEditor(null); });
+  $("lstList").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-lact]");
+    if (!btn) return;
+    var mls = btn.getAttribute("data-mls"), act = btn.getAttribute("data-lact");
+    if (act === "edit") openListingEditor(lstFindRec(mls));
+    if (act === "del" && confirm("Delete this listing permanently? It disappears from the website.")) {
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing deleted ✓"); loadListings(); loadAvail(); } else toast("Could not delete", true); });
+    }
+    if (act === "reset" && confirm("Remove your version and restore the built-in sample?")) {
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Sample restored ✓"); loadListings(); loadAvail(); } else toast("Could not reset", true); });
+    }
+    if (act === "hide" && confirm("Hide this listing from the website? You can restore it any time.")) {
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "?tombstone=1", { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing hidden ✓"); loadListings(); loadAvail(); } else toast("Could not hide", true); });
+    }
+    if (act === "restore") {
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing restored ✓"); loadListings(); loadAvail(); } else toast("Could not restore", true); });
+    }
+  });
+
+  // ---------- site settings ----------
+  var stHeroPhotoData = undefined, stOrigHeroPhoto = "";
+  function slotsFromSettings(sl){
+    if (!sl || !sl.start || !sl.end) return null;
+    var toMin = function(x){ var p = String(x).split(":"); return (+p[0]) * 60 + (+p[1]); };
+    var a = toMin(sl.start), b = toMin(sl.end), step = sl.step || 30, out = [];
+    if (!(a < b)) return null;
+    for (var t = a; t <= b; t += step) out.push(String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"));
+    return out.length ? out : null;
+  }
+  function loadSiteSettings(){
+    api(API_URL, "/api/admin/settings").then(function(d){
+      if (!d || !d.ok) { $("stErr").textContent = "Could not load settings."; return; }
+      var s = d.settings || {};
+      stHeroPhotoData = undefined; stOrigHeroPhoto = s.heroPhoto || "";
+      $("st_brand").value = s.brand || "";
+      $("st_email").value = s.email || "";
+      $("st_phone").value = s.phone || "";
+      $("st_rate").value = s.rate == null ? "" : s.rate;
+      var sl = s.slots || {};
+      $("st_slotStart").value = sl.start || "08:00";
+      $("st_slotEnd").value = sl.end || "19:00";
+      $("st_slotStep").value = sl.step || 30;
+      var hero = s.hero || {}, title = hero.title || {}, sub = hero.sub || {}, ann = s.announcement || {};
+      ["en", "fa", "hi", "zh"].forEach(function(lg){
+        $("st_heroTitle_" + lg).value = title[lg] || "";
+        $("st_heroSub_" + lg).value = sub[lg] || "";
+        $("st_ann_" + lg).value = ann[lg] || "";
+      });
+      $("st_heroPhotoUrl").value = s.heroPhoto && s.heroPhoto !== "upload" ? s.heroPhoto : "";
+      var prev = $("st_heroPreview");
+      if (s.heroPhoto) { prev.outerHTML = '<img id="st_heroPreview" src="' + esc(s.heroPhoto === "upload" ? API_URL + "/api/lphoto/__hero" : s.heroPhoto) + '" alt="" style="width:220px;height:110px;object-fit:cover;border-radius:8px">'; }
+      $("stErr").textContent = "";
+    }).catch(function(){ $("stErr").textContent = "Could not load settings."; });
+  }
+  $("st_heroFile").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    if (!file) return;
+    downscaleImage(file, function(dataUrl){
+      if (!dataUrl) { $("stErr").textContent = "Could not read that image."; return; }
+      stHeroPhotoData = dataUrl;
+      $("st_heroPreview").outerHTML = '<img id="st_heroPreview" src="' + dataUrl + '" alt="" style="width:220px;height:110px;object-fit:cover;border-radius:8px">';
+    });
+  });
+  $("stSave").addEventListener("click", function(){
+    var v = function(id){ return $(id).value.trim(); };
+    var langObj = function(prefix){
+      return { en: v(prefix + "_en"), fa: v(prefix + "_fa"), hi: v(prefix + "_hi"), zh: v(prefix + "_zh") };
+    };
+    var settings = {
+      brand: v("st_brand"), email: v("st_email"), phone: v("st_phone"),
+      rate: v("st_rate") === "" ? null : Number(v("st_rate")),
+      slots: { start: $("st_slotStart").value || "08:00", end: $("st_slotEnd").value || "19:00", step: Number(v("st_slotStep")) || 30 },
+      hero: { title: langObj("st_heroTitle"), sub: langObj("st_heroSub") },
+      announcement: langObj("st_ann"),
+      heroPhoto: stOrigHeroPhoto
+    };
+    var body = { settings: settings };
+    var urlVal = v("st_heroPhotoUrl");
+    if (stHeroPhotoData) { body.heroPhotoData = stHeroPhotoData; }
+    else if ($("st_heroRemove").checked) { settings.heroPhoto = ""; body.heroPhotoData = ""; }
+    else if (urlVal) { settings.heroPhoto = urlVal; if (stOrigHeroPhoto === "upload") body.heroPhotoData = ""; }
+    $("stErr").textContent = "";
+    api(API_URL, "/api/admin/settings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+      if (d && d.ok) {
+        toast("Site settings saved — live within a minute ✓");
+        var sl = slotsFromSettings(d.settings.slots);
+        if (sl) AV_SLOTS = sl;
+        loadSiteSettings();
+      } else { $("stErr").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
+    }).catch(function(){ $("stErr").textContent = "Could not save — connection problem."; });
+  });
+  // Viewing-slot grid follows the saved settings.
+  api(API_URL, "/api/settings").then(function(d){
+    var sl = d && d.settings && slotsFromSettings(d.settings.slots);
+    if (sl) AV_SLOTS = sl;
+  }).catch(function(){});
+
+
+  $("lstRefresh").addEventListener("click", loadListings);
   // ---------- listings: viewing availability ----------
   var AV_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"];
   function avRowHtml(d){
