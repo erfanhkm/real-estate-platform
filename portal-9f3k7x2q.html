@@ -1470,27 +1470,35 @@
   });
 
   // ---------- listings: full portal manager ----------
-  var lstData = null, lstPhotoData = undefined, lstOrigPhoto = "";
+  var lstData = null, lstPhotoData = undefined, lstOrigPhoto = "", lstSeq = 0;
   function downscaleImage(file, cb){
+    if (!/^image\/(jpeg|png|webp|gif|avif)$/.test(file.type || "")) { cb(null); return; }
+    if (file.size > 25 * 1024 * 1024) { cb(null); return; }
     var url = URL.createObjectURL(file), img = new Image();
     img.onload = function(){
-      var max = 1600, w = img.naturalWidth || 1, h = img.naturalHeight || 1;
-      var sc = Math.min(1, max / Math.max(w, h));
-      var c = document.createElement("canvas");
-      c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      try {
+        if (!img.naturalWidth || !img.naturalHeight) throw new Error("bad image");
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight;
+        var sc = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        var out = null;
+        try { out = c.toDataURL("image/webp", 0.82); } catch (e) {}
+        if (!out || out.indexOf("data:image/webp") !== 0) out = c.toDataURL("image/jpeg", 0.85);
+        if (out && out.length > 2700000) out = c.toDataURL("image/jpeg", 0.6);
+        cb(out && out.length <= 2700000 ? out : null);
+      } catch (e) { cb(null); }
       URL.revokeObjectURL(url);
-      var out = null;
-      try { out = c.toDataURL("image/webp", 0.82); } catch (e) {}
-      if (!out || out.indexOf("data:image/webp") !== 0) out = c.toDataURL("image/jpeg", 0.85);
-      cb(out);
     };
     img.onerror = function(){ URL.revokeObjectURL(url); cb(null); };
     img.src = url;
   }
   function lstPhotoSrc(rec, isSeed){
-    if (!rec || !rec.photo) return isSeed && rec ? SITE_URL + "/photos/" + rec.mls + ".webp" : "";
-    if (rec.photo === "upload") return API_URL + "/api/lphoto/" + encodeURIComponent(rec.mls);
+    if (!rec || !rec.photo) return isSeed && rec ? SITE_URL + "/photos/" + encodeURIComponent(rec.mls) + ".webp" : "";
+    if (rec.photo === "upload") return API_URL + "/api/lphoto/" + encodeURIComponent(rec.mls) + (rec.updated_at ? "?v=" + (Date.parse(rec.updated_at) || "") : "");
     return rec.photo;
   }
   function loadListings(){
@@ -1517,7 +1525,7 @@
         : '<button type="button" class="ghost small" data-lact="edit" data-mls="' + esc(s.mls) + '">Edit</button>' +
           (over ? '<button type="button" class="ghost small" data-lact="reset" data-mls="' + esc(s.mls) + '">Reset to sample</button>' : "") +
           '<button type="button" class="ghost small" data-lact="hide" data-mls="' + esc(s.mls) + '">Hide</button>';
-      rows.push(lstRowHtml(rec, true, state, btns));
+      rows.push(lstRowHtml(rec, !over, state, btns));
     });
     (d.listings || []).forEach(function(r){
       if ((d.seeds || []).some(function(s){ return s.mls === r.mls; })) return;
@@ -1530,7 +1538,7 @@
   }
   function lstRowHtml(rec, isSeed, state, btns){
     var src = lstPhotoSrc(rec, isSeed);
-    var thumb = src ? '<img src="' + esc(src) + '" alt="" style="width:96px;height:68px;object-fit:cover;border-radius:8px;flex:0 0 auto">' : '<div style="width:96px;height:68px;border-radius:8px;background:#e8e4da;flex:0 0 auto"></div>';
+    var thumb = src ? '<img referrerpolicy="no-referrer" src="' + esc(src) + '" alt="" style="width:96px;height:68px;object-fit:cover;border-radius:8px;flex:0 0 auto">' : '<div style="width:96px;height:68px;border-radius:8px;background:#e8e4da;flex:0 0 auto"></div>';
     var status = rec.status === "pending" ? '<span class="pill" style="background:#fdeeda;color:#8a5a00">Pending</span>'
       : rec.status === "sold" ? '<span class="pill" style="background:#f6dede;color:#8a2020">Sold</span>'
       : '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Active</span>';
@@ -1546,6 +1554,7 @@
     return (lstData.seeds || []).filter(function(s){ return s.mls === mls; })[0] || null;
   }
   function openListingEditor(rec){
+    lstSeq++;
     lstPhotoData = undefined;
     lstOrigPhoto = rec && rec.photo ? rec.photo : "";
     var isNew = !rec;
@@ -1578,7 +1587,7 @@
       '</div>' +
       '<label class="lf" style="margin-top:10px"><span>Features (comma-separated)</span><input id="lf_features" value="' + esc((rec.features || []).join(", ")) + '"></label>' +
       '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;align-items:flex-start">' +
-        (src ? '<img id="lf_preview" src="' + esc(src) + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">' : '<div id="lf_preview" style="width:180px;height:120px;border-radius:8px;background:#e8e4da"></div>') +
+        (src ? '<img id="lf_preview" referrerpolicy="no-referrer" src="' + esc(src) + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">' : '<div id="lf_preview" style="width:180px;height:120px;border-radius:8px;background:#e8e4da"></div>') +
         '<div style="flex:1 1 260px"><label class="lf"><span>Photo — upload a file</span><input type="file" id="lf_file" accept="image/*"></label>' +
         '<label class="lf" style="margin-top:8px"><span>…or a photo URL (https://)</span><input id="lf_photoUrl" value="' + esc(rec.photo && rec.photo !== "upload" ? rec.photo : "") + '" placeholder="https://…"></label>' +
         '<label style="display:flex;gap:6px;align-items:center;font-weight:500;margin-top:8px"><input type="checkbox" id="lf_photoRemove" style="width:auto"> Remove photo</label></div>' +
@@ -1595,16 +1604,20 @@
     $("lf_file").addEventListener("change", function(){
       var file = this.files && this.files[0];
       if (!file) return;
+      var tk = ++lstSeq;
       downscaleImage(file, function(dataUrl){
-        if (!dataUrl) { $("lf_err").textContent = "Could not read that image."; return; }
+        if (tk !== lstSeq || !$("lf_err")) return; // editor changed or closed meanwhile
+        if (!dataUrl) { $("lf_err").textContent = "Could not read that image (JPEG, PNG or WebP, under 25 MB)."; return; }
         lstPhotoData = dataUrl;
         $("lf_preview").outerHTML = '<img id="lf_preview" src="' + dataUrl + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">';
       });
     });
-    $("lf_cancel").addEventListener("click", function(){ $("lstEditor").innerHTML = ""; });
+    $("lf_cancel").addEventListener("click", function(){ lstSeq++; lstPhotoData = undefined; $("lstEditor").innerHTML = ""; });
     $("lf_save").addEventListener("click", saveListingFromForm);
   }
+  function urlVal0(){ var u = $("lf_photoUrl") ? $("lf_photoUrl").value.trim() : ""; return !u || /^https:\/\/[^\s"'<>]+$/i.test(u); }
   function saveListingFromForm(){
+    if ($("lf_save").disabled) return;
     var v = function(id){ return $(id).value.trim(); };
     var numOrNull = function(id){ var s = v(id); return s === "" ? null : Number(s); };
     var listing = {
@@ -1617,16 +1630,27 @@
       desc: { en: v("lf_desc_en"), fa: v("lf_desc_fa"), hi: v("lf_desc_hi"), zh: v("lf_desc_zh") },
       photo: lstOrigPhoto
     };
+    var badField = !/^[A-Za-z0-9-]{3,24}$/.test(listing.mls) ? "MLS #"
+      : !listing.street ? "street" : !listing.city ? "city"
+      : !(isFinite(listing.price) && listing.price > 0) ? "price"
+      : !(isFinite(listing.beds) && listing.beds >= 0) ? "bedrooms"
+      : !(isFinite(listing.baths) && listing.baths >= 0) ? "bathrooms"
+      : ["sqft", "lot", "year", "stalls", "strata", "tax"].filter(function(k){ return listing[k] !== null && !isFinite(listing[k]); })[0];
+    if (badField) { $("lf_err").textContent = "Check the " + badField + " field."; return; }
+    if (urlVal0(listing) === false) { $("lf_err").textContent = "Photo URL must start with https://"; return; }
+    if (!$("lf_mls").readOnly && lstFindRec(listing.mls.toUpperCase()) && !confirm("MLS " + listing.mls + " already exists — overwrite it?")) return;
     var body = { listing: listing };
     var urlVal = v("lf_photoUrl");
     if (lstPhotoData) { body.photoData = lstPhotoData; }
     else if ($("lf_photoRemove").checked) { listing.photo = ""; body.photoData = ""; }
     else if (urlVal) { listing.photo = urlVal; if (lstOrigPhoto === "upload") body.photoData = ""; }
     $("lf_err").textContent = "";
+    $("lf_save").disabled = true;
     api(API_URL, "/api/admin/listings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
-      if (d && d.ok) { toast("Listing saved — live on the site ✓"); $("lstEditor").innerHTML = ""; loadListings(); loadAvail(); }
+      $("lf_save").disabled = false;
+      if (d && d.ok) { lstSeq++; lstPhotoData = undefined; toast("Listing saved — live on the site ✓"); $("lstEditor").innerHTML = ""; loadListings(); loadAvail(); }
       else { $("lf_err").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
-    }).catch(function(){ $("lf_err").textContent = "Could not save — connection problem."; });
+    }).catch(function(){ $("lf_save").disabled = false; $("lf_err").textContent = "Could not save — connection problem."; });
   }
   $("lstAdd").addEventListener("click", function(){ openListingEditor(null); });
   $("lstList").addEventListener("click", function(e){
@@ -1635,34 +1659,38 @@
     var mls = btn.getAttribute("data-mls"), act = btn.getAttribute("data-lact");
     if (act === "edit") openListingEditor(lstFindRec(mls));
     if (act === "del" && confirm("Delete this listing permanently? It disappears from the website.")) {
-      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing deleted ✓"); loadListings(); loadAvail(); } else toast("Could not delete", true); });
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing deleted ✓"); var lf = $("lf_mls"); if (lf && lf.value === mls) { lstSeq++; $("lstEditor").innerHTML = ""; } loadListings(); loadAvail(); } else toast("Could not delete", true); }).catch(function(){ toast("Connection problem", true); });
     }
     if (act === "reset" && confirm("Remove your version and restore the built-in sample?")) {
-      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Sample restored ✓"); loadListings(); loadAvail(); } else toast("Could not reset", true); });
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Sample restored ✓"); loadListings(); loadAvail(); } else toast("Could not reset", true); }).catch(function(){ toast("Connection problem", true); });
     }
     if (act === "hide" && confirm("Hide this listing from the website? You can restore it any time.")) {
-      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "?tombstone=1", { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing hidden ✓"); loadListings(); loadAvail(); } else toast("Could not hide", true); });
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "?tombstone=1", { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing hidden ✓"); loadListings(); loadAvail(); } else toast("Could not hide", true); }).catch(function(){ toast("Connection problem", true); });
     }
     if (act === "restore") {
-      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing restored ✓"); loadListings(); loadAvail(); } else toast("Could not restore", true); });
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing restored ✓"); loadListings(); loadAvail(); } else toast("Could not restore", true); }).catch(function(){ toast("Connection problem", true); });
     }
   });
 
   // ---------- site settings ----------
-  var stHeroPhotoData = undefined, stOrigHeroPhoto = "";
+  var stHeroPhotoData = undefined, stOrigHeroPhoto = "", stLoaded = false, stSeq = 0;
   function slotsFromSettings(sl){
     if (!sl || !sl.start || !sl.end) return null;
     var toMin = function(x){ var p = String(x).split(":"); return (+p[0]) * 60 + (+p[1]); };
-    var a = toMin(sl.start), b = toMin(sl.end), step = sl.step || 30, out = [];
+    var a = toMin(sl.start), b = toMin(sl.end), step = Math.round(+sl.step) || 30, out = [];
+    if (!(step >= 5 && step <= 240)) step = 30;
     if (!(a < b)) return null;
-    for (var t = a; t <= b; t += step) out.push(String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"));
+    for (var t = a; t <= b && out.length < 200; t += step) out.push(String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"));
     return out.length ? out : null;
   }
   function loadSiteSettings(){
     api(API_URL, "/api/admin/settings").then(function(d){
       if (!d || !d.ok) { $("stErr").textContent = "Could not load settings."; return; }
       var s = d.settings || {};
+      stSeq++;
       stHeroPhotoData = undefined; stOrigHeroPhoto = s.heroPhoto || "";
+      var hr = $("st_heroRemove"); if (hr) hr.checked = false;
+      var hf = $("st_heroFile"); if (hf) hf.value = "";
       $("st_brand").value = s.brand || "";
       $("st_email").value = s.email || "";
       $("st_phone").value = s.phone || "";
@@ -1679,20 +1707,26 @@
       });
       $("st_heroPhotoUrl").value = s.heroPhoto && s.heroPhoto !== "upload" ? s.heroPhoto : "";
       var prev = $("st_heroPreview");
-      if (s.heroPhoto) { prev.outerHTML = '<img id="st_heroPreview" src="' + esc(s.heroPhoto === "upload" ? API_URL + "/api/lphoto/__hero" : s.heroPhoto) + '" alt="" style="width:220px;height:110px;object-fit:cover;border-radius:8px">'; }
+      if (s.heroPhoto) { prev.outerHTML = '<img id="st_heroPreview" referrerpolicy="no-referrer" src="' + esc(s.heroPhoto === "upload" ? API_URL + "/api/lphoto/__hero" : s.heroPhoto) + '" alt="" style="width:220px;height:110px;object-fit:cover;border-radius:8px">'; }
+      else if (prev && prev.tagName === "IMG") { prev.outerHTML = '<div id="st_heroPreview" style="width:220px;height:110px;border-radius:8px;background:#e8e4da"></div>'; }
+      stLoaded = true;
       $("stErr").textContent = "";
     }).catch(function(){ $("stErr").textContent = "Could not load settings."; });
   }
   $("st_heroFile").addEventListener("change", function(){
     var file = this.files && this.files[0];
     if (!file) return;
+    var tk = ++stSeq;
     downscaleImage(file, function(dataUrl){
-      if (!dataUrl) { $("stErr").textContent = "Could not read that image."; return; }
+      if (tk !== stSeq || !$("st_heroPreview")) return;
+      if (!dataUrl) { $("stErr").textContent = "Could not read that image (JPEG, PNG or WebP, under 25 MB)."; return; }
       stHeroPhotoData = dataUrl;
       $("st_heroPreview").outerHTML = '<img id="st_heroPreview" src="' + dataUrl + '" alt="" style="width:220px;height:110px;object-fit:cover;border-radius:8px">';
     });
   });
   $("stSave").addEventListener("click", function(){
+    if (!stLoaded) { $("stErr").textContent = "Settings have not loaded yet — wait a moment and try again."; return; }
+    if ($("stSave").disabled) return;
     var v = function(id){ return $(id).value.trim(); };
     var langObj = function(prefix){
       return { en: v(prefix + "_en"), fa: v(prefix + "_fa"), hi: v(prefix + "_hi"), zh: v(prefix + "_zh") };
@@ -1700,25 +1734,30 @@
     var settings = {
       brand: v("st_brand"), email: v("st_email"), phone: v("st_phone"),
       rate: v("st_rate") === "" ? null : Number(v("st_rate")),
-      slots: { start: $("st_slotStart").value || "08:00", end: $("st_slotEnd").value || "19:00", step: Number(v("st_slotStep")) || 30 },
+      slots: { start: $("st_slotStart").value || "08:00", end: $("st_slotEnd").value || "19:00", step: (function(n){ n = Math.round(n); return n >= 5 && n <= 240 ? n : 30; })(Number(v("st_slotStep"))) },
       hero: { title: langObj("st_heroTitle"), sub: langObj("st_heroSub") },
       announcement: langObj("st_ann"),
       heroPhoto: stOrigHeroPhoto
     };
+    if (!settings.brand) { $("stErr").textContent = "Brand name cannot be empty."; return; }
+    if (settings.rate !== null && !isFinite(settings.rate)) { $("stErr").textContent = "Check the rate field."; return; }
     var body = { settings: settings };
     var urlVal = v("st_heroPhotoUrl");
+    if (urlVal && !/^https:\/\/[^\s"'<>]+$/i.test(urlVal)) { $("stErr").textContent = "Hero photo URL must start with https://"; return; }
     if (stHeroPhotoData) { body.heroPhotoData = stHeroPhotoData; }
     else if ($("st_heroRemove").checked) { settings.heroPhoto = ""; body.heroPhotoData = ""; }
     else if (urlVal) { settings.heroPhoto = urlVal; if (stOrigHeroPhoto === "upload") body.heroPhotoData = ""; }
     $("stErr").textContent = "";
+    $("stSave").disabled = true;
     api(API_URL, "/api/admin/settings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+      $("stSave").disabled = false;
       if (d && d.ok) {
         toast("Site settings saved — live within a minute ✓");
-        var sl = slotsFromSettings(d.settings.slots);
+        var sl = d.settings && slotsFromSettings(d.settings.slots);
         if (sl) AV_SLOTS = sl;
         loadSiteSettings();
       } else { $("stErr").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
-    }).catch(function(){ $("stErr").textContent = "Could not save — connection problem."; });
+    }).catch(function(){ $("stSave").disabled = false; $("stErr").textContent = "Could not save — connection problem."; });
   });
   // Viewing-slot grid follows the saved settings.
   api(API_URL, "/api/settings").then(function(d){
