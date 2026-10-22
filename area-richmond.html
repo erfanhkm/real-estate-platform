@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-d6vTNt/ISlH39WAQj3tpp2y5+b6k4f+BTdQHiuU1INk=' 'sha256-0OLIqxe0mHx/fAlYdfnVhJ1sPwHVA78fCaVXGI9le+c='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-d6vTNt/ISlH39WAQj3tpp2y5+b6k4f+BTdQHiuU1INk=' 'sha256-Z/sye2inK1JxuYv7MCc1jQhZZX10dc+JxuZpSiQ84Oc=' 'sha256-LPjYNgKorLyagp7NULIrEZx+ta+qIuBjuIyPmdSM0I0='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -343,6 +343,22 @@
       }
       @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
     </style>
+    <script>
+    /* Portal-managed live data: listings + site settings are managed from
+       the Site Admin portal and fetched before the main script boots; the
+       main script waits for this promise (max ~1.8s) before first render. */
+    window.__portalReady = (function(){
+      var API = "https://advisor-api.erfanbillion.workers.dev";
+      function get(p){ return fetch(API + p).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
+      var timeout = new Promise(function(res){ setTimeout(function(){ res(false); }, 1800); });
+      var data = Promise.all([get("/api/listings"), get("/api/settings")]).then(function(a){
+        window.__portalListings = a[0];
+        window.__portalSettings = (a[1] && a[1].settings) || null;
+        return true;
+      }).catch(function(){ return false; });
+      return Promise.race([data, timeout]);
+    })();
+    </script>
   </head>
   <body>
     <header>
@@ -2168,9 +2184,104 @@
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       renderAssistantLang(); renderKnowledge();
+      if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    applyLang(lang, false);
+    /* ---- portal-managed data: merge + settings application ---- */
+    function mergePortalListings(){
+      var d = window.__portalListings;
+      if (!d || !d.ok) return;
+      (d.deleted || []).forEach(function(mls){
+        for (var i = LISTINGS.length - 1; i >= 0; i--) if (LISTINGS[i].mls === mls) LISTINGS.splice(i, 1);
+      });
+      (d.listings || []).forEach(function(rec){
+        if (!rec.photo) rec.photo = "photos/hero.webp";
+        if (!rec.desc) rec.desc = { en: "" };
+        var ix = -1;
+        for (var i = 0; i < LISTINGS.length; i++) if (LISTINGS[i].mls === rec.mls) ix = i;
+        if (ix >= 0) LISTINGS[ix] = rec; else LISTINGS.push(rec);
+      });
+    }
+    function applyPortalVars(){
+      var s = window.__portalSettings;
+      if (!s) return;
+      if (s.rate) window.__portalRate = s.rate;
+      if (s.slots && s.slots.start && s.slots.end) {
+        var toMin = function(x){ var p = String(x).split(":"); return (+p[0]) * 60 + (+p[1]); };
+        var a = toMin(s.slots.start), b = toMin(s.slots.end), step = s.slots.step || 30, out = [];
+        for (var t = a; t <= b; t += step) out.push(String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"));
+        if (out.length) window.__portalSlots = out;
+      }
+    }
+    function replaceSiteText(oldStr, newStr){
+      if (!oldStr || !newStr || oldStr === newStr || !document.body) return;
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      var nodes = [];
+      while (walker.nextNode()) {
+        var n = walker.currentNode;
+        if (n.parentNode && /SCRIPT|STYLE|TEXTAREA/.test(n.parentNode.nodeName)) continue;
+        if (n.nodeValue.indexOf(oldStr) !== -1) nodes.push(n);
+      }
+      nodes.forEach(function(n){ n.nodeValue = n.nodeValue.split(oldStr).join(newStr); });
+      if (document.title.indexOf(oldStr) !== -1) document.title = document.title.split(oldStr).join(newStr);
+    }
+    window.__applyPortalTexts = function(){
+      var s = window.__portalSettings;
+      if (!s) return;
+      var lg = lang === "zh" ? "zh" : lang;
+      replaceSiteText("erfanbcrealestate@gmail.com", s.email || "");
+      replaceSiteText("Erfan BC Real Estate", s.brand || "");
+      if (s.rate) replaceSiteText("4.79", String(s.rate));
+      var hero = s.hero || {}, title = (hero.title || {})[lg] || (hero.title || {}).en, sub = (hero.sub || {})[lg] || (hero.sub || {}).en;
+      var h1 = document.querySelector(".hero h1"), hp = document.querySelector(".hero .inner p");
+      if (h1 && title) h1.textContent = title;
+      if (hp && sub) hp.textContent = sub;
+      var bg = document.querySelector(".hero img.bg");
+      if (bg && s.heroPhoto) bg.src = s.heroPhoto;
+      var ann = (s.announcement || {})[lg] || (s.announcement || {}).en || "";
+      var bar = document.getElementById("annBar");
+      var closed = "";
+      try { closed = sessionStorage.getItem("annClosed") || ""; } catch (e) {}
+      if (ann && closed !== ann) {
+        if (!bar) {
+          bar = document.createElement("div");
+          bar.id = "annBar";
+          bar.setAttribute("style", "background:#C6A15B;color:#0B2239;text-align:center;padding:9px 44px 9px 14px;font-size:14.5px;font-weight:600;position:relative");
+          bar.innerHTML = '<span id="annTxt"></span><button type="button" aria-label="Close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:17px;cursor:pointer;color:#0B2239">✕</button>';
+          bar.querySelector("button").addEventListener("click", function(){ try { sessionStorage.setItem("annClosed", document.getElementById("annTxt").textContent); } catch (e) {} bar.remove(); });
+          var hdr = document.querySelector("header");
+          if (hdr && hdr.parentNode) hdr.parentNode.insertBefore(bar, hdr);
+          else if (document.body) document.body.insertBefore(bar, document.body.firstChild);
+        }
+        document.getElementById("annTxt").textContent = ann;
+      } else if (bar && !ann) { bar.remove(); }
+      if (s.rate && !window.__rateTouched) {
+        ["cRate", "bvRate", "ivRate", "afRate"].forEach(function(id){
+          var el = document.getElementById(id);
+          if (el) {
+            el.value = s.rate;
+            el.addEventListener("input", function(){ window.__rateTouched = true; });
+          }
+        });
+      }
+      if (s.phone) {
+        var mail = document.querySelector("a.mail");
+        if (mail && mail.parentNode && !document.getElementById("pubPhone")) {
+          var p = document.createElement("p");
+          p.id = "pubPhone";
+          p.innerHTML = '📞 <a class="mail" href="tel:" style="color:inherit"></a>';
+          var a = p.querySelector("a");
+          a.href = "tel:" + s.phone.replace(/[^+0-9]/g, "");
+          a.textContent = s.phone;
+          mail.parentNode.parentNode.insertBefore(p, mail.parentNode.nextSibling);
+        }
+      }
+    };
+    if (window.__portalReady) {
+      window.__portalReady.then(function(){ mergePortalListings(); applyPortalVars(); applyLang(lang, false); });
+    } else {
+      applyLang(lang, false);
+    }
     /* Lightweight first-party traffic stats for the private admin portal.
        Sends aggregate counts only (page, event, language, referrer host) — no cookies, no personal data. */
     (function(){
@@ -2414,7 +2525,7 @@
             el.querySelectorAll("[data-vwmove]").forEach(function(b){ b.addEventListener("click", function(){
               var vid = b.getAttribute("data-vwmove");
               var slot = document.getElementById("mv-" + vid);
-              var times = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
+              var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
               slot.innerHTML = '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><select id="mvD-' + vid + '">' + dateOptions() + '</select><select id="mvT-' + vid + '">' + times + '</select><button type="button" class="btn btn-spruce" id="mvGo-' + vid + '">' + tt("saveBtn") + '</button></div>';
               document.getElementById("mvGo-" + vid).addEventListener("click", function(){
                 api("/api/user/viewings/" + vid + "/reschedule", "POST", { date: document.getElementById("mvD-" + vid).value, time: document.getElementById("mvT-" + vid).value })
@@ -2488,7 +2599,7 @@
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
           var p = MINI[mls];
-          var times = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
+          var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
             '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
