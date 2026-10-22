@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gDyf5eQJvZKwThuaewxYoCF6EYyX00zR2gVRMQ8EKtc=' 'sha256-BigWC4NFuxcHEMh4CF2QB9SCKDZ167h5VMrWUQ9lYKs='">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gDyf5eQJvZKwThuaewxYoCF6EYyX00zR2gVRMQ8EKtc=' 'sha256-0OLIqxe0mHx/fAlYdfnVhJ1sPwHVA78fCaVXGI9le+c='">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0b2239" />
@@ -2395,7 +2395,7 @@
             el.querySelectorAll("[data-vwmove]").forEach(function(b){ b.addEventListener("click", function(){
               var vid = b.getAttribute("data-vwmove");
               var slot = document.getElementById("mv-" + vid);
-              var times = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
+              var times = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
               slot.innerHTML = '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><select id="mvD-' + vid + '">' + dateOptions() + '</select><select id="mvT-' + vid + '">' + times + '</select><button type="button" class="btn btn-spruce" id="mvGo-' + vid + '">' + tt("saveBtn") + '</button></div>';
               document.getElementById("mvGo-" + vid).addEventListener("click", function(){
                 api("/api/user/viewings/" + vid + "/reschedule", "POST", { date: document.getElementById("mvD-" + vid).value, time: document.getElementById("mvT-" + vid).value })
@@ -2469,7 +2469,7 @@
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
           var p = MINI[mls];
-          var times = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
+          var times = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"].map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
             '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
