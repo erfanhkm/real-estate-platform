@@ -243,12 +243,12 @@
       </div>
       <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
         <div>
-          <div style="font-weight:700;font-size:15px">📡 Daily market scan</div>
+          <div style="font-weight:700;font-size:15px">📡 Market scan — every 3 hours</div>
           <div class="mut" id="radarState">Loading…</div>
         </div>
         <label class="toggle"><input type="checkbox" id="radarToggle"> <b id="radarToggleLabel">Off</b></label>
       </div>
-      <div class="hint" style="margin-bottom:12px">Your private daily market scan — buyers looking for a home and owners selling directly (FSBO), matched where possible. Only you can see this page; it is not linked anywhere on the public website.</div>
+      <div class="hint" style="margin-bottom:12px">Your private deep market scan — buyer demand and for-sale-by-owner supply (residential + commercial), stored only as matched pairs with a match score. Use the filters to slice by score, confidence, value, area and source. Only you can see this page; it is not linked anywhere on the public website.</div>
       <div class="filters">
         <select id="radarStatus">
           <option value="">All statuses</option>
@@ -262,6 +262,37 @@
           <option value="buyer">Buyers looking</option>
           <option value="seller">Sellers (FSBO)</option>
         </select>
+        <select id="radarClass">
+          <option value="">All property</option>
+          <option value="residential">Residential</option>
+          <option value="commercial">Commercial</option>
+        </select>
+        <select id="radarScore">
+          <option value="">Any match score</option>
+          <option value="80">Match score 80+</option>
+          <option value="60">Match score 60+</option>
+          <option value="40">Match score 40+</option>
+        </select>
+        <select id="radarConf">
+          <option value="">Any confidence</option>
+          <option value="70">Confidence 70+</option>
+          <option value="45">Confidence 45+</option>
+        </select>
+        <select id="radarValue">
+          <option value="">Any value</option>
+          <option value="below">💎 Below market value</option>
+        </select>
+        <select id="radarCity"><option value="">All areas</option></select>
+        <select id="radarSource"><option value="">All sources</option></select>
+        <select id="radarSort">
+          <option value="new">Sort: newest first</option>
+          <option value="score">Sort: match score</option>
+          <option value="conf">Sort: confidence</option>
+          <option value="below">Sort: below-market %</option>
+          <option value="priceAsc">Sort: price low → high</option>
+          <option value="priceDesc">Sort: price high → low</option>
+        </select>
+        <input type="text" id="radarSearch" placeholder="Search title / area…" style="flex:1 1 160px">
       </div>
       <div id="radarList"><div class="empty">Loading…</div></div>
     </section>
@@ -682,6 +713,8 @@
   $("radarRefresh").addEventListener("click", loadRadar);
   $("radarStatus").addEventListener("change", renderRadar);
   $("radarKind").addEventListener("change", renderRadar);
+  ["radarClass", "radarScore", "radarConf", "radarValue", "radarCity", "radarSource", "radarSort"].forEach(function(id){ $(id).addEventListener("change", renderRadar); });
+  $("radarSearch").addEventListener("input", renderRadar);
   function loadRadar(){
     loadRadarSettings();
     api(API_URL, "/api/market-leads").then(function(d){
@@ -704,7 +737,7 @@
     var on = $("radarToggle").checked;
     api(API_URL, "/api/radar-settings", { method: "PUT", body: JSON.stringify({ enabled: on }) })
       .then(function(d){
-        if (d && d.ok){ syncRadarState(d.enabled); toast(d.enabled ? "Daily scan ON — runs every day at 9:00 AM ✓" : "Daily scan OFF"); }
+        if (d && d.ok){ syncRadarState(d.enabled); toast(d.enabled ? "Market scan ON — deep scan every 3 hours ✓" : "Market scan OFF"); }
         else { $("radarToggle").checked = !on; toast("Could not save the switch", true); }
       })
       .catch(function(){ $("radarToggle").checked = !on; toast("Could not save the switch", true); });
@@ -712,34 +745,70 @@
   function kindLabel(k){
     return k === "seller" ? "🏷️ Seller (FSBO)" : k === "pair" ? "🔗 Matched pair" : "🛒 Buyer looking";
   }
+  function fillRadarSelect(id, values, allLabel){
+    var sel = $(id); if (!sel) return;
+    var cur = sel.value;
+    var have = {};
+    for (var i = 0; i < sel.options.length; i++) have[sel.options[i].value] = 1;
+    values.forEach(function(v){ if (v && !have[v]) { var o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); have[v] = 1; } });
+    sel.value = cur;
+  }
   function renderRadar(){
+    fillRadarSelect("radarCity", mleads.map(function(l){ return l.area; }), "All areas");
+    fillRadarSelect("radarSource", mleads.map(function(l){ return l.source; }), "All sources");
     var sf = $("radarStatus").value, kf = $("radarKind").value;
+    var cf = $("radarClass").value, scf = parseInt($("radarScore").value || "0", 10), cnf = parseInt($("radarConf").value || "0", 10);
+    var vf = $("radarValue").value, ctf = $("radarCity").value, sof = $("radarSource").value;
+    var q = ($("radarSearch").value || "").toLowerCase().trim(), sortBy = $("radarSort").value;
     var rows = mleads.filter(function(l){
-      return (!sf || l.status === sf) && (!kf || l.kind === kf);
+      return (!sf || l.status === sf) && (!kf || l.kind === kf) &&
+        (!cf || (l.propertyClass || "residential") === cf) &&
+        (!scf || (l.matchScore || 0) >= scf) &&
+        (!cnf || (l.confidence || 0) >= cnf) &&
+        (!vf || (l.belowMarketPct || 0) >= 5) &&
+        (!ctf || l.area === ctf) &&
+        (!sof || l.source === sof) &&
+        (!q || (String(l.title || "") + " " + String(l.area || "")).toLowerCase().indexOf(q) !== -1);
+    });
+    var pv = function(l){ return (typeof l.priceNum === "number" && l.priceNum > 0) ? l.priceNum : null; };
+    rows.sort(function(a, b){
+      if (sortBy === "score") return (b.matchScore || 0) - (a.matchScore || 0);
+      if (sortBy === "conf") return (b.confidence || 0) - (a.confidence || 0);
+      if (sortBy === "below") return (b.belowMarketPct || 0) - (a.belowMarketPct || 0);
+      if (sortBy === "priceAsc" || sortBy === "priceDesc") { var x = pv(a), y = pv(b); if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1; return sortBy === "priceAsc" ? x - y : y - x; }
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
     });
     var newCount = mleads.filter(function(l){ return l.status === "new"; }).length;
     $("radarCount").textContent = rows.length + " shown · " + newCount + " new of " + mleads.length + " total";
     var box = $("radarList");
-    if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">No matched pairs yet. While the radar is on, a deep scan runs every 3 hours and only matched pairs appear here.</div></div>'; return; }
+    if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">' + (mleads.length ? 'Nothing matches the current filters — loosen a filter to see more.' : 'No matched pairs yet. While the radar is on, a deep scan runs every 3 hours and only matched pairs appear here.') + '</div></div>'; return; }
     box.innerHTML = "";
     rows.forEach(function(l){
       var card = document.createElement("div"); card.className = "card";
       var conf = typeof l.confidence === "number" ? l.confidence : 0;
       var confColor = conf >= 70 ? "#22c55e" : conf >= 45 ? "#eab308" : "#ef4444";
+      var ms = typeof l.matchScore === "number" ? l.matchScore : 0;
+      var msColor = ms >= 80 ? "#22c55e" : ms >= 60 ? "#C6A15B" : "#64748b";
       var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
         '<span class="chip" style="background:' + confColor + ';color:#0c111d;font-weight:700">Confidence ' + conf + '</span>' +
+        (ms ? '<span class="chip" style="background:' + msColor + ';color:#0c111d;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
+        ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + l.belowMarketPct + '% below market</span>' : '') +
+        (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
         '<span class="mut" style="margin-left:auto">' + esc(fmtDate(l.created_at)) + '</span></div>';
       html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
-      if (l.match && l.match.url){
-        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match:</b> <a href="' + esc(l.match.url) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.match.title || "listing") + ' ↗</a>' +
-          (l.match.price ? ' · ' + esc(l.match.price) : '') +
-          (l.match.note ? '<div class="mut" style="margin-top:4px">' + esc(l.match.note) + '</div>' : '') + '</div>';
-      }
+      var mlist = (l.matches && l.matches.length) ? l.matches : (l.match && l.match.url ? [l.match] : []);
+      mlist.forEach(function(m, i){
+        if (!m || !m.url) return;
+        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(m.url) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || "listing") + ' ↗</a>' +
+          (m.price ? ' · ' + esc(m.price) : '') +
+          (m.note ? '<div class="mut" style="margin-top:4px">' + esc(m.note) + '</div>' : '') + '</div>';
+      });
+      if (l.marketNote) html += '<div style="margin-top:8px;font-size:13px" class="mut">📉 ' + esc(l.marketNote) + '</div>';
       if (l.risk) html += '<div style="margin-top:8px;font-size:13px;color:#fbbf24">⚠ Biggest risk: ' + esc(l.risk) + '</div>';
       html += '<div class="row2">' +
         '<a href="' + esc(l.url) + '" target="_blank" rel="noopener"><button class="small">Open post</button></a>' +
