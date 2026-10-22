@@ -161,7 +161,7 @@
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
-    <button class="navbtn" id="gsBtn"><span class="ic">🔍</span>Search <span class="mut">Ctrl+K</span></button>
+    <button class="navbtn" data-nav="search"><span class="ic">🔍</span>Search</button>
     <button class="navbtn" id="logoutBtn"><span class="ic">🚪</span>Sign out</button>
   </aside>
 
@@ -239,6 +239,27 @@
           <button type="button" class="ghost small" id="bulkClear">Clear selection</button>
         </div>
         <div id="leadPager" style="display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:8px 2px"></div>
+      </div>
+    </section>
+
+    <!-- SEARCH -->
+    <section id="page-search" hidden>
+      <div class="pagehead">
+        <div><h1>Search</h1><div class="mut">Everything in the portal — leads, people, listings and viewings, in one place.</div></div>
+        <button class="ghost small" id="gsQuickBtn">Quick search (Ctrl+K)</button>
+      </div>
+      <div class="card">
+        <input type="search" id="tabSearchInput" placeholder="Type a name, email, city, MLS #, phone, address…" autocomplete="off" style="width:100%;font-size:16px;padding:12px 14px;box-sizing:border-box">
+        <div id="tabSearchKinds" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+          <button type="button" class="ghost small" data-skind="All">All</button>
+          <button type="button" class="ghost small" data-skind="Lead">Leads</button>
+          <button type="button" class="ghost small" data-skind="Person">People</button>
+          <button type="button" class="ghost small" data-skind="Listing">Listings</button>
+          <button type="button" class="ghost small" data-skind="Viewing">Viewings</button>
+        </div>
+        <div class="mut" id="tabSearchCount" style="margin-top:12px"></div>
+        <div id="tabSearchResults" style="margin-top:6px"></div>
+        <div style="text-align:center;padding:10px"><button type="button" class="ghost" id="tabSearchMore" hidden>Show more</button></div>
       </div>
     </section>
 
@@ -716,7 +737,7 @@
   // ---------- navigation ----------
   function go(page){
     currentPage = page;
-    ["overview","leads","crm","tours","listings","site","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -725,6 +746,7 @@
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
     if (page === "crm") loadCRM();
+    if (page === "search") initTabSearch();
     if (page === "tours") loadTourList();
     if (page === "listings") { loadListings(); loadAvail(); }
     if (page === "site") loadSiteSettings();
@@ -2431,7 +2453,58 @@
     setTimeout(function(){ $("gsInput").focus(); }, 30);
   }
   function gsClose(){ var ov = $("gsOverlay"); ov.hidden = true; ov.style.display = "none"; }
-  $("gsBtn").addEventListener("click", gsOpen);
+  // ---------- full search tab ----------
+  var tsKind = "All", tsShown = 30, tsTimer = null;
+  function tsFiltered(){
+    var q = ($("tabSearchInput").value || "").trim().toLowerCase();
+    return (gsItems || []).filter(function(it){
+      if (tsKind !== "All" && it.kind !== tsKind) return false;
+      return !q || it.hay.indexOf(q) !== -1;
+    });
+  }
+  function tsRender(){
+    if (!gsItems) return;
+    var all = tsFiltered();
+    $("tabSearchCount").textContent = all.length + " result" + (all.length === 1 ? "" : "s") + (tsKind !== "All" ? " in " + tsKind + "s" : "") + (($("tabSearchInput").value || "").trim() ? ' for "' + $("tabSearchInput").value.trim() + '"' : "");
+    var shown = all.slice(0, tsShown);
+    $("tabSearchResults").innerHTML = shown.length ? shown.map(function(it, i){
+      return '<button type="button" data-ts="' + i + '" style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 10px;border:0;border-bottom:1px solid #1b3049;cursor:pointer;color:#eef4fa;background:transparent"><span style="font-size:18px">' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + '</span></span><span class="pill" style="background:#1d3049;color:#9fc3e8">' + esc(it.kind) + '</span></button>';
+    }).join("") : '<div class="empty">No matches — try a name, email, city, MLS # or phone.</div>';
+    Array.prototype.forEach.call($("tabSearchResults").querySelectorAll("[data-ts]"), function(b){
+      b.addEventListener("click", function(){ var it = tsFiltered()[Number(b.getAttribute("data-ts"))]; if (it) it.act(); });
+    });
+    $("tabSearchMore").hidden = all.length <= tsShown;
+  }
+  function initTabSearch(){
+    Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(b){
+      b.style.background = b.getAttribute("data-skind") === tsKind ? "#1d3a55" : "";
+    });
+    if (gsItems) { tsRender(); }
+    else {
+      $("tabSearchResults").innerHTML = '<div class="empty">Loading…</div>';
+      gsBuild().then(function(){ tsRender(); }).catch(function(){ $("tabSearchResults").innerHTML = '<div class="empty">Could not load the search index.</div>'; });
+    }
+    setTimeout(function(){ $("tabSearchInput").focus(); }, 30);
+  }
+  $("tabSearchInput").addEventListener("input", function(){ clearTimeout(tsTimer); tsTimer = setTimeout(function(){ tsShown = 30; tsRender(); }, 120); });
+  $("tabSearchInput").addEventListener("keydown", function(e){
+    if (e.key === "Enter") { var all = tsFiltered(); if (all.length) all[0].act(); }
+  });
+  Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(b){
+    b.addEventListener("click", function(){
+      tsKind = b.getAttribute("data-skind"); tsShown = 30;
+      Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(x){ x.style.background = x === b ? "#1d3a55" : ""; });
+      tsRender();
+    });
+  });
+  $("tabSearchMore").addEventListener("click", function(){ tsShown += 30; tsRender(); });
+  $("gsQuickBtn").addEventListener("click", gsOpen);
+  $("gsFullBtn").addEventListener("click", function(){
+    var q = $("gsInput").value;
+    gsClose(); go("search");
+    $("tabSearchInput").value = q; tsShown = 30;
+    if (gsItems) tsRender();
+  });
   $("gsOverlay").addEventListener("click", function(e){ if (e.target === $("gsOverlay")) gsClose(); });
   $("gsInput").addEventListener("input", function(){ clearTimeout(gsTimer); gsTimer = setTimeout(function(){ gsIdx = 0; gsRender(); }, 120); });
   $("gsInput").addEventListener("keydown", function(e){
@@ -2451,7 +2524,7 @@
   <div style="background:#0d1f33;border:1px solid #28455f;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
     <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #22384f;color:#eef4fa;outline:none">
     <div id="gsResults" style="max-height:56vh;overflow:auto;padding:8px"></div>
-    <div class="mut" style="padding:8px 14px;border-top:1px solid #22384f;font-size:12px">↑↓ to move · Enter to open · Esc to close</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #22384f"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
   </div>
 </div>
 </body>
