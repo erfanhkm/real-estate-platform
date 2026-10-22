@@ -101,13 +101,30 @@
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.bad { background: #b91c1c; }
   @media (max-width: 760px) {
+    html, body { overflow-x: hidden; }
     #appView { flex-direction: column; }
-    #side { width: 100%; flex: none; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px; }
-    #side .brand2 { padding: 4px 8px; } #side .sp { display: none; }
-    .navbtn { width: auto; padding: 9px 11px; }
-    #main { padding: 16px 14px 56px; }
-    table, thead, tbody, th, td, tr { display: block; } thead { display: none; }
-    td { border: 0; padding: 4px 0; } tbody tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
+    #side { width: 100%; flex: none; height: auto; position: sticky; top: 0; z-index: 40; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; padding: 8px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    #side .brand2 { padding: 2px 6px; white-space: nowrap; }
+    #side .sp { display: none; }
+    .navbtn { width: auto; flex: none; padding: 9px 11px; white-space: nowrap; }
+    #main { padding: 14px 12px 56px; }
+    .card { padding: 14px; }
+    .pagehead { flex-direction: column; align-items: stretch; gap: 8px; }
+    #main table:not(.kv) { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+    #main table:not(.kv) th, #main table:not(.kv) td { white-space: nowrap; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+    #main table.kv { width: 100%; }
+    #main table.kv td { word-break: break-word; }
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .lfgrid { grid-template-columns: 1fr; }
+    #page-crm [style*="minmax(260px"] { grid-template-columns: 1fr !important; }
+    .crm-cols { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 10px; padding-bottom: 8px; }
+    .crm-col { min-width: 228px; flex: none; }
+    .row2 { flex-wrap: wrap; }
+    .tourrow { flex-wrap: wrap; }
+    #main button, #side button { min-height: 40px; }
+    input, select, textarea { font-size: 16px !important; max-width: 100%; }
+    img, canvas, svg, video { max-width: 100%; height: auto; }
+    .stat .n { font-size: 20px; }
   }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
