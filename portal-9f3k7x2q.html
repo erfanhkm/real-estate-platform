@@ -133,14 +133,13 @@
     <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
     <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
     <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
-    <button class="navbtn" data-nav="contacts"><span class="ic">🗂</span>Contacts</button>
+    <button class="navbtn" data-nav="crm"><span class="ic">🧑‍💼</span>CRM</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
     <button class="navbtn" data-nav="site"><span class="ic">🧩</span>Site content</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
-    <button class="navbtn" data-nav="users"><span class="ic">👤</span>Users</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
@@ -217,22 +216,81 @@
     </section>
 
     <!-- CONTACTS -->
-    <section id="page-contacts" hidden>
+    <!-- CRM -->
+    <section id="page-crm" hidden>
+      <style>
+        .crm-cols{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+        .crm-col{min-width:225px;flex:1 1 0;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
+        .crm-col h3{margin:0 0 8px;font-size:14px}
+        .crm-act{margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(198,161,91,.14);border:1px solid rgba(198,161,91,.45);font-size:13px}
+        .crm-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+        .crm-stat{flex:1 1 130px;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.03)}
+        .crm-stat b{font-size:19px;display:block}
+        .crm-health{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+        .seg{display:inline-flex;border:1px solid rgba(255,255,255,.2);border-radius:9px;overflow:hidden}
+        .seg button{background:transparent;border:0;color:inherit;padding:7px 13px;cursor:pointer;font-size:13px}
+        .seg button.on{background:#C6A15B;color:#0B2239;font-weight:700}
+      </style>
       <div class="pagehead">
-        <div><h1>Contacts</h1><div class="mut" id="ctCount">Every person in one file — registered visitors, leads and viewing guests merged by email, scored automatically</div></div>
-        <button class="ghost small" id="ctRefresh">Refresh</button>
+        <div><h1>🧑‍💼 CRM</h1><div class="mut" id="crmCount">Every person in one place — accounts, leads, viewings, saved homes and searches merged by email</div></div>
+        <button class="ghost small" id="crmRefresh">Refresh</button>
       </div>
+      <div class="crm-stats" id="crmStats"></div>
+      <div class="crm-health" id="crmHealth"></div>
       <div class="filters">
-        <input type="search" id="ctSearch" placeholder="Search name or email…">
-        <select id="ctTier">
-          <option value="">All contacts</option>
+        <input type="search" id="crmSearch" placeholder="Search name, email or phone…">
+        <select id="crmTier">
+          <option value="">All tiers</option>
           <option value="hot">🔥 Hot</option>
           <option value="warm">Warm</option>
           <option value="cold">Cold</option>
+        </select>
+        <select id="crmStageF">
+          <option value="">All stages</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="viewing">Viewing</option>
+          <option value="offer">Offer</option>
+          <option value="closed">Closed</option>
+          <option value="dropped">Dropped</option>
+        </select>
+        <select id="crmFlag">
+          <option value="">All people</option>
           <option value="follow">⏰ Needs follow-up</option>
+          <option value="opps">💎 Has an opportunity</option>
+          <option value="cold">🧊 Going cold</option>
+          <option value="stale">🔥 Stale hot (14d+ quiet)</option>
+          <option value="nophone">📵 No phone</option>
+          <option value="dups">👥 Possible duplicates</option>
+          <option value="banned">🚫 Banned</option>
+        </select>
+        <select id="crmSort">
+          <option value="score">Sort: score</option>
+          <option value="predict">Sort: conversion %</option>
+          <option value="recent">Sort: most recent</option>
+          <option value="name">Sort: name</option>
         </select>
       </div>
-      <div id="ctList"><div class="empty">Loading…</div></div>
+      <div class="filters" style="align-items:center;gap:10px">
+        <span class="seg" id="crmViews">
+          <button type="button" data-crmview="people" class="on">👥 People</button>
+          <button type="button" data-crmview="pipeline">🗂 Pipeline</button>
+          <button type="button" data-crmview="matches">🎯 Match centre</button>
+          <button type="button" data-crmview="follow">⏰ Follow-ups</button>
+        </span>
+        <button class="ghost small" id="crmCsv">⬇ Export CSV</button>
+      </div>
+      <div id="crmMain"><div class="empty">Loading…</div></div>
+      <div class="card" style="margin-top:16px">
+        <h2>🚫 Ban an email address</h2>
+        <div class="mut" style="margin-bottom:10px">A banned address cannot register, sign in, book a viewing or send the contact form. Gmail addresses are matched without dots or +tags, so aliases can't dodge the ban. Banning also signs the person out everywhere immediately.</div>
+        <div class="row2" style="margin-top:0">
+          <input id="banEmail" type="email" placeholder="email@example.com" style="flex:1 1 220px">
+          <input id="banReason" type="text" placeholder="Reason (optional)" style="flex:1 1 180px">
+          <button class="btn-spruce" id="banBtn">Ban</button>
+        </div>
+        <div id="banList" style="margin-top:12px"></div>
+      </div>
     </section>
 
     <!-- MARKET RADAR -->
@@ -414,27 +472,6 @@
     </section>
 
     <!-- USERS -->
-    <section id="page-users" hidden>
-      <div class="pagehead">
-        <div><h1>Registered users</h1><div class="mut" id="usrCount">Accounts created on the website</div></div>
-        <button class="ghost small" id="usrRefresh">Refresh</button>
-      </div>
-      <div class="card">
-        <h2>🚫 Ban an email address</h2>
-        <div class="mut" style="margin-bottom:10px">A banned address cannot register, sign in, book a viewing or send the contact form. Gmail addresses are matched without dots or +tags, so aliases can't dodge the ban. Banning also signs the person out everywhere immediately.</div>
-        <div class="row2" style="margin-top:0">
-          <input id="banEmail" type="email" placeholder="email@example.com" style="flex:1 1 220px">
-          <input id="banReason" type="text" placeholder="Reason (optional)" style="flex:1 1 180px">
-          <button class="btn-spruce" id="banBtn">Ban</button>
-        </div>
-        <div id="banList" style="margin-top:12px"></div>
-      </div>
-      <div class="filters">
-        <input type="search" id="usrSearch" placeholder="Search name or email…">
-      </div>
-      <div id="usrList"><div class="empty">Loading…</div></div>
-      <div class="hint">Deleting a user removes their account, saved homes, searches and sessions. Their leads and viewing bookings stay — they are your business records.</div>
-    </section>
 
     <!-- NEWSLETTER -->
     <section id="page-newsletter" hidden>
@@ -614,7 +651,7 @@
 
   // ---------- navigation ----------
   function go(page){
-    ["overview","leads","contacts","tours","listings","site","radar","traffic","viewings","users","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","crm","tours","listings","site","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -622,14 +659,13 @@
     });
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
-    if (page === "contacts") loadContacts();
+    if (page === "crm") loadCRM();
     if (page === "tours") loadTourList();
     if (page === "listings") { loadListings(); loadAvail(); }
     if (page === "site") loadSiteSettings();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
-    if (page === "users") loadUsers();
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
   }
@@ -881,86 +917,404 @@
     }).catch(function(){ $("deskBody").innerHTML = '<div class="empty">Could not load the desk summary.</div>'; });
   }
 
-  // ---------- contacts (unified desk files) ----------
-  $("ctRefresh").addEventListener("click", loadContacts);
-  $("ctSearch").addEventListener("input", renderContacts);
-  $("ctTier").addEventListener("change", renderContacts);
-  var contactsCache = [];
-  function loadContacts(){
-    api(API_URL, "/api/admin/contacts").then(function(d){
-      contactsCache = (d && d.ok && d.contacts) || [];
-      renderContacts();
-    }).catch(function(){ $("ctList").innerHTML = '<div class="empty">Could not load contacts.</div>'; });
+  // ---------- CRM (unified people desk) ----------
+  var bansCache = [];
+  var crmData = { contacts: [], analytics: null, matches: [], leads: [] };
+  var crmView = "people", crmOpen = null, crmMatchCtx = null;
+  function fmt$(n){ return "$" + Number(n || 0).toLocaleString("en-CA"); }
+  function refreshContacts(){ if (!$("page-crm").hidden) loadCRM(); }
+  function taskPatch(id, body){
+    return api(API_URL, "/api/admin/tasks/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(body) });
   }
+  function crmByEmail(email){
+    var nk = String(email || "").toLowerCase();
+    return crmData.contacts.filter(function(c){ return String(c.email).toLowerCase() === nk; })[0] || null;
+  }
+  function loadCRM(){
+    Promise.all([
+      api(API_URL, "/api/admin/contacts"),
+      api(API_URL, "/api/admin/crm/analytics").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/crm/matches").catch(function(){ return null; }),
+      api(API_URL, "/api/leads").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/users").catch(function(){ return null; })
+    ]).then(function(rs){
+      crmData.contacts = (rs[0] && rs[0].contacts) || [];
+      crmData.analytics = (rs[1] && rs[1].analytics) || null;
+      crmData.matches = (rs[2] && rs[2].matches) || [];
+      crmData.leads = (rs[3] && rs[3].leads) || [];
+      bansCache = (rs[4] && rs[4].bans) || [];
+      renderBans(); renderCRMStats(); renderCRMMain();
+    }).catch(function(){ $("crmMain").innerHTML = '<div class="empty">Could not load the CRM.</div>'; });
+  }
+  function renderBans(){
+    $("banList").innerHTML = bansCache.length ? bansCache.map(function(b){
+      return '<div class="tourrow"><div>🚫 <b>' + esc(b.email) + '</b>' + (b.reason ? ' <span class="mut">— ' + esc(b.reason) + '</span>' : "") + '</div><span style="display:flex;gap:8px;align-items:center"><span class="mut">' + esc(String(b.at || "").slice(0, 10)) + '</span><button class="ghost small" data-unban="' + esc(b.email) + '">Unban</button></span></div>';
+    }).join("") : '<div class="empty">No banned addresses.</div>';
+  }
+  $("banList").addEventListener("click", function(e){
+    var b = e.target.closest("[data-unban]");
+    if (!b) return;
+    api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
+      .then(function(){ toast("Address unbanned"); loadCRM(); }).catch(function(){ toast("Could not unban", true); });
+  });
+  $("banBtn").addEventListener("click", function(){
+    var em = ($("banEmail").value || "").trim();
+    if (!em) { toast("Enter an email address first", true); return; }
+    api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "POST", body: JSON.stringify({ action: "ban", reason: $("banReason").value || "" }) })
+      .then(function(d){ if (d && d.ok) { toast("Address banned"); $("banEmail").value = ""; $("banReason").value = ""; loadCRM(); } else toast("Could not ban — check the address", true); })
+      .catch(function(){ toast("Could not ban", true); });
+  });
+  $("crmRefresh").addEventListener("click", loadCRM);
+  $("crmSearch").addEventListener("input", function(){ if (!crmOpen) renderCRMMain(); });
+  ["crmTier", "crmStageF", "crmFlag", "crmSort"].forEach(function(id){ $(id).addEventListener("change", function(){ crmOpen = null; renderCRMMain(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(b){
+    b.addEventListener("click", function(){
+      crmView = b.getAttribute("data-crmview"); crmOpen = null;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x === b); });
+      renderCRMMain();
+    });
+  });
+  $("crmCsv").addEventListener("click", function(){
+    var rows = [["Name", "Email", "Phone", "Tier", "Score", "Conversion %", "Stage", "Tags", "Last activity", "Saved", "Searches", "Leads", "Viewings"]];
+    crmFiltered().forEach(function(c){ rows.push([c.name || "", c.email, c.phone || "", c.tier, c.score, c.predict, c.personStage, (c.customTags || []).concat(c.tags || []).join("; "), c.lastActivity || "", c.savedCount, c.searchCount, (c.leads || []).length, (c.viewings || []).length]); });
+    var csv = rows.map(function(r){ return r.map(function(x){ return '"' + String(x == null ? "" : x).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "crm-export.csv"; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  });
+  function renderCRMStats(){
+    var a = crmData.analytics, cs = crmData.contacts;
+    var followN = cs.filter(function(c){ return c.followUp; }).length;
+    var tiles = [
+      ["👥 People", cs.length],
+      ["🔥 Hot", cs.filter(function(c){ return c.tier === "hot"; }).length],
+      ["⏰ Need follow-up", followN],
+      ["🧊 Going cold", cs.filter(function(c){ return c.coldRisk; }).length]
+    ];
+    if (a) {
+      tiles.push(["🗂 Pipeline value", fmt$(a.pipeline)]);
+      tiles.push(["🎯 Expected commission*", fmt$(a.commission)]);
+      tiles.push(["✅ Tasks overdue", a.tasksOverdue]);
+      tiles.push(["✉️ New leads · 7d", a.leads7d]);
+    }
+    $("crmStats").innerHTML = tiles.map(function(t){ return '<div class="crm-stat"><span class="mut">' + t[0] + '</span><b>' + t[1] + '</b></div>'; }).join("") +
+      (a && a.bottleneck ? '<div class="crm-stat"><span class="mut">🚧 Weakest funnel step</span><b style="font-size:15px">' + esc(a.bottleneck) + '</b></div>' : "") +
+      (a ? '<div class="mut" style="flex:1 1 100%">*Expected commission = priced deals × stage probability × 2.5%. A deal is priced from its listing, the lead\'s budget, or the person\'s priciest saved home.</div>' : "");
+    var health = [];
+    var staleHot = cs.filter(function(c){ return c.tier === "hot" && (c.daysSinceActivity || 0) >= 14; }).length;
+    var noPhone = cs.filter(function(c){ return !c.phone; }).length;
+    var dups = cs.filter(function(c){ return (c.dupWith || []).length; }).length;
+    if (staleHot) health.push('<button class="ghost small" data-health="stale">⚠️ ' + staleHot + ' hot contact(s) quiet for 14d+</button>');
+    if (a && a.tasksOverdue) health.push('<button class="ghost small" data-health="follow">⚠️ ' + a.tasksOverdue + ' overdue task(s)</button>');
+    if (dups) health.push('<button class="ghost small" data-health="dups">⚠️ ' + dups + ' possible duplicate(s)</button>');
+    if (noPhone) health.push('<button class="ghost small" data-health="nophone">📵 ' + noPhone + ' contact(s) without a phone</button>');
+    $("crmHealth").innerHTML = health.join("");
+  }
+  $("crmHealth").addEventListener("click", function(e){
+    var b = e.target.closest("[data-health]");
+    if (!b) return;
+    var k = b.getAttribute("data-health");
+    crmOpen = null;
+    if (k === "follow") {
+      crmView = "follow";
+      Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x.getAttribute("data-crmview") === "follow"); });
+    } else {
+      crmView = "people";
+      $("crmFlag").value = k;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x.getAttribute("data-crmview") === "people"); });
+    }
+    renderCRMMain();
+  });
   function tierBadge(c){
     if (c.tier === "hot") return '<span class="stage s-closed">🔥 hot · ' + c.score + '</span>';
     if (c.tier === "warm") return '<span class="stage s-viewing">warm · ' + c.score + '</span>';
     return '<span class="stage s-dropped">cold · ' + c.score + '</span>';
   }
-  function renderContacts(){
-    var q = ($("ctSearch").value || "").toLowerCase();
-    var tf = $("ctTier").value;
-    var rows = contactsCache.filter(function(c){
-      if (tf === "follow" && !c.followUp) return false;
-      if (tf && tf !== "follow" && c.tier !== tf) return false;
-      if (q && (String(c.name) + " " + String(c.email)).toLowerCase().indexOf(q) < 0) return false;
+  function crmFiltered(){
+    var q = ($("crmSearch").value || "").toLowerCase();
+    var tf = $("crmTier").value, sf = $("crmStageF").value, fl = $("crmFlag").value;
+    var rows = crmData.contacts.filter(function(c){
+      if (tf && c.tier !== tf) return false;
+      if (sf && c.personStage !== sf) return false;
+      if (fl === "follow" && !c.followUp) return false;
+      if (fl === "opps" && !(c.opportunities || []).length) return false;
+      if (fl === "cold" && !c.coldRisk) return false;
+      if (fl === "stale" && !(c.tier === "hot" && (c.daysSinceActivity || 0) >= 14)) return false;
+      if (fl === "nophone" && c.phone) return false;
+      if (fl === "banned" && !c.banned) return false;
+      if (fl === "dups" && !(c.dupWith || []).length) return false;
+      if (q && (String(c.name) + " " + String(c.email) + " " + String(c.phone || "")).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
-    $("ctCount").textContent = rows.length + " of " + contactsCache.length + " contacts — merged by email, scored automatically";
-    $("ctList").innerHTML = rows.length ? rows.map(function(c, ix){
-      var bits = [];
-      if (c.isUser) bits.push("👤 account");
-      if (c.phone) bits.push("📞 " + esc(c.phone));
-      if (c.savedCount) bits.push("❤️ " + c.savedCount + " saved");
-      if (c.searchCount) bits.push("🔎 " + c.searchCount + " searches");
-      if (c.viewings.length) bits.push("📅 " + c.viewings.length + " viewing" + (c.viewings.length === 1 ? "" : "s"));
-      if (c.leads.length) bits.push("✉️ " + c.leads.length + " lead" + (c.leads.length === 1 ? "" : "s"));
-      var tags = (c.tags || []).map(function(t){ return '<span class="stage s-contacted">' + esc(t) + '</span>'; }).join(" ");
-      var act = "";
-      (c.viewings || []).slice(0, 3).forEach(function(v){ act += '<div class="kv"><b>Viewing</b>' + esc(v.date) + ' ' + esc(v.time) + ' · ' + esc(v.listingId || "") + ' · ' + esc(v.status) + '</div>'; });
-      (c.leads || []).slice(0, 3).forEach(function(l){ act += '<div class="kv"><b>Lead</b>' + esc(String(l.created_at || "").slice(0, 10)) + ' · ' + esc(l.intent || "") + ' · ' + esc(l.stage || "") + (l.message ? ' — ' + esc(String(l.message).slice(0, 140)) : '') + '</div>'; });
-      if (c.profile && (c.profile.budget || c.profile.intent || (c.profile.areas || []).length)) act += '<div class="kv"><b>Profile</b>' + esc([c.profile.intent, c.profile.budget, (c.profile.areas || []).join(", ")].filter(Boolean).join(" · ")) + '</div>';
-      if (c.lastLogin) act += '<div class="kv"><b>Last sign-in</b>' + esc(fmtDate(c.lastLogin)) + '</div>';
-      var KIND_ICON = { registered: "👤", lead: "✉️", viewing: "📅", view: "👀", save: "❤️", unsave: "💔", search: "🔎" };
-      var tl = "";
-      (c.activity || []).slice(0, 12).forEach(function(a){
-        tl += '<div class="kv">' + (KIND_ICON[a.kind] || "•") + ' <b>' + esc(a.kind) + '</b>' + esc(a.label ? ' ' + a.label : '') + ' <span class="mut">' + esc(fmtDate(a.ts)) + '</span></div>';
-      });
-      var todayV = new Date().toLocaleDateString("en-CA");
-      var tk = "";
-      (c.openTasks || []).forEach(function(t){
-        var late = t.due < todayV;
-        tk += '<div class="kv">☐ ' + esc(t.text) + ' <span class="mut">· due ' + esc(t.due) + (late ? ' · <b style="color:#f87171">overdue</b>' : '') + '</span> <button type="button" class="ghost small" data-task-done="' + esc(t.id) + '">✓ Done</button> <button type="button" class="ghost small" data-task-del="' + esc(t.id) + '">✕</button></div>';
-      });
-      tk += '<div class="kv" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input type="text" placeholder="New task — e.g. Call about the showing" data-task-text="' + esc(c.email) + '" style="flex:1 1 200px"><input type="date" data-task-due="' + esc(c.email) + '" value="' + todayV + '"><button type="button" class="ghost small" data-task-add="' + esc(c.email) + '">+ Add task</button></div>';
-      return '<div class="lead"><div class="lead-top"><b>' + esc(c.name || c.email) + '</b>' + tierBadge(c) + '</div>' +
-        '<div class="mut">' + esc(c.email) + (bits.length ? ' · ' + bits.join(" · ") : "") + '</div>' +
-        (tags ? '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">' + tags + '</div>' : "") +
-        (c.followUp ? '<div style="margin-top:6px;color:#fbbf24">⏰ Waiting ' + c.followUp.hours + 'h for a follow-up (' + esc(c.followUp.kind) + ')</div>' : "") +
-        (act ? '<div style="margin-top:8px">' + act + '</div>' : "") +
-        '<div style="margin-top:8px"><div class="mut" style="margin-bottom:2px">✅ Tasks</div>' + tk + '</div>' +
-        (tl ? '<div style="margin-top:8px"><div class="mut" style="margin-bottom:2px">🕘 Activity</div>' + tl + '</div>' : "") + '</div>';
-    }).join("") : '<div class="empty">No contacts match.</div>';
+    var so = $("crmSort").value;
+    if (so === "predict") rows.sort(function(a, b){ return (b.predict || 0) - (a.predict || 0); });
+    else if (so === "recent") rows.sort(function(a, b){ return String(b.lastActivity).localeCompare(String(a.lastActivity)); });
+    else if (so === "name") rows.sort(function(a, b){ return String(a.name || a.email).localeCompare(String(b.name || b.email)); });
+    return rows;
   }
-
-  // ---------- contact tasks (delegated) ----------
-  function refreshContacts(){ loadContacts(); setTimeout(loadContacts, 900); }
-  function taskPatch(id, body){
-    return api(API_URL, "/api/admin/tasks/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(body) });
+  function crmCard(c, reasons){
+    var bits = [];
+    if (c.isUser) bits.push("👤 account");
+    if (c.phone) bits.push("📞 " + esc(c.phone));
+    if (c.savedCount) bits.push("❤️ " + c.savedCount + " saved");
+    if (c.searchCount) bits.push("🔎 " + c.searchCount + " searches");
+    if (c.viewings.length) bits.push("📅 " + c.viewings.length + " viewing" + (c.viewings.length === 1 ? "" : "s"));
+    if (c.leads.length) bits.push("✉️ " + c.leads.length + " lead" + (c.leads.length === 1 ? "" : "s"));
+    var chips = tierBadge(c) +
+      ' <span class="stage s-offer">🎯 ' + (c.predict || 0) + '% likely</span>' +
+      (c.trend === "rising" ? ' <span class="stage s-new">📈 rising</span>' : c.trend === "cooling" ? ' <span class="stage s-dropped">🧊 cooling</span>' : "") +
+      ' <span class="stage s-contacted">' + esc(c.personStage || "new") + '</span>' +
+      (c.banned ? ' <span class="stage s-dropped">🚫 banned</span>' : "") +
+      (c.dnc ? ' <span class="stage s-dropped">🔕 do not contact</span>' : "");
+    var allTags = (c.customTags || []).map(function(t){ return '<span class="stage s-viewing">' + esc(t) + '</span>'; })
+      .concat((c.tags || []).map(function(t){ return '<span class="stage s-contacted">' + esc(t) + '</span>'; })).join(" ");
+    var opps = (c.opportunities || []).map(function(o){
+      return o.kind === "price_drop"
+        ? '<span class="stage s-closed">💎 Price drop: ' + esc(o.title) + ' ' + fmt$(o.was) + ' → ' + fmt$(o.now) + '</span>'
+        : '<span class="stage s-closed">🆕 ' + o.count + ' new match(es) for “' + esc(o.searchName || "a saved search") + '”</span>';
+    }).join(" ");
+    var rs = "";
+    if (reasons && reasons.length) rs = '<div style="margin-top:6px">' + reasons.map(function(r){ return '<div class="kv">' + r + '</div>'; }).join("") + '</div>';
+    return '<div class="lead"><div class="lead-top"><b>' + esc(c.name || c.email) + '</b><span>' + chips + '</span></div>' +
+      '<div class="mut">' + esc(c.email) + (bits.length ? ' · ' + bits.join(" · ") : "") + (c.daysSinceActivity != null ? ' · last activity ' + c.daysSinceActivity + 'd ago' : "") + '</div>' +
+      (allTags ? '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">' + allTags + '</div>' : "") +
+      (opps ? '<div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">' + opps + '</div>' : "") +
+      (c.followUp ? '<div style="margin-top:6px;color:#fbbf24">⏰ Waiting ' + c.followUp.hours + 'h for a follow-up (' + esc(c.followUp.kind) + ')</div>' : "") +
+      (c.nextAction ? '<div class="crm-act">👉 <b>Next step:</b> ' + esc(c.nextAction.text) + '</div>' : "") + rs +
+      '<div style="margin-top:9px"><button type="button" class="btn-spruce small" data-open-profile="' + esc(c.email) + '">Open profile →</button>' +
+      ((c.openTasks || []).length ? ' <span class="mut">✅ ' + c.openTasks.length + ' open task(s)</span>' : "") + '</div></div>';
   }
-  $("ctList").addEventListener("click", function(e){
+  function crmFollowRows(){
+    var today = new Date().toLocaleDateString("en-CA");
+    var rows = [];
+    crmData.contacts.forEach(function(c){
+      var reasons = [];
+      var overdue = (c.openTasks || []).filter(function(t){ return t.due < today; });
+      if (overdue.length) reasons.push("✅ " + overdue.length + " overdue task(s) — oldest: “" + esc(overdue[0].text) + "”");
+      if (c.followUp) reasons.push("⏰ " + esc(c.followUp.kind) + " waiting " + c.followUp.hours + "h for a follow-up");
+      if ((c.openTasks || []).some(function(t){ return t.due === today; })) reasons.push("✅ A task is due today");
+      if (c.coldRisk) reasons.push("🧊 Going cold — " + (c.daysSinceActivity || "?") + " days without activity");
+      (c.opportunities || []).forEach(function(o){ reasons.push(o.kind === "price_drop" ? "💎 A saved home dropped in price — worth a message" : "🆕 New listing(s) match their saved search"); });
+      if (reasons.length) { c._reasons = reasons; c._urg = (overdue.length ? 1000 : 0) + (c.followUp ? c.followUp.hours : 0); rows.push(c); }
+    });
+    rows.sort(function(a, b){ return b._urg - a._urg; });
+    return rows;
+  }
+  function renderCRMMain(){
+    if (crmOpen) {
+      var c = crmByEmail(crmOpen);
+      if (c) { $("crmMain").innerHTML = crmProfile(c); return; }
+      crmOpen = null;
+    }
+    if (crmView === "pipeline") return renderPipeline();
+    if (crmView === "matches") return renderMatches();
+    var rows = crmView === "follow" ? crmFollowRows() : crmFiltered();
+    $("crmCount").textContent = crmView === "follow"
+      ? rows.length + " people need attention today"
+      : rows.length + " of " + crmData.contacts.length + " people — merged by email, scored automatically";
+    $("crmMain").innerHTML = rows.length
+      ? rows.map(function(c){ return crmCard(c, crmView === "follow" ? c._reasons : null); }).join("")
+      : '<div class="empty">' + (crmView === "follow" ? "Nothing needs attention — all caught up 🎉" : "No people match.") + '</div>';
+  }
+  function crmProfile(c){
+    var em = esc(c.email);
+    var todayV = new Date().toLocaleDateString("en-CA");
+    var parts = (c.scoreParts || []).map(function(p){ return '<div class="kv">' + esc(p.label) + ' <b>+' + p.pts + '</b></div>'; }).join("");
+    var br = c.brief || {};
+    var briefRows = [["Budget", br.budget], ["Areas", br.areas], ["Timeline", br.timeline], ["Pre-approved", br.preApproved === true ? "Yes" : br.preApproved === false ? "No" : ""], ["Must-haves", br.mustHaves], ["Objections", br.objections]]
+      .filter(function(r){ return r[1]; }).map(function(r){ return '<div class="kv"><b>' + r[0] + '</b>' + esc(r[1]) + '</div>'; }).join("");
+    var notes = (c.notes || []).map(function(n){
+      return '<div class="kv">' + (n.kind === "call" ? "📞" : "📝") + ' ' + esc(n.text) + ' <span class="mut">' + esc(fmtDate(n.at)) + '</span> <button type="button" class="ghost small" data-note-del="' + esc(n.id) + '">✕</button></div>';
+    }).join("");
+    var tk = "";
+    (c.openTasks || []).forEach(function(t){
+      var late = t.due < todayV;
+      tk += '<div class="kv">☐ ' + esc(t.text) + ' <span class="mut">· due ' + esc(t.due) + (late ? ' · <b style="color:#f87171">overdue</b>' : '') + '</span> <button type="button" class="ghost small" data-task-done="' + esc(t.id) + '">✓ Done</button> <button type="button" class="ghost small" data-task-del="' + esc(t.id) + '">✕</button></div>';
+    });
+    tk += '<div class="kv" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input type="text" placeholder="New task — e.g. Call about the showing" data-task-text="' + em + '" style="flex:1 1 200px"><input type="date" data-task-due="' + em + '" value="' + todayV + '"><button type="button" class="ghost small" data-task-add="' + em + '">+ Add task</button></div>';
+    var homes = (c.savedHomes || []).map(function(h){
+      var drop = h.priceThen && h.priceNow && h.priceThen > h.priceNow;
+      return '<div class="kv">❤️ <b>' + esc(h.title) + '</b> ' + fmt$(h.priceNow) + (drop ? ' <span class="stage s-closed">💎 was ' + fmt$(h.priceThen) + '</span>' : (h.priceThen ? ' <span class="mut">saved at ' + fmt$(h.priceThen) + '</span>' : "")) + '</div>';
+    }).join("");
+    var searches = (c.searches || []).map(function(s){
+      var cr = s.criteria || {};
+      var d = [cr.city, cr.type, cr.maxPrice ? "≤ " + fmt$(parseInt(cr.maxPrice, 10)) : "", cr.minBeds ? cr.minBeds + "+ bd" : "", cr.q].filter(Boolean).join(" · ");
+      return '<div class="kv">🔎 <b>' + esc(s.name || "Saved search") + '</b>' + (d ? ' <span class="mut">' + esc(d) + '</span>' : "") + '</div>';
+    }).join("");
+    var vws = (c.viewings || []).map(function(v){ return '<div class="kv">📅 <b>Viewing</b>' + esc(v.date) + ' ' + esc(v.time) + ' · ' + esc(v.listingId || "") + ' · ' + esc(v.status) + '</div>'; }).join("");
+    var lds = (c.leads || []).map(function(l){
+      var opts = ["new", "contacted", "viewing", "offer", "closed", "dropped"].map(function(s){ return '<option value="' + s + '"' + (l.stage === s ? " selected" : "") + '>' + s + '</option>'; }).join("");
+      return '<div class="kv">✉️ <b>Lead</b>' + esc(String(l.created_at || "").slice(0, 10)) + ' · ' + esc(l.intent || "") + (l.message ? ' — ' + esc(String(l.message).slice(0, 140)) : "") + ' <select data-lead-stage="' + esc(l.id) + '">' + opts + '</select></div>';
+    }).join("");
+    var KIND_ICON = { registered: "👤", lead: "✉️", viewing: "📅", view: "👀", save: "❤️", unsave: "💔", search: "🔎", note: "📝", call: "📞" };
+    var tl = (c.activity || []).slice(0, 15).map(function(a){
+      return '<div class="kv">' + (KIND_ICON[a.kind] || "•") + ' <b>' + esc(a.kind) + '</b>' + esc(a.label ? ' ' + a.label : '') + ' <span class="mut">' + esc(fmtDate(a.ts)) + '</span></div>';
+    }).join("");
+    var stageOpts = ["", "new", "contacted", "viewing", "offer", "closed", "dropped"].map(function(s){
+      return '<option value="' + s + '"' + ((c.personStage === s && s) || (!s && !c.personStage) ? " selected" : "") + '>' + (s || ("Auto (" + esc(c.stageAuto || "new") + ")")) + '</option>';
+    }).join("");
+    var dups = (c.dupWith || []).length ? '<div class="card" style="margin-top:12px"><h2>👥 Possible duplicates</h2>' +
+      c.dupWith.map(function(d){ return '<div class="kv">This profile may be the same person as <b>' + esc(d) + '</b> (same phone or name). <button type="button" class="ghost small" data-merge="' + esc(d) + '">Merge ' + esc(d) + ' into this profile</button></div>'; }).join("") + '</div>' : "";
+    var merged = (c.mergedEmails || []).length ? '<div class="mut" style="margin-top:6px">Merged in: ' + c.mergedEmails.map(esc).join(", ") + '</div>' : "";
+    return '<button type="button" class="ghost small" data-back-list="1">← Back to the list</button>' +
+      '<div class="lead" style="margin-top:10px"><div class="lead-top"><b style="font-size:17px">' + esc(c.name || c.email) + '</b><span>' + tierBadge(c) + ' <span class="stage s-offer">🎯 ' + (c.predict || 0) + '% likely to transact</span>' + (c.banned ? ' <span class="stage s-dropped">🚫 banned</span>' : "") + '</span></div>' +
+      '<div class="mut">' + em + (c.phone ? ' · 📞 ' + esc(c.phone) : ' · 📵 no phone') + (c.isUser ? ' · 👤 registered' + (c.lastLogin ? ' · last sign-in ' + esc(fmtDate(c.lastLogin)) : "") : ' · no account') + (c.daysSinceActivity != null ? ' · last activity ' + c.daysSinceActivity + 'd ago' : "") + ' · trend: ' + esc(c.trend || "steady") + '</div>' + merged +
+      (c.nextAction ? '<div class="crm-act">👉 <b>Next best step:</b> ' + esc(c.nextAction.text) + '</div>' : "") +
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button type="button" class="btn-spruce small" data-act="brief" data-email="' + em + '">🤖 AI brief</button>' +
+        '<button type="button" class="ghost small" data-act="draft" data-email="' + em + '">✍️ AI follow-up draft</button>' +
+        '<button type="button" class="ghost small" data-act="meeting" data-email="' + em + '">📋 Meeting brief</button>' +
+        (c.banned ? '<button type="button" class="ghost small" data-crm-unban="' + em + '">Unban</button>' : '<button type="button" class="ghost small" data-crm-ban="' + em + '">🚫 Ban</button>') +
+        '<button type="button" class="ghost small" data-crm-del="' + em + '">🗑 Delete account</button>' +
+      '</div>' +
+      '<div id="crmAiBox" style="margin-top:10px"></div>' +
+      '<div class="card" style="margin-top:12px"><h2>✉️ Message centre</h2>' +
+        '<div class="row2" style="margin-top:0"><select id="crmCommKind" style="flex:1 1 200px"><option value="invite">Viewing invitation</option><option value="drop">Price-drop news</option><option value="feedback">Ask for feedback after a viewing</option><option value="checkin">Friendly check-in</option></select><button type="button" class="ghost small" data-act="commgen" data-email="' + em + '">Generate draft</button></div>' +
+        '<input type="text" id="crmCommSubject" placeholder="Subject" style="width:100%;margin-top:8px">' +
+        '<textarea id="crmCommText" rows="5" placeholder="Your message draft appears here — edit freely, then copy it or queue it as an email." style="width:100%;margin-top:6px"></textarea>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="ghost small" data-act="copy">📋 Copy</button><button type="button" class="ghost small" data-act="queue" data-email="' + em + '">📥 Queue as email</button><span class="mut">Queued mail sends once the email sender is activated.</span></div>' +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><h2>🧭 Stage, tags &amp; contact rules</h2>' +
+        '<div class="row2" style="margin-top:0"><label class="mut">Pipeline stage <select data-crm-stage="1">' + stageOpts + '</select></label>' +
+        '<input type="text" id="crmTags" placeholder="Tags, comma separated — e.g. investor, burnaby" value="' + esc((c.customTags || []).join(", ")) + '" style="flex:1 1 220px">' +
+        '<label class="mut"><input type="checkbox" data-crm-dnc="1"' + (c.dnc ? " checked" : "") + '> 🔕 Do not contact</label>' +
+        '<button type="button" class="btn-spruce small" data-act="savemeta" data-email="' + em + '">Save</button></div>' +
+        '<div class="mut" style="margin-top:6px">Why this score?' + (parts ? "" : " —") + '</div>' + parts +
+        '<div class="kv"><b>Conversion estimate</b>' + (c.predict || 0) + '% · trend ' + esc(c.trend || "steady") + (c.coldRisk ? ' · <b style="color:#f87171">going cold</b>' : "") + '</div>' +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><h2>🧠 What the AI knows</h2>' + (briefRows || '<div class="empty">Nothing extracted yet — save a note below with “Extract with AI”.</div>') +
+        '<textarea id="crmExtractText" rows="3" placeholder="Type or paste a note or message — e.g. “Called Sara, budget is $900k, wants Burnaby near SkyTrain, pre-approved, husband wants a yard, call again next Tuesday”" style="width:100%;margin-top:8px"></textarea>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="btn-spruce small" data-act="extract" data-email="' + em + '">✨ Save note + extract with AI</button><span class="mut">Fills the profile, suggests a stage and creates follow-up tasks automatically.</span></div>' +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><h2>📝 Notes &amp; calls</h2>' + (notes || '<div class="empty">No notes yet.</div>') +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><input type="text" id="crmNoteText" placeholder="Add a note or log a call…" style="flex:1 1 220px"><select id="crmNoteKind"><option value="note">📝 Note</option><option value="call">📞 Call</option></select><select id="crmCallDays"><option value="0">No follow-up task</option><option value="2">Follow up in 2 days</option><option value="7">Follow up in 7 days</option></select><button type="button" class="ghost small" data-act="addnote" data-email="' + em + '">Add</button></div>' +
+      '</div>' +
+      '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">✅ Tasks</div>' + tk + '</div>' +
+      (homes ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">❤️ Saved homes</div>' + homes + '</div>' : "") +
+      (searches ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">🔎 Saved searches</div>' + searches + '</div>' : "") +
+      (vws ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">📅 Viewings</div>' + vws + '</div>' : "") +
+      (lds ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">✉️ Leads (move the stage right here)</div>' + lds + '</div>' : "") +
+      (tl ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">🕘 Activity</div>' + tl + '</div>' : "") +
+      '</div>' + dups;
+  }
+  function renderPipeline(){
+    var stages = [["new", "🆕 New"], ["contacted", "📞 Contacted"], ["viewing", "📅 Viewing"], ["offer", "📝 Offer"], ["closed", "🎉 Closed"], ["dropped", "🗑 Dropped"]];
+    var byStage = {};
+    stages.forEach(function(s){ byStage[s[0]] = []; });
+    crmData.leads.forEach(function(l){ if (byStage[l.stage]) byStage[l.stage].push(l); });
+    $("crmCount").textContent = crmData.leads.length + " deals in the pipeline";
+    $("crmMain").innerHTML = '<div class="crm-cols">' + stages.map(function(s){
+      var cards = byStage[s[0]].map(function(l){
+        var age = Math.max(0, Math.floor((Date.now() - Date.parse(l.created_at || "")) / 86400000));
+        var opts = stages.map(function(x){ return '<option value="' + x[0] + '"' + (l.stage === x[0] ? " selected" : "") + '>' + x[0] + '</option>'; }).join("");
+        return '<div class="lead" style="margin-bottom:8px"><b>' + esc(l.name || l.email) + '</b><div class="mut">' + esc(l.email) + ' · ' + esc(l.intent || "") + ' · ' + age + 'd old</div>' +
+          (l.message ? '<div class="mut" style="margin-top:4px">' + esc(String(l.message).slice(0, 110)) + '</div>' : "") +
+          '<div style="margin-top:6px"><select data-lead-stage="' + esc(l.id) + '">' + opts + '</select> <button type="button" class="ghost small" data-open-profile="' + esc(l.email) + '">Profile</button></div></div>';
+      }).join("");
+      return '<div class="crm-col"><h3>' + s[1] + ' · ' + byStage[s[0]].length + '</h3>' + (cards || '<div class="mut">Empty</div>') + '</div>';
+    }).join("") + '</div>';
+  }
+  function renderMatches(){
+    var groups = {};
+    crmData.matches.forEach(function(m){ (groups[m.mls] = groups[m.mls] || []).push(m); });
+    var keys = Object.keys(groups);
+    $("crmCount").textContent = crmData.matches.length + " listing ↔ person matches from saved searches";
+    $("crmMain").innerHTML = keys.length ? keys.map(function(mls){
+      var g = groups[mls], head = g[0];
+      var rows = g.map(function(m){
+        var fitChip = m.fit >= 80 ? '<span class="stage s-closed">fit ' + m.fit + '</span>' : m.fit >= 60 ? '<span class="stage s-offer">fit ' + m.fit + '</span>' : '<span class="stage s-contacted">fit ' + m.fit + '</span>';
+        return '<div class="kv">👤 <b>' + esc(m.name) + '</b> ' + fitChip + ' <span class="mut">via search “' + esc(m.searchName || "—") + '”</span> <button type="button" class="ghost small" data-outreach="' + esc(m.email) + '" data-mls="' + esc(m.mls) + '">✉️ Draft outreach</button> <button type="button" class="ghost small" data-open-profile="' + esc(m.email) + '">Profile</button></div>';
+      }).join("");
+      return '<div class="lead"><div class="lead-top"><b>🏠 ' + esc(head.title) + '</b><span class="stage s-new">' + fmt$(head.price) + ' · ' + esc(mls) + '</span></div>' + rows + '</div>';
+    }).join("") : '<div class="empty">No matches yet — they appear when a listing fits someone\'s saved search.</div>';
+  }
+  function crmCommDraft(c, kind){
+    var first = (c.name || "there").split(" ")[0];
+    if (kind === "drop") {
+      var o = (c.opportunities || []).filter(function(x){ return x.kind === "price_drop"; })[0];
+      if (o) return { subject: "Good news — a home you saved just dropped in price", body: "Hi " + first + ", good news: " + o.title + " — one of the homes you saved — just dropped from " + fmt$(o.was) + " to " + fmt$(o.now) + ". Homes at this price tend to move quickly; would you like me to book you a viewing this week?\n\n— Erfan" };
+    }
+    if (kind === "feedback") {
+      var v = (c.viewings || []).filter(function(x){ return x.status === "done"; })[0];
+      return { subject: "How was your viewing?", body: "Hi " + first + ", thanks for coming to the viewing" + (v ? " on " + v.date : "") + ". I'd love your honest take — what did you think of the home, and is there anything you'd like to see more (or less) of? Your feedback helps me find the right fit.\n\n— Erfan" };
+    }
+    if (kind === "checkin") return { subject: "Checking in", body: "Hi " + first + ", just checking in on your home search. The market has been moving — if you'd like, I can send you a couple of fresh listings that match what you're looking for. Anything changed on your end?\n\n— Erfan" };
+    if (crmMatchCtx) {
+      var mc = crmMatchCtx; crmMatchCtx = null;
+      return { subject: "A new match for your search: " + mc.title, body: "Hi " + first + ", a listing just matched your saved search: " + mc.title + " at " + fmt$(mc.price) + ". I think it's a strong fit for you — want the details, or shall we book a viewing?\n\n— Erfan" };
+    }
+    var home = (c.savedHomes || [])[0];
+    return { subject: "Let's book your viewing", body: "Hi " + first + ", " + (home ? "I noticed you saved " + home.title + " (" + fmt$(home.priceNow) + "). " : "") + "I'd be happy to arrange a private viewing — I have openings this week, mornings and afternoons. What suits you best?\n\n— Erfan" };
+  }
+  $("crmMain").addEventListener("change", function(e){
+    var sel = e.target.closest("[data-lead-stage]");
+    if (!sel) return;
+    api(API_URL, "/api/leads/" + encodeURIComponent(sel.getAttribute("data-lead-stage")), { method: "PATCH", body: JSON.stringify({ stage: sel.value }) })
+      .then(function(d){ if (d && d.ok) { toast("Stage updated ✓"); loadCRM(); } else toast("Could not update the stage", true); })
+      .catch(function(){ toast("Could not update the stage", true); });
+  });
+  $("crmMain").addEventListener("click", function(e){
+    var openB = e.target.closest("[data-open-profile]");
+    if (openB) { crmOpen = openB.getAttribute("data-open-profile"); renderCRMMain(); window.scrollTo(0, 0); return; }
+    if (e.target.closest("[data-back-list]")) { crmOpen = null; renderCRMMain(); return; }
+    var outB = e.target.closest("[data-outreach]");
+    if (outB) {
+      var m = crmData.matches.filter(function(x){ return x.email === outB.getAttribute("data-outreach") && x.mls === outB.getAttribute("data-mls"); })[0];
+      crmOpen = outB.getAttribute("data-outreach");
+      if (m) crmMatchCtx = { title: m.title, price: m.price };
+      renderCRMMain();
+      var cc = crmByEmail(crmOpen);
+      if (cc) { var dr = crmCommDraft(cc, "invite"); if ($("crmCommSubject")) $("crmCommSubject").value = dr.subject; if ($("crmCommText")) $("crmCommText").value = dr.body; }
+      window.scrollTo(0, 0); return;
+    }
+    var mgB = e.target.closest("[data-merge]");
+    if (mgB) {
+      var from = mgB.getAttribute("data-merge");
+      if (!confirm("Merge " + from + " into " + crmOpen + "?\nAll their leads, viewings, saves, searches, notes and tasks fold into this profile. The duplicate disappears from the CRM.")) return;
+      api(API_URL, "/api/admin/crm/merge", { method: "POST", body: JSON.stringify({ from: from, to: crmOpen }) })
+        .then(function(d){ if (d && d.ok) { toast("Merged ✓"); loadCRM(); } else toast("Could not merge", true); })
+        .catch(function(){ toast("Could not merge", true); });
+      return;
+    }
+    var ndB = e.target.closest("[data-note-del]");
+    if (ndB) {
+      api(API_URL, "/api/admin/crm/" + encodeURIComponent(crmOpen) + "/notes/" + encodeURIComponent(ndB.getAttribute("data-note-del")), { method: "DELETE" })
+        .then(function(){ toast("Note deleted"); loadCRM(); }).catch(function(){ toast("Could not delete the note", true); });
+      return;
+    }
+    var banB = e.target.closest("[data-crm-ban]"), unbB = e.target.closest("[data-crm-unban]"), delB2 = e.target.closest("[data-crm-del]");
+    if (banB) {
+      var bem = banB.getAttribute("data-crm-ban");
+      if (!confirm("Ban " + bem + "?\nThey will be signed out everywhere and blocked from registering, signing in, booking and the contact form.")) return;
+      api(API_URL, "/api/admin/users/" + encodeURIComponent(bem), { method: "POST", body: JSON.stringify({ action: "ban" }) })
+        .then(function(){ toast("Address banned"); loadCRM(); }).catch(function(){ toast("Could not ban", true); });
+      return;
+    }
+    if (unbB) {
+      api(API_URL, "/api/admin/users/" + encodeURIComponent(unbB.getAttribute("data-crm-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
+        .then(function(){ toast("Address unbanned"); loadCRM(); }).catch(function(){ toast("Could not unban", true); });
+      return;
+    }
+    if (delB2) {
+      var dem = delB2.getAttribute("data-crm-del");
+      if (!confirm("Delete the account for " + dem + "?\nTheir saved homes, searches and sessions are removed. Their leads and bookings stay as your business records.")) return;
+      api(API_URL, "/api/admin/users/" + encodeURIComponent(dem), { method: "DELETE" })
+        .then(function(){ toast("User deleted"); crmOpen = null; loadCRM(); }).catch(function(){ toast("Could not delete", true); });
+      return;
+    }
     var doneB = e.target.closest("[data-task-done]");
-    var delB = e.target.closest("[data-task-del]");
+    var tdelB = e.target.closest("[data-task-del]");
     var addB = e.target.closest("[data-task-add]");
-    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); refreshContacts(); }).catch(function(){ toast("Could not update the task", true); }); return; }
-    if (delB) {
-      api(API_URL, "/api/admin/tasks/" + encodeURIComponent(delB.getAttribute("data-task-del")), { method: "DELETE" })
-        .then(function(){ toast("Task deleted"); refreshContacts(); }).catch(function(){ toast("Could not delete the task", true); });
+    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadCRM(); setTimeout(loadCRM, 900); }).catch(function(){ toast("Could not update the task", true); }); return; }
+    if (tdelB) {
+      api(API_URL, "/api/admin/tasks/" + encodeURIComponent(tdelB.getAttribute("data-task-del")), { method: "DELETE" })
+        .then(function(){ toast("Task deleted"); loadCRM(); setTimeout(loadCRM, 900); }).catch(function(){ toast("Could not delete the task", true); });
       return;
     }
     if (addB) {
       var email = addB.getAttribute("data-task-add");
-      var card = addB.closest(".lead");
+      var card = addB.closest(".lead") || addB.closest(".card") || document;
       var textEl = card.querySelector('[data-task-text="' + CSS.escape(email) + '"]');
       var dueEl = card.querySelector('[data-task-due="' + CSS.escape(email) + '"]');
       var text = textEl ? textEl.value.trim() : "";
@@ -968,8 +1322,6 @@
       if (!text || !due) { toast("Write the task and pick a due date", true); return; }
       api(API_URL, "/api/admin/tasks", { method: "POST", body: JSON.stringify({ email: email, text: text, due: due }) })
         .then(function(d){ if (d && d.ok) { toast("Task added ✓");
-          // Show the new task immediately from the server's own response — the
-          // contacts rebuild reads KV lists that can lag ~a minute behind a write.
           if (d.task && d.task.id && textEl) {
             var fr = textEl.closest(".kv");
             if (fr && fr.parentNode) {
@@ -979,21 +1331,126 @@
             }
             textEl.value = "";
           }
-          setTimeout(loadContacts, 75000);
+          setTimeout(loadCRM, 75000);
         } else toast("Could not add the task", true); })
         .catch(function(){ toast("Could not add the task", true); });
+      return;
+    }
+    var actB = e.target.closest("[data-act]");
+    if (!actB) return;
+    var act = actB.getAttribute("data-act");
+    var aem = actB.getAttribute("data-email") || crmOpen;
+    var c = crmByEmail(aem);
+    if (act === "commgen" && c) { var dr2 = crmCommDraft(c, $("crmCommKind").value); $("crmCommSubject").value = dr2.subject; $("crmCommText").value = dr2.body; return; }
+    if (act === "copy") {
+      var txt = $("crmCommText") ? $("crmCommText").value : "";
+      if (!txt) { toast("Generate or write a draft first", true); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast("Copied ✓"); }, function(){ toast("Copy failed — select the text manually", true); });
+      else { $("crmCommText").select(); document.execCommand("copy"); toast("Copied ✓"); }
+      return;
+    }
+    if (act === "queue" && c) {
+      var subj = $("crmCommSubject").value.trim(), body = $("crmCommText").value.trim();
+      if (!subj || !body) { toast("Generate or write the subject and message first", true); return; }
+      api(API_URL, "/api/admin/mailq", { method: "POST", body: JSON.stringify({ to: c.email, name: c.name || "", lang: c.lang || "en", subject: subj, body: body }) })
+        .then(function(d){ if (d && d.ok) toast("Queued ✓ — it will send once the email sender is activated"); else toast("Could not queue the email", true); })
+        .catch(function(){ toast("Could not queue the email", true); });
+      return;
+    }
+    if (act === "savemeta" && c) {
+      var stage = document.querySelector("[data-crm-stage]").value;
+      var dnc = document.querySelector("[data-crm-dnc]").checked;
+      var tags = $("crmTags").value.split(",").map(function(t){ return t.trim(); }).filter(Boolean);
+      api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem), { method: "PATCH", body: JSON.stringify({ stage: stage, dnc: dnc, tags: tags }) })
+        .then(function(d){ if (d && d.ok) { toast("Saved ✓"); loadCRM(); } else toast("Could not save", true); })
+        .catch(function(){ toast("Could not save", true); });
+      return;
+    }
+    if (act === "addnote" && c) {
+      var ntext = $("crmNoteText").value.trim();
+      var nkind = $("crmNoteKind").value;
+      if (!ntext) { toast("Write the note first", true); return; }
+      if (nkind === "call") {
+        api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/logcall", { method: "POST", body: JSON.stringify({ text: ntext, name: c.name || "", followUpDays: parseInt($("crmCallDays").value, 10) || 0 }) })
+          .then(function(d){ if (d && d.ok) { toast(d.task ? "Call logged + follow-up task created ✓" : "Call logged ✓"); loadCRM(); } else toast("Could not log the call", true); })
+          .catch(function(){ toast("Could not log the call", true); });
+      } else {
+        api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/notes", { method: "POST", body: JSON.stringify({ text: ntext, kind: "note" }) })
+          .then(function(d){ if (d && d.ok) { toast("Note added ✓"); loadCRM(); } else toast("Could not add the note", true); })
+          .catch(function(){ toast("Could not add the note", true); });
+      }
+      return;
+    }
+    if (act === "extract" && c) {
+      var xtext = $("crmExtractText").value.trim();
+      if (!xtext) { toast("Paste or type the note first", true); return; }
+      actB.disabled = true; actB.textContent = "✨ Extracting…";
+      api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-extract", { method: "POST", body: JSON.stringify({ text: xtext }) })
+        .then(function(d){
+          if (d && d.ok) { toast("Extracted ✓ — " + (d.tasksCreated || 0) + " task(s) created" + (d.suggestedStage ? " · suggested stage: " + d.suggestedStage : "")); loadCRM(); }
+          else toast(d && d.error === "ai_not_configured" ? "AI is not configured yet for the CRM" : "AI extraction failed — try again", true);
+        })
+        .catch(function(){ toast("AI extraction failed — try again", true); });
+      return;
+    }
+    if ((act === "brief" || act === "draft") && c) {
+      actB.disabled = true; actB.textContent = "🤖 Thinking…";
+      api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-brief", { method: "POST", body: JSON.stringify({ mode: act }) })
+        .then(function(d){
+          actB.disabled = false; actB.textContent = act === "brief" ? "🤖 AI brief" : "✍️ AI follow-up draft";
+          if (d && d.ok) {
+            if (act === "draft") { if ($("crmCommText")) { $("crmCommText").value = d.draft || ""; $("crmCommSubject").value = "Following up"; } toast("Draft ready in the message centre ✓"); }
+            else $("crmAiBox").innerHTML = '<div class="card"><h2>🤖 AI brief</h2><div>' + esc(d.summary || "") + '</div>' + ((d.talkingPoints || []).length ? '<div style="margin-top:8px">' + d.talkingPoints.map(function(t){ return '<div class="kv">💬 ' + esc(t) + '</div>'; }).join("") + '</div>' : "") + (d.draft ? '<div class="mut" style="margin-top:8px">Suggested follow-up:</div><div style="white-space:pre-wrap">' + esc(d.draft) + '</div>' : "") + '</div>';
+          } else toast(d && d.error === "ai_not_configured" ? "AI is not configured yet for the CRM" : "AI is unavailable right now", true);
+        })
+        .catch(function(){ actB.disabled = false; actB.textContent = "🤖 AI brief"; toast("AI is unavailable right now", true); });
+      return;
+    }
+    if (act === "meeting" && c) {
+      actB.disabled = true; actB.textContent = "📋 Building…";
+      Promise.all([
+        api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-brief", { method: "POST", body: JSON.stringify({ mode: "meeting" }) }).catch(function(){ return null; }),
+        fetch("https://advisor-api.erfanbillion.workers.dev/api/listings").then(function(r){ return r.json(); }).catch(function(){ return null; })
+      ]).then(function(rs){
+        actB.disabled = false; actB.textContent = "📋 Meeting brief";
+        var ai = rs[0] && rs[0].ok ? rs[0] : null;
+        var listings = (rs[1] && rs[1].listings) || [];
+        var viewedMls = (c.viewings || []).map(function(v){ return v.listingId; });
+        var comps = listings.filter(function(l){ return viewedMls.indexOf(l.mls) === -1 && (c.savedHomes || []).every(function(h){ return h.mls !== l.mls; }); }).slice(0, 3);
+        var rowsH = (c.savedHomes || []).map(function(h){ return "<tr><td>" + esc(h.title) + "</td><td>" + fmt$(h.priceNow) + "</td></tr>"; }).join("");
+        var compH = comps.map(function(l){ return "<tr><td>" + esc(l.street + ", " + l.city) + "</td><td>" + fmt$(l.price) + "</td><td>" + l.beds + " bd · " + l.type + "</td></tr>"; }).join("");
+        var srchH = (c.searches || []).map(function(s){ var cr = s.criteria || {}; return "<li>" + esc(s.name || "Saved search") + " — " + esc([cr.city, cr.type, cr.maxPrice ? "≤ " + fmt$(parseInt(cr.maxPrice, 10)) : "", cr.minBeds ? cr.minBeds + "+ bd" : ""].filter(Boolean).join(" · ")) + "</li>"; }).join("");
+        var vwH = (c.viewings || []).map(function(v){ return "<li>" + esc(v.date + " " + v.time + " · " + (v.listingId || "") + " · " + v.status) + "</li>"; }).join("");
+        var tpH = ai && ai.talkingPoints ? ai.talkingPoints.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") : "";
+        var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Meeting brief — ' + esc(c.name || c.email) + '</title><style>body{font-family:Georgia,serif;color:#14202e;max-width:720px;margin:32px auto;padding:0 18px;line-height:1.5}h1{font-size:24px;margin-bottom:2px}h2{font-size:16px;margin-top:22px;border-bottom:2px solid #C6A15B;padding-bottom:4px}table{width:100%;border-collapse:collapse}td{padding:5px 4px;border-bottom:1px solid #ddd}.mut{color:#5a6a78;font-size:13px}@media print{button{display:none}}</style></head><body>' +
+          '<button onclick="window.print()">🖨 Print</button><h1>' + esc(c.name || c.email) + '</h1><div class="mut">' + esc(c.email) + (c.phone ? ' · ' + esc(c.phone) : "") + ' · stage: ' + esc(c.personStage) + ' · score ' + c.score + ' · conversion estimate ' + (c.predict || 0) + '%</div>' +
+          (ai && ai.summary ? '<h2>Summary</h2><p>' + esc(ai.summary) + '</p>' : "") +
+          (c.nextAction ? '<h2>Next step</h2><p>' + esc(c.nextAction.text) + '</p>' : "") +
+          (srchH ? '<h2>What they are looking for</h2><ul>' + srchH + '</ul>' : "") +
+          (briefRowsExist(c) ? '<h2>Known facts</h2>' + briefRowsPlain(c) : "") +
+          (vwH ? '<h2>Viewings</h2><ul>' + vwH + '</ul>' : "") +
+          (rowsH ? '<h2>Saved homes</h2><table>' + rowsH + '</table>' : "") +
+          (compH ? '<h2>Also worth showing them</h2><table>' + compH + '</table>' : "") +
+          (tpH ? '<h2>Talking points</h2><ul>' + tpH + '</ul>' : "") +
+          '<p class="mut" style="margin-top:26px">Prepared by the Erfan BC Real Estate CRM · ' + new Date().toLocaleDateString("en-CA") + '</p></body></html>';
+        var w = window.open("", "_blank");
+        if (w) { w.document.write(html); w.document.close(); } else toast("Popup blocked — allow popups for the brief", true);
+      });
+      return;
     }
   });
+  function briefRowsExist(c){ var b = c.brief || {}; return !!(b.budget || b.areas || b.timeline || b.mustHaves || b.objections); }
+  function briefRowsPlain(c){
+    var b = c.brief || {};
+    return [["Budget", b.budget], ["Areas", b.areas], ["Timeline", b.timeline], ["Pre-approved", b.preApproved === true ? "Yes" : b.preApproved === false ? "No" : ""], ["Must-haves", b.mustHaves], ["Objections", b.objections]]
+      .filter(function(r){ return r[1]; }).map(function(r){ return "<p><b>" + r[0] + ":</b> " + esc(r[1]) + "</p>"; }).join("");
+  }
   $("deskBody").addEventListener("click", function(e){
     var b = e.target.closest("[data-desk-task-done]");
     if (!b) return;
     taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadDesk(); setTimeout(loadDesk, 900); }).catch(function(){ toast("Could not update the task", true); });
   });
 
-  // ---------- users: delete + ban by email ----------
-  $("usrRefresh").addEventListener("click", loadUsers);
-  $("usrSearch").addEventListener("input", renderUsers);
-  var usersCache = [], bansCache = [];
   // ---------- listings: full portal manager ----------
   var lstData = null, lstPhotoData = undefined, lstOrigPhoto = "";
   function downscaleImage(file, cb){
@@ -1325,65 +1782,6 @@
         .then(function(d){ if (d && d.ok) { toast(dates.length ? "Availability saved ✓" : "Availability cleared ✓"); avBadgeSet(card, dates.length); setTimeout(loadAvail, 2500); } else toast("Could not save", true); })
         .catch(function(){ toast("Could not save", true); });
     }
-  });
-
-  function loadUsers(){
-    api(API_URL, "/api/admin/users").then(function(d){
-      if (!d || !d.ok) return;
-      usersCache = d.users || []; bansCache = d.bans || [];
-      renderUsers();
-    }).catch(function(){ $("usrList").innerHTML = '<div class="empty">Could not load users.</div>'; });
-  }
-  function renderUsers(){
-    $("usrCount").textContent = usersCache.length + " registered accounts";
-    $("banList").innerHTML = bansCache.length ? bansCache.map(function(b){
-      return '<div class="tourrow"><div>🚫 <b>' + esc(b.email) + '</b>' + (b.reason ? ' <span class="mut">— ' + esc(b.reason) + '</span>' : "") + '</div><span style="display:flex;gap:8px;align-items:center"><span class="mut">' + esc(String(b.at || "").slice(0, 10)) + '</span><button class="ghost small" data-unban="' + esc(b.email) + '">Unban</button></span></div>';
-    }).join("") : '<div class="empty">No banned addresses.</div>';
-    Array.prototype.forEach.call($("banList").querySelectorAll("[data-unban]"), function(b){
-      b.addEventListener("click", function(){
-        api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
-          .then(function(){ toast("Address unbanned"); loadUsers(); }).catch(function(){ toast("Could not unban", true); });
-      });
-    });
-    var q = ($("usrSearch").value || "").toLowerCase();
-    var rows = usersCache.filter(function(u){ return !q || (String(u.name) + " " + String(u.email)).toLowerCase().indexOf(q) >= 0; });
-    $("usrList").innerHTML = rows.length ? rows.map(function(u){
-      return '<div class="lead"><div class="lead-top"><b>' + esc(u.name || "—") + '</b>' + (u.banned ? '<span class="stage s-dropped">🚫 banned</span>' : '<span class="stage s-new">active</span>') + '</div>' +
-        '<div class="mut">' + esc(u.email) + ' · joined ' + esc(String(u.created_at || "").slice(0, 10)) + (u.lastLogin ? ' · last sign-in ' + esc(fmtDate(u.lastLogin)) : ' · never signed in again') + '</div>' +
-        '<div class="mut">❤️ ' + u.savedCount + ' saved · 🔎 ' + u.searchCount + ' searches' + (u.phone ? ' · 📞 ' + esc(u.phone) : '') + (u.intent ? ' · ' + esc(u.intent) : '') + '</div>' +
-        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
-        (u.banned ? '<button class="ghost small" data-uunban="' + esc(u.email) + '">Unban</button>' : '<button class="ghost small" data-uban="' + esc(u.email) + '">🚫 Ban</button>') +
-        '<button class="ghost small" data-udel="' + esc(u.email) + '">🗑 Delete user</button></div></div>';
-    }).join("") : '<div class="empty">No users match.</div>';
-    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-udel]"), function(b){
-      b.addEventListener("click", function(){
-        var em = b.getAttribute("data-udel");
-        if (!confirm("Delete the account for " + em + "?\nTheir saved homes, searches and sessions are removed. Their leads and bookings stay as your business records.")) return;
-        api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "DELETE" })
-          .then(function(){ toast("User deleted"); loadUsers(); }).catch(function(){ toast("Could not delete", true); });
-      });
-    });
-    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-uban]"), function(b){
-      b.addEventListener("click", function(){
-        var em = b.getAttribute("data-uban");
-        if (!confirm("Ban " + em + "?\nThey will be signed out everywhere and blocked from registering, signing in, booking and the contact form.")) return;
-        api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "POST", body: JSON.stringify({ action: "ban" }) })
-          .then(function(){ toast("Address banned"); loadUsers(); }).catch(function(){ toast("Could not ban", true); });
-      });
-    });
-    Array.prototype.forEach.call($("usrList").querySelectorAll("[data-uunban]"), function(b){
-      b.addEventListener("click", function(){
-        api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-uunban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
-          .then(function(){ toast("Address unbanned"); loadUsers(); }).catch(function(){ toast("Could not unban", true); });
-      });
-    });
-  }
-  $("banBtn").addEventListener("click", function(){
-    var em = ($("banEmail").value || "").trim();
-    if (!em) { toast("Enter an email address first", true); return; }
-    api(API_URL, "/api/admin/users/" + encodeURIComponent(em), { method: "POST", body: JSON.stringify({ action: "ban", reason: $("banReason").value || "" }) })
-      .then(function(d){ if (d && d.ok) { toast("Address banned"); $("banEmail").value = ""; $("banReason").value = ""; loadUsers(); } else toast("Could not ban — check the address", true); })
-      .catch(function(){ toast("Could not ban", true); });
   });
 
   // ---------- newsletter subscribers ----------
