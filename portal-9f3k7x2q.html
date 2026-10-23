@@ -715,7 +715,7 @@
   var API_URL = "https://advisor-api.erfanbillion.workers.dev";
   var TOUR_API_URL = "https://seller-api.erfanbillion.workers.dev";
   var SITE_URL = "https://real-estate-platform-0aei.onrender.com";
-  var token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || "";
+  var token = ""; try { token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || ""; } catch(e){}
   var leads = [];
   var toursCache = [];
   var currentId = null;
@@ -725,6 +725,8 @@
 
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function safeUrl(u){ u = String(u == null ? "" : u).trim(); return /^https?:\/\//i.test(u) ? u : "#"; }
+  function csvCell(x){ var s = String(x == null ? "" : x); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
   function toast(msg, bad){
     var t = $("toast"); t.textContent = msg; t.className = "show" + (bad ? " bad" : "");
     setTimeout(function(){ t.className = ""; }, 2600);
@@ -734,10 +736,10 @@
   // instantly and refreshes in the background, re-rendering the current page
   // only when the data actually changed and no form/editor is open. Any
   // mutation clears the whole cache; sign-out clears it too.
-  var _pcache = {}, _reval = {}, currentPage = "overview";
-  (function(){ try { for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0){ var e = JSON.parse(localStorage.getItem(k)); if (e && e.d) _pcache[k.slice(4)] = e; } } } catch(e){} })();
+  var _pcache = {}, _reval = {}, currentPage = "overview", _cacheGen = 0;
+  (function(){ try { for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0){ var e = JSON.parse(localStorage.getItem(k)); if (e && e.d && Date.now() - (e.t || 0) < 86400000) _pcache[k.slice(4)] = e; } } } catch(e){} })();
   function cacheStore(key, d){ _pcache[key] = { t: Date.now(), d: d }; try { var s = JSON.stringify(_pcache[key]); if (s.length < 400000) localStorage.setItem("pc1:" + key, s); } catch(e){} }
-  function cacheClear(){ _pcache = {}; try { var ks = []; for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0) ks.push(k); } ks.forEach(function(k){ localStorage.removeItem(k); }); } catch(e){} }
+  function cacheClear(){ _pcache = {}; _cacheGen++; try { gsItems = null; } catch(e){} try { var ks = []; for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0) ks.push(k); } ks.forEach(function(k){ localStorage.removeItem(k); }); } catch(e){} }
   function clone(d){ return d == null ? d : JSON.parse(JSON.stringify(d)); }
   function portalBusy(){
     if (currentPage === "site" || currentPage === "listings") return true;
@@ -759,23 +761,24 @@
   function api(base, path, opts){
     opts = opts || {};
     var method = (opts.method || "GET").toUpperCase();
-    if (method !== "GET") return rawFetch(base, path, opts).then(function(d){ cacheClear(); return d; });
+    if (method !== "GET") return rawFetch(base, path, opts).then(function(d){ cacheClear(); return d; }, function(e){ cacheClear(); throw e; });
     var key = base + path;
     if (opts.fresh) delete _pcache[key];
+    var gen = _cacheGen;
     var hit = _pcache[key];
     if (hit) {
       if (Date.now() - hit.t > 45000 && !_reval[key]) {
         _reval[key] = 1;
         rawFetch(base, path, {}).then(function(d){
           delete _reval[key];
-          if (d && d.ok && JSON.stringify(d) !== JSON.stringify(hit.d)) { cacheStore(key, d); if (!portalBusy()) go(currentPage); }
+          if (gen === _cacheGen && d && d.ok && JSON.stringify(d) !== JSON.stringify(hit.d)) { cacheStore(key, d); if (!portalBusy()) go(currentPage); }
         }).catch(function(){ delete _reval[key]; });
       }
       return Promise.resolve(clone(hit.d));
     }
-    return rawFetch(base, path, opts).then(function(d){ if (d && d.ok) cacheStore(key, d); return d; });
+    return rawFetch(base, path, opts).then(function(d){ if (gen === _cacheGen && d && d.ok) cacheStore(key, d); return d; });
   }
-  function fmtDate(iso){ try { var d = new Date(iso); return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); } catch(e){ return ""; } }
+  function fmtDate(iso){ try { var d = new Date(iso); if (isNaN(d.getTime())) return ""; return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); } catch(e){ return ""; } }
 
   function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
   function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
@@ -833,8 +836,8 @@
   });
   $("qaLeads").addEventListener("click", function(){ go("leads"); });
   $("qaTour").addEventListener("click", function(){ go("tours"); });
-  $("qaSite").addEventListener("click", function(){ window.open(SITE_URL, "_blank"); });
-  $("ovRefresh").addEventListener("click", function(){ cacheClear(); loadOverview(); });
+  $("qaSite").addEventListener("click", function(){ window.open(SITE_URL, "_blank", "noopener"); });
+  $("ovRefresh").addEventListener("click", function(){ cacheClear(); loadLeads(); });
 
   // ---------- login ----------
   $("loginBtn").addEventListener("click", function(){
@@ -848,7 +851,7 @@
       .then(function(r){ return r.json(); })
       .then(function(d){
         $("loginBtn").disabled = false;
-        if (d && d.ok && d.token){ token = d.token; localStorage.setItem("admin_token", token); $("pw").value = ""; showApp(); loadAll(); }
+        if (d && d.ok && d.token){ token = d.token; try { localStorage.setItem("admin_token", token); } catch(e){} $("pw").value = ""; showApp(); loadAll(); }
         else { if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = (d && d.error === "captcha") ? "Security check failed. Please try again." : "Wrong password. Try again."; }
       })
       .catch(function(){ $("loginBtn").disabled = false; if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = "Could not reach the server."; });
@@ -951,10 +954,16 @@
   document.addEventListener("click", function(e){
     var rec = e.target.closest && e.target.closest("[data-call-rec]");
     if (!rec) return;
+    var rw = window.open("", "_blank");
     fetch(API_URL + "/api/admin/calls/" + encodeURIComponent(rec.getAttribute("data-call-rec")) + "/recording", { headers: { Authorization: "Bearer " + token } })
       .then(function(r){ if (!r.ok) throw new Error("bad"); return r.blob(); })
-      .then(function(b){ window.open(URL.createObjectURL(b), "_blank"); })
-      .catch(function(){ toast("Could not load the recording", true); });
+      .then(function(b){
+        if (b.type && b.type.indexOf("text/html") === 0) throw new Error("bad type");
+        var u = URL.createObjectURL(b);
+        if (rw) { rw.location = u; } else { window.open(u, "_blank"); }
+        setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+      })
+      .catch(function(){ if (rw) try { rw.close(); } catch(e){} toast("Could not load the recording", true); });
   });
   function fillCalls(c){
     var box = $("crmCalls"); if (!box) return;
@@ -998,6 +1007,7 @@
     }).catch(function(){});
   }
   function openSmsThread(phone, keepScroll){
+    var prevReplyEl = $("smsReplyText"); var prevReply = prevReplyEl ? prevReplyEl.value : "";
     smsOpenPhone = phone;
     var msgs = smsCache.filter(function(m){ return smsOther(m) === phone; }).slice().reverse();
     var label = (msgs.filter(function(m){ return m.matchedName; })[0] || {}).matchedName || phone;
@@ -1007,7 +1017,11 @@
         return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
       }).join("") + '</div>' +
       '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="smsReplyText" rows="2" placeholder="Reply as the business number…" style="flex:1"></textarea><button type="button" class="btn-spruce" data-sms-send="' + esc(phone) + '">Send</button></div></div>';
-    api(API_URL, "/api/admin/sms/read", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(){ renderSmsThreadsSoft(); }).catch(function(){});
+    if (prevReply) { var nr = $("smsReplyText"); if (nr) nr.value = prevReply; }
+    var hasUnread = msgs.some(function(m){ return m.direction === "in" && !m.read; });
+    if (hasUnread) {
+      api(API_URL, "/api/admin/sms/read", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(){ smsCache.forEach(function(m){ if (smsOther(m) === phone && m.direction === "in") m.read = true; }); renderSmsThreadsSoft(); }).catch(function(){});
+    }
   }
   function renderSmsThreadsSoft(){
     api(API_URL, "/api/admin/sms?limit=300").then(function(d){
@@ -1053,9 +1067,9 @@
   function loadRadar(){
     loadRadarSettings();
     api(API_URL, "/api/market-leads").then(function(d){
-      mleads = (d && d.ok && d.leads) || [];
+      if (d && d.ok) mleads = d.leads || []; else if (!mleads.length) toast("Could not load the radar list", true);
       renderRadar();
-    }).catch(function(){});
+    }).catch(function(){ if (!mleads.length) toast("Could not load the radar list", true); renderRadar(); });
   }
   function loadRadarSettings(){
     api(API_URL, "/api/radar-settings").then(function(d){
@@ -1128,11 +1142,11 @@
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
         '<span class="chip" style="background:' + confColor + ';color:#0c111d;font-weight:700">Confidence ' + conf + '</span>' +
         (ms ? '<span class="chip" style="background:' + msColor + ';color:#0c111d;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
-        ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + l.belowMarketPct + '% below market</span>' : '') +
+        ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
         '<span class="mut" style="margin-left:auto">' + esc(fmtDate(l.created_at)) + '</span></div>';
-      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
+      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
@@ -1150,14 +1164,14 @@
       var mlist = (l.matches && l.matches.length) ? l.matches : (l.match && l.match.url ? [l.match] : []);
       mlist.forEach(function(m, i){
         if (!m || !m.url) return;
-        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(m.url) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || "listing") + ' ↗</a>' +
+        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || "listing") + ' ↗</a>' +
           (m.price ? ' · ' + esc(m.price) : '') +
           (m.note ? '<div class="mut" style="margin-top:4px">' + esc(m.note) + '</div>' : '') + '</div>';
       });
       if (l.marketNote) html += '<div style="margin-top:8px;font-size:13px" class="mut">📉 ' + esc(l.marketNote) + '</div>';
       if (l.risk) html += '<div style="margin-top:8px;font-size:13px;color:#fbbf24">⚠ Biggest risk: ' + esc(l.risk) + '</div>';
       html += '<div class="row2">' +
-        '<a href="' + esc(l.url) + '" target="_blank" rel="noopener"><button class="small">Open post</button></a>' +
+        '<a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener"><button class="small">Open post</button></a>' +
         (l.status !== "contacted" ? '<button class="ghost small" data-act="contacted">✓ I contacted them</button>' : "") +
         (l.status !== "dismissed" ? '<button class="ghost small" data-act="dismissed">✕ Dismiss</button>' : '<button class="ghost small" data-act="new">↩ Restore</button>') +
         '<button class="ghost small" data-act="delete">Delete</button>' +
@@ -1169,7 +1183,7 @@
           if (act === "delete"){
             if (!confirm("Delete this lead permanently?")) return;
             api(API_URL, "/api/market-leads/" + encodeURIComponent(l.id), { method: "DELETE" })
-              .then(function(){ toast("Deleted"); loadRadar(); }).catch(function(){ toast("Delete failed", true); });
+              .then(function(d){ if (d && d.ok) { toast("Deleted"); loadRadar(); } else toast("Delete failed", true); }).catch(function(){ toast("Delete failed", true); });
           } else {
             api(API_URL, "/api/market-leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ status: act }) })
               .then(function(d){ if (d && d.ok){ toast("Updated ✓"); loadRadar(); } else toast("Could not update", true); })
@@ -1254,11 +1268,11 @@
       api(API_URL, "/api/admin/users").catch(function(){ return null; })
     ]).then(function(rs){
       if (seq !== crmLoadSeq) return;
-      crmData.contacts = (rs[0] && rs[0].contacts) || [];
+      if (rs[0] && rs[0].ok) crmData.contacts = rs[0].contacts || []; else if (!crmData.contacts.length) toast("Could not load contacts", true);
       crmData.analytics = (rs[1] && rs[1].analytics) || null;
-      crmData.matches = (rs[2] && rs[2].matches) || [];
+      if (rs[2] && rs[2].ok) crmData.matches = rs[2].matches || [];
       crmData.leads = (rs[3] && rs[3].leads) || [];
-      bansCache = (rs[4] && rs[4].bans) || [];
+      if (rs[4] && rs[4].ok) bansCache = rs[4].bans || [];
       renderBans(); renderCRMStats(); renderCRMMain();
     }).catch(function(){ $("crmMain").innerHTML = '<div class="empty">Could not load the CRM.</div>'; });
   }
@@ -1293,11 +1307,11 @@
   });
   $("crmCsv").addEventListener("click", function(){
     var rows = [["Name", "Email", "Phone", "Tier", "Score", "Conversion %", "Stage", "Tags", "Last activity", "Saved", "Searches", "Leads", "Viewings"]];
-    crmFiltered().forEach(function(c){ rows.push([c.name || "", c.email, c.phone || "", c.tier, c.score, c.predict, c.personStage, (c.customTags || []).concat(c.tags || []).join("; "), c.lastActivity || "", c.savedCount, c.searchCount, (c.leads || []).length, (c.viewings || []).length]); });
-    var csv = rows.map(function(r){ return r.map(function(x){ var s = String(x == null ? "" : x); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+    crmFiltered().forEach(function(c){ rows.push([c.name || "", c.email, c.phone || "", c.tier, c.score, c.predict, crmStage(c), (c.customTags || []).concat(c.tags || []).join("; "), c.lastActivity || "", c.savedCount, c.searchCount, (c.leads || []).length, (c.viewings || []).length]); });
+    var csv = "\ufeff" + rows.map(function(r){ return r.map(csvCell).join(","); }).join("\n");
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = "crm-export.csv"; a.click();
+    a.download = "crm-export.csv"; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
   });
   function renderCRMStats(){
@@ -1429,7 +1443,7 @@
   }
   function parseMoneyTxt(v){
     if (typeof v === "number") return v;
-    var m = String(v || "").replace(/,/g, "").match(/(\d+(?:\.\d+)?)\s*(k|m)?/i);
+    var m = String(v || "").replace(/,/g, "").match(/(\d+(?:\.\d+)?)\s*(k\b|m\b)?/i);
     if (!m) return 0;
     var n = parseFloat(m[1]);
     if (/k/i.test(m[2] || "")) n *= 1000;
@@ -1458,7 +1472,7 @@
       if (!l || l.kind !== "pair" || l.status === "dismissed") return false;
       var area = String(l.area || "").toLowerCase(), title = String(l.title || "").toLowerCase();
       var hit = cities.some(function(ct){
-        if (!ct) return false;
+        if (!ct || ct.length < 3) return false;
         if (area && area.indexOf(ct) !== -1) return true;
         if (area && area.length > 2 && ct.indexOf(area) !== -1) return true;
         if (title.indexOf(ct) !== -1) return true;
@@ -1479,10 +1493,10 @@
       if (!pairs.length) { box2.innerHTML = ""; return; }
       box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📡 Radar opportunities for ' + esc(c.name || c.email) + '</div>' + pairs.map(function(l){
         var m = (l.matches && l.matches[0]) || {};
-        return '<div class="kv">🔗 <a href="' + esc(m.url || l.url || "#") + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || l.title || "listing") + '</a>' +
+        return '<div class="kv">🔗 <a href="' + esc(safeUrl(m.url || l.url || "")) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || l.title || "listing") + '</a>' +
           (m.price ? ' · ' + esc(m.price) : '') +
           (typeof l.matchScore === "number" ? ' <span class="chip">🎯 ' + l.matchScore + '</span>' : '') +
-          '<div class="mut">buyer need: <a href="' + esc(l.url || "#") + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.title || "") + '</a>' + (l.risk ? ' · ⚠ ' + esc(l.risk) : '') + '</div></div>';
+          '<div class="mut">buyer need: <a href="' + esc(safeUrl(l.url || "")) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.title || "") + '</a>' + (l.risk ? ' · ⚠ ' + esc(l.risk) : '') + '</div></div>';
       }).join("");
     });
   }
@@ -1728,6 +1742,7 @@
       return;
     }
     if (addB) {
+      if (addB.disabled) return;
       var email = addB.getAttribute("data-task-add");
       var card = addB.closest(".lead") || addB.closest(".card") || document;
       var textEl = card.querySelector('[data-task-text="' + CSS.escape(email) + '"]');
@@ -1735,8 +1750,9 @@
       var text = textEl ? textEl.value.trim() : "";
       var due = dueEl ? dueEl.value : "";
       if (!text || !due) { toast("Write the task and pick a due date", true); return; }
+      addB.disabled = true;
       api(API_URL, "/api/admin/tasks", { method: "POST", body: JSON.stringify({ email: email, text: text, due: due }) })
-        .then(function(d){ if (d && d.ok) { toast("Task added ✓");
+        .then(function(d){ addB.disabled = false; if (d && d.ok) { toast("Task added ✓");
           if (d.task && d.task.id && textEl) {
             var fr = textEl.closest(".kv");
             if (fr && fr.parentNode) {
@@ -1749,7 +1765,7 @@
           if (d.task && d.task.id) { var tc = crmByEmail(email); if (tc) { tc.openTasks = tc.openTasks || []; tc.openTasks.push(d.task); } }
           setTimeout(loadCRM, 900);
         } else toast("Could not add the task", true); })
-        .catch(function(){ toast("Could not add the task", true); });
+        .catch(function(){ addB.disabled = false; toast("Could not add the task", true); });
       return;
     }
     var actB = e.target.closest("[data-act]");
@@ -1757,7 +1773,7 @@
     var act = actB.getAttribute("data-act");
     var aem = actB.getAttribute("data-email") || crmOpen;
     var c = crmByEmail(aem);
-    if (act === "commgen" && c) { var dr2 = crmCommDraft(c, $("crmCommKind").value); $("crmCommSubject").value = dr2.subject; $("crmCommText").value = dr2.body; return; }
+    if (act === "commgen" && c) { var kind2 = $("crmCommKind").value; if (kind2 === "drop" && !(c.opportunities || []).some(function(x){ return x.kind === "price_drop"; })) { toast("No price drop to share with this person right now", true); return; } var dr2 = crmCommDraft(c, kind2); $("crmCommSubject").value = dr2.subject; $("crmCommText").value = dr2.body; return; }
     if (act === "copy") {
       var txt = $("crmCommText") ? $("crmCommText").value : "";
       if (!txt) { toast("Generate or write a draft first", true); return; }
@@ -1790,11 +1806,11 @@
       if (!ntext) { toast("Write the note first", true); return; }
       if (nkind === "call") {
         api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/logcall", { method: "POST", body: JSON.stringify({ text: ntext, name: c.name || "", followUpDays: parseInt($("crmCallDays").value, 10) || 0 }) })
-          .then(function(d){ if (d && d.ok) { toast(d.task ? "Call logged + follow-up task created ✓" : "Call logged ✓"); loadCRM(); } else toast("Could not log the call", true); })
+          .then(function(d){ if (d && d.ok) { toast(d.task ? "Call logged + follow-up task created ✓" : "Call logged ✓"); $("crmNoteText").value = ""; loadCRM(); } else toast("Could not log the call", true); })
           .catch(function(){ toast("Could not log the call", true); });
       } else {
         api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/notes", { method: "POST", body: JSON.stringify({ text: ntext, kind: "note" }) })
-          .then(function(d){ if (d && d.ok) { toast("Note added ✓"); loadCRM(); } else toast("Could not add the note", true); })
+          .then(function(d){ if (d && d.ok) { toast("Note added ✓"); $("crmNoteText").value = ""; loadCRM(); } else toast("Could not add the note", true); })
           .catch(function(){ toast("Could not add the note", true); });
       }
       return;
@@ -1806,7 +1822,7 @@
       api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-extract", { method: "POST", body: JSON.stringify({ text: xtext }) })
         .then(function(d){
           actB.disabled = false; actB.textContent = "✨ Save note + extract with AI";
-          if (d && d.ok) { toast("Extracted ✓ — " + (d.tasksCreated || 0) + " task(s) created" + (d.suggestedStage ? " · suggested stage: " + d.suggestedStage : "")); loadCRM(); }
+          if (d && d.ok) { toast("Extracted ✓ — " + (d.tasksCreated || 0) + " task(s) created" + (d.suggestedStage ? " · suggested stage: " + d.suggestedStage : "")); $("crmExtractText").value = ""; loadCRM(); }
           else toast(d && d.error === "ai_not_configured" ? "AI is not configured yet for the CRM" : "AI extraction failed — try again", true);
         })
         .catch(function(){ actB.disabled = false; actB.textContent = "✨ Save note + extract with AI"; toast("AI extraction failed — try again", true); });
@@ -1906,7 +1922,7 @@
     return rec.photo;
   }
   function loadListings(){
-    api(API_URL, "/api/admin/listings").then(function(d){
+    api(API_URL, "/api/admin/listings", { fresh: true }).then(function(d){
       if (!d || !d.ok) { $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; return; }
       lstData = d; renderListingRows();
     }).catch(function(){ $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; });
@@ -1967,7 +1983,7 @@
     var f = function(id, label, val, attrs){
       return '<label class="lf"><span>' + label + '</span><input id="' + id + '" value="' + esc(val == null ? "" : String(val)) + '"' + (attrs || "") + '></label>';
     };
-    var src = lstPhotoSrc(rec, !isNew && !rec._custom);
+    var src = lstPhotoSrc(rec, !isNew && !(lstData && (lstData.listings || []).some(function(r){ return r.mls === rec.mls; })));
     $("lstEditor").innerHTML = '<div class="card">' +
       '<h2 style="margin-top:0">' + (isNew ? "Add a listing" : "Edit listing — " + esc(rec.mls)) + '</h2>' +
       '<div class="lfgrid">' +
@@ -2106,7 +2122,7 @@
     return out.length ? out : null;
   }
   function loadSiteSettings(){
-    api(API_URL, "/api/admin/settings").then(function(d){
+    api(API_URL, "/api/admin/settings", { fresh: true }).then(function(d){
       if (!d || !d.ok) { $("stErr").textContent = "Could not load settings."; return; }
       var s = d.settings || {};
       stSeq++;
@@ -2162,6 +2178,7 @@
       heroPhoto: stOrigHeroPhoto
     };
     if (!settings.brand) { $("stErr").textContent = "Brand name cannot be empty."; return; }
+    if (settings.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) { $("stErr").textContent = "Check the contact email address."; return; }
     if (settings.rate !== null && !isFinite(settings.rate)) { $("stErr").textContent = "Check the rate field."; return; }
     var body = { settings: settings };
     var urlVal = v("st_heroPhotoUrl");
@@ -2192,7 +2209,8 @@
   // ---------- listings: viewing availability ----------
   var AV_SLOTS = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"];
   function avRowHtml(d){
-    var checks = AV_SLOTS.map(function(s){
+    var slotList = AV_SLOTS.slice(); ((d && d.times) || []).forEach(function(t){ if (slotList.indexOf(t) < 0) slotList.push(t); }); slotList.sort();
+    var checks = slotList.map(function(s){
       var on = d && d.times && d.times.indexOf(s) >= 0;
       return '<label style="display:inline-flex;gap:4px;align-items:center;font-weight:500;margin:0"><input type="checkbox" class="av-t" value="' + s + '"' + (on ? " checked" : "") + ' style="width:auto"> ' + s + '</label>';
     }).join("");
@@ -2218,7 +2236,7 @@
     }).join("");
   }
   function loadAvail(){
-    api(API_URL, "/api/admin/availability").then(function(d){
+    api(API_URL, "/api/admin/availability", { fresh: true }).then(function(d){
       if (!d || !d.ok) { $("lstAvail").innerHTML = '<div class="empty">Could not load.</div>'; return; }
       renderAvail(d.listings || []);
     }).catch(function(){ $("lstAvail").innerHTML = '<div class="empty">Could not load.</div>'; });
@@ -2269,7 +2287,7 @@
   var mtSpeedLog = [];
   var mtBackup = null;
   function ageTxt(ts){
-    if (!ts) return "";
+    if (!ts || isNaN(Date.parse(ts))) return "";
     var hrs = Math.max(0, Math.round((Date.now() - Date.parse(ts)) / 3600000));
     if (hrs < 1) return "under an hour ago";
     if (hrs < 48) return hrs + "h ago";
@@ -2379,7 +2397,7 @@
       Array.prototype.forEach.call($("nlGroups").querySelectorAll("[data-nldel]"), function(b){
         b.addEventListener("click", function(){
           api(API_URL, "/api/admin/newsletter?email=" + encodeURIComponent(b.getAttribute("data-nldel")), { method: "DELETE" })
-            .then(function(){ toast("Subscriber removed"); loadNewsletter(); }).catch(function(){ toast("Could not remove"); });
+            .then(function(d){ if (d && d.ok) { toast("Subscriber removed"); loadNewsletter(); } else toast("Could not remove", true); }).catch(function(){ toast("Could not remove", true); });
         });
       });
     }).catch(function(){});
@@ -2396,7 +2414,7 @@
         var home = v.listingId ? ('<div class="mut">' + esc(v.listingId) + (v.gcalEventId ? ' · 📆 on your calendar' : '') + '</div>') : "";
         var VW_LABEL = { new: "↩ Reopen", confirmed: "✓ Confirm", done: "✓ Mark done", cancelled: "✕ Cancel" };
         var btns = VW_ST.filter(function(s){ return s !== v.status; }).map(function(s){
-          return '<button class="ghost small" data-vw="' + v.id + '" data-st="' + s + '">' + (VW_LABEL[s] || s) + '</button>';
+          return '<button class="ghost small" data-vw="' + esc(v.id) + '" data-st="' + s + '">' + (VW_LABEL[s] || s) + '</button>';
         }).join(" ");
         return '<div class="lead"><div class="lead-top"><b>' + esc(v.name) + '</b><span class="stage s-' + (v.status === "new" ? "new" : v.status === "confirmed" ? "contacted" : v.status === "done" ? "closed" : "dropped") + '">' + esc(v.status) + '</span></div>' +
           '<div class="mut">📅 ' + esc(v.date) + ' · ' + esc(v.time) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</div>' + home +
@@ -2404,8 +2422,8 @@
       }).join("") : '<div class="empty">No viewing requests yet.</div>';
       Array.prototype.forEach.call($("vwList").querySelectorAll("[data-vw]"), function(b){
         b.addEventListener("click", function(){
-          api(API_URL, "/api/admin/viewings/" + b.getAttribute("data-vw"), { method: "PATCH", body: JSON.stringify({ status: b.getAttribute("data-st") }) })
-            .then(function(){ toast("Viewing updated"); loadViewings(); }).catch(function(){ toast("Could not update"); });
+          api(API_URL, "/api/admin/viewings/" + encodeURIComponent(b.getAttribute("data-vw")), { method: "PATCH", body: JSON.stringify({ status: b.getAttribute("data-st") }) })
+            .then(function(d){ if (d && d.ok) { toast("Viewing updated"); loadViewings(); } else toast("Could not update", true); }).catch(function(){ toast("Could not update", true); });
         });
       });
     }).catch(function(){});
@@ -2413,15 +2431,15 @@
 
   // ---------- leads ----------
   $("refreshBtn").addEventListener("click", function(){ cacheClear(); loadLeads(); });
-  $("stageFilter").addEventListener("change", function(){ leadPage = 1; renderLeads(); });
-  $("intentFilter").addEventListener("change", function(){ leadPage = 1; renderLeads(); });
-  $("leadSearch").addEventListener("input", function(){ leadPage = 1; renderLeads(); });
+  $("stageFilter").addEventListener("change", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
+  $("intentFilter").addEventListener("change", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
+  $("leadSearch").addEventListener("input", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
 
   function loadLeads(){
-    api(API_URL, "/api/leads").then(function(d){
-      leads = (d && d.ok && d.leads) || [];
+    api(API_URL, "/api/leads", { fresh: true }).then(function(d){
+      if (d && d.ok) leads = d.leads || []; else if (!leads.length) toast("Could not load leads", true);
       renderLeads(); loadOverview();
-    }).catch(function(){});
+    }).catch(function(){ if (!leads.length) toast("Could not load leads", true); });
   }
   function renderLeads(){
     var sf = $("stageFilter").value, inf = $("intentFilter").value;
@@ -2481,7 +2499,7 @@
     var chain = Promise.resolve(), failed = 0;
     sel.forEach(function(l){
       chain = chain.then(function(){
-        return api(API_URL, "/api/leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ stage: st, notes: l.notes || "" }) })
+        return api(API_URL, "/api/leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ stage: st }) })
           .then(function(d){ if (!d || !d.ok) failed++; }).catch(function(){ failed++; });
       });
     });
@@ -2511,10 +2529,9 @@
   $("bulkCsv").addEventListener("click", function(){
     var sel = selectedLeads();
     if (!sel.length) return;
-    var cell = function(v){ return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; };
     var lines = [["Name","Email","Phone","Intent","City","Budget","Stage","Received","Notes"].join(",")];
-    sel.forEach(function(l){ lines.push([l.name, l.email, l.phone, l.intent, l.city, l.budget, l.stage, l.created_at, l.notes].map(cell).join(",")); });
-    var blob = new Blob([lines.join("\r\n")], { type: "text/csv" });
+    sel.forEach(function(l){ lines.push([l.name, l.email, l.phone, l.intent, l.city, l.budget, l.stage, l.created_at, l.notes].map(csvCell).join(",")); });
+    var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = "leads-export.csv";
     document.body.appendChild(a); a.click(); a.remove();
@@ -2554,7 +2571,7 @@
   $("dDelete").addEventListener("click", function(){
     if (!confirm("Delete this lead permanently?")) return;
     api(API_URL, "/api/leads/" + encodeURIComponent(currentId), { method: "DELETE" })
-      .then(function(){ $("detail").classList.remove("open"); toast("Lead deleted"); loadLeads(); })
+      .then(function(d){ if (d && d.ok) { $("detail").classList.remove("open"); toast("Lead deleted"); loadLeads(); } else $("dErr").textContent = "Could not delete."; })
       .catch(function(){ $("dErr").textContent = "Could not reach the server."; });
   });
 
@@ -2562,7 +2579,7 @@
   $("tourRefresh").addEventListener("click", function(){ cacheClear(); loadTourList(); });
   function loadTourList(){
     api(TOUR_API_URL, "/api/admin/tours").then(function(d){
-      toursCache = (d && d.ok && d.tours) || [];
+      if (d && d.ok) toursCache = d.tours || [];
       renderTourList(); loadOverview();
     }).catch(function(){});
   }
@@ -2572,7 +2589,7 @@
     box.innerHTML = "";
     toursCache.forEach(function(t){
       var div = document.createElement("div"); div.className = "tourrow";
-      div.innerHTML = '<div><b>' + esc(t.listingId) + '</b> <span class="mut">' + t.rooms + ' room' + (t.rooms === 1 ? "" : "s") + '</span></div>' +
+      div.innerHTML = '<div><b>' + esc(t.listingId) + '</b> <span class="mut">' + (Number(t.rooms) || 0) + ' room' + (t.rooms === 1 ? "" : "s") + '</span></div>' +
         '<div style="display:flex;gap:8px;align-items:center"><span class="chip ' + (t.enabled ? "live" : "draft") + '">' + (t.enabled ? "● Live" : "Draft") + '</span>' +
         '<button class="ghost small">Edit</button></div>';
       div.querySelector("button").addEventListener("click", function(){ openEditor(t.listingId); });
@@ -2592,7 +2609,8 @@
     $("edListing").textContent = listingId;
     $("tourEditor").hidden = false;
     $("saveErr").textContent = ""; $("saveOk").textContent = ""; $("upErr").textContent = ""; $("upOk").textContent = "";
-    api(TOUR_API_URL, "/api/admin/tour?listingId=" + encodeURIComponent(listingId)).then(function(d){
+    api(TOUR_API_URL, "/api/admin/tour?listingId=" + encodeURIComponent(listingId), { fresh: true }).then(function(d){
+      if (edListingId !== listingId) return;
       tour = (d && d.ok && d.tour) || { enabled:false, rooms:[], hotspots:[], videoUrl:"" };
       $("videoUrl").value = tour.videoUrl || "";
       $("enableTour").checked = !!tour.enabled;
@@ -2625,8 +2643,9 @@
     box.querySelectorAll("[data-del]").forEach(function(b){
       b.addEventListener("click", function(){
         if (!confirm("Delete this panorama?")) return;
-        api(TOUR_API_URL, "/api/admin/panorama/" + encodeURIComponent(edListingId) + "/" + encodeURIComponent(b.getAttribute("data-del")), { method:"DELETE" })
-          .then(function(){ toast("Panorama deleted"); openEditor(edListingId); loadTourList(); })
+        var rid = b.getAttribute("data-del");
+        api(TOUR_API_URL, "/api/admin/panorama/" + encodeURIComponent(edListingId) + "/" + encodeURIComponent(rid), { method:"DELETE" })
+          .then(function(d){ if (d && d.ok === false) { toast("Delete failed", true); return; } toast("Panorama deleted"); tour.rooms = tour.rooms.filter(function(r){ return r.id !== rid; }); tour.hotspots = tour.hotspots.filter(function(h){ return h.from !== rid && h.to !== rid; }); renderRooms(); renderHs(); loadTourList(); })
           .catch(function(){ toast("Delete failed", true); });
       });
     });
@@ -2646,16 +2665,17 @@
   }
   function uploadFiles(files){
     if (!files || !files.length || !edListingId) return;
+    var lid = edListingId;
     $("upErr").textContent = ""; $("upOk").textContent = "Uploading " + files.length + " photo(s)…";
     var chain = Promise.resolve(), done = 0;
     Array.prototype.forEach.call(files, function(f){
       chain = chain.then(function(){
-        var fd = new FormData(); fd.append("file", f); fd.append("listingId", edListingId);
+        var fd = new FormData(); fd.append("file", f); fd.append("listingId", lid);
         return fetch(TOUR_API_URL + "/api/admin/panorama", { method:"POST", headers: token ? {"Authorization":"Bearer "+token} : {}, body: fd })
           .then(function(r){ return r.json(); })
           .then(function(d){
             done++;
-            if (d && d.ok){ tour.rooms.push({ id: d.id, name: "", url: d.url }); }
+            if (d && d.ok){ if (edListingId === lid) tour.rooms.push({ id: d.id, name: "", url: d.url }); }
             else { $("upErr").textContent = "One upload failed (" + ((d && d.error) || "error") + ")."; }
             $("upOk").textContent = "Uploaded " + done + " / " + files.length;
           });
@@ -2686,13 +2706,19 @@
       b.addEventListener("click", function(){ tour.hotspots.splice(+b.getAttribute("data-hsdel"), 1); renderHs(); });
     });
   }
+  var pannellumLoading = false, pannellumCbs = [];
   function loadPannellum(cb){
     if (window.pannellum) return cb();
+    pannellumCbs.push(cb);
+    if (pannellumLoading) return;
+    pannellumLoading = true;
     var l = document.createElement("link"); l.rel = "stylesheet";
-    l.href = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"; document.head.appendChild(l);
+    l.href = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"; l.integrity = "sha384-02yn80EH0cF+s23taAmuhEZ04p3CTbQvV0QZMr2reUxajpfvcLNKlzsPkZwx14mf"; l.crossOrigin = "anonymous"; document.head.appendChild(l);
     var s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
-    s.onload = cb; document.head.appendChild(s);
+    s.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"; s.integrity = "sha384-S5+w/JlcNAOymqXGNrvzn2F++XsaHTJdex6KE5VbKryfFgqJiRUJOgOkUqaiOZTf"; s.crossOrigin = "anonymous";
+    s.onload = function(){ pannellumLoading = false; var cbs = pannellumCbs; pannellumCbs = []; cbs.forEach(function(f){ f(); }); };
+    s.onerror = function(){ pannellumLoading = false; pannellumCbs = []; toast("Could not load the 360° viewer", true); };
+    document.head.appendChild(s);
   }
   var hsViewer = null;
   $("hsAdd").addEventListener("click", function(){
@@ -2723,26 +2749,32 @@
       });
     });
   });
-  $("hsCancel").addEventListener("click", function(){ $("hsModal").classList.remove("open"); });
+  $("hsCancel").addEventListener("click", function(){ $("hsModal").classList.remove("open"); if (hsViewer){ try { hsViewer.destroy(); } catch(e){} hsViewer = null; } $("hsPano").innerHTML = ""; });
   $("hsSave").addEventListener("click", function(){
     if (!pendingHs) return;
     tour.hotspots.push({ from: pendingHs.from, to: $("hsTarget").value, yaw: pendingHs.yaw, pitch: pendingHs.pitch, text: "" });
     $("hsModal").classList.remove("open");
+    if (hsViewer){ try { hsViewer.destroy(); } catch(e){} hsViewer = null; } $("hsPano").innerHTML = "";
     renderHs();
   });
 
   // save / preview
   $("saveBtn").addEventListener("click", function(){
+    var sb = $("saveBtn"); if (sb.disabled) return;
+    var vurl = $("videoUrl").value.trim();
+    if (vurl && !/^https:\/\//i.test(vurl)) { $("saveErr").textContent = "Video URL must start with https://"; return; }
     $("saveErr").textContent = ""; $("saveOk").textContent = "Saving…";
-    tour.videoUrl = $("videoUrl").value.trim();
+    tour.videoUrl = vurl;
     tour.enabled = $("enableTour").checked;
     var payload = Object.assign({}, tour, { listingId: edListingId });
+    sb.disabled = true;
     api(TOUR_API_URL, "/api/admin/tour", { method: "PUT", body: JSON.stringify(payload) })
       .then(function(d){
+        sb.disabled = false;
         if (d && d.ok){ if (d.tour) tour = d.tour; $("saveOk").textContent = ""; toast(tour.enabled ? "Saved — tour is LIVE on the website ✓" : "Saved as draft ✓"); syncEdStatus(); renderRooms(); renderHs(); loadTourList(); }
         else { $("saveErr").textContent = (d && d.error === "no_rooms") ? "Upload at least one panorama before enabling the tour." : "Could not save."; $("saveOk").textContent = ""; }
       })
-      .catch(function(){ $("saveErr").textContent = "Could not reach the server."; $("saveOk").textContent = ""; });
+      .catch(function(){ sb.disabled = false; $("saveErr").textContent = "Could not reach the server."; $("saveOk").textContent = ""; });
   });
   var pvViewer = null;
   $("previewBtn").addEventListener("click", function(){
@@ -2756,13 +2788,12 @@
     $("pvPano").innerHTML = "";
   });
   function scenesConfig(){
-    var scenes = {}, first = null;
+    var scenes = {}, first = null, idOf = {};
     tour.rooms.forEach(function(r, i){
       var id = "room" + i; if (i === 0) first = id;
       scenes[id] = { title: r.name || ("Room " + (i+1)), type: "equirectangular", panorama: r.url, hotSpots: [] };
-      r._sid = id;
+      idOf[r.id] = id;
     });
-    var idOf = {}; tour.rooms.forEach(function(r){ idOf[r.id] = r._sid; });
     tour.hotspots.forEach(function(h){
       var f = idOf[h.from], tto = idOf[h.to];
       if (f && tto && scenes[f]){
@@ -2811,6 +2842,7 @@
     });
   }
   function gsRender(){
+    if (!gsItems) { $("gsResults").innerHTML = '<div class="empty">Loading…</div>'; return; }
     var q = ($("gsInput").value || "").trim().toLowerCase();
     gsShown = !q ? [] : gsItems.filter(function(it){ return it.hay.indexOf(q) !== -1; }).slice(0, 30);
     if (gsIdx >= gsShown.length) gsIdx = Math.max(0, gsShown.length - 1);
@@ -2860,7 +2892,7 @@
       return '<button type="button" data-ts="' + i + '" style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 10px;border:0;border-bottom:1px solid #1b3049;cursor:pointer;color:#eef4fa;background:transparent"><span style="font-size:18px">' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + '</span></span><span class="pill" style="background:#1d3049;color:#9fc3e8">' + esc(it.kind) + '</span></button>';
     }).join("") : '<div class="empty">No matches — try a name, email, city, MLS # or phone.</div>';
     Array.prototype.forEach.call($("tabSearchResults").querySelectorAll("[data-ts]"), function(b){
-      b.addEventListener("click", function(){ var it = tsFiltered()[Number(b.getAttribute("data-ts"))]; if (it) it.act(); });
+      b.addEventListener("click", function(){ var it = shown[Number(b.getAttribute("data-ts"))]; if (it) it.act(); });
     });
     $("tabSearchMore").hidden = all.length <= tsShown;
   }
