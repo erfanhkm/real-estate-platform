@@ -149,16 +149,15 @@
   <aside id="side">
     <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
     <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
-    <button class="navbtn" data-nav="leads"><span class="ic">👥</span>Leads</button>
-    <button class="navbtn" data-nav="crm"><span class="ic">🧑‍💼</span>CRM</button>
+    <button class="navbtn" data-nav="workspace"><span class="ic">🧭</span>Workspace</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
     <button class="navbtn" data-nav="site"><span class="ic">🧩</span>Site content</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
-    <button class="navbtn" data-nav="viewings"><span class="ic">📅</span>Viewings</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
+    <div id="healthPill" title="System health — click to open Maintenance">⏳ Health…</div>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
     <button class="navbtn" data-nav="search"><span class="ic">🔍</span>Search</button>
@@ -183,6 +182,7 @@
       <div class="card">
         <h2>🗓 Your desk today</h2>
         <div id="deskBody"><div class="empty">Loading…</div></div>
+        <div id="deskRadar" style="margin-top:10px"></div>
       </div>
       <div class="card">
         <h2>Latest leads</h2>
@@ -201,6 +201,22 @@
 
     <!-- LEADS -->
     <section id="page-leads" hidden>
+      <style>
+        .wsbar{display:inline-flex;flex-wrap:wrap;border:1px solid rgba(127,127,127,.4);border-radius:10px;overflow:hidden;margin-bottom:14px}
+        .wsbar button{background:transparent;border:0;color:inherit;padding:8px 13px;cursor:pointer;font-size:13.5px}
+        .wsbar button.on{background:#C6A15B;color:#0B2239;font-weight:700}
+        #crmViews{display:none}
+        #healthPill{margin:4px 2px 8px;padding:7px 10px;border:1px solid rgba(127,127,127,.4);border-radius:9px;font-size:12.5px;cursor:pointer;text-align:center}
+      </style>
+      <div class="wsbar" role="tablist" aria-label="Workspace views">
+        <button type="button" data-wslens="people">👥 People</button>
+        <button type="button" data-wslens="board">🗂 Board</button>
+        <button type="button" data-wslens="matches">🎯 Matches</button>
+        <button type="button" data-wslens="follow">⏰ Follow-ups</button>
+        <button type="button" data-wslens="calendar">📅 Calendar</button>
+        <button type="button" data-wslens="leads">📋 Leads table</button>
+        <button type="button" data-wslens="calls">📞 Calls</button>
+      </div>
       <div class="pagehead">
         <div><h1>Leads</h1><div class="mut" id="leadCount"></div></div>
         <button class="ghost small" id="refreshBtn">Refresh</button>
@@ -266,6 +282,15 @@
     <!-- CONTACTS -->
     <!-- CRM -->
     <section id="page-crm" hidden>
+      <div class="wsbar" role="tablist" aria-label="Workspace views">
+        <button type="button" data-wslens="people">👥 People</button>
+        <button type="button" data-wslens="board">🗂 Board</button>
+        <button type="button" data-wslens="matches">🎯 Matches</button>
+        <button type="button" data-wslens="follow">⏰ Follow-ups</button>
+        <button type="button" data-wslens="calendar">📅 Calendar</button>
+        <button type="button" data-wslens="leads">📋 Leads table</button>
+        <button type="button" data-wslens="calls">📞 Calls</button>
+      </div>
       <style>
         .crm-cols{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
         .crm-col{min-width:225px;flex:1 1 0;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
@@ -436,11 +461,32 @@
 
     <!-- VIEWINGS -->
     <section id="page-viewings" hidden>
+      <div class="wsbar" role="tablist" aria-label="Workspace views">
+        <button type="button" data-wslens="people">👥 People</button>
+        <button type="button" data-wslens="board">🗂 Board</button>
+        <button type="button" data-wslens="matches">🎯 Matches</button>
+        <button type="button" data-wslens="follow">⏰ Follow-ups</button>
+        <button type="button" data-wslens="calendar">📅 Calendar</button>
+        <button type="button" data-wslens="leads">📋 Leads table</button>
+        <button type="button" data-wslens="calls">📞 Calls</button>
+      </div>
       <div class="pagehead">
         <div><h1>Viewing bookings</h1><div class="mut">Requested from listing pages — confirming queues the visitor a confirmation email; cancelling also removes the calendar event</div></div>
         <button class="ghost small" id="vwRefresh">Refresh</button>
       </div>
       <div id="vwList"></div>
+    </section>
+
+    <section id="page-calls" hidden>
+      <div class="pagehead">
+        <div><h1>Calls</h1><div class="mut" id="callCount"></div></div>
+        <button class="ghost small" id="callRefresh">Refresh</button>
+      </div>
+      <div id="callBanner"></div>
+      <div id="callList"></div>
+      <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">Messages</h1><div class="mut" id="smsCount"></div></div></div>
+      <div id="smsThreads"></div>
+      <div id="smsThread" style="margin-top:12px"></div>
     </section>
 
     <!-- LISTINGS -->
@@ -544,6 +590,9 @@
         <button class="btn-spruce small" id="mtRun">Run maintenance now</button>
       </div>
       <div id="mtSpeed"></div>
+      <div id="mtUsage"></div>
+      <div id="mtAi"></div>
+      <div id="mtQueue"></div>
       <div class="stats">
         <div class="stat"><div class="n" id="mtChecks">–</div><div class="l">Checks passed</div></div>
         <div class="stat"><div class="n" id="mtIssues">–</div><div class="l">Issues found</div></div>
@@ -735,13 +784,50 @@
   function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} showLogin(); }
 
   // ---------- navigation ----------
+  var wsLens = "board";
+  function wsOpen(){
+    if (wsLens === "calls") { go("calls"); return; }
+    if (wsLens === "calendar") { go("viewings"); return; }
+    if (wsLens === "leads") { go("leads"); return; }
+    go("crm");
+    var map = { people: "people", board: "pipeline", matches: "matches", follow: "follow" };
+    var b = document.querySelector('[data-crmview="' + (map[wsLens] || "pipeline") + '"]');
+    if (b) b.click();
+  }
+  function wsSync(page){
+    var cur = wsLens;
+    if (page === "calls") cur = "calls";
+    else if (page === "viewings") cur = "calendar";
+    else if (page === "leads") cur = "leads";
+    else if (page === "crm") cur = (crmView === "people") ? "people" : (crmView === "pipeline") ? "board" : (crmView === "matches") ? "matches" : (crmView === "follow") ? "follow" : cur;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){ b.classList.toggle("on", b.getAttribute("data-wslens") === cur); });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){
+    b.addEventListener("click", function(){ wsLens = b.getAttribute("data-wslens"); wsOpen(); });
+  });
+  var hpLoadedAt = 0;
+  function loadHealthPill(){
+    var el = $("healthPill"); if (!el) return;
+    if (Date.now() - hpLoadedAt < 300000) return;
+    hpLoadedAt = Date.now();
+    api(API_URL, "/api/admin/maintenance").then(function(d){
+      if (!d || !d.ok || !d.last) { el.textContent = "⚪ Health: no data yet"; return; }
+      var iss = (d.last.issues || []).length;
+      var sp = d.last.speed && d.last.speed.score;
+      var icon = iss === 0 ? "🟢" : (iss <= 2 ? "🟡" : "🔴");
+      el.textContent = icon + " Health: " + (iss === 0 ? "all good" : iss + " issue" + (iss > 1 ? "s" : "")) + (typeof sp === "number" ? " · speed " + sp : "");
+    }).catch(function(){});
+  }
+  $("healthPill").addEventListener("click", function(){ go("maintenance"); });
   function go(page){
+    if (page === "workspace") { wsOpen(); return; }
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
+    var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
-      b.classList.toggle("on", b.getAttribute("data-nav") === page);
+      b.classList.toggle("on", b.getAttribute("data-nav") === navKey);
     });
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
@@ -755,6 +841,9 @@
     if (page === "viewings") loadViewings();
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
+    if (page === "calls") loadCalls();
+    wsSync(page);
+    loadHealthPill();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
     b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
@@ -843,6 +932,141 @@
   $("radarKind").addEventListener("change", renderRadar);
   ["radarClass", "radarScore", "radarConf", "radarValue", "radarCity", "radarSource", "radarSort"].forEach(function(id){ $(id).addEventListener("change", renderRadar); });
   $("radarSearch").addEventListener("input", renderRadar);
+  function fmtDur(s){ s = s || 0; return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function loadCalls(){
+    api(API_URL, "/api/admin/calls?limit=200").then(function(d){
+      if (!d || !d.ok) { $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; return; }
+      $("callBanner").innerHTML = d.configured
+        ? '<div class="card" style="margin-bottom:12px">📞 Business number <b>' + esc(d.number) + '</b> (' + esc(d.provider) + ') — every call is logged here and on the caller\'s profile.</div>'
+        : '<div class="card" style="margin-bottom:12px">📞 <b>Business number not connected yet</b> — it activates with the domain in December. The logging pipeline is built and tested; calls will land here and on each person\'s profile automatically.</div>';
+      $("callCount").textContent = d.calls.length + " call" + (d.calls.length === 1 ? "" : "s");
+      renderSmsThreads();
+      $("callList").innerHTML = d.calls.length ? d.calls.map(function(c){
+        var other = c.direction === "in" ? c.from : c.to;
+        var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#93c5fd">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
+        return '<div class="tourrow"><div>' + (c.direction === "in" ? "📥" : "📤") + ' <b>' + who + '</b> <span class="mut">' + esc(other || "") + '</span></div>' +
+          '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' +
+          (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
+          (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
+          (c.leadId ? '<span class="chip">lead created</span>' : '') + '</div>' +
+          (c.transcript ? '<div class="mut" style="padding:2px 10px 8px">📝 ' + esc(String(c.transcript).slice(0, 220)) + '</div>' : '');
+      }).join("") : '<div class="empty">No calls logged yet.</div>';
+    }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
+  }
+  $("callRefresh").addEventListener("click", function(){ cacheClear(); loadCalls(); });
+  $("callList").addEventListener("click", function(e){
+    var ld = e.target.closest("[data-call-lead]");
+    if (ld) {
+      api(API_URL, "/api/admin/calls/" + encodeURIComponent(ld.getAttribute("data-call-lead")) + "/lead", { method: "POST", body: "{}" }).then(function(d){
+        if (d && d.ok) { toast("Lead created from the call ✓"); loadCalls(); } else toast("Could not create the lead", true);
+      });
+      return;
+    }
+    var pr = e.target.closest("[data-call-person]");
+    if (pr) { e.preventDefault(); crmOpen = pr.getAttribute("data-call-person"); wsLens = "people"; go("crm"); }
+  });
+  document.addEventListener("click", function(e){
+    var rec = e.target.closest && e.target.closest("[data-call-rec]");
+    if (!rec) return;
+    fetch(API_URL + "/api/admin/calls/" + encodeURIComponent(rec.getAttribute("data-call-rec")) + "/recording", { headers: { Authorization: "Bearer " + token } })
+      .then(function(r){ if (!r.ok) throw new Error("bad"); return r.blob(); })
+      .then(function(b){ window.open(URL.createObjectURL(b), "_blank"); })
+      .catch(function(){ toast("Could not load the recording", true); });
+  });
+  function fillCalls(c){
+    var box = $("crmCalls"); if (!box) return;
+    api(API_URL, "/api/admin/calls?limit=200").then(function(d){
+      if (!crmOpen || crmOpen !== c.email) return;
+      var box2 = $("crmCalls"); if (!box2 || !d || !d.ok) return;
+      var last = String(c.phone || "").replace(/\D/g, "").slice(-10);
+      var mine = (d.calls || []).filter(function(x){
+        return (x.matchedEmail && x.matchedEmail.toLowerCase() === c.email.toLowerCase()) ||
+          (last && (String(x.from || "").replace(/\D/g, "").slice(-10) === last || String(x.to || "").replace(/\D/g, "").slice(-10) === last));
+      }).slice(0, 6);
+      if (!mine.length) { box2.innerHTML = ""; return; }
+      box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📞 Calls</div>' + mine.map(function(x){
+        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(fmtDate(x.startedAt)) + ' · ' + fmtDur(x.durationSec) + ' · ' + esc(x.status) + (x.recordingUrl ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(x.id) + '">▶ Recording</button>' : '') + '</div>';
+      }).join("");
+    }).catch(function(){});
+  }
+  var smsOpenPhone = null, smsCache = [];
+  function smsOther(m){ return m.direction === "in" ? m.from : m.to; }
+  function renderSmsThreads(){
+    api(API_URL, "/api/admin/sms?limit=300").then(function(d){
+      if (!d || !d.ok) return;
+      smsCache = d.messages || [];
+      var threads = {}, order = [];
+      smsCache.forEach(function(m){
+        var k = smsOther(m) || "—";
+        if (!threads[k]) { threads[k] = { phone: k, msgs: [], unread: 0, name: m.matchedName || "", email: m.matchedEmail || "" }; order.push(k); }
+        threads[k].msgs.push(m);
+        if (m.direction === "in" && !m.read) threads[k].unread++;
+        if (m.matchedName && !threads[k].name) threads[k].name = m.matchedName;
+        if (m.matchedEmail && !threads[k].email) threads[k].email = m.matchedEmail;
+      });
+      var totalUnread = d.unread || 0;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-wslens=\"calls\"]"), function(b){ b.textContent = "📞 Calls" + (totalUnread ? " • " + totalUnread : ""); });
+      $("smsCount").textContent = order.length + " conversation" + (order.length === 1 ? "" : "s") + (totalUnread ? " · " + totalUnread + " unread" : "");
+      $("smsThreads").innerHTML = order.length ? order.map(function(k){
+        var t = threads[k], last = t.msgs[0];
+        return '<div class="tourrow" data-sms-open="' + esc(k) + '" style="cursor:pointer"><div>' + (t.unread ? '<b style="color:#f87171">● </b>' : '') + '<b>' + esc(t.name || k) + '</b> <span class="mut">' + esc(k) + '</span><div class="mut" style="margin-top:2px">' + (last.direction === "in" ? "📥 " : "📤 ") + esc(String(last.body || "").slice(0, 90)) + '</div></div><span class="mut">' + esc(fmtDate(last.at)) + (t.unread ? ' · <b>' + t.unread + ' new</b>' : '') + '</span></div>';
+      }).join("") : '<div class="empty">No messages yet — texts to the business number will appear here.</div>';
+      if (smsOpenPhone && threads[smsOpenPhone]) openSmsThread(smsOpenPhone, true);
+    }).catch(function(){});
+  }
+  function openSmsThread(phone, keepScroll){
+    smsOpenPhone = phone;
+    var msgs = smsCache.filter(function(m){ return smsOther(m) === phone; }).slice().reverse();
+    var label = (msgs.filter(function(m){ return m.matchedName; })[0] || {}).matchedName || phone;
+    $("smsThread").innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">💬 ' + esc(label) + ' <span class="mut">' + esc(phone) + '</span></div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding:2px">' + msgs.map(function(m){
+        var out = m.direction === "out";
+        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
+      }).join("") + '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="smsReplyText" rows="2" placeholder="Reply as the business number…" style="flex:1"></textarea><button type="button" class="btn-spruce" data-sms-send="' + esc(phone) + '">Send</button></div></div>';
+    api(API_URL, "/api/admin/sms/read", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(){ renderSmsThreadsSoft(); }).catch(function(){});
+  }
+  function renderSmsThreadsSoft(){
+    api(API_URL, "/api/admin/sms?limit=300").then(function(d){
+      if (!d || !d.ok) return;
+      var totalUnread = d.unread || 0;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-wslens=\"calls\"]"), function(b){ b.textContent = "📞 Calls" + (totalUnread ? " • " + totalUnread : ""); });
+    }).catch(function(){});
+  }
+  $("smsThreads").addEventListener("click", function(e){
+    var row = e.target.closest("[data-sms-open]");
+    if (row) openSmsThread(row.getAttribute("data-sms-open"));
+  });
+  $("smsThread").addEventListener("click", function(e){
+    var sb = e.target.closest("[data-sms-send]");
+    if (!sb) return;
+    var phone = sb.getAttribute("data-sms-send");
+    var body = ($("smsReplyText").value || "").trim();
+    if (!body) return;
+    sb.disabled = true;
+    api(API_URL, "/api/admin/sms/send", { method: "POST", body: JSON.stringify({ to: phone, body: body }) }).then(function(d){
+      sb.disabled = false;
+      if (d && d.ok) { toast("Text sent ✓"); smsOpenPhone = phone; renderSmsThreads(); }
+      else if (d && d.error === "not_configured") toast("Texting activates with the business number in December", true);
+      else toast("Could not send the text", true);
+    }).catch(function(){ sb.disabled = false; toast("Could not send the text", true); });
+  });
+  function fillSms(c){
+    var box = $("crmSms"); if (!box) return;
+    api(API_URL, "/api/admin/sms?limit=300").then(function(d){
+      if (!crmOpen || crmOpen !== c.email) return;
+      var box2 = $("crmSms"); if (!box2 || !d || !d.ok) return;
+      var last = String(c.phone || "").replace(/\D/g, "").slice(-10);
+      var mine = (d.messages || []).filter(function(x){
+        return (x.matchedEmail && x.matchedEmail.toLowerCase() === c.email.toLowerCase()) ||
+          (last && (String(x.from || "").replace(/\D/g, "").slice(-10) === last || String(x.to || "").replace(/\D/g, "").slice(-10) === last));
+      }).slice(0, 6).reverse();
+      if (!mine.length) { box2.innerHTML = ""; return; }
+      box2.innerHTML = '<div class="mut" style="margin-bottom:2px">💬 Messages</div>' + mine.map(function(x){
+        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(String(x.body || "").slice(0, 140)) + ' <span class="mut">' + esc(fmtDate(x.at)) + '</span></div>';
+      }).join("") + '<div class="mut" style="margin-top:2px">Reply from the 📞 Calls lens in the Workspace.</div>';
+    }).catch(function(){});
+  }
   function loadRadar(){
     loadRadarSettings();
     api(API_URL, "/api/market-leads").then(function(d){
@@ -929,6 +1153,17 @@
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
+      if (l.presale && typeof l.presale === "object"){
+        var pp = l.presale, pbits = [];
+        if (pp.project) pbits.push('🏗️ ' + esc(pp.project));
+        if (pp.completion) pbits.push('completion ' + esc(pp.completion));
+        if (pp.depositPaid) pbits.push('deposit already paid: ' + esc(pp.depositPaid));
+        if (pp.assignmentFee) pbits.push('assignment fee: ' + esc(pp.assignmentFee));
+        if (pbits.length) html += '<div style="font-size:13.5px;color:#C6A15B;margin-bottom:4px">' + pbits.join(' · ') + '</div>';
+        var askN = pv(l); if (!askN) { var pn = parseInt(String(l.price || "").replace(/[^0-9]/g, ""), 10); askN = isFinite(pn) && pn > 10000 ? pn : null; }
+        if (pp.originalPrice && askN && pp.originalPrice > askN) html += '<div style="font-size:14px;color:#4ade80;font-weight:700;margin-bottom:4px">💎 $' + (pp.originalPrice - askN).toLocaleString("en-US") + ' under the original contract price</div>';
+        (pp.flags || []).forEach(function(fl){ html += '<div class="mut" style="font-size:12.5px">⚠️ ' + esc(fl) + '</div>'; });
+      }
       var mlist = (l.matches && l.matches.length) ? l.matches : (l.match && l.match.url ? [l.match] : []);
       mlist.forEach(function(m, i){
         if (!m || !m.url) return;
@@ -1006,6 +1241,7 @@
         });
       }
       $("deskBody").innerHTML = h;
+      renderDeskRadar();
     }).catch(function(){ $("deskBody").innerHTML = '<div class="empty">Could not load the desk summary.</div>'; });
   }
 
@@ -1065,6 +1301,7 @@
       crmView = b.getAttribute("data-crmview"); crmOpen = null; crmShowN = 30;
       Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x === b); });
       renderCRMMain();
+      wsSync("crm");
     });
   });
   $("crmCsv").addEventListener("click", function(){
@@ -1194,10 +1431,91 @@
     rows.sort(function(a, b){ return b._urg - a._urg; });
     return rows;
   }
+  var pairsLoaded = false;
+  function ensurePairs(cb){
+    if (pairsLoaded) { cb(); return; }
+    api(API_URL, "/api/market-leads").then(function(d){
+      if (d && d.ok && d.leads) mleads = d.leads;
+      pairsLoaded = true; cb();
+    }).catch(function(){ cb(); });
+  }
+  function parseMoneyTxt(v){
+    if (typeof v === "number") return v;
+    var m = String(v || "").replace(/,/g, "").match(/(\d+(?:\.\d+)?)\s*(k|m)?/i);
+    if (!m) return 0;
+    var n = parseFloat(m[1]);
+    if (/k/i.test(m[2] || "")) n *= 1000;
+    if (/m/i.test(m[2] || "")) n *= 1000000;
+    return n;
+  }
+  function personCities(c){
+    var out = [];
+    (c.searches || []).forEach(function(s){ var cr = s.criteria || {}; if (cr.city) out.push(String(cr.city)); });
+    (c.leads || []).forEach(function(l){ if (l.city) out.push(String(l.city)); });
+    if (c.brief && c.brief.areas) String(c.brief.areas).split(/[·,;]/).forEach(function(x){ x = x.trim(); if (x) out.push(x); });
+    return out;
+  }
+  function personBudget(c){
+    var b = 0;
+    (c.searches || []).forEach(function(s){ var cr = s.criteria || {}; var v = parseMoneyTxt(cr.maxPrice || cr.priceMax || cr.budget || 0); if (v > b) b = v; });
+    if (c.brief && c.brief.budget) { var v2 = parseMoneyTxt(c.brief.budget); if (v2 > b) b = v2; }
+    (c.leads || []).forEach(function(l){ var v3 = parseMoneyTxt(l.budget || 0); if (v3 > b) b = v3; });
+    return b;
+  }
+  function pairsForPerson(c){
+    var cities = personCities(c).map(function(x){ return x.toLowerCase(); });
+    if (!cities.length) return [];
+    var budget = personBudget(c);
+    return mleads.filter(function(l){
+      if (!l || l.kind !== "pair" || l.status === "dismissed") return false;
+      var area = String(l.area || "").toLowerCase(), title = String(l.title || "").toLowerCase();
+      var hit = cities.some(function(ct){
+        if (!ct) return false;
+        if (area && area.indexOf(ct) !== -1) return true;
+        if (area && area.length > 2 && ct.indexOf(area) !== -1) return true;
+        if (title.indexOf(ct) !== -1) return true;
+        return false;
+      });
+      if (!hit) return false;
+      var supply = parseMoneyTxt((l.matches && l.matches[0] && l.matches[0].price) || l.price || 0);
+      if (budget && supply && supply > budget * 1.05) return false;
+      return true;
+    }).sort(function(a, b){ return (b.matchScore || 0) - (a.matchScore || 0); }).slice(0, 3);
+  }
+  function fillRadarOpp(c){
+    var box = $("crmRadarOpp"); if (!box) return;
+    ensurePairs(function(){
+      if (!crmOpen || crmOpen !== c.email) return;
+      var box2 = $("crmRadarOpp"); if (!box2) return;
+      var pairs = pairsForPerson(c);
+      if (!pairs.length) { box2.innerHTML = ""; return; }
+      box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📡 Radar opportunities for ' + esc(c.name || c.email) + '</div>' + pairs.map(function(l){
+        var m = (l.matches && l.matches[0]) || {};
+        return '<div class="kv">🔗 <a href="' + esc(m.url || l.url || "#") + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || l.title || "listing") + '</a>' +
+          (m.price ? ' · ' + esc(m.price) : '') +
+          (typeof l.matchScore === "number" ? ' <span class="chip">🎯 ' + l.matchScore + '</span>' : '') +
+          '<div class="mut">buyer need: <a href="' + esc(l.url || "#") + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.title || "") + '</a>' + (l.risk ? ' · ⚠ ' + esc(l.risk) : '') + '</div></div>';
+      }).join("");
+    });
+  }
+  function renderDeskRadar(){
+    var box = $("deskRadar"); if (!box) return;
+    ensurePairs(function(){
+      var pairs = mleads.filter(function(l){ return l && l.kind === "pair" && l.status !== "dismissed"; });
+      if (!pairs.length) { box.innerHTML = ""; return; }
+      api(API_URL, "/api/admin/contacts").then(function(d){
+        var contacts = (d && d.ok && d.contacts) || [];
+        var matchedPeople = [], seen = {};
+        contacts.forEach(function(c){ if (pairsForPerson(c).length && !seen[c.email]) { seen[c.email] = 1; matchedPeople.push(c); } });
+        box.innerHTML = '<div class="card"><div class="tourrow"><div>📡 <b>' + pairs.length + '</b> active radar pair' + (pairs.length === 1 ? '' : 's') + (matchedPeople.length ? ' · <b>' + matchedPeople.length + '</b> match your people: ' + matchedPeople.slice(0, 3).map(function(c){ return esc(c.name || c.email); }).join(", ") : ' · none match your people yet') + '</div><button type="button" class="ghost small" id="deskRadarGo">Open radar</button></div></div>';
+        var g = $("deskRadarGo"); if (g) g.addEventListener("click", function(){ go("radar"); });
+      }).catch(function(){});
+    });
+  }
   function renderCRMMain(){
     if (crmOpen) {
       var c = crmByEmail(crmOpen);
-      if (c) { $("crmMain").innerHTML = crmProfile(c); return; }
+      if (c) { $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c); return; }
       crmOpen = null;
     }
     if (crmView === "pipeline") return renderPipeline();
@@ -1287,6 +1605,9 @@
       '</div>' +
       '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">✅ Tasks</div>' + tk + '</div>' +
       (homes ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">❤️ Saved homes</div>' + homes + '</div>' : "") +
+      '<div id="crmRadarOpp" style="margin-top:12px"></div>' +
+      '<div id="crmCalls" style="margin-top:12px"></div>' +
+      '<div id="crmSms" style="margin-top:12px"></div>' +
       (searches ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">🔎 Saved searches</div>' + searches + '</div>' : "") +
       (vws ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">📅 Viewings</div>' + vws + '</div>' : "") +
       (lds ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">✉️ Leads (move the stage right here)</div>' + lds + '</div>' : "") +
@@ -1664,6 +1985,19 @@
       '<label class="lf"><span>Status</span><select id="lf_status">' + ["active", "pending", "sold"].map(function(t){ return '<option value="' + t + '"' + (rec.status === t ? " selected" : "") + '>' + t + '</option>'; }).join("") + '</select></label>' +
       f("lf_listed", "Listed date", rec.listed, ' type="date"') +
       '</div>' +
+      '<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px"><label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" id="lf_ispre" style="width:auto"' + (rec.pt === "presale" ? " checked" : "") + '> 🏗️ Presale / assignment</label>' +
+      '<div id="lf_prewrap" style="display:' + (rec.pt === "presale" ? "block" : "none") + ';margin-top:8px">' +
+      '<div class="lfrow">' +
+      '<label class="lf"><span>Project name</span><input id="lf_project" value="' + esc(rec.project || "") + '"></label>' +
+      '<label class="lf"><span>Developer</span><input id="lf_developer" value="' + esc(rec.developer || "") + '"></label>' +
+      '<label class="lf"><span>Completion (e.g. 2027-Q3)</span><input id="lf_completion" value="' + esc(rec.completion || "") + '"></label>' +
+      '</div><div class="lfrow">' +
+      '<label class="lf"><span>Total deposit %</span><input id="lf_depositPct" type="number" min="0" max="100" step="0.5" value="' + esc(rec.depositPct == null ? "" : String(rec.depositPct)) + '"></label>' +
+      '<label class="lf"><span>Deposit structure</span><input id="lf_depositStruct" value="' + esc(rec.depositStruct || "") + '" placeholder="5/5/5/5"></label>' +
+      '<label class="lf"><span>Original contract price (assignments)</span><input id="lf_originalPrice" type="number" min="0" value="' + esc(rec.originalPrice == null ? "" : String(rec.originalPrice)) + '"></label>' +
+      '</div>' +
+      '<label style="display:flex;gap:6px;align-items:center;font-weight:500;margin-top:6px"><input type="checkbox" id="lf_assignment" style="width:auto"' + (rec.assignment ? " checked" : "") + '> Assignment allowed</label>' +
+      '</div></div>' +
       '<label class="lf" style="margin-top:10px"><span>Features (comma-separated)</span><input id="lf_features" value="' + esc((rec.features || []).join(", ")) + '"></label>' +
       '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;align-items:flex-start">' +
         (src ? '<img id="lf_preview" referrerpolicy="no-referrer" src="' + esc(src) + '" alt="" style="width:180px;height:120px;object-fit:cover;border-radius:8px">' : '<div id="lf_preview" style="width:180px;height:120px;border-radius:8px;background:#e8e4da"></div>') +
@@ -1692,6 +2026,7 @@
       });
     });
     $("lf_cancel").addEventListener("click", function(){ lstSeq++; lstPhotoData = undefined; $("lstEditor").innerHTML = ""; });
+    var lfPre = $("lf_ispre"); if (lfPre) lfPre.addEventListener("change", function(){ var w = $("lf_prewrap"); if (w) w.style.display = lfPre.checked ? "block" : "none"; });
     $("lf_save").addEventListener("click", saveListingFromForm);
   }
   function urlVal0(){ var u = $("lf_photoUrl") ? $("lf_photoUrl").value.trim() : ""; return !u || /^https:\/\/[^\s"'<>]+$/i.test(u); }
@@ -1706,6 +2041,10 @@
       parking: v("lf_parking"), stalls: numOrNull("lf_stalls"), strata: numOrNull("lf_strata"), tax: numOrNull("lf_tax"),
       status: $("lf_status").value, listed: v("lf_listed"),
       features: v("lf_features") ? v("lf_features").split(",").map(function(x){ return x.trim(); }).filter(Boolean) : [],
+      pt: $("lf_ispre") && $("lf_ispre").checked ? "presale" : "resale",
+      project: v("lf_project"), developer: v("lf_developer"), completion: v("lf_completion"),
+      depositPct: numOrNull("lf_depositPct"), depositStruct: v("lf_depositStruct"),
+      originalPrice: numOrNull("lf_originalPrice"), assignment: !!($("lf_assignment") && $("lf_assignment").checked),
       desc: { en: v("lf_desc_en"), fa: v("lf_desc_fa"), hi: v("lf_desc_hi"), zh: v("lf_desc_zh") },
       photo: lstOrigPhoto
     };
@@ -1714,7 +2053,7 @@
       : !(isFinite(listing.price) && listing.price > 0) ? "price"
       : !(isFinite(listing.beds) && listing.beds >= 0) ? "bedrooms"
       : !(isFinite(listing.baths) && listing.baths >= 0) ? "bathrooms"
-      : ["sqft", "lot", "year", "stalls", "strata", "tax"].filter(function(k){ return listing[k] !== null && !isFinite(listing[k]); })[0];
+      : ["sqft", "lot", "year", "stalls", "strata", "tax", "depositPct", "originalPrice"].filter(function(k){ return listing[k] !== null && !isFinite(listing[k]); })[0];
     if (badField) { $("lf_err").textContent = "Check the " + badField + " field."; return; }
     if (urlVal0(listing) === false) { $("lf_err").textContent = "Photo URL must start with https://"; return; }
     if (!$("lf_mls").readOnly && lstFindRec(listing.mls.toUpperCase()) && !confirm("MLS " + listing.mls + " already exists — overwrite it?")) return;
@@ -1924,7 +2263,33 @@
   $("nlRefresh").addEventListener("click", loadNewsletter);
   var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
   var mtSpeedLog = [];
+  var mtBackup = null;
+  function ageTxt(ts){
+    if (!ts) return "";
+    var hrs = Math.max(0, Math.round((Date.now() - Date.parse(ts)) / 3600000));
+    if (hrs < 1) return "under an hour ago";
+    if (hrs < 48) return hrs + "h ago";
+    return Math.round(hrs / 24) + "d ago";
+  }
   function renderMaint(rep, log){
+    var mq = $("mtQueue");
+    if (mq) {
+      var parts = [];
+      if (!rep) parts.push('<div style="background:#3a0e0e;border:1px solid #ef4444;border-radius:10px;padding:10px 12px;margin-bottom:8px"><b style="color:#f87171">🔴 No maintenance report yet</b> <span class="mut">— the nightly check has never completed a run.</span></div>');
+      else if (rep.ts && (Date.now() - Date.parse(rep.ts)) > 36 * 3600000) parts.push('<div style="background:#3a0e0e;border:1px solid #ef4444;border-radius:10px;padding:10px 12px;margin-bottom:8px"><b style="color:#f87171">🔴 Maintenance report is stale</b> <span class="mut">— last run ' + esc(ageTxt(rep.ts)) + ' (' + esc(fmtDate(rep.ts)) + '). The nightly watcher itself may be down.</span></div>');
+      var cnt = (rep && rep.counts) || {};
+      var mailLine = '<b>📧 Mail queue</b>' + (typeof cnt.mailUnsent === "number" ? cnt.mailUnsent + ' unsent' + (cnt.mailUnsent && cnt.mailOldest ? ' · oldest ' + esc(ageTxt(cnt.mailOldest)) : '') + (cnt.mailUnsent ? ' <span class="mut">(sending activates with the domain email in December)</span>' : '') : '<span class="mut">run maintenance to measure</span>');
+      var bkLine = '<b>💾 Last KV backup</b>' + (mtBackup ? esc(fmtDate(mtBackup.at)) + ' · ' + esc(ageTxt(mtBackup.at)) + (mtBackup.keys ? ' · ' + mtBackup.keys + ' keys' : '') : '<span class="mut">none recorded yet — the weekly backup stamps here when it runs</span>');
+      parts.push('<div class="kv">' + mailLine + '</div><div class="kv">' + bkLine + '</div>');
+      mq.innerHTML = '<div class="card" style="margin-bottom:12px">' + parts.join("") + '</div>';
+    }
+    var mu = $("mtUsage");
+    if (mu) {
+      if (rep && rep.usage && typeof rep.usage.listsToday === "number") {
+        var lun = rep.usage.listsToday;
+        mu.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="kv"><b>KV list ops today</b>' + lun + ' / 1,000 daily budget' + (lun >= 700 ? ' · <b style="color:#f87171">high — investigate before the wall</b>' : '') + '</div></div>';
+      } else mu.innerHTML = "";
+    }
     if (rep && rep.speed) {
       var BAND = { excellent: ["#22c55e", "🟢", "Excellent"], good: ["#eab308", "🟡", "Good"], poor: ["#f97316", "🟠", "Poor"], terrible: ["#ef4444", "🔴", "Terrible"] };
       var sp = rep.speed, bd = BAND[sp.band] || BAND.good;
@@ -1955,7 +2320,25 @@
     api(API_URL, "/api/admin/maintenance").then(function(d){
       if (!d || !d.ok) return;
       mtSpeedLog = d.speedLog || [];
+      mtBackup = d.backup || null;
       renderMaint(d.last, d.log);
+      loadMtAi();
+    }).catch(function(){});
+  }
+  function loadMtAi(){
+    api(API_URL, "/api/admin/ai-usage").then(function(d){
+      var box = $("mtAi"); if (!box) return;
+      if (!d || !d.ok) {
+        box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut">🤖 Remaining AI usage — site assistant</div><div class="mut" style="margin-top:6px">Could not read the AI counters right now' + (d && d.error === "ai_not_configured" ? " — the internal AI connection is not configured yet." : ".") + '</div></div>';
+        return;
+      }
+      var bar = function(label, u){
+        var pct = u.budget ? Math.max(0, Math.min(100, Math.round(u.left / u.budget * 100))) : 0;
+        var col = pct <= 10 ? "#ef4444" : pct <= 25 ? "#eab308" : "#22c55e";
+        return '<div style="flex:1 1 240px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>' + label + '</span><b style="color:' + col + '">' + u.left + ' left</b></div><div style="height:9px;background:rgba(127,127,127,.25);border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:' + pct + '%;background:' + col + '"></div></div><div class="mut" style="margin-top:3px">' + u.used + ' of ' + u.budget + ' used today (UTC day) · refills at midnight UTC</div></div>';
+      };
+      var last = d.lastChat ? '<div class="mut" style="margin-top:9px">Last answer by <b>' + esc(d.lastChat.provider) + '</b>' + (d.lastChat.isLastBackup ? ' — <b style="color:#ef4444">⚠️ this is the LAST backup provider</b>' : '') + ' · ' + esc(fmtDate(d.lastChat.at)) + '</div>' : '<div class="mut" style="margin-top:9px">No chat answered yet today.</div>';
+      box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut" style="margin-bottom:8px">🤖 Remaining AI usage — site assistant</div><div style="display:flex;gap:18px;flex-wrap:wrap">' + bar("💬 Chats", d.chat) + bar("🔎 Web searches", d.search) + '</div>' + last + '<div class="mut" style="margin-top:4px">If chats hit zero, the assistant replies with a polite fallback instead of answering — the nightly maintenance email also flags it below 70 left.</div></div>';
     }).catch(function(){});
   }
   function runMaint(){
