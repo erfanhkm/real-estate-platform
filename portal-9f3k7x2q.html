@@ -2280,7 +2280,9 @@
       var cnt = (rep && rep.counts) || {};
       var mailLine = '<b>📧 Mail queue</b>' + (typeof cnt.mailUnsent === "number" ? cnt.mailUnsent + ' unsent' + (cnt.mailUnsent && cnt.mailOldest ? ' · oldest ' + esc(ageTxt(cnt.mailOldest)) : '') + (cnt.mailUnsent ? ' <span class="mut">(sending activates with the domain email in December)</span>' : '') : '<span class="mut">run maintenance to measure</span>');
       var bkLine = '<b>💾 Last KV backup</b>' + (mtBackup ? esc(fmtDate(mtBackup.at)) + ' · ' + esc(ageTxt(mtBackup.at)) + (mtBackup.keys ? ' · ' + mtBackup.keys + ' keys' : '') : '<span class="mut">none recorded yet — the weekly backup stamps here when it runs</span>');
-      parts.push('<div class="kv">' + mailLine + '</div><div class="kv">' + bkLine + '</div>');
+      var gcalLine = '<b>📅 Calendar bridge</b>' + (rep && rep.gcal ? (rep.gcal.ok ? ' last event OK · ' + esc(fmtDate(rep.gcal.at)) + ' · ' + esc(ageTxt(rep.gcal.at)) : ' <b style="color:#f87171">last attempt FAILED</b> · ' + esc(fmtDate(rep.gcal.at)) + ' · ' + esc(ageTxt(rep.gcal.at)) + (rep.gcal.error ? ' · ' + esc(rep.gcal.error) : '')) : '<span class="mut">no calendar event recorded yet</span>');
+      var canaryLine = '<b>🧪 Canary</b>' + (rep && rep.canary ? ' lead ' + (rep.canary.leadOk ? '✓' : '✗') + ' · chat ' + (rep.canary.chatOk ? '✓' : '✗') + (rep.canary.at ? ' · ' + esc(fmtDate(rep.canary.at)) + ' · ' + esc(ageTxt(rep.canary.at)) : '') : '<span class="mut">not run yet — runs with nightly maintenance</span>');
+      parts.push('<div class="kv">' + mailLine + '</div><div class="kv">' + bkLine + '</div><div class="kv">' + gcalLine + '</div><div class="kv">' + canaryLine + '</div>');
       mq.innerHTML = '<div class="card" style="margin-bottom:12px">' + parts.join("") + '</div>';
     }
     var mu = $("mtUsage");
