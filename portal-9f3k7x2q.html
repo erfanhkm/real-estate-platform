@@ -1231,6 +1231,8 @@
   // ---------- CRM (unified people desk) ----------
   var bansCache = [];
   var crmData = { contacts: [], analytics: null, matches: [], leads: [] };
+  var crmLoadSeq = 0;
+  function crmStage(c){ return c.personStage || c.stageAuto || "new"; }
   var crmView = "people", crmOpen = null, crmMatchCtx = null;
   var crmShowN = 30;
   function fmt$(n){ return "$" + Number(n || 0).toLocaleString("en-CA"); }
@@ -1243,6 +1245,7 @@
     return crmData.contacts.filter(function(c){ return String(c.email).toLowerCase() === nk; })[0] || null;
   }
   function loadCRM(){
+    var seq = ++crmLoadSeq;
     Promise.all([
       api(API_URL, "/api/admin/contacts"),
       api(API_URL, "/api/admin/crm/analytics").catch(function(){ return null; }),
@@ -1250,6 +1253,7 @@
       api(API_URL, "/api/leads").catch(function(){ return null; }),
       api(API_URL, "/api/admin/users").catch(function(){ return null; })
     ]).then(function(rs){
+      if (seq !== crmLoadSeq) return;
       crmData.contacts = (rs[0] && rs[0].contacts) || [];
       crmData.analytics = (rs[1] && rs[1].analytics) || null;
       crmData.matches = (rs[2] && rs[2].matches) || [];
@@ -1267,7 +1271,7 @@
     var b = e.target.closest("[data-unban]");
     if (!b) return;
     api(API_URL, "/api/admin/users/" + encodeURIComponent(b.getAttribute("data-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
-      .then(function(){ toast("Address unbanned"); loadCRM(); }).catch(function(){ toast("Could not unban", true); });
+      .then(function(d){ if (d && d.ok) { toast("Address unbanned"); loadCRM(); } else toast("Could not unban", true); }).catch(function(){ toast("Could not unban", true); });
   });
   $("banBtn").addEventListener("click", function(){
     var em = ($("banEmail").value || "").trim();
@@ -1290,7 +1294,7 @@
   $("crmCsv").addEventListener("click", function(){
     var rows = [["Name", "Email", "Phone", "Tier", "Score", "Conversion %", "Stage", "Tags", "Last activity", "Saved", "Searches", "Leads", "Viewings"]];
     crmFiltered().forEach(function(c){ rows.push([c.name || "", c.email, c.phone || "", c.tier, c.score, c.predict, c.personStage, (c.customTags || []).concat(c.tags || []).join("; "), c.lastActivity || "", c.savedCount, c.searchCount, (c.leads || []).length, (c.viewings || []).length]); });
-    var csv = rows.map(function(r){ return r.map(function(x){ return '"' + String(x == null ? "" : x).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+    var csv = rows.map(function(r){ return r.map(function(x){ var s = String(x == null ? "" : x); if (/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     a.download = "crm-export.csv"; a.click();
@@ -1328,7 +1332,8 @@
     var b = e.target.closest("[data-health]");
     if (!b) return;
     var k = b.getAttribute("data-health");
-    crmOpen = null;
+    crmOpen = null; crmMatchCtx = null;
+    $("crmSearch").value = ""; $("crmTier").value = ""; $("crmStageF").value = "";
     if (k === "follow") {
       crmView = "follow";
       Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(x){ x.classList.toggle("on", x.getAttribute("data-crmview") === "follow"); });
@@ -1349,7 +1354,7 @@
     var tf = $("crmTier").value, sf = $("crmStageF").value, fl = $("crmFlag").value;
     var rows = crmData.contacts.filter(function(c){
       if (tf && c.tier !== tf) return false;
-      if (sf && c.personStage !== sf) return false;
+      if (sf && crmStage(c) !== sf) return false;
       if (fl === "follow" && !c.followUp) return false;
       if (fl === "opps" && !(c.opportunities || []).length) return false;
       if (fl === "cold" && !c.coldRisk) return false;
@@ -1362,7 +1367,7 @@
     });
     var so = $("crmSort").value;
     if (so === "predict") rows.sort(function(a, b){ return (b.predict || 0) - (a.predict || 0); });
-    else if (so === "recent") rows.sort(function(a, b){ return String(b.lastActivity).localeCompare(String(a.lastActivity)); });
+    else if (so === "recent") rows.sort(function(a, b){ return String(b.lastActivity || "").localeCompare(String(a.lastActivity || "")); });
     else if (so === "name") rows.sort(function(a, b){ return String(a.name || a.email).localeCompare(String(b.name || b.email)); });
     return rows;
   }
@@ -1372,12 +1377,12 @@
     if (c.phone) bits.push("📞 " + esc(c.phone));
     if (c.savedCount) bits.push("❤️ " + c.savedCount + " saved");
     if (c.searchCount) bits.push("🔎 " + c.searchCount + " searches");
-    if (c.viewings.length) bits.push("📅 " + c.viewings.length + " viewing" + (c.viewings.length === 1 ? "" : "s"));
-    if (c.leads.length) bits.push("✉️ " + c.leads.length + " lead" + (c.leads.length === 1 ? "" : "s"));
+    if ((c.viewings || []).length) bits.push("📅 " + c.viewings.length + " viewing" + (c.viewings.length === 1 ? "" : "s"));
+    if ((c.leads || []).length) bits.push("✉️ " + c.leads.length + " lead" + (c.leads.length === 1 ? "" : "s"));
     var chips = tierBadge(c) +
       ' <span class="stage s-offer">🎯 ' + (c.predict || 0) + '% likely</span>' +
       (c.trend === "rising" ? ' <span class="stage s-new">📈 rising</span>' : c.trend === "cooling" ? ' <span class="stage s-dropped">🧊 cooling</span>' : "") +
-      ' <span class="stage s-contacted">' + esc(c.personStage || "new") + '</span>' +
+      ' <span class="stage s-contacted">' + esc(crmStage(c)) + '</span>' +
       (c.banned ? ' <span class="stage s-dropped">🚫 banned</span>' : "") +
       (c.dnc ? ' <span class="stage s-dropped">🔕 do not contact</span>' : "");
     var allTags = (c.customTags || []).map(function(t){ return '<span class="stage s-viewing">' + esc(t) + '</span>'; })
@@ -1403,7 +1408,7 @@
     var rows = [];
     crmData.contacts.forEach(function(c){
       var reasons = [];
-      var overdue = (c.openTasks || []).filter(function(t){ return t.due < today; });
+      var overdue = (c.openTasks || []).filter(function(t){ return t.due < today; }).sort(function(x, y){ return String(x.due).localeCompare(String(y.due)); });
       if (overdue.length) reasons.push("✅ " + overdue.length + " overdue task(s) — oldest: “" + esc(overdue[0].text) + "”");
       if (c.followUp) reasons.push("⏰ " + esc(c.followUp.kind) + " waiting " + c.followUp.hours + "h for a follow-up");
       if ((c.openTasks || []).some(function(t){ return t.due === today; })) reasons.push("✅ A task is due today");
@@ -1498,7 +1503,13 @@
   function renderCRMMain(){
     if (crmOpen) {
       var c = crmByEmail(crmOpen);
-      if (c) { $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c); return; }
+      if (c) {
+        var keep = {};
+        ["crmCommSubject", "crmCommText", "crmExtractText", "crmTags", "crmNoteText"].forEach(function(id){ var el = $(id); if (el) keep[id] = el.value; });
+        $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c);
+        Object.keys(keep).forEach(function(id){ var el = $(id); if (el && keep[id]) el.value = keep[id]; });
+        return;
+      }
       crmOpen = null;
     }
     if (crmView === "pipeline") return renderPipeline();
@@ -1562,7 +1573,7 @@
         '<button type="button" class="ghost small" data-act="draft" data-email="' + em + '">✍️ AI follow-up draft</button>' +
         '<button type="button" class="ghost small" data-act="meeting" data-email="' + em + '">📋 Meeting brief</button>' +
         (c.banned ? '<button type="button" class="ghost small" data-crm-unban="' + em + '">Unban</button>' : '<button type="button" class="ghost small" data-crm-ban="' + em + '">🚫 Ban</button>') +
-        '<button type="button" class="ghost small" data-crm-del="' + em + '">🗑 Delete account</button>' +
+        (c.isUser ? '<button type="button" class="ghost small" data-crm-del="' + em + '">🗑 Delete account</button>' : '') +
       '</div>' +
       '<div id="crmAiBox" style="margin-top:10px"></div>' +
       '<div class="card" style="margin-top:12px"><h2>✉️ Message centre</h2>' +
@@ -1601,11 +1612,11 @@
     var stages = [["new", "🆕 New"], ["contacted", "📞 Contacted"], ["viewing", "📅 Viewing"], ["offer", "📝 Offer"], ["closed", "🎉 Closed"], ["dropped", "🗑 Dropped"]];
     var byStage = {};
     stages.forEach(function(s){ byStage[s[0]] = []; });
-    crmData.leads.forEach(function(l){ if (byStage[l.stage]) byStage[l.stage].push(l); });
+    crmData.leads.forEach(function(l){ var st = Object.prototype.hasOwnProperty.call(byStage, l.stage) ? l.stage : "new"; byStage[st].push(l); });
     $("crmCount").textContent = crmData.leads.length + " deals in the pipeline";
     $("crmMain").innerHTML = '<div class="crm-cols">' + stages.map(function(s){
       var cards = byStage[s[0]].map(function(l){
-        var age = Math.max(0, Math.floor((Date.now() - Date.parse(l.created_at || "")) / 86400000));
+        var ageN = Math.floor((Date.now() - Date.parse(l.created_at || "")) / 86400000); var age = isFinite(ageN) ? Math.max(0, ageN) : 0;
         var opts = stages.map(function(x){ return '<option value="' + x[0] + '"' + (l.stage === x[0] ? " selected" : "") + '>' + x[0] + '</option>'; }).join("");
         return '<div class="lead" style="margin-bottom:8px"><b>' + esc(l.name || l.email) + '</b><div class="mut">' + esc(l.email) + ' · ' + esc(l.intent || "") + ' · ' + age + 'd old</div>' +
           (l.message ? '<div class="mut" style="margin-top:4px">' + esc(String(l.message).slice(0, 110)) + '</div>' : "") +
@@ -1647,6 +1658,7 @@
     return { subject: "Let's book your viewing", body: "Hi " + first + ", " + (home ? "I noticed you saved " + home.title + " (" + fmt$(home.priceNow) + "). " : "") + "I'd be happy to arrange a private viewing — I have openings this week, mornings and afternoons. What suits you best?\n\n— Erfan" };
   }
   $("crmMain").addEventListener("change", function(e){
+    if (e.target.id === "crmNoteKind") { var cdEl = $("crmCallDays"); if (cdEl) cdEl.disabled = e.target.value !== "call"; }
     var sel = e.target.closest("[data-lead-stage]");
     if (!sel) return;
     api(API_URL, "/api/leads/" + encodeURIComponent(sel.getAttribute("data-lead-stage")), { method: "PATCH", body: JSON.stringify({ stage: sel.value }) })
@@ -1657,8 +1669,8 @@
     var openB = e.target.closest("[data-open-profile]");
     var smB = e.target.closest("[data-show-more]");
     if (smB) { crmShowN += 30; renderCRMMain(); return; }
-    if (openB) { crmOpen = openB.getAttribute("data-open-profile"); renderCRMMain(); window.scrollTo(0, 0); return; }
-    if (e.target.closest("[data-back-list]")) { crmOpen = null; renderCRMMain(); return; }
+    if (openB) { crmMatchCtx = null; crmOpen = openB.getAttribute("data-open-profile"); renderCRMMain(); window.scrollTo(0, 0); return; }
+    if (e.target.closest("[data-back-list]")) { crmMatchCtx = null; crmOpen = null; renderCRMMain(); return; }
     var outB = e.target.closest("[data-outreach]");
     if (outB) {
       var m = crmData.matches.filter(function(x){ return x.email === outB.getAttribute("data-outreach") && x.mls === outB.getAttribute("data-mls"); })[0];
@@ -1680,8 +1692,9 @@
     }
     var ndB = e.target.closest("[data-note-del]");
     if (ndB) {
+      if (!confirm("Delete this note?")) return;
       api(API_URL, "/api/admin/crm/" + encodeURIComponent(crmOpen) + "/notes/" + encodeURIComponent(ndB.getAttribute("data-note-del")), { method: "DELETE" })
-        .then(function(){ toast("Note deleted"); loadCRM(); }).catch(function(){ toast("Could not delete the note", true); });
+        .then(function(d){ if (d && d.ok) { toast("Note deleted"); loadCRM(); } else toast("Could not delete the note", true); }).catch(function(){ toast("Could not delete the note", true); });
       return;
     }
     var banB = e.target.closest("[data-crm-ban]"), unbB = e.target.closest("[data-crm-unban]"), delB2 = e.target.closest("[data-crm-del]");
@@ -1689,28 +1702,29 @@
       var bem = banB.getAttribute("data-crm-ban");
       if (!confirm("Ban " + bem + "?\nThey will be signed out everywhere and blocked from registering, signing in, booking and the contact form.")) return;
       api(API_URL, "/api/admin/users/" + encodeURIComponent(bem), { method: "POST", body: JSON.stringify({ action: "ban" }) })
-        .then(function(){ toast("Address banned"); loadCRM(); }).catch(function(){ toast("Could not ban", true); });
+        .then(function(d){ if (d && d.ok) { toast("Address banned"); loadCRM(); } else toast("Could not ban", true); }).catch(function(){ toast("Could not ban", true); });
       return;
     }
     if (unbB) {
       api(API_URL, "/api/admin/users/" + encodeURIComponent(unbB.getAttribute("data-crm-unban")), { method: "POST", body: JSON.stringify({ action: "unban" }) })
-        .then(function(){ toast("Address unbanned"); loadCRM(); }).catch(function(){ toast("Could not unban", true); });
+        .then(function(d){ if (d && d.ok) { toast("Address unbanned"); loadCRM(); } else toast("Could not unban", true); }).catch(function(){ toast("Could not unban", true); });
       return;
     }
     if (delB2) {
       var dem = delB2.getAttribute("data-crm-del");
       if (!confirm("Delete the account for " + dem + "?\nTheir saved homes, searches and sessions are removed. Their leads and bookings stay as your business records.")) return;
       api(API_URL, "/api/admin/users/" + encodeURIComponent(dem), { method: "DELETE" })
-        .then(function(){ toast("User deleted"); crmOpen = null; loadCRM(); }).catch(function(){ toast("Could not delete", true); });
+        .then(function(d){ if (d && d.ok) { toast("User deleted"); crmOpen = null; loadCRM(); } else toast("Could not delete", true); }).catch(function(){ toast("Could not delete", true); });
       return;
     }
     var doneB = e.target.closest("[data-task-done]");
     var tdelB = e.target.closest("[data-task-del]");
     var addB = e.target.closest("[data-task-add]");
-    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadCRM(); setTimeout(loadCRM, 900); }).catch(function(){ toast("Could not update the task", true); }); return; }
+    if (doneB) { taskPatch(doneB.getAttribute("data-task-done"), { done: true }).then(function(d){ if (d && d.ok) { toast("Task done ✓"); loadCRM(); setTimeout(loadCRM, 900); } else toast("Could not update the task", true); }).catch(function(){ toast("Could not update the task", true); }); return; }
     if (tdelB) {
+      if (!confirm("Delete this task?")) return;
       api(API_URL, "/api/admin/tasks/" + encodeURIComponent(tdelB.getAttribute("data-task-del")), { method: "DELETE" })
-        .then(function(){ toast("Task deleted"); loadCRM(); setTimeout(loadCRM, 900); }).catch(function(){ toast("Could not delete the task", true); });
+        .then(function(d){ if (d && d.ok) { toast("Task deleted"); loadCRM(); setTimeout(loadCRM, 900); } else toast("Could not delete the task", true); }).catch(function(){ toast("Could not delete the task", true); });
       return;
     }
     if (addB) {
@@ -1732,7 +1746,8 @@
             }
             textEl.value = "";
           }
-          setTimeout(loadCRM, 75000);
+          if (d.task && d.task.id) { var tc = crmByEmail(email); if (tc) { tc.openTasks = tc.openTasks || []; tc.openTasks.push(d.task); } }
+          setTimeout(loadCRM, 900);
         } else toast("Could not add the task", true); })
         .catch(function(){ toast("Could not add the task", true); });
       return;
@@ -1751,6 +1766,8 @@
       return;
     }
     if (act === "queue" && c) {
+      if (c.banned) { toast("This address is banned — unban it before emailing", true); return; }
+      if (c.dnc) { toast("This person is marked Do Not Contact — email not queued", true); return; }
       var subj = $("crmCommSubject").value.trim(), body = $("crmCommText").value.trim();
       if (!subj || !body) { toast("Generate or write the subject and message first", true); return; }
       api(API_URL, "/api/admin/mailq", { method: "POST", body: JSON.stringify({ to: c.email, name: c.name || "", lang: c.lang || "en", subject: subj, body: body }) })
@@ -1788,10 +1805,11 @@
       actB.disabled = true; actB.textContent = "✨ Extracting…";
       api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-extract", { method: "POST", body: JSON.stringify({ text: xtext }) })
         .then(function(d){
+          actB.disabled = false; actB.textContent = "✨ Save note + extract with AI";
           if (d && d.ok) { toast("Extracted ✓ — " + (d.tasksCreated || 0) + " task(s) created" + (d.suggestedStage ? " · suggested stage: " + d.suggestedStage : "")); loadCRM(); }
           else toast(d && d.error === "ai_not_configured" ? "AI is not configured yet for the CRM" : "AI extraction failed — try again", true);
         })
-        .catch(function(){ toast("AI extraction failed — try again", true); });
+        .catch(function(){ actB.disabled = false; actB.textContent = "✨ Save note + extract with AI"; toast("AI extraction failed — try again", true); });
       return;
     }
     if ((act === "brief" || act === "draft") && c) {
@@ -1799,32 +1817,36 @@
       api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-brief", { method: "POST", body: JSON.stringify({ mode: act }) })
         .then(function(d){
           actB.disabled = false; actB.textContent = act === "brief" ? "🤖 AI brief" : "✍️ AI follow-up draft";
+          if (crmOpen !== aem) return;
           if (d && d.ok) {
             if (act === "draft") { if ($("crmCommText")) { $("crmCommText").value = d.draft || ""; $("crmCommSubject").value = "Following up"; } toast("Draft ready in the message centre ✓"); }
             else $("crmAiBox").innerHTML = '<div class="card"><h2>🤖 AI brief</h2><div>' + esc(d.summary || "") + '</div>' + ((d.talkingPoints || []).length ? '<div style="margin-top:8px">' + d.talkingPoints.map(function(t){ return '<div class="kv">💬 ' + esc(t) + '</div>'; }).join("") + '</div>' : "") + (d.draft ? '<div class="mut" style="margin-top:8px">Suggested follow-up:</div><div style="white-space:pre-wrap">' + esc(d.draft) + '</div>' : "") + '</div>';
           } else toast(d && d.error === "ai_not_configured" ? "AI is not configured yet for the CRM" : "AI is unavailable right now", true);
         })
-        .catch(function(){ actB.disabled = false; actB.textContent = "🤖 AI brief"; toast("AI is unavailable right now", true); });
+        .catch(function(){ actB.disabled = false; actB.textContent = act === "brief" ? "🤖 AI brief" : "✍️ AI follow-up draft"; toast("AI is unavailable right now", true); });
       return;
     }
     if (act === "meeting" && c) {
       actB.disabled = true; actB.textContent = "📋 Building…";
+      var w = window.open("", "_blank");
+      if (!w) { actB.disabled = false; actB.textContent = "📋 Meeting brief"; toast("Popup blocked — allow popups for the brief", true); return; }
       Promise.all([
         api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem) + "/ai-brief", { method: "POST", body: JSON.stringify({ mode: "meeting" }) }).catch(function(){ return null; }),
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/listings").then(function(r){ return r.json(); }).catch(function(){ return null; })
+        api(API_URL, "/api/listings").catch(function(){ return null; })
       ]).then(function(rs){
         actB.disabled = false; actB.textContent = "📋 Meeting brief";
+        if (crmOpen !== aem) { w.close(); return; }
         var ai = rs[0] && rs[0].ok ? rs[0] : null;
         var listings = (rs[1] && rs[1].listings) || [];
         var viewedMls = (c.viewings || []).map(function(v){ return v.listingId; });
         var comps = listings.filter(function(l){ return viewedMls.indexOf(l.mls) === -1 && (c.savedHomes || []).every(function(h){ return h.mls !== l.mls; }); }).slice(0, 3);
         var rowsH = (c.savedHomes || []).map(function(h){ return "<tr><td>" + esc(h.title) + "</td><td>" + fmt$(h.priceNow) + "</td></tr>"; }).join("");
-        var compH = comps.map(function(l){ return "<tr><td>" + esc(l.street + ", " + l.city) + "</td><td>" + fmt$(l.price) + "</td><td>" + l.beds + " bd · " + l.type + "</td></tr>"; }).join("");
+        var compH = comps.map(function(l){ return "<tr><td>" + esc(l.street + ", " + l.city) + "</td><td>" + fmt$(l.price) + "</td><td>" + esc(String(l.beds == null ? "?" : l.beds)) + " bd · " + esc(l.type || "") + "</td></tr>"; }).join("");
         var srchH = (c.searches || []).map(function(s){ var cr = s.criteria || {}; return "<li>" + esc(s.name || "Saved search") + " — " + esc([cr.city, cr.type, cr.maxPrice ? "≤ " + fmt$(parseInt(cr.maxPrice, 10)) : "", cr.minBeds ? cr.minBeds + "+ bd" : ""].filter(Boolean).join(" · ")) + "</li>"; }).join("");
         var vwH = (c.viewings || []).map(function(v){ return "<li>" + esc(v.date + " " + v.time + " · " + (v.listingId || "") + " · " + v.status) + "</li>"; }).join("");
         var tpH = ai && ai.talkingPoints ? ai.talkingPoints.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") : "";
         var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Meeting brief — ' + esc(c.name || c.email) + '</title><style>body{font-family:Georgia,serif;color:#14202e;max-width:720px;margin:32px auto;padding:0 18px;line-height:1.5}h1{font-size:24px;margin-bottom:2px}h2{font-size:16px;margin-top:22px;border-bottom:2px solid #C6A15B;padding-bottom:4px}table{width:100%;border-collapse:collapse}td{padding:5px 4px;border-bottom:1px solid #ddd}.mut{color:#5a6a78;font-size:13px}@media print{button{display:none}}</style></head><body>' +
-          '<button onclick="window.print()">🖨 Print</button><h1>' + esc(c.name || c.email) + '</h1><div class="mut">' + esc(c.email) + (c.phone ? ' · ' + esc(c.phone) : "") + ' · stage: ' + esc(c.personStage) + ' · score ' + c.score + ' · conversion estimate ' + (c.predict || 0) + '%</div>' +
+          '<button onclick="window.print()">🖨 Print</button><h1>' + esc(c.name || c.email) + '</h1><div class="mut">' + esc(c.email) + (c.phone ? ' · ' + esc(c.phone) : "") + ' · stage: ' + esc(crmStage(c)) + ' · score ' + esc(String(c.score == null ? "" : c.score)) + ' · conversion estimate ' + (Number(c.predict) || 0) + '%</div>' +
           (ai && ai.summary ? '<h2>Summary</h2><p>' + esc(ai.summary) + '</p>' : "") +
           (c.nextAction ? '<h2>Next step</h2><p>' + esc(c.nextAction.text) + '</p>' : "") +
           (srchH ? '<h2>What they are looking for</h2><ul>' + srchH + '</ul>' : "") +
@@ -1834,9 +1856,8 @@
           (compH ? '<h2>Also worth showing them</h2><table>' + compH + '</table>' : "") +
           (tpH ? '<h2>Talking points</h2><ul>' + tpH + '</ul>' : "") +
           '<p class="mut" style="margin-top:26px">Prepared by the Erfan BC Real Estate CRM · ' + new Date().toLocaleDateString("en-CA") + '</p></body></html>';
-        var w = window.open("", "_blank");
-        if (w) { w.document.write(html); w.document.close(); } else toast("Popup blocked — allow popups for the brief", true);
-      });
+        w.document.write(html); w.document.close();
+      }).catch(function(){ actB.disabled = false; actB.textContent = "📋 Meeting brief"; try { w.close(); } catch (e) {} toast("Could not build the meeting brief", true); });
       return;
     }
   });
@@ -1849,7 +1870,7 @@
   $("deskBody").addEventListener("click", function(e){
     var b = e.target.closest("[data-desk-task-done]");
     if (!b) return;
-    taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(){ toast("Task done ✓"); loadDesk(); setTimeout(loadDesk, 900); }).catch(function(){ toast("Could not update the task", true); });
+    taskPatch(b.getAttribute("data-desk-task-done"), { done: true }).then(function(d){ if (d && d.ok) { toast("Task done ✓"); loadDesk(); setTimeout(loadDesk, 900); } else toast("Could not update the task", true); }).catch(function(){ toast("Could not update the task", true); });
   });
 
   // ---------- listings: full portal manager ----------
@@ -2277,12 +2298,12 @@
     }
     if (rep && rep.speed) {
       var BAND = { excellent: ["#22c55e", "🟢", "Excellent"], good: ["#eab308", "🟡", "Good"], poor: ["#f97316", "🟠", "Poor"], terrible: ["#ef4444", "🔴", "Terrible"] };
-      var sp = rep.speed, bd = BAND[sp.band] || BAND.good;
-      var hist = (mtSpeedLog || []).slice(0, 7).map(function(h){ var hb = BAND[h.band] || BAND.good; return '<span title="' + esc(h.at || "") + ' · ' + h.score + '" style="display:inline-block;width:14px;height:' + Math.max(4, Math.round((h.score || 0) / 5)) + 'px;background:' + hb[0] + ';margin-right:3px;border-radius:2px;vertical-align:bottom"></span>'; }).join("");
+      var sp = rep.speed, bd = BAND[sp.band] || (sp.score >= 85 ? BAND.excellent : sp.score >= 65 ? BAND.good : sp.score >= 40 ? BAND.poor : BAND.terrible);
+      var hist = (mtSpeedLog || []).slice(0, 7).map(function(h){ var hb = BAND[h.band] || (h.score >= 85 ? BAND.excellent : h.score >= 65 ? BAND.good : h.score >= 40 ? BAND.poor : BAND.terrible); return '<span title="' + esc(h.at || "") + ' · ' + h.score + '" style="display:inline-block;width:14px;height:' + Math.max(4, Math.round((h.score || 0) / 5)) + 'px;background:' + hb[0] + ';margin-right:3px;border-radius:2px;vertical-align:bottom"></span>'; }).join("");
       $("mtSpeed").innerHTML = '<div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><div style="font-size:46px;line-height:1">' + bd[1] + '</div><div><div class="mut">Site speed</div><b style="font-size:27px;color:' + bd[0] + '">' + sp.score + '/100 · ' + bd[2] + '</b><div class="mut">Measured ' + esc(fmtDate(sp.at)) + ' · 🟢 85+ excellent · 🟡 65+ good · 🟠 40+ poor · 🔴 under 40 terrible</div></div><div style="flex:1 1 280px">' +
         '<div class="kv"><b>API data read</b>' + sp.kvMs + ' ms</div>' +
-        '<div class="kv"><b>Homepage load</b>' + (sp.homeMs === null || sp.homeMs === undefined ? 'unreachable' : sp.homeMs + ' ms') + ' · ' + sp.homeKB + ' KB</div>' +
-        '<div class="kv"><b>Listings page load</b>' + (sp.listMs === null || sp.listMs === undefined ? 'unreachable' : sp.listMs + ' ms') + ' · ' + sp.listKB + ' KB</div>' +
+        '<div class="kv"><b>Homepage load</b>' + (sp.homeMs === null || sp.homeMs === undefined ? 'unreachable' : sp.homeMs + ' ms' + (sp.homeKB == null ? '' : ' · ' + sp.homeKB + ' KB')) + '</div>' +
+        '<div class="kv"><b>Listings page load</b>' + (sp.listMs === null || sp.listMs === undefined ? 'unreachable' : sp.listMs + ' ms' + (sp.listKB == null ? '' : ' · ' + sp.listKB + ' KB')) + '</div>' +
         (hist ? '<div class="kv"><b>Recent runs</b><span>' + hist + '</span></div>' : "") + '</div></div>';
     }
     if (!rep){ $("mtChecksList").innerHTML = '<div class="empty">No run yet — press “Run maintenance now”</div>'; return; }
