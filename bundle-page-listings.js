@@ -472,7 +472,7 @@
     var STOPWORDS = ["what", "how", "does", "the", "and", "for", "are", "can", "you", "your", "with", "this", "that", "much", "many", "about", "چیست", "چطور", "چگونه", "برای", "است", "می‌شود", "क्या", "कैसे", "क्या", "है"];
     function siteSearch(text){
       var msg = text.toLowerCase();
-      var toks = msg.split(/[^\p{L}\p{N}]+/u).filter(function(w){ return w.length >= 3 && STOPWORDS.indexOf(w) === -1; });
+      var toks = msg.split(/[^\p{L}\p{M}\p{N}\u200c]+/u).filter(function(w){ return w.length >= 3 && STOPWORDS.indexOf(w) === -1; });
       if (lang === "zh"){
         var ZH_BG_STOP = ["什么", "可以", "怎么", "这个", "那个", "请问", "没有", "有没", "是不", "我想", "我要"];
         for (var i = 0; i + 1 < msg.length; i++){
