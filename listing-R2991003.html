@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gBitQGskPw/0+vlLKcHy4X05BhMD4vwwn+jLgt+/Ab8=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-ubKyMpRPPsKuFYoQx+a0QPRO0/xCgiikgM/21ELaqKk='">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-gBitQGskPw/0+vlLKcHy4X05BhMD4vwwn+jLgt+/Ab8=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-A3j2Kuoz3Y+af0aSRpwsFnEZxPDBcAX05m9MgZfOs6o='">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#0b2239" />
@@ -513,32 +513,42 @@ body.print-chk #chkReport{display:block !important}
         ] }
     };
     var tourCache = {};
+    var pannellumState = 0, pannellumQueue = [];
     function loadPannellum(cb){
       if (window.pannellum) return cb();
+      pannellumQueue.push(cb);
+      if (pannellumState !== 0) return;
+      pannellumState = 1;
       var l = document.createElement("link"); l.rel = "stylesheet";
       l.href = "vendor/pannellum.css";
       document.head.appendChild(l);
       var s = document.createElement("script");
       s.src = "vendor/pannellum.js";
-      s.onload = cb; document.head.appendChild(s);
+      s.onload = function(){ pannellumState = 2; var q = pannellumQueue; pannellumQueue = []; q.forEach(function(f){ f(); }); };
+      s.onerror = function(){ pannellumState = 0; pannellumQueue = []; };
+      document.head.appendChild(s);
     }
     function getTour(mls, cb){
-      if (SAMPLE_TOURS[mls]) return cb(SAMPLE_TOURS[mls]);
-      if (tourCache[mls] !== undefined) return cb(tourCache[mls]);
+      var done = false;
+      function once(t){ if (done) return; done = true; cb(t); }
+      if (Object.prototype.hasOwnProperty.call(SAMPLE_TOURS, mls)) return once(SAMPLE_TOURS[mls]);
+      if (Object.prototype.hasOwnProperty.call(tourCache, mls)) return once(tourCache[mls]);
       fetch(TOUR_API_URL + "/api/tour/" + encodeURIComponent(mls))
         .then(function(r){ return r.json(); })
-        .then(function(d){ tourCache[mls] = (d && d.ok && d.tour) ? d.tour : null; cb(tourCache[mls]); })
-        .catch(function(){ cb(null); });
+        .then(function(d){ tourCache[mls] = (d && d.ok && d.tour) ? d.tour : null; return tourCache[mls]; })
+        .then(function(t){ once(t); })
+        .catch(function(){ once(null); });
     }
     var tourViewer = null;
     window.openTour = function(mls){
       var dEl = document.getElementById("dlg");
       if (dEl && dEl.open) { try { dEl.close(); } catch(e){} }
       getTour(mls, function(tour){
-        if (!tour || !tour.rooms.length) return;
+        if (!tour || !Array.isArray(tour.rooms) || !tour.rooms.length) return;
         $("tourModal").style.display = "block";
         document.body.style.overflow = "hidden";
         loadPannellum(function(){
+          if (!window.pannellum) return;
           var scenes = {}, first = null;
           tour.rooms.forEach(function(r, i){
             var id = "room" + i; if (i === 0) first = id;
@@ -547,7 +557,7 @@ body.print-chk #chkReport{display:block !important}
           });
           var idOf = {}; tour.rooms.forEach(function(r){ idOf[r.id] = r._sid; });
           var names = {}; tour.rooms.forEach(function(r){ names[r.id] = r.name || ""; });
-          tour.hotspots.forEach(function(h){
+          (Array.isArray(tour.hotspots) ? tour.hotspots : []).forEach(function(h){
             var f = idOf[h.from], tt = idOf[h.to];
             if (f && tt && scenes[f]) scenes[f].hotSpots.push({ pitch: h.pitch, yaw: h.yaw, type: "scene", text: h.text || names[h.to] || "", sceneId: tt });
           });
@@ -627,7 +637,7 @@ body.print-chk #chkReport{display:block !important}
       c_price:"Home price ($)",c_down:"Down payment",c_rate:"Annual rate (%)",c_amort:"Amortization (years)",c_freq:"Payment frequency",
       freq_monthly:"Monthly",freq_biweekly:"Bi-weekly",freq_weekly:"Weekly",pay_monthly:"Monthly payment",pay_biweekly:"Bi-weekly payment",pay_weekly:"Weekly payment",
       r_mortgage:"Mortgage amount",r_cmhc:"CMHC premium (estimate, added to mortgage)",r_interest:"Total interest",r_total:"Total of all payments",
-      stress:"Canadian stress test: you must qualify at your contract rate + 2% — a qualifying payment of about {x}/month.",
+      stress:"Canadian stress test: you must qualify at the higher of your contract rate + 2% or the 5.25% benchmark rate — a qualifying payment of about {x}/month.",calc_warn_min:"Note: the minimum down payment for this price is about {x} — a smaller down payment isn't available.",calc_warn_insure:"Homes priced at $1,500,000 or more need at least 20% down — insured (CMHC) mortgages aren't available below that.",
       disclaimer:"Figures are educational estimates only — not a mortgage offer or financial advice.",
       match_title:"Home match assistant",match_sub:"Tell it your budget and must-haves — it shows only sample listings that fit your stated criteria, with the reason each one fits. A match means the listing fits the criteria you entered — it is not a quality ranking, a recommendation, or an investment guarantee. It never invents a listing.",
       m_budget:"Max budget",m_beds:"Min. bedrooms",m_btn:"Find my matches",m_none:"No sample listing matches those requirements.",m_matches:"{n} match(es)",
@@ -665,7 +675,7 @@ body.print-chk #chkReport{display:block !important}
       c_price:"قیمت خانه (دلار)",c_down:"پیش‌پرداخت",c_rate:"نرخ سود سالانه (٪)",c_amort:"مدت بازپرداخت (سال)",c_freq:"دوره‌ی پرداخت",
       freq_monthly:"ماهانه",freq_biweekly:"دو هفته یک‌بار",freq_weekly:"هفتگی",pay_monthly:"قسط ماهانه",pay_biweekly:"قسط دوهفته‌ای",pay_weekly:"قسط هفتگی",
       r_mortgage:"مبلغ وام",r_cmhc:"بیمه‌ی CMHC (برآورد، به وام اضافه می‌شود)",r_interest:"کل سود پرداختی",r_total:"مجموع کل پرداخت‌ها",
-      stress:"تست استرس کانادا: باید با نرخ قرارداد + ۲٪ واجد شرایط شوید؛ قسط احتسابی حدود {x} در ماه است.",
+      stress:"تست استرس کانادا: باید با نرخ بالاتر از میان «نرخ قرارداد + ۲٪» و «نرخ معیار ۵٫۲۵٪» واجد شرایط شوید؛ قسط احتسابی حدود {x} در ماه است.",calc_warn_min:"توجه: حداقل پیش‌پرداخت برای این قیمت حدود {x} است — پیش‌پرداخت کمتر از این ممکن نیست.",calc_warn_insure:"خانه‌های ۱٫۵ میلیون دلار و بیشتر حداقل ۲۰٪ پیش‌پرداخت می‌خواهند — وام بیمه‌شده (CMHC) با کمتر از این ممکن نیست.",
       disclaimer:"این ارقام فقط برآورد آموزشی‌اند و پیشنهاد وام یا مشاوره‌ی مالی نیستند.",
       match_title:"دستیار تطبیق خانه",match_sub:"بودجه و نیازتان را بگویید؛ دستیار فقط فایل‌های نمونه‌ای را نشان می‌دهد که با معیارهای اعلامی شما جور درمی‌آیند، همراه با دلیل جورشدن هرکدام. «تطبیق» یعنی فایل با معیارهای واردشده‌ی شما می‌خواند — رتبه‌بندی کیفیت، توصیه یا تضمین سرمایه‌گذاری نیست. هیچ فایلی ساخته نمی‌شود.",
       m_budget:"حداکثر بودجه",m_beds:"حداقل خواب",m_btn:"پیدا کردن موارد منطبق",m_none:"موردی با این شرایط در فایل‌های نمونه نیست.",m_matches:"{n} مورد منطبق",
@@ -705,7 +715,7 @@ body.print-chk #chkReport{display:block !important}
       c_price:"घर की कीमत ($)",c_down:"डाउन पेमेंट",c_rate:"वार्षिक ब्याज दर (%)",c_amort:"अवधि (वर्ष)",c_freq:"भुगतान आवृत्ति",
       freq_monthly:"मासिक",freq_biweekly:"हर दो सप्ताह",freq_weekly:"साप्ताहिक",pay_monthly:"मासिक किस्त",pay_biweekly:"द्वि-साप्ताहिक किस्त",pay_weekly:"साप्ताहिक किस्त",
       r_mortgage:"मॉर्गेज राशि",r_cmhc:"CMHC प्रीमियम (अनुमान, मॉर्गेज में जुड़ा)",r_interest:"कुल ब्याज",r_total:"कुल भुगतान",
-      stress:"कनाडाई स्ट्रेस टेस्ट: आपको अनुबंध दर + 2% पर योग्य होना होगा — योग्यता किस्त लगभग {x}/माह है।",
+      stress:"कनाडाई स्ट्रेस टेस्ट: आपको अनुबंध दर + 2% या 5.25% बेंचमार्क दर — जो भी अधिक हो — पर योग्य होना होगा — योग्यता किस्त लगभग {x}/माह है।",calc_warn_min:"नोट: इस कीमत के लिए न्यूनतम डाउन पेमेंट लगभग {x} है — इससे कम डाउन पेमेंट उपलब्ध नहीं है।",calc_warn_insure:"$1,500,000 या अधिक कीमत के घरों के लिए कम से कम 20% डाउन पेमेंट चाहिए — इससे कम पर बीमित (CMHC) मॉर्गेज उपलब्ध नहीं है।",
       disclaimer:"ये आंकड़े केवल शैक्षिक अनुमान हैं; यह मॉर्गेज प्रस्ताव या वित्तीय सलाह नहीं है।",
       match_title:"होम मैच सहायक",match_sub:"अपना बजट और ज़रूरतें बताएँ — सहायक केवल वे नमूना लिस्टिंग दिखाता है जो आपके बताए मानदंडों पर फिट बैठती हैं, और हर एक के फिट होने का कारण भी बताता है। मैच का मतलब है कि लिस्टिंग आपके दर्ज किए मानदंडों पर खरी उतरती है — यह गुणवत्ता रैंकिंग, सिफ़ारिश या निवेश गारंटी नहीं है। यह कभी लिस्टिंग गढ़ता नहीं।",
       m_budget:"अधिकतम बजट",m_beds:"न्यूनतम बेडरूम",m_btn:"मेरे मैच खोजें",m_none:"इन शर्तों से कोई नमूना लिस्टिंग मेल नहीं खाती।",m_matches:"{n} मैच",
@@ -744,7 +754,7 @@ body.print-chk #chkReport{display:block !important}
       c_price:"房价($)",c_down:"首付",c_rate:"年利率(%)",c_amort:"贷款年限(年)",c_freq:"还款频率",
       freq_monthly:"每月",freq_biweekly:"每两周",freq_weekly:"每周",pay_monthly:"每月还款",pay_biweekly:"每两周还款",pay_weekly:"每周还款",
       r_mortgage:"贷款总额",r_cmhc:"CMHC 保险费(估算,计入贷款)",r_interest:"总利息",r_total:"还款总额",
-      stress:"加拿大压力测试:您须按合同利率 + 2% 通过资格审核 — 审核月供约为 {x}。",
+      stress:"加拿大压力测试:您须按「合同利率 + 2%」与「5.25% 基准利率」中较高者通过资格审核 — 审核月供约为 {x}。",calc_warn_min:"注意:此价格的最低首付约为 {x}——低于此数额的首付不可用。",calc_warn_insure:"房价达到 $1,500,000 或以上时,首付至少需 20%——低于此比例无法获得保险型(CMHC)房贷。",
       disclaimer:"以上数字仅为教育性估算,不构成房贷要约或财务建议。",
       match_title:"房源匹配助手",match_sub:"告诉我们您的预算和需求——助手只会展示符合您所填标准的示例房源,并说明每套房源符合标准的原因。“匹配”是指房源符合您输入的标准,并不代表质量排名、推荐或投资保证。助手绝不虚构房源。",
       m_budget:"最高预算",m_beds:"最少卧室",m_btn:"查找我的匹配",m_none:"没有符合条件的示例房源。",m_matches:"{n} 个匹配",
@@ -773,7 +783,7 @@ body.print-chk #chkReport{display:block !important}
       bv_win_buy:"Buying comes out ahead by {x} over {n} years",bv_win_rent:"Renting comes out ahead by {x} over {n} years",bv_tie:"Over {n} years, buying and renting are essentially a tie",
       bv_assump:"Assumptions: the mortgage payment uses the Canadian semi-annual formula and stays fixed; property tax and strata stay at today's amounts; the home grows at the rate you entered; rent rises once a year. Selling costs, unexpected maintenance, CMHC insurance and investment returns on the down payment are not included — treat this as a planning estimate, not a guarantee.",
       af_title:"Affordability estimator",af_sub:"Canadian lenders use two ratios: GDS — housing costs at or under 32% of gross income; TDS — all debts at or under 40% of gross income. The lower of the two sets your ceiling.",
-      af_income:"Gross household income (per year $)",af_debts:"Non-housing debts (per month $)",af_tax:"Property tax estimate (per year $)",af_heat:"Heating cost (per month $)",af_rate:"Qualifying rate — stress test (%)",af_amort:"Amortization (years)",af_down:"Down payment (%)",
+      af_income:"Gross household income (per year $)",af_debts:"Non-housing debts (per month $)",af_tax:"Property tax estimate (per year $)",af_heat:"Heating cost (per month $)",af_rate:"Qualifying rate — stress test (%)",af_amort:"Amortization (years)",af_down:"Down payment (%)",af_strata:"Strata fees (per month $)",
       af_max_price:"Maximum home price",af_max_mort:"Maximum mortgage",af_budget:"Max monthly mortgage payment",af_gds_row:"GDS (32%) housing limit (per month)",af_tds_row:"TDS (40%) housing room after other debts (per month)",
       af_limit_gds:"Limiting factor: GDS (32%) — your housing-cost ratio is the binding limit.",af_limit_tds:"Limiting factor: TDS (40%) — your other debts are the binding limit.",
       af_note:"Housing costs in the GDS/TDS formulas are: mortgage payment + property tax + heating (plus 50% of strata fees for condos — not included here, so condo buyers should aim a little lower). Lenders qualify you at the stress-test rate — the higher of your contract rate + 2% or the federal benchmark rate — so enter that qualifying rate above. Estimates only; a lender or mortgage broker confirms the real number.",
@@ -791,7 +801,7 @@ body.print-chk #chkReport{display:block !important}
       bv_win_buy:"خرید در {n} سال به اندازه‌ی {x} جلوتر است",bv_win_rent:"اجاره در {n} سال به اندازه‌ی {x} جلوتر است",bv_tie:"در {n} سال، خرید و اجاره تقریباً پایاپای‌اند",
       bv_assump:"فرض‌ها: قسط وام با فرمول کانادایی (سود مرکب نیم‌سالانه) محاسبه می‌شود و ثابت می‌ماند؛ مالیات ملک و شارژ در سطح امروز ثابت‌اند؛ خانه با نرخ واردشده رشد می‌کند؛ اجاره سالی یک‌بار افزایش می‌یابد. هزینه‌ی فروش، تعمیرات پیش‌بینی‌نشده، بیمه‌ی CMHC و بازده سرمایه‌گذاری پیش‌پرداخت لحاظ نشده‌اند؛ پس این یک برآورد برنامه‌ریزی است، نه تضمین.",
       af_title:"برآورد توان خرید",af_sub:"وام‌دهنده‌های کانادایی از دو نسبت استفاده می‌کنند: GDS — هزینه‌های مسکن حداکثر ۳۲٪ درآمد ناخالص؛ TDS — همه‌ی بدهی‌ها حداکثر ۴۰٪ درآمد ناخالص. هرکدام کمتر باشد، سقف شما را تعیین می‌کند.",
-      af_income:"درآمد ناخالص خانوار (سالانه، دلار)",af_debts:"بدهی‌های غیرمسکن (ماهانه، دلار)",af_tax:"برآورد مالیات ملک (سالانه، دلار)",af_heat:"هزینه‌ی گرمایش (ماهانه، دلار)",af_rate:"نرخ احتسابی تست استرس (٪)",af_amort:"مدت بازپرداخت (سال)",af_down:"پیش‌پرداخت (٪)",
+      af_income:"درآمد ناخالص خانوار (سالانه، دلار)",af_debts:"بدهی‌های غیرمسکن (ماهانه، دلار)",af_tax:"برآورد مالیات ملک (سالانه، دلار)",af_heat:"هزینه‌ی گرمایش (ماهانه، دلار)",af_rate:"نرخ احتسابی تست استرس (٪)",af_amort:"مدت بازپرداخت (سال)",af_down:"پیش‌پرداخت (٪)",af_strata:"شارژ ساختمان (ماهانه، دلار)",
       af_max_price:"حداکثر قیمت خانه",af_max_mort:"حداکثر مبلغ وام",af_budget:"حداکثر قسط ماهانه‌ی وام",af_gds_row:"سقف GDS ‏(۳۲٪) برای هزینه‌های مسکن (ماهانه)",af_tds_row:"سقف TDS ‏(۴۰٪) پس از کسر بدهی‌ها (ماهانه)",
       af_limit_gds:"عامل محدودکننده: GDS ‏(۳۲٪) — نسبت هزینه‌های مسکن سقف شما را تعیین می‌کند.",af_limit_tds:"عامل محدودکننده: TDS ‏(۴۰٪) — بدهی‌های دیگر شما عامل محدودکننده‌اند.",
       af_note:"هزینه‌های مسکن در فرمول GDS/TDS شامل قسط وام + مالیات ملک + گرمایش است (به‌علاوه‌ی ۵۰٪ شارژ ساختمان برای آپارتمان‌ها — اینجا لحاظ نشده، پس خریداران آپارتمان بهتر است کمی پایین‌تر هدف بگیرند). وام‌دهنده با نرخ تست استرس — بیشترِ نرخ قرارداد + ۲٪ یا نرخ معیار فدرال — شما را ارزیابی می‌کند؛ همان نرخ را بالا وارد کنید. این ارقام فقط برآوردند — رقم واقعی را وام‌دهنده یا کارگزار وام تأیید می‌کند.",
@@ -809,7 +819,7 @@ body.print-chk #chkReport{display:block !important}
       bv_win_buy:"{n} वर्षों में खरीदना {x} से आगे है",bv_win_rent:"{n} वर्षों में किराया {x} से आगे है",bv_tie:"{n} वर्षों में खरीदना और किराया लगभग बराबर हैं",
       bv_assump:"धारणाएँ: मॉर्गेज किस्त कनाडाई अर्ध-वार्षिक सूत्र से स्थिर रहती है; संपत्ति कर और स्ट्राटा आज के स्तर पर स्थिर हैं; घर आपके दर्ज किए गए दर से बढ़ता है; किराया साल में एक बार बढ़ता है। बिक्री लागत, अप्रत्याशित मरम्मत, CMHC बीमा और डाउन पेमेंट पर निवेश रिटर्न शामिल नहीं हैं — यह योजना का अनुमान है, गारंटी नहीं।",
       af_title:"खरीद क्षमता अनुमानक",af_sub:"कनाडाई ऋणदाता दो अनुपात इस्तेमाल करते हैं: GDS — आवास लागत सकल आय के 32% तक; TDS — सभी ऋण सकल आय के 40% तक। दोनों में जो कम हो, वही आपकी सीमा तय करता है।",
-      af_income:"सकल घरेलू आय (प्रति वर्ष $)",af_debts:"गैर-आवास ऋण (प्रति माह $)",af_tax:"संपत्ति कर अनुमान (प्रति वर्ष $)",af_heat:"हीटिंग लागत (प्रति माह $)",af_rate:"योग्यता दर — स्ट्रेस टेस्ट (%)",af_amort:"अवधि (वर्ष)",af_down:"डाउन पेमेंट (%)",
+      af_income:"सकल घरेलू आय (प्रति वर्ष $)",af_debts:"गैर-आवास ऋण (प्रति माह $)",af_tax:"संपत्ति कर अनुमान (प्रति वर्ष $)",af_heat:"हीटिंग लागत (प्रति माह $)",af_rate:"योग्यता दर — स्ट्रेस टेस्ट (%)",af_amort:"अवधि (वर्ष)",af_down:"डाउन पेमेंट (%)",af_strata:"स्ट्राटा शुल्क (प्रति माह $)",
       af_max_price:"अधिकतम घर की कीमत",af_max_mort:"अधिकतम मॉर्गेज",af_budget:"अधिकतम मासिक मॉर्गेज किस्त",af_gds_row:"GDS (32%) आवास सीमा (प्रति माह)",af_tds_row:"TDS (40%) — अन्य ऋणों के बाद आवास गुंजाइश (प्रति माह)",
       af_limit_gds:"सीमित करने वाला कारक: GDS (32%) — आपकी आवास-लागत अनुपात ही सीमा है।",af_limit_tds:"सीमित करने वाला कारक: TDS (40%) — आपके अन्य ऋण ही सीमा हैं।",
       af_note:"GDS/TDS सूत्रों में आवास लागत = मॉर्गेज किस्त + संपत्ति कर + हीटिंग (कॉन्डो के लिए स्ट्राटा का 50% अतिरिक्त — यहाँ शामिल नहीं है, इसलिए कॉन्डो खरीदार थोड़ा कम लक्ष्य रखें)। ऋणदाता स्ट्रेस-टेस्ट दर — अनुबंध दर + 2% या संघीय बेंचमार्क दर, जो अधिक हो — पर योग्यता जाँचते हैं; ऊपर वही दर दर्ज करें। ये केवल अनुमान हैं — असली आंकड़ा ऋणदाता या मॉर्गेज ब्रोकर ही पुष्टि करता है।",
@@ -827,7 +837,7 @@ body.print-chk #chkReport{display:block !important}
       bv_win_buy:"{n} 年内买房领先 {x}",bv_win_rent:"{n} 年内租房领先 {x}",bv_tie:"{n} 年内买房与租房基本持平",
       bv_assump:"假设:月供按加拿大半年复利公式计算且保持不变;地税和管理费维持当前水平;房价按您输入的涨幅增长;租金每年上调一次。未计入出售成本、意外维修、CMHC 保险及首付的投资回报,因此这只是规划估算,不是保证。",
       af_title:"负担能力估算器",af_sub:"加拿大贷款机构使用两个比率:GDS(住房成本不超过总收入的 32%)和 TDS(全部债务不超过总收入的 40%)。两者中较低者决定您的上限。",
-      af_income:"家庭年总收入($)",af_debts:"非住房债务(每月 $)",af_tax:"地税估算(每年 $)",af_heat:"取暖费(每月 $)",af_rate:"资格审核利率 — 压力测试(%)",af_amort:"贷款年限(年)",af_down:"首付(%)",
+      af_income:"家庭年总收入($)",af_debts:"非住房债务(每月 $)",af_tax:"地税估算(每年 $)",af_heat:"取暖费(每月 $)",af_rate:"资格审核利率 — 压力测试(%)",af_amort:"贷款年限(年)",af_down:"首付(%)",af_strata:"物业管理费(每月 $)",
       af_max_price:"最高房价",af_max_mort:"最高贷款额",af_budget:"每月最高月供",af_gds_row:"GDS(32%)住房上限(每月)",af_tds_row:"TDS(40%)扣除其他债务后的住房空间(每月)",
       af_limit_gds:"限制因素:GDS(32%)— 您的住房成本比率决定了上限。",af_limit_tds:"限制因素:TDS(40%)— 您的其他债务决定了上限。",
       af_note:"GDS/TDS 公式中的住房成本包括:月供 + 地税 + 取暖费(公寓还需加上 50% 的管理费 — 此处未计入,因此公寓买家应把目标定得稍低)。贷款机构按压力测试利率(合同利率 + 2% 与联邦基准利率中的较高者)审核资格,请在上方输入该审核利率。以上仅为估算 — 实际数字须由贷款机构或房贷经纪确认。",
@@ -1230,14 +1240,14 @@ body.print-chk #chkReport{display:block !important}
     var lang = "en";
     try { var saved = localStorage.getItem("erfan-re-lang"); if (saved && I18N[saved]) lang = saved; } catch(e){}
     function T(){ return I18N[lang]; }
-    function fmt(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
+    function fmt(n){ n = Number(n); if (!isFinite(n)) n = 0; return "$" + Math.round(n).toLocaleString("en-US"); }
     function $(id){ return document.getElementById(id); }
     function fill(tpl, obj){ var s = tpl; for (var k in obj) s = s.split("{"+k+"}").join(obj[k]); return s; }
-    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function esc(s){ if (s === null || s === undefined) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
     /* ---------- option builders (preserve selection) ---------- */
     function keep(sel, build, defVal){ var v = sel.value; sel.innerHTML = ""; build(sel); if (v && sel.querySelector('option[value="'+v+'"]')) sel.value = v; else if (defVal && sel.querySelector('option[value="'+defVal+'"]')) sel.value = defVal; }
     function opt(sel, val, label){ var o = document.createElement("option"); o.value = val; o.textContent = label; sel.appendChild(o); }
-    function buildCitySelect(sel, withAll){ if (withAll) opt(sel, "", T().all_cities); CITIES.forEach(function(c){ opt(sel, c, T().cities[c]); }); }
+    function buildCitySelect(sel, withAll){ if (withAll) opt(sel, "", T().all_cities); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); }
     function buildTypeSelect(sel){ opt(sel, "", T().all_types); ["condo","townhouse","house"].forEach(function(t){ opt(sel, t, T()["type_"+t]); }); }
     var PRICES = [500000, 750000, 1000000, 1250000, 1500000];
     function buildPriceSelect(sel){ opt(sel, "", T().any_price); PRICES.forEach(function(p){ opt(sel, String(p), fmt(p)); }); }
@@ -1248,7 +1258,8 @@ body.print-chk #chkReport{display:block !important}
       // Self-contained on purpose: paymentFor() lives in the calculator module,
       // which is not present on every page this card/dialog code ships to.
       var principal = l.price * 0.8;
-      var r = Math.pow(1 + (window.__portalRate || 4.79) / 200, 2 / 12) - 1, n = 25 * 12;
+      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
+      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
       var mort = principal * r / (1 - Math.pow(1 + r, -n));
       var strata = l.strata || 0;
       var tax = (l.tax || 0) / 12;
@@ -1257,8 +1268,8 @@ body.print-chk #chkReport{display:block !important}
     }
     function cardHTML(l, why){
       var t = T();
-      var specs = "<span><b>"+l.beds+"</b> "+t.beds+"</span><span><b>"+l.baths+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+l.sqft.toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
+      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
+        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
         (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
       var preHTML = "";
       if (l.pt === "presale"){
@@ -1266,7 +1277,7 @@ body.print-chk #chkReport{display:block !important}
         if (l.project) pbits.push(esc(l.project));
         if (l.developer) pbits.push(esc(l.developer));
         if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pbits.push(esc(t.deposit) + " " + l.depositPct + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
         preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#a8842f">' + pbits.join(" · ") + "</div>" +
           ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
       }
@@ -1277,9 +1288,9 @@ body.print-chk #chkReport{display:block !important}
         var cMax = !cOn && cmpSel.length >= 4;
         cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
       }
-      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type])+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
         '<span class="badge'+(l.status==="pending"?" pending":"")+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(l.status==="pending"?t.pending:t.active))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#a8842f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#5d686f">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city])+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#a8842f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#5d686f">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
         '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
         '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(l.dom)+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
@@ -1291,7 +1302,7 @@ body.print-chk #chkReport{display:block !important}
         if (type && l.type !== type) return false;
         if (price && l.price > parseInt(price,10)) return false;
         if (l.beds < beds) return false;
-        if (q){ var hay = (l.street+" "+l.city+" "+l.mls+" "+(l.project||"")+" "+(l.developer||"")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+        if (q){ var hay = (l.street+" "+l.city+" "+l.mls+" "+(l.postal||"")+" "+(l.project||"")+" "+(l.developer||"")+" "+["en","fa","hi","zh"].map(function(L){ var cc = I18N[L] && I18N[L].cities; return cc ? (cc[l.city] || "") : ""; }).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
         if (document.getElementById("fPresale") && document.getElementById("fPresale").checked && l.pt !== "presale") return false;
         return true;
       });
@@ -1304,7 +1315,7 @@ body.print-chk #chkReport{display:block !important}
     function renderListings(){
       var list = filteredListings(), t = T();
       $("resultCount").textContent = fill(t.results, {n: list.length});
-      $("grid").innerHTML = list.length ? list.map(function(l){ return cardHTML(l, null); }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
+      $("grid").innerHTML = list.length ? list.map(function(l){ try { return cardHTML(l, null); } catch(e){ return ""; } }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
     }
 
     /* ---------- detail dialog ---------- */
@@ -1313,13 +1324,13 @@ body.print-chk #chkReport{display:block !important}
       var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
       $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
       var b = $("dBadge"); b.textContent = l.status === "pending" ? t.pending : t.active; b.className = "badge" + (l.status === "pending" ? " pending" : "");
-      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = t.cities[l.city] + ", BC · " + l.postal;
+      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = (t.cities[l.city] || l.city) + ", BC · " + l.postal;
       function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
       $("dKv").innerHTML =
-        kv(t.m_type, t["type_"+l.type]) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
-        kv(t.m_interior, l.sqft ? l.sqft.toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_lot, l.lot ? l.lot.toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_year, l.year || t.na) + kv(t.m_parking, t["parking_"+l.parking] + fill(t.stalls, {n: l.stalls})) +
+        kv(t.m_type, t["type_"+l.type] || l.type) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
+        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString("en-US")+" "+t.sqft : t.na) +
+        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString("en-US")+" "+t.sqft : t.na) +
+        kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
         kv(t.m_strata, l.strata ? fmt(l.strata) : t.na) + kv(t.m_dom, l.dom) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
       var mc = monthlyCost(l);
       $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#faf5ea;border:1px solid #e5d9bd;border-radius:12px;padding:12px 14px;color:#26313b">' +
@@ -1335,7 +1346,7 @@ body.print-chk #chkReport{display:block !important}
         var pchips = [];
         if (l.project) pchips.push("🏗️ " + esc(l.project));
         if (l.completion) pchips.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pchips.push(esc(t.deposit) + " " + l.depositPct + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        if (l.depositPct) pchips.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
         if (l.assignment && l.originalPrice && l.price < l.originalPrice) pchips.push("💎 " + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig));
         else if (l.assignment) pchips.push(esc(t.assignment_ok));
         if (pchips.length) $("dFeat").innerHTML += pchips.map(function(x){ return "<span>" + x + "</span>"; }).join("");
@@ -1344,11 +1355,11 @@ body.print-chk #chkReport{display:block !important}
       $("dAsk").href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.ask_subject, {mls: l.mls, addr: l.street + ", " + l.city}));
       $("dTour").hidden = true;
       getTour(l.mls, function(tour){
-        if (tour && tour.enabled && tour.rooms.length && current === l) $("dTour").hidden = false;
+        if (tour && tour.enabled && Array.isArray(tour.rooms) && tour.rooms.length && current === l) $("dTour").hidden = false;
       });
       $("dTour").onclick = function(){ openTour(l.mls); };
       $("tourClose").onclick = closeTour;
-      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
+      try { if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open",""); } catch(e){}
     };
     $("dClose").addEventListener("click", function(){ dlg.close(); });
     dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
@@ -1475,10 +1486,10 @@ body.print-chk #chkReport{display:block !important}
             fa:["پیش‌پرداخت","حداقل پیش‌پرداخت"],
             hi:["डाउन पेमेंट","न्यूनतम डाउन"],
             zh:["首付","最低首付"]},
-        ans:{en:"The minimum down payment depends on the price: 5% on homes under $500,000; for homes from $500,000 to $999,999, it's 5% of the first $500,000 plus 10% of the portion above that; and 20% on homes of $1,000,000 or more. With less than 20% down, CMHC mortgage insurance is required and the premium is added to your mortgage. <a href='#guide'>More in the buyer guide</a>",
-             fa:"حداقل پیش‌پرداخت به قیمت بستگی دارد: برای خانه‌های زیر ۵۰۰ هزار دلار، ۵٪؛ برای ۵۰۰ هزار تا ۹۹۹٬۹۹۹ دلار، ۵٪ از ۵۰۰ هزار دلار اول به‌علاوه‌ی ۱۰٪ از بخش بالاتر؛ و برای ۱ میلیون دلار و بیشتر، ۲۰٪. با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی CMHC الزامی است و حق بیمه به وام اضافه می‌شود. <a href='#guide'>جزئیات بیشتر در راهنما</a>",
-             hi:"न्यूनतम डाउन पेमेंट कीमत पर निर्भर करता है: $500,000 से कम के घरों पर 5%; $500,000 से $999,999 तक — पहले $500,000 का 5% और उससे ऊपर के हिस्से का 10%; और $1,000,000 या अधिक पर 20%। 20% से कम डाउन पेमेंट पर CMHC मॉर्गेज बीमा अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ जाता है। <a href='#guide'>मार्गदर्शिका में और जानें</a>",
-             zh:"最低首付取决于房价:$500,000 以下为 5%;$500,000 至 $999,999 的房屋,首 $500,000 按 5%、超出部分按 10% 计算;$1,000,000 及以上为 20%。首付低于 20% 时必须购买 CMHC 房贷保险,保费将计入贷款。<a href='#guide'>在指南中了解更多</a>"}},
+        ans:{en:"The minimum down payment depends on the price: 5% on homes under $500,000; for homes from $500,000 to $1,499,999, it's 5% of the first $500,000 plus 10% of the portion above that; and 20% on homes of $1,500,000 or more. With less than 20% down, CMHC mortgage insurance is required and the premium is added to your mortgage. <a href='#guide'>More in the buyer guide</a>",
+             fa:"حداقل پیش‌پرداخت به قیمت بستگی دارد: برای خانه‌های زیر ۵۰۰ هزار دلار، ۵٪؛ برای ۵۰۰ هزار تا ۱٬۴۹۹٬۹۹۹ دلار، ۵٪ از ۵۰۰ هزار دلار اول به‌علاوه‌ی ۱۰٪ از بخش بالاتر؛ و برای ۱٫۵ میلیون دلار و بیشتر، ۲۰٪. با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی CMHC الزامی است و حق بیمه به وام اضافه می‌شود. <a href='#guide'>جزئیات بیشتر در راهنما</a>",
+             hi:"न्यूनतम डाउन पेमेंट कीमत पर निर्भर करता है: $500,000 से कम के घरों पर 5%; $500,000 से $1,499,999 तक — पहले $500,000 का 5% और उससे ऊपर के हिस्से का 10%; और $1,500,000 या अधिक पर 20%। 20% से कम डाउन पेमेंट पर CMHC मॉर्गेज बीमा अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ जाता है। <a href='#guide'>मार्गदर्शिका में और जानें</a>",
+             zh:"最低首付取决于房价:$500,000 以下为 5%;$500,000 至 $1,499,999 的房屋,首 $500,000 按 5%、超出部分按 10% 计算;$1,500,000 及以上为 20%。首付低于 20% 时必须购买 CMHC 房贷保险,保费将计入贷款。<a href='#guide'>在指南中了解更多</a>"}},
       { id:"ptt",
         kw:{en:["property transfer tax","transfer tax","ptt"],
             fa:["مالیات انتقال","مالیات نقل و انتقال"],
@@ -1529,10 +1540,10 @@ body.print-chk #chkReport{display:block !important}
             fa:["فایل","آگهی","لیستینگ","خانه برای فروش"],
             hi:["लिस्टिंग","प्रॉपर्टी","बिक्री के लिए घर","mls"],
             zh:["房源","在售","房产","mls"]},
-        ans:{en:"The only properties I know are the 6 sample listings on this page (sample data — for design preview): {list} Live MLS® data connects after licensing, so I can't look up any other property — but the Match Assistant above can filter these samples by budget, bedrooms, city and type. <a href='#listings'>Browse the sample listings</a>",
-             fa:"تنها ملک‌هایی که می‌شناسم همان ۶ فایل نمونه‌ی همین صفحه‌اند (داده‌ی نمونه — برای پیش‌نمایش طراحی): {list} داده‌ی زنده‌ی MLS® پس از دریافت لایسنس وصل می‌شود، پس نمی‌توانم ملک دیگری را جست‌وجو کنم — اما دستیار تطبیق در بالا می‌تواند همین نمونه‌ها را بر اساس بودجه، تعداد خواب، شهر و نوع ملک پالایه کند. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
-             hi:"मैं केवल इस पेज की 6 नमूना लिस्टिंग जानता हूँ (नमूना डेटा — डिज़ाइन पूर्वावलोकन के लिए): {list} लाइव MLS® डेटा लाइसेंस के बाद जुड़ेगा, इसलिए मैं कोई अन्य प्रॉपर्टी नहीं खोज सकता — लेकिन ऊपर का मैच सहायक इन नमूनों को बजट, बेडरूम, शहर और प्रकार से फ़िल्टर कर सकता है। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
-             zh:"我只了解本页的 6 套示例房源(示例数据——仅供设计预览):{list}实时 MLS® 数据将在取得牌照后接入,因此我无法查询其他房产——不过上方的匹配助手可以按预算、卧室数、城市和类型筛选这些示例房源。<a href='#listings'>查看示例房源</a>"}},
+        ans:{en:"The only properties I know are the sample listings on this page (sample data — for design preview): {list} Live MLS® data connects after licensing, so I can't look up any other property — but the Match Assistant above can filter these samples by budget, bedrooms, city and type. <a href='#listings'>Browse the sample listings</a>",
+             fa:"تنها ملک‌هایی که می‌شناسم همان فایل‌های نمونه‌ی همین صفحه‌اند (داده‌ی نمونه — برای پیش‌نمایش طراحی): {list} داده‌ی زنده‌ی MLS® پس از دریافت لایسنس وصل می‌شود، پس نمی‌توانم ملک دیگری را جست‌وجو کنم — اما دستیار تطبیق در بالا می‌تواند همین نمونه‌ها را بر اساس بودجه، تعداد خواب، شهر و نوع ملک پالایه کند. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
+             hi:"मैं केवल इस पेज की नमूना लिस्टिंग जानता हूँ (नमूना डेटा — डिज़ाइन पूर्वावलोकन के लिए): {list} लाइव MLS® डेटा लाइसेंस के बाद जुड़ेगा, इसलिए मैं कोई अन्य प्रॉपर्टी नहीं खोज सकता — लेकिन ऊपर का मैच सहायक इन नमूनों को बजट, बेडरूम, शहर और प्रकार से फ़िल्टर कर सकता है। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
+             zh:"我只了解本页的示例房源(示例数据——仅供设计预览):{list}实时 MLS® 数据将在取得牌照后接入,因此我无法查询其他房产——不过上方的匹配助手可以按预算、卧室数、城市和类型筛选这些示例房源。<a href='#listings'>查看示例房源</a>"}},
       { id:"proptax",
         kw:{en:["property tax","municipal tax","mill rate","annual tax","taxes on a home","home owner grant"],
             fa:["مالیات ملک","مالیات سالانه","مالیات شهرداری","مالیات خانه","مالیات املاک"],
@@ -1547,10 +1558,10 @@ body.print-chk #chkReport{display:block !important}
             fa:["اجاره","اجاره‌بها","اجاره بها","کرایه"],
             hi:["किराया","किराए","रेंट"],
             zh:["租金","租房","房租","租房子"]},
-        ans:{en:"Rents in Metro Vancouver vary a lot by city, size and building age. As a rough orientation from recent market reporting (2025–2026): a 1-bedroom apartment often rents for about $2,100–$2,800/month in Vancouver, $1,900–$2,400 in Burnaby, and $1,700–$2,200 in Surrey, Coquitlam and Port Coquitlam; a 2-bedroom typically runs about $700–$900/month more. These are general ranges for orientation only — not quotes for any specific home. For current figures, check live rental listings and CMHC's rental market data. This site's buy vs rent calculator uses $2,600/month as its example rent: <a href='#buyvsrent'>compare renting with buying</a>. BC also caps annual rent increases for existing tenancies — the 2026 limit is 2.1%; verify the current limit at gov.bc.ca.",
-             fa:"اجاره‌ها در مترو ونکوور بر اساس شهر، متراژ و سن ساختمان خیلی فرق می‌کنند. برای یک تصور کلی از گزارش‌های اخیر بازار (۲۰۲۵–۲۰۲۶): آپارتمان یک‌خوابه معمولاً حدود ۲٬۱۰۰ تا ۲٬۸۰۰ دلار در ماه در ونکوور، ۱٬۹۰۰ تا ۲٬۴۰۰ دلار در برنابی، و ۱٬۷۰۰ تا ۲٬۲۰۰ دلار در ساری، کوکیتلام و پورت کوکیتلام اجاره می‌رود؛ دوخوابه‌ها معمولاً حدود ۷۰۰ تا ۹۰۰ دلار در ماه بیشترند. این‌ها فقط بازه‌های کلی برای جهت‌یابی‌اند — قیمت هیچ خانه‌ی مشخصی نیستند. برای ارقام جاری، آگهی‌های زنده‌ی اجاره و داده‌های بازار اجاره‌ی CMHC را ببینید. ماشین‌حساب خرید یا اجاره‌ی این سایت ۲٬۶۰۰ دلار در ماه را به‌عنوان اجاره‌ی مثال استفاده می‌کند: <a href='#buyvsrent'>اجاره را با خرید مقایسه کنید</a>. در BC افزایش سالانه‌ی اجاره برای اجاره‌نشینان فعلی هم سقف دارد — سقف ۲۰۲۶ برابر ۲٫۱٪ است؛ سقف جاری را در gov.bc.ca بررسی کنید.",
-             hi:"मेट्रो वैंकूवर में किराए शहर, आकार और इमारत की उम्र के अनुसार बहुत बदलते हैं। हालिया बाज़ार रिपोर्टिंग (2025–2026) के मोटे अनुमान के तौर पर: 1-बेडरूम अपार्टमेंट का किराया अक्सर वैंकूवर में लगभग $2,100–$2,800/माह, बर्नाबी में $1,900–$2,400, और सरी, कोक्विटलम व पोर्ट कोक्विटलम में $1,700–$2,200 रहता है; 2-बेडरूम आमतौर पर लगभग $700–$900/माह अधिक होता है। ये केवल दिशा-निर्देश के लिए सामान्य सीमाएँ हैं — किसी विशिष्ट घर के भाव नहीं। वर्तमान आंकड़ों के लिए लाइव रेंटल लिस्टिंग और CMHC के रेंटल बाज़ार डेटा देखें। इस साइट का खरीद बनाम किराया कैलकुलेटर $2,600/माह को उदाहरण किराए के रूप में इस्तेमाल करता है: <a href='#buyvsrent'>किराए की तुलना खरीद से करें</a>। BC मौजूदा किरायेदारियों पर वार्षिक किराया वृद्धि की सीमा भी तय करता है — 2026 की सीमा 2.1% है; वर्तमान सीमा gov.bc.ca पर जाँचें।",
-             zh:"温哥华都会区的租金因城市、面积和楼龄差异很大。根据近期市场报道（2025–2026）的大致参考：一卧公寓在温哥华的月租通常约为 $2,100–$2,800，在本拿比约为 $1,900–$2,400，在素里、高贵林和高贵林港约为 $1,700–$2,200；两卧通常每月多出约 $700–$900。这些只是供参考的一般范围，并非任何具体房屋的报价。最新数字请查看实时租房房源和 CMHC 的租赁市场数据。本站的买房 vs 租房计算器以每月 $2,600 作为示例租金：<a href='#buyvsrent'>比较租房与买房</a>。BC 还对现有租约的年涨幅设上限——2026 年上限为 2.1%；请到 gov.bc.ca 核实当前上限。"}},
+        ans:{en:"Rents in Metro Vancouver vary a lot by city, size and building age. As a rough orientation from recent market reporting (2025–2026): a 1-bedroom apartment often rents for about $2,100–$2,800/month in Vancouver, $1,900–$2,400 in Burnaby, and $1,700–$2,200 in Surrey, Coquitlam and Port Coquitlam; a 2-bedroom typically runs about $700–$900/month more. These are general ranges for orientation only — not quotes for any specific home. For current figures, check live rental listings and CMHC's rental market data. This site's buy vs rent calculator uses $2,600/month as its example rent: <a href='#buyvsrent'>compare renting with buying</a>. BC also caps annual rent increases for existing tenancies — the 2026 limit is 2.3%; verify the current limit at gov.bc.ca.",
+             fa:"اجاره‌ها در مترو ونکوور بر اساس شهر، متراژ و سن ساختمان خیلی فرق می‌کنند. برای یک تصور کلی از گزارش‌های اخیر بازار (۲۰۲۵–۲۰۲۶): آپارتمان یک‌خوابه معمولاً حدود ۲٬۱۰۰ تا ۲٬۸۰۰ دلار در ماه در ونکوور، ۱٬۹۰۰ تا ۲٬۴۰۰ دلار در برنابی، و ۱٬۷۰۰ تا ۲٬۲۰۰ دلار در ساری، کوکیتلام و پورت کوکیتلام اجاره می‌رود؛ دوخوابه‌ها معمولاً حدود ۷۰۰ تا ۹۰۰ دلار در ماه بیشترند. این‌ها فقط بازه‌های کلی برای جهت‌یابی‌اند — قیمت هیچ خانه‌ی مشخصی نیستند. برای ارقام جاری، آگهی‌های زنده‌ی اجاره و داده‌های بازار اجاره‌ی CMHC را ببینید. ماشین‌حساب خرید یا اجاره‌ی این سایت ۲٬۶۰۰ دلار در ماه را به‌عنوان اجاره‌ی مثال استفاده می‌کند: <a href='#buyvsrent'>اجاره را با خرید مقایسه کنید</a>. در BC افزایش سالانه‌ی اجاره برای اجاره‌نشینان فعلی هم سقف دارد — سقف ۲۰۲۶ برابر ۲٫۳٪ است؛ سقف جاری را در gov.bc.ca بررسی کنید.",
+             hi:"मेट्रो वैंकूवर में किराए शहर, आकार और इमारत की उम्र के अनुसार बहुत बदलते हैं। हालिया बाज़ार रिपोर्टिंग (2025–2026) के मोटे अनुमान के तौर पर: 1-बेडरूम अपार्टमेंट का किराया अक्सर वैंकूवर में लगभग $2,100–$2,800/माह, बर्नाबी में $1,900–$2,400, और सरी, कोक्विटलम व पोर्ट कोक्विटलम में $1,700–$2,200 रहता है; 2-बेडरूम आमतौर पर लगभग $700–$900/माह अधिक होता है। ये केवल दिशा-निर्देश के लिए सामान्य सीमाएँ हैं — किसी विशिष्ट घर के भाव नहीं। वर्तमान आंकड़ों के लिए लाइव रेंटल लिस्टिंग और CMHC के रेंटल बाज़ार डेटा देखें। इस साइट का खरीद बनाम किराया कैलकुलेटर $2,600/माह को उदाहरण किराए के रूप में इस्तेमाल करता है: <a href='#buyvsrent'>किराए की तुलना खरीद से करें</a>। BC मौजूदा किरायेदारियों पर वार्षिक किराया वृद्धि की सीमा भी तय करता है — 2026 की सीमा 2.3% है; वर्तमान सीमा gov.bc.ca पर जाँचें।",
+             zh:"温哥华都会区的租金因城市、面积和楼龄差异很大。根据近期市场报道（2025–2026）的大致参考：一卧公寓在温哥华的月租通常约为 $2,100–$2,800，在本拿比约为 $1,900–$2,400，在素里、高贵林和高贵林港约为 $1,700–$2,200；两卧通常每月多出约 $700–$900。这些只是供参考的一般范围，并非任何具体房屋的报价。最新数字请查看实时租房房源和 CMHC 的租赁市场数据。本站的买房 vs 租房计算器以每月 $2,600 作为示例租金：<a href='#buyvsrent'>比较租房与买房</a>。BC 还对现有租约的年涨幅设上限——2026 年上限为 2.3%；请到 gov.bc.ca 核实当前上限。"}},
       { id:"areas",
         kw:{en:["neighbourhood","neighborhood","neighbourhoods","neighborhoods","which area","where to live","best area","areas"],
             fa:["محله","محله‌ها","کدام شهر","کجا زندگی","منطقه","محله ها"],
@@ -1565,10 +1576,10 @@ body.print-chk #chkReport{display:block !important}
             fa:["بازار مسکن","بازار املاک","قیمت خانه‌ها","قیمت مسکن","بازار ملک"],
             hi:["आवास बाज़ार","रियल एस्टेट बाज़ार","घरों की कीमतें","प्रॉपर्टी की कीमतें"],
             zh:["房地产市场","房价","楼市","房产价格"]},
-        ans:{en:"Metro Vancouver is one of Canada's most expensive housing markets. As a very rough orientation (2026): condos commonly range from about $450,000 in outlying areas to $800,000 or more closer to downtown Vancouver; townhouses roughly $750,000–$1,300,000; and detached houses from about $1,200,000 in Surrey and Coquitlam to $2,000,000 or more in Vancouver. This page's 6 sample listings ($425,000–$1,299,000) reflect that spread. Prices move with interest rates, supply and the broader economy, and change month to month — treat these ranges as educational orientation only and check current statistics from BCREA or your local real estate board before relying on them. <a href='#listings'>Browse the sample listings</a>",
-             fa:"مترو ونکوور یکی از گران‌ترین بازارهای مسکن کاناداست. برای یک تصور بسیار کلی (۲۰۲۶): آپارتمان‌ها معمولاً از حدود ۴۵۰ هزار دلار در مناطق بیرونی تا ۸۰۰ هزار دلار و بیشتر نزدیک مرکز شهر ونکوور هستند؛ تاون‌هاوس‌ها تقریباً ۷۵۰ هزار تا ۱٫۳ میلیون دلار؛ و خانه‌های مستقل از حدود ۱٫۲ میلیون دلار در ساری و کوکیتلام تا ۲ میلیون دلار و بیشتر در ونکوور. ۶ فایل نمونه‌ی همین صفحه (۴۲۵ هزار تا ۱٬۲۹۹٬۰۰۰ دلار) همین گستره را نشان می‌دهند. قیمت‌ها با نرخ بهره، عرضه و وضعیت کلی اقتصاد حرکت می‌کنند و ماه‌به‌ماه تغییر می‌کنند — این بازه‌ها را فقط جهت‌یابی آموزشی بدانید و پیش از اتکا، آمار جاری BCREA یا بورد املاک محلی‌تان را بررسی کنید. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
-             hi:"मेट्रो वैंकूवर कनाडा के सबसे महंगे आवास बाज़ारों में से एक है। बहुत मोटे अनुमान के तौर पर (2026): कॉन्डो आमतौर पर बाहरी इलाकों में लगभग $450,000 से लेकर डाउनटाउन वैंकूवर के पास $800,000 या अधिक तक होते हैं; टाउनहाउस लगभग $750,000–$1,300,000; और अलग मकान सरी व कोक्विटलम में लगभग $1,200,000 से लेकर वैंकूवर में $2,000,000 या अधिक तक। इस पेज की 6 नमूना लिस्टिंग ($425,000–$1,299,000) इसी फैलाव को दर्शाती हैं। कीमतें ब्याज दरों, आपूर्ति और व्यापक अर्थव्यवस्था के साथ बदलती हैं और महीने-दर-महीने बदलती रहती हैं — इन सीमाओं को केवल शैक्षिक दिशा-निर्देश मानें और भरोसा करने से पहले BCREA या अपने स्थानीय रियल एस्टेट बोर्ड के वर्तमान आंकड़े जाँचें। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
-             zh:"温哥华都会区是加拿大房价最高的市场之一。作为非常粗略的参考（2026 年）：公寓价格通常从外围地区约 $450,000 到温哥华市中心附近 $800,000 或更高；联排别墅约 $750,000–$1,300,000；独立屋从素里和高贵林约 $1,200,000 到温哥华 $2,000,000 或更高。本页的 6 套示例房源（$425,000–$1,299,000）正反映了这一价格跨度。房价随利率、供应和整体经济而波动，逐月变化——请将这些范围仅作教育性参考，依赖之前请查看 BCREA 或当地房地产局的最新统计数据。<a href='#listings'>查看示例房源</a>"}}
+        ans:{en:"Metro Vancouver is one of Canada's most expensive housing markets. As a very rough orientation (2026): condos commonly range from about $450,000 in outlying areas to $800,000 or more closer to downtown Vancouver; townhouses roughly $750,000–$1,300,000; and detached houses from about $1,200,000 in Surrey and Coquitlam to $2,000,000 or more in Vancouver. This page's sample listings reflect that spread. Prices move with interest rates, supply and the broader economy, and change month to month — treat these ranges as educational orientation only and check current statistics from BCREA or your local real estate board before relying on them. <a href='#listings'>Browse the sample listings</a>",
+             fa:"مترو ونکوور یکی از گران‌ترین بازارهای مسکن کاناداست. برای یک تصور بسیار کلی (۲۰۲۶): آپارتمان‌ها معمولاً از حدود ۴۵۰ هزار دلار در مناطق بیرونی تا ۸۰۰ هزار دلار و بیشتر نزدیک مرکز شهر ونکوور هستند؛ تاون‌هاوس‌ها تقریباً ۷۵۰ هزار تا ۱٫۳ میلیون دلار؛ و خانه‌های مستقل از حدود ۱٫۲ میلیون دلار در ساری و کوکیتلام تا ۲ میلیون دلار و بیشتر در ونکوور. فایل‌های نمونه‌ی همین صفحه همین گستره را نشان می‌دهند. قیمت‌ها با نرخ بهره، عرضه و وضعیت کلی اقتصاد حرکت می‌کنند و ماه‌به‌ماه تغییر می‌کنند — این بازه‌ها را فقط جهت‌یابی آموزشی بدانید و پیش از اتکا، آمار جاری BCREA یا بورد املاک محلی‌تان را بررسی کنید. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
+             hi:"मेट्रो वैंकूवर कनाडा के सबसे महंगे आवास बाज़ारों में से एक है। बहुत मोटे अनुमान के तौर पर (2026): कॉन्डो आमतौर पर बाहरी इलाकों में लगभग $450,000 से लेकर डाउनटाउन वैंकूवर के पास $800,000 या अधिक तक होते हैं; टाउनहाउस लगभग $750,000–$1,300,000; और अलग मकान सरी व कोक्विटलम में लगभग $1,200,000 से लेकर वैंकूवर में $2,000,000 या अधिक तक। इस पेज की नमूना लिस्टिंग इसी फैलाव को दर्शाती हैं। कीमतें ब्याज दरों, आपूर्ति और व्यापक अर्थव्यवस्था के साथ बदलती हैं और महीने-दर-महीने बदलती रहती हैं — इन सीमाओं को केवल शैक्षिक दिशा-निर्देश मानें और भरोसा करने से पहले BCREA या अपने स्थानीय रियल एस्टेट बोर्ड के वर्तमान आंकड़े जाँचें। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
+             zh:"温哥华都会区是加拿大房价最高的市场之一。作为非常粗略的参考（2026 年）：公寓价格通常从外围地区约 $450,000 到温哥华市中心附近 $800,000 或更高；联排别墅约 $750,000–$1,300,000；独立屋从素里和高贵林约 $1,200,000 到温哥华 $2,000,000 或更高。本页的示例房源正反映了这一价格跨度。房价随利率、供应和整体经济而波动，逐月变化——请将这些范围仅作教育性参考，依赖之前请查看 BCREA 或当地房地产局的最新统计数据。<a href='#listings'>查看示例房源</a>"}}
     ];
     var CHIPS = [
       {q:{en:"What are the steps to buy a home in BC?", fa:"مراحل خرید خانه در BC چیست؟", hi:"BC में घर खरीदने के चरण क्या हैं?", zh:"在 BC 买房有哪些步骤？"}},
@@ -2098,9 +2109,27 @@ body.print-chk #chkReport{display:block !important}
       });
       (Array.isArray(d.listings) ? d.listings : []).forEach(function(rec){
         if (!rec || typeof rec !== "object" || typeof rec.mls !== "string" || !rec.mls) return;
-        if (!rec.photo) rec.photo = "photos/hero.webp";
+        if (!rec.photo || typeof rec.photo !== "string" || (/:/.test(rec.photo) && !/^https:\/\//i.test(rec.photo))) rec.photo = "photos/hero.webp";
         if (typeof rec.desc === "string") rec.desc = { en: rec.desc };
         if (!rec.desc || typeof rec.desc !== "object") rec.desc = { en: "" };
+        ["en","fa","hi","zh"].forEach(function(L){ if (typeof rec.desc[L] !== "string") rec.desc[L] = (L === "en" ? "" : rec.desc.en || ""); });
+        var num = function(v, d){ var n = Number(v); return isFinite(n) ? n : d; };
+        rec.price = num(rec.price, 0);
+        if (!(rec.price > 0)) return; /* a portal record without a usable price is dropped, never rendered */
+        rec.beds = num(rec.beds, 0); rec.baths = num(rec.baths, 0); rec.sqft = num(rec.sqft, 0);
+        rec.lot = (rec.lot == null ? null : num(rec.lot, null)); rec.year = num(rec.year, 0) || null;
+        rec.strata = (rec.strata == null ? null : num(rec.strata, null)); rec.tax = num(rec.tax, 0);
+        rec.dom = num(rec.dom, 0); rec.stalls = num(rec.stalls, 0);
+        if (rec.originalPrice != null) rec.originalPrice = num(rec.originalPrice, 0);
+        if (!Array.isArray(rec.features)) rec.features = [];
+        rec.features = rec.features.filter(function(f){ return typeof f === "string"; });
+        if (typeof rec.listed !== "string") rec.listed = "";
+        if (typeof rec.street !== "string") rec.street = "";
+        if (typeof rec.city !== "string") rec.city = "";
+        if (typeof rec.postal !== "string") rec.postal = "";
+        if (typeof rec.type !== "string") rec.type = "condo";
+        if (rec.status !== "pending" && rec.status !== "sold") rec.status = "active";
+        if (rec.pt !== "presale") rec.pt = "resale";
         var ix = -1;
         for (var i = 0; i < LISTINGS.length; i++) if (LISTINGS[i].mls === rec.mls) ix = i;
         if (ix >= 0) LISTINGS[ix] = rec; else LISTINGS.push(rec);
