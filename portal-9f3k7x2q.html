@@ -2286,6 +2286,7 @@
   var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
   var mtSpeedLog = [];
   var mtBackup = null;
+  var mtBackups = [];
   function ageTxt(ts){
     if (!ts || isNaN(Date.parse(ts))) return "";
     var hrs = Math.max(0, Math.round((Date.now() - Date.parse(ts)) / 3600000));
@@ -2301,10 +2302,13 @@
       else if (rep.ts && (Date.now() - Date.parse(rep.ts)) > 36 * 3600000) parts.push('<div style="background:#3a0e0e;border:1px solid #ef4444;border-radius:10px;padding:10px 12px;margin-bottom:8px"><b style="color:#f87171">🔴 Maintenance report is stale</b> <span class="mut">— last run ' + esc(ageTxt(rep.ts)) + ' (' + esc(fmtDate(rep.ts)) + '). The nightly watcher itself may be down.</span></div>');
       var cnt = (rep && rep.counts) || {};
       var mailLine = '<b>📧 Mail queue</b>' + (typeof cnt.mailUnsent === "number" ? cnt.mailUnsent + ' unsent' + (cnt.mailUnsent && cnt.mailOldest ? ' · oldest ' + esc(ageTxt(cnt.mailOldest)) : '') + (cnt.mailUnsent ? ' <span class="mut">(sending activates with the domain email in December)</span>' : '') : '<span class="mut">run maintenance to measure</span>');
-      var bkLine = '<b>💾 Last KV backup</b>' + (mtBackup ? esc(fmtDate(mtBackup.at)) + ' · ' + esc(ageTxt(mtBackup.at)) + (mtBackup.keys ? ' · ' + mtBackup.keys + ' keys' : '') : '<span class="mut">none recorded yet — the weekly backup stamps here when it runs</span>');
+      var bkList = "";
+      var bsrc = (mtBackups && mtBackups.length) ? mtBackups : ((rep && rep.backups) || []);
+      if (bsrc && bsrc.length) bkList = '<div class="kv"><b>🗄 Auto backups</b><span class="mut">nightly from Dec 1 · newest 30 kept · 100% of site data</span></div>' + bsrc.slice(0, 30).map(function(b){ return '<div class="kv"><span>' + esc(b.day || String(b.at || "").slice(0, 10)) + '</span><span class="mut">' + (b.ok ? '✓ ' + esc(String(b.keys || 0)) + ' keys · ' + Math.max(1, Math.round((b.bytes || 0) / 1024)) + ' KB' : '✗ FAILED' + (b.error ? ' · ' + esc(b.error) : '')) + '</span></div>'; }).join("");
+      var bkLine = '<b>💾 Last KV backup</b>' + (mtBackup ? esc(fmtDate(mtBackup.at)) + ' · ' + esc(ageTxt(mtBackup.at)) + (mtBackup.keys ? ' · ' + esc(String(mtBackup.keys)) + ' keys' : '') : '<span class="mut">none recorded yet — nightly auto backups start Dec 1; the weekly snapshot also stamps here</span>');
       var gcalLine = '<b>📅 Calendar bridge</b>' + (rep && rep.gcal ? (rep.gcal.ok ? ' last event OK · ' + esc(fmtDate(rep.gcal.at)) + ' · ' + esc(ageTxt(rep.gcal.at)) : ' <b style="color:#f87171">last attempt FAILED</b> · ' + esc(fmtDate(rep.gcal.at)) + ' · ' + esc(ageTxt(rep.gcal.at)) + (rep.gcal.error ? ' · ' + esc(rep.gcal.error) : '')) : '<span class="mut">no calendar event recorded yet</span>');
       var canaryLine = '<b>🧪 Canary</b>' + (rep && rep.canary ? ' lead ' + (rep.canary.leadOk ? '✓' : '✗') + ' · chat ' + (rep.canary.chatOk ? '✓' : '✗') + (rep.canary.at ? ' · ' + esc(fmtDate(rep.canary.at)) + ' · ' + esc(ageTxt(rep.canary.at)) : '') : '<span class="mut">not run yet — runs with nightly maintenance</span>');
-      parts.push('<div class="kv">' + mailLine + '</div><div class="kv">' + bkLine + '</div><div class="kv">' + gcalLine + '</div><div class="kv">' + canaryLine + '</div>');
+      parts.push('<div class="kv">' + mailLine + '</div><div class="kv">' + bkLine + '</div>' + bkList + '<div class="kv">' + gcalLine + '</div><div class="kv">' + canaryLine + '</div>');
       mq.innerHTML = '<div class="card" style="margin-bottom:12px">' + parts.join("") + '</div>';
     }
     var mu = $("mtUsage");
@@ -2345,6 +2349,7 @@
       if (!d || !d.ok) return;
       mtSpeedLog = d.speedLog || [];
       mtBackup = d.backup || null;
+      mtBackups = d.backups || [];
       renderMaint(d.last, d.log);
       loadMtAi();
     }).catch(function(){});
