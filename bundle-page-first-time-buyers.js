@@ -222,10 +222,10 @@
 
     /* ---------- home buying assistant: site brain first, live AI + web search second ---------- */
     var AS_FALLBACK = {
-      en:"I don't have a specific answer for that yet — I search only this site's own content. I can help with the steps to buy a home in BC, minimum down payments, property transfer tax and the first-time buyer exemption, annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, the site's neighbourhood guides, and typical rents. You can also read the <a href='#guide'>first-time buyer guide</a> or try the <a href='#calculator'>mortgage calculator</a> and <a href='#afford'>affordability estimator</a>.",
-      fa:"برای این پرسش هنوز پاسخ مشخصی ندارم — من فقط محتوای همین سایت را جست‌وجو می‌کنم. می‌توانم درباره‌ی مراحل خرید خانه در BC، حداقل پیش‌پرداخت، مالیات انتقال ملک و معافیت خریدار اولی، مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، راهنماهای محله‌ی سایت و اجاره‌های معمول کمک کنم. همچنین می‌توانید <a href='#guide'>راهنمای خریدار اولی</a> را بخوانید یا <a href='#calculator'>ماشین‌حساب وام</a> و <a href='#afford'>برآوردگر توان خرید</a> را امتحان کنید.",
-      hi:"इस प्रश्न का मेरे पास अभी कोई विशिष्ट उत्तर नहीं है — मैं केवल इस साइट की अपनी सामग्री खोजता हूँ। मैं BC में घर खरीदने के चरणों, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और पहली बार खरीदार छूट, वार्षिक संपत्ति कर, समापन लागतों, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तों, स्ट्राटा शुल्क, साइट की इलाका मार्गदर्शिकाओं और सामान्य किराए में मदद कर सकता हूँ। आप <a href='#guide'>पहली बार खरीदार मार्गदर्शिका</a> भी पढ़ सकते हैं या <a href='#calculator'>मॉर्गेज कैलकुलेटर</a> और <a href='#afford'>खरीद क्षमता अनुमानक</a> आज़मा सकते हैं।",
-      zh:"我暂时还没有这个问题的具体答案——我只搜索本网站自己的内容。我可以帮您了解在 BC 买房的步骤、最低首付、房产转让税与首次购房者减免、年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、本站的社区指南和典型租金。您也可以阅读<a href='#guide'>首次购房指南</a>,或试试<a href='#calculator'>房贷计算器</a>和<a href='#afford'>负担能力估算器</a>。"
+      en:"I don't have a specific answer for that yet, and my live lookup is unavailable right now. I can help with the steps to buy a home in BC, minimum down payments, property transfer tax and the first-time buyer exemption, annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, the site's neighbourhood guides, and typical rents. You can also read the <a href='#guide'>first-time buyer guide</a> or try the <a href='#calculator'>mortgage calculator</a> and <a href='#afford'>affordability estimator</a>.",
+      fa:"برای این پرسش هنوز پاسخ مشخصی ندارم و جست‌وجوی زنده‌ام هم الان در دسترس نیست. می‌توانم درباره‌ی مراحل خرید خانه در BC، حداقل پیش‌پرداخت، مالیات انتقال ملک و معافیت خریدار اولی، مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، راهنماهای محله‌ی سایت و اجاره‌های معمول کمک کنم. همچنین می‌توانید <a href='#guide'>راهنمای خریدار اولی</a> را بخوانید یا <a href='#calculator'>ماشین‌حساب وام</a> و <a href='#afford'>برآوردگر توان خرید</a> را امتحان کنید.",
+      hi:"इस प्रश्न का मेरे पास अभी कोई विशिष्ट उत्तर नहीं है और मेरी लाइव खोज अभी उपलब्ध नहीं है। मैं BC में घर खरीदने के चरणों, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और पहली बार खरीदार छूट, वार्षिक संपत्ति कर, समापन लागतों, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तों, स्ट्राटा शुल्क, साइट की इलाका मार्गदर्शिकाओं और सामान्य किराए में मदद कर सकता हूँ। आप <a href='#guide'>पहली बार खरीदार मार्गदर्शिका</a> भी पढ़ सकते हैं या <a href='#calculator'>मॉर्गेज कैलकुलेटर</a> और <a href='#afford'>खरीद क्षमता अनुमानक</a> आज़मा सकते हैं।",
+      zh:"我暂时还没有这个问题的具体答案,而且我的实时查询目前不可用。我可以帮您了解在 BC 买房的步骤、最低首付、房产转让税与首次购房者减免、年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、本站的社区指南和典型租金。您也可以阅读<a href='#guide'>首次购房指南</a>,或试试<a href='#calculator'>房贷计算器</a>和<a href='#afford'>负担能力估算器</a>。"
     };
     var KB = [
       { id:"fthb",
@@ -397,6 +397,7 @@
         if (!log) return;
         var d = document.createElement("div");
         d.className = "msg " + cls;
+        d.setAttribute("dir", "auto");
         d.innerHTML = html;
         log.appendChild(d);
         log.scrollTop = log.scrollHeight;
@@ -405,7 +406,7 @@
       return els;
     }
     function listingsSummary(){
-      return LISTINGS.map(function(l){ return "MLS® " + l.mls + " — " + (T()["type_" + l.type] || l.type) + ", " + (T().cities[l.city] || l.city) + ", " + fmt(l.price); }).join("; ") + ".";
+      return LISTINGS.map(function(l){ return "MLS® " + esc(l.mls) + " — " + esc(T()["type_" + l.type] || l.type) + ", " + esc(T().cities[l.city] || l.city) + ", " + fmt(l.price); }).join("; ") + ".";
     }
     function kbAnswer(entry){
       var a = entry.ans[lang] || entry.ans.en;
@@ -415,6 +416,9 @@
     function normDigits(s){
       return s.replace(/[۰-۹]/g, function(c){ return "۰۱۲۳۴۵۶۷۸۹".indexOf(c); })
               .replace(/[०-९]/g, function(c){ return "०१२३४५६७८९".indexOf(c); });
+    }
+    function normText(s){
+      return String(s).toLowerCase().replace(/ي/g, "ی").replace(/ك/g, "ک").replace(/\u200c/g, " ").replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); }).replace(/\s+/g, " ");
     }
     function cityVariants(){
       var map = {};
@@ -438,7 +442,7 @@
     var FA_NUM = {"یک":1, "دو":2, "سه":3, "چهار":4, "پنج":5};
     var ZH_NUM = {"一":1, "二":2, "两":2, "三":3, "四":4, "五":5};
     function parseListingQuery(text){
-      var msg = normDigits(text.toLowerCase());
+      var msg = normText(normDigits(text));
       var crit = {};
       var cmap = cityVariants();
       var variants = Object.keys(cmap).sort(function(a, b){ return b.length - a.length; });
@@ -462,16 +466,27 @@
             || msg.match(/([\d][\d.,]*)\s*(k|m)\b/);
       if (pm){
         var val = parseFloat(pm[1].replace(/,/g, ""));
-        if (!isNaN(val)){
+        var after = msg.slice(pm.index + pm[0].length, pm.index + pm[0].length + 8);
+        if (!isNaN(val) && !/^\s*(%|٪|درصد|प्रतिशत)/.test(after)){
           if (pm[2] === "k") val = val * 1000;
           else if (pm[2] === "m") val = val * 1000000;
-          else if (val < 10000) val = val * 1000;
-          crit.max = val;
+          else if (/^\s*万/.test(after)) val = val * 10000;
+          else if (/^\s*میلیون/.test(after)) val = val * 1000000;
+          else if (/^\s*करोड़/.test(after)) val = val * 10000000;
+          else if (/^\s*लाख/.test(after)) val = val * 100000;
+          else if (/^\s*هزار/.test(after)) val = val * 1000;
+          else if (pm[0].indexOf("$") === -1 && val < 10000) val = null; /* a bare small number is not a budget */
+          if (val !== null) crit.max = val;
         }
       }
       var intent = false;
-      for (var n = 0; n < LIST_INTENT.length; n++){ if (msg.indexOf(LIST_INTENT[n]) !== -1){ intent = true; break; } }
-      if (crit.max || crit.beds || crit.type || (crit.city && intent)) return crit;
+      for (var n = 0; n < LIST_INTENT.length; n++){
+        var w = LIST_INTENT[n];
+        if (/^[\x00-\x7F]+$/.test(w)){ if (new RegExp("(^|[^a-z])" + w + "([^a-z]|$)").test(msg)){ intent = true; break; } }
+        else if (msg.indexOf(w) !== -1){ intent = true; break; }
+      }
+      var nCrit = (crit.city ? 1 : 0) + (crit.type ? 1 : 0) + (crit.beds ? 1 : 0) + (crit.max ? 1 : 0);
+      if (nCrit >= 2 || (intent && nCrit >= 1)) return crit;
       return null;
     }
     function searchListings(crit){
@@ -487,8 +502,8 @@
       var lines = hits.map(function(l){
         return "<b>" + fmt(l.price) + "</b> — " + l.beds + " " + esc(t.beds) + " · " + esc(t["type_" + l.type]) + " · " + esc(t.cities[l.city] || l.city)
           + (l.status === "pending" ? " · " + esc(t.pending) : "")
-          + " · MLS® " + l.mls
-          + " · <a href=\"#listings\" data-open-listing=\"" + l.mls + "\">" + esc(t.view) + "</a>";
+          + " · MLS® " + esc(l.mls)
+          + " · <a href=\"#listings\" data-open-listing=\"" + esc(l.mls) + "\">" + esc(t.view) + "</a>";
       });
       return fill(t.sr_found, {n: hits.length}) + "<br>" + lines.join("<br>");
     }
@@ -515,9 +530,10 @@
       var msg = text.toLowerCase();
       var toks = msg.split(/[^\p{L}\p{N}]+/u).filter(function(w){ return w.length >= 3 && STOPWORDS.indexOf(w) === -1; });
       if (lang === "zh"){
+        var ZH_BG_STOP = ["什么", "可以", "怎么", "这个", "那个", "请问", "没有", "有没", "是不", "我想", "我要"];
         for (var i = 0; i + 1 < msg.length; i++){
           var bg = msg.substr(i, 2);
-          if (/[\u4e00-\u9fff]{2}/.test(bg) && toks.indexOf(bg) === -1) toks.push(bg);
+          if (/[\u4e00-\u9fff]{2}/.test(bg) && toks.indexOf(bg) === -1 && ZH_BG_STOP.indexOf(bg) === -1) toks.push(bg);
         }
       }
       if (!toks.length) return null;
@@ -526,7 +542,7 @@
       SECTIONS_IDX.forEach(function(s){
         var hay = ((T()[s.key] || "") + " " + (I18N.en[s.key] || "") + " " + s.kw).toLowerCase();
         var sc = score(hay);
-        if (sc > 0) found.push({sc: sc, html: "<a href=\"" + (PAGE_OF[s.id] || ("#" + s.id)) + "\">" + esc(T()[s.key] || s.key) + "</a>"});
+        if (sc >= 2 || (toks.length === 1 && sc >= 1)) found.push({sc: sc, html: "<a href=\"" + (PAGE_OF[s.id] || ("#" + s.id)) + "\">" + esc(T()[s.key] || s.key) + "</a>"});
       });
       document.querySelectorAll(".kc-card").forEach(function(card){
         var h = card.querySelector("h4");
@@ -542,13 +558,16 @@
     function findAnswer(text){
       var crit = parseListingQuery(text);
       if (crit) return searchListings(crit);
-      var msg = text.toLowerCase();
+      var msg = normText(normDigits(text));
+      var best = null, bestLen = 0;
       for (var i = 0; i < KB.length; i++){
-        var kws = KB[i].kw[lang] || KB[i].kw.en;
+        var kws = (KB[i].kw[lang] || []).concat(KB[i].kw.en || []);
         for (var j = 0; j < kws.length; j++){
-          if (msg.indexOf(kws[j].toLowerCase()) !== -1) return kbAnswer(KB[i]);
+          var kw = normText(String(kws[j]));
+          if (kw && msg.indexOf(kw) !== -1 && kw.length > bestLen){ best = KB[i]; bestLen = kw.length; }
         }
       }
+      if (best) return kbAnswer(best);
       var site = siteSearch(text);
       if (site) return site;
       return null;
@@ -605,9 +624,14 @@
       if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
     }
     function plainOf(html){
-      var d = document.createElement("div");
-      d.innerHTML = html;
-      return (d.textContent || "").replace(/\s+/g, " ").trim();
+      try {
+        var dp = new DOMParser().parseFromString(String(html), "text/html");
+        return ((dp.body && dp.body.textContent) || "").replace(/\s+/g, " ").trim();
+      } catch (e) {
+        var d = document.createElement("div");
+        d.innerHTML = html;
+        return (d.textContent || "").replace(/\s+/g, " ").trim();
+      }
     }
     /* Questions about places/times beyond this site go straight to the web
        brain — e.g. "compare the ON market with BC over the last month". */
@@ -630,7 +654,7 @@
     var THANKS_WORDS = ["thank you", "thanks", "thank", "مرسی", "ممنون", "تشکر", "سپاس", "धन्यवाद", "शुक्रिया", "谢谢", "感谢"];
     function socialKind(text){
       var m = " " + text.toLowerCase().replace(/[!?؟.,،؛:。]/g, " ") + " ";
-      function hit(words){ for (var i = 0; i < words.length; i++){ if (m.indexOf(words[i]) !== -1) return true; } return false; }
+      function hit(words){ for (var i = 0; i < words.length; i++){ var w = words[i]; if (/^[\x00-\x7F ]+$/.test(w)){ if (m.indexOf(" " + w + " ") !== -1) return true; } else if (m.indexOf(w) !== -1) return true; } return false; }
       var g = hit(GREET_WORDS), th = hit(THANKS_WORDS);
       if (!g && !th) return null;
       var rest = m;
@@ -658,10 +682,15 @@
     function aiTextToHtml(text, sources){
       var html = esc(text)
         .replace(/\[([^\]]{1,120})\]\((https?:\/\/[^\s)]+)\)/g, function(m0, label, url){
-          return "<a href=\"" + url.replace(/&amp;/g, "&") + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + label + "</a>";
+          var u = url.replace(/&amp;/g, "&"), host = "";
+          try { host = new URL(u).hostname.replace(/^www\./, ""); } catch (e) {}
+          if (host && label.indexOf(host) === -1) label = label + " (" + host + ")";
+          return "<a href=\"" + u + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + label + "</a>";
         })
         .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, function(m0, pre, url){
-          return pre + "<a href=\"" + url.replace(/&amp;/g, "&") + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + url + "</a>";
+          var trail = (url.match(/[.,;:!?]+$/) || [""])[0];
+          var u2 = trail ? url.slice(0, -trail.length) : url;
+          return pre + "<a href=\"" + u2.replace(/&amp;/g, "&") + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + u2 + "</a>" + trail;
         })
         .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
       html = html.split(/\n+/).map(function(l){ return l.replace(/^\s*[-*•]\s+/, "• "); }).join("<br>");
@@ -679,8 +708,11 @@
     /* Repeat questions are answered from memory, not the live brain, so the
        free daily quota is spent only on questions not seen yet. */
     var aiCache = {};
+    var chatBusy = false;
     function askGemini(text, done){
-      var cacheKey = lang + "|" + text.toLowerCase().replace(/\s+/g, " ").trim();
+      var prevUser = "";
+      for (var ph = chatHistory.length - 2; ph >= 0; ph--){ if (chatHistory[ph].role === "user"){ prevUser = chatHistory[ph].text; break; } }
+      var cacheKey = lang + "|" + prevUser.toLowerCase().replace(/\s+/g, " ").trim() + "|" + text.toLowerCase().replace(/\s+/g, " ").trim();
       if (aiCache[cacheKey]){ done(aiCache[cacheKey]); return; }
       var ctrl = ("AbortController" in window) ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 20000) : null;
@@ -710,7 +742,7 @@
       var sec = document.getElementById("newsletter");
       if (sec) sec.scrollIntoView({behavior: "smooth", block: "start"});
       else window.location.href = "index.html#newsletter";
-      setTimeout(function(){ var f = $("nlFirst"); if (f) f.focus({preventScroll: true}); }, 650);
+      setTimeout(function(){ var f = $("nlFirst"); if (f && window.matchMedia && window.matchMedia("(pointer:fine)").matches) f.focus({preventScroll: true}); }, 650);
     }
     function maybeNudge(text){
       if (nlNudged) return;
@@ -731,7 +763,7 @@
       pushHistory("assistant", pitch);
     }
     function askChat(input){
-      var text = input.value.trim();
+      var text = input.value.trim().slice(0, 1000);
       if (!text) return;
       chipsDismissed = true;
       postMsg("user", esc(text));
@@ -755,8 +787,16 @@
           return;
         }
       }
+      if (chatBusy){
+        var fb0 = findAnswer(text);
+        if (fb0){ postMsg("bot", fb0); pushHistory("assistant", plainOf(fb0)); }
+        else { var eh0 = T().ai_err ? esc(T().ai_err) : (AS_FALLBACK[lang] || AS_FALLBACK.en); postMsg("bot", eh0); pushHistory("assistant", plainOf(eh0)); }
+        return;
+      }
+      chatBusy = true;
       var typing = postTyping();
       askGemini(text, function(res){
+        chatBusy = false;
         removeEls(typing);
         if (res){
           postMsg("bot", res.html);
@@ -770,7 +810,7 @@
             postMsg("bot", fb);
             pushHistory("assistant", plainOf(fb));
           } else {
-            var errHtml = esc(T().ai_err || AS_FALLBACK[lang] || AS_FALLBACK.en);
+            var errHtml = T().ai_err ? esc(T().ai_err) : (AS_FALLBACK[lang] || AS_FALLBACK.en);
             postMsg("bot", errHtml);
             pushHistory("assistant", plainOf(errHtml));
           }
@@ -781,7 +821,7 @@
       e.preventDefault();
       askChat($("chatInput"));
     });
-    $("aiForm").addEventListener("submit", function(e){
+    if ($("aiForm")) $("aiForm").addEventListener("submit", function(e){
       e.preventDefault();
       askChat($("aiInput"));
     });
@@ -799,7 +839,11 @@
     $("aiClose").addEventListener("click", function(){ setAi(false); aiFab.focus(); });
     document.addEventListener("keydown", function(e){
       if (e.key === "Escape" && aiPanel.classList.contains("open")) setAi(false);
-      if (e.key === "Escape" && $("tourModal").style.display === "block") closeTour();
+      if (e.key === "Escape" && $("tourModal") && $("tourModal").style.display === "block") closeTour();
+    });
+    aiPanel.addEventListener("click", function(e){
+      var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
+      if (a) setAi(false);
     });
     /* ---------- language ---------- */
     function applyLang(next, save){
@@ -823,8 +867,8 @@
         for (var i = LISTINGS.length - 1; i >= 0; i--) if (LISTINGS[i].mls === mls) LISTINGS.splice(i, 1);
       });
       (Array.isArray(d.listings) ? d.listings : []).forEach(function(rec){
-        if (!rec || typeof rec !== "object" || typeof rec.mls !== "string" || !rec.mls) return;
-        if (!rec.photo || typeof rec.photo !== "string" || (/:/.test(rec.photo) && !/^https:\/\//i.test(rec.photo))) rec.photo = "photos/hero.webp";
+        if (!rec || typeof rec !== "object" || typeof rec.mls !== "string" || !/^[A-Za-z0-9_-]{1,32}$/.test(rec.mls)) return;
+        if (!rec.photo || typeof rec.photo !== "string" || /["'\s<>]/.test(rec.photo) || (/:/.test(rec.photo) && !/^https:\/\//i.test(rec.photo))) rec.photo = "photos/hero.webp";
         if (typeof rec.desc === "string") rec.desc = { en: rec.desc };
         if (!rec.desc || typeof rec.desc !== "object") rec.desc = { en: "" };
         ["en","fa","hi","zh"].forEach(function(L){ if (typeof rec.desc[L] !== "string") rec.desc[L] = (L === "en" ? "" : rec.desc.en || ""); });
@@ -842,7 +886,8 @@
         if (typeof rec.street !== "string") rec.street = "";
         if (typeof rec.city !== "string") rec.city = "";
         if (typeof rec.postal !== "string") rec.postal = "";
-        if (typeof rec.type !== "string") rec.type = "condo";
+        if (["condo", "townhouse", "house"].indexOf(rec.type) === -1) rec.type = "condo";
+        if (["underground", "garage", "carport", "street", "none"].indexOf(rec.parking) === -1) rec.parking = "none";
         if (rec.status !== "pending" && rec.status !== "sold") rec.status = "active";
         if (rec.pt !== "presale") rec.pt = "resale";
         var ix = -1;
@@ -881,26 +926,31 @@
     }
     function replaceRateText(newStr){
       if (!newStr || !document.body) return;
+      var apS = window.__appliedSite || (window.__appliedSite = {});
+      var from = apS.rate || "4.79";
+      if (from === newStr) { apS.rate = newStr; return; }
       var re;
-      try { re = new RegExp("(?<![0-9.,])4\\.79(?![0-9])", "g"); } catch (e) { return; }
+      try { re = new RegExp("(?<![0-9.,])" + from.replace(/\./g, "\\.") + "(?![0-9])", "g"); } catch (e) { return; }
       var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       var nodes = [];
       while (walker.nextNode()) {
         var n = walker.currentNode;
         if (n.parentNode && /SCRIPT|STYLE|TEXTAREA/.test(n.parentNode.nodeName)) continue;
-        if (n.nodeValue.indexOf("4.79") !== -1) nodes.push(n);
+        if (n.nodeValue.indexOf(from) !== -1) nodes.push(n);
       }
-      nodes.forEach(function(n){ n.nodeValue = n.nodeValue.replace(re, newStr); });
+      nodes.forEach(function(n){ n.nodeValue = n.nodeValue.replace(re, function(){ return newStr; }); });
+      apS.rate = newStr;
     }
     window.__applyPortalTexts = function(){
       var s = window.__portalSettings;
       if (!s) return;
       var lg = lang === "zh" ? "zh" : lang;
-      replaceSiteText("erfanbcrealestate@gmail.com", s.email || "");
-      replaceSiteText("Erfan BC Real Estate", s.brand || "");
+      var apS = window.__appliedSite || (window.__appliedSite = {});
+      if (s.email){ if (!apS.email) replaceSiteText("erfanbcrealestate@gmail.com", s.email); else if (apS.email !== s.email) replaceSiteText(apS.email, s.email); apS.email = s.email; }
+      if (s.brand){ apS.brandPrev = apS.brand || ""; if (!apS.brand) replaceSiteText("Erfan BC Real Estate", s.brand); else if (apS.brand !== s.brand) replaceSiteText(apS.brand, s.brand); apS.brand = s.brand; }
       if (s.rate) replaceRateText(String(s.rate));
       if (s.email) document.querySelectorAll('a[href^="mailto:"]').forEach(function(a){ a.setAttribute("href", "mailto:" + s.email); });
-      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split("Erfan BC Real Estate").join(s.brand)); }
+      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split(apS.brandPrev || "Erfan BC Real Estate").join(s.brand)); }
       var hero = s.hero || {}, title = (hero.title || {})[lg], sub = (hero.sub || {})[lg];
       var h1 = document.querySelector(".hero h1"), hp = document.querySelector(".hero .inner p");
       if (h1 && title) h1.textContent = title;
@@ -957,7 +1007,7 @@
     }
     window.__portalReapply = portalBoot;
     if (window.__portalReady) {
-      window.__portalReady.then(portalBoot);
+      window.__portalReady.then(portalBoot, portalBoot);
     } else {
       applyLang(lang, false);
     }
@@ -965,7 +1015,7 @@
        Sends aggregate counts only (page, event, language, referrer host) — no cookies, no personal data. */
     (function(){
       try {
-        var T = "https://advisor-api.erfanbillion.workers.dev/api/track";
+        var TRACK = "https://advisor-api.erfanbillion.workers.dev/api/track";
         function curLang(){ try { return localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){ return document.documentElement.lang || "en"; } }
         function pageName(){ var p = (location.pathname || "").split("/").pop(); return p || "index.html"; }
         function send(o){
@@ -973,8 +1023,8 @@
             o.page = pageName();
             if (!o.lang) o.lang = curLang();
             var b = JSON.stringify(o);
-            if (navigator.sendBeacon) { navigator.sendBeacon(T, new Blob([b], { type: "text/plain" })); }
-            else { fetch(T, { method: "POST", body: b, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function(){}); }
+            if (navigator.sendBeacon) { navigator.sendBeacon(TRACK, new Blob([b], { type: "text/plain" })); }
+            else { fetch(TRACK, { method: "POST", body: b, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(function(){}); }
           } catch(e){}
         }
         var refHost = "";
@@ -983,7 +1033,7 @@
         else send({ type: "pageview" });
         if (typeof window.openListing === "function") {
           var _ol = window.openListing;
-          window.openListing = function(mls){ send({ type: "event", event: "listing_view", listingId: mls }); return _ol.apply(this, arguments); };
+          window.openListing = function(mls){ if (!window.__langSwitch) send({ type: "event", event: "listing_view", listingId: mls }); return _ol.apply(this, arguments); };
         }
         if (typeof window.openTour === "function") {
           var _ot = window.openTour;
@@ -1007,20 +1057,13 @@
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。" }
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。" }
         };
-        var MINI = {
-          "R2991001": ["2108-4981 Kingsway", "Burnaby", 689000],
-          "R2991002": ["45-1188 Inlet Street", "Coquitlam", 749000],
-          "R2991003": ["7421 18th Avenue", "Burnaby", 1299000],
-          "R2991004": ["1506-833 Seymour Street", "Vancouver", 549000],
-          "R2991005": ["22-15500 102A Avenue", "Surrey", 899000],
-          "R2991006": ["309-550 Kirkland Avenue", "Port Coquitlam", 425000]
-        };
-        function lang(){ try { return localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){ return "en"; } }
+        function miniOf(m){ for (var i = 0; i < LISTINGS.length; i++){ if (LISTINGS[i].mls === m) return [LISTINGS[i].street, LISTINGS[i].city, LISTINGS[i].price]; } return [m, "", 0]; }
+        function lang(){ var L = "en"; try { L = localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){} L = String(L).slice(0, 2); return STR[L] ? L : "en"; }
         function tt(k){ var d = STR[lang()] || STR.en; return d[k] || STR.en[k] || k; }
         var TS_KEY = "0x4AAAAAAFbCjECJ3G_8xgJE", tsTries = 0;
         function tsRenderAll(){
@@ -1045,7 +1088,7 @@
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
           var gh = String(location.hash || "");
-          if (gh.indexOf("#gtoken=") === 0) { token = gh.slice(8); try { localStorage.setItem("re_user_token", token); } catch(e){} history.replaceState(null, "", location.pathname + location.search); setTimeout(function(){ toast(tt("savedOk")); }, 600); }
+          if (gh.indexOf("#gtoken=") === 0) { var gt = gh.slice(8); history.replaceState(null, "", location.pathname + location.search); if (/^u_[0-9a-f]{32}$/.test(gt)) { token = gt; try { localStorage.setItem("re_user_token", token); } catch(e){} setTimeout(function(){ toast(tt("signedIn")); }, 600); } else { setTimeout(function(){ toast(tt("errGeneric")); }, 600); } }
           else if (gh.indexOf("#gerror=") === 0) { var ge = gh.slice(8); history.replaceState(null, "", location.pathname + location.search); setTimeout(function(){ toast(ge === "banned" ? tt("bannedErr") : tt("errGeneric")); }, 600); }
         } catch(e){}
         var me = null, savedSet = {}, mySearches = [], myProfile = {}, myRecent = [], myDrops = {};
@@ -1066,9 +1109,14 @@
         document.body.appendChild(ov);
         var box = ov.firstChild;
         ov.addEventListener("click", function(e){ if (e.target === ov) closeFx(); });
+        document.addEventListener("keydown", function(e){ if (e.key === "Escape" && ov.classList.contains("open")) closeFx(); });
         function closeFx(){ ov.classList.remove("open"); }
-        function openFx(html){ box.innerHTML = html; ov.classList.add("open"); }
-        var toastEl = document.createElement("div"); toastEl.className = "fx-toast"; document.body.appendChild(toastEl);
+        function openFx(html){
+          box.querySelectorAll(".fx-ts").forEach(function(el){ if (el._wid != null && window.turnstile && turnstile.remove) { try { turnstile.remove(el._wid); } catch(e){} } });
+          box.innerHTML = html; ov.classList.add("open"); tsTries = 0;
+          var f = box.querySelector("input, select, textarea"); if (f) { try { f.focus(); } catch(e){} }
+        }
+        var toastEl = document.createElement("div"); toastEl.className = "fx-toast"; toastEl.setAttribute("aria-live", "polite"); document.body.appendChild(toastEl);
         var toastTimer = null;
         function toast(msg){ toastEl.textContent = msg; toastEl.style.display = "block"; if (toastTimer) clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.style.display = "none"; }, 3200); }
         function api(path, method, body){
@@ -1091,11 +1139,11 @@
             '<button type="button" class="btn ' + (reg ? "btn-line" : "btn-spruce") + '" id="fxTabIn">' + tt("signIn") + '</button>' +
             '<button type="button" class="btn ' + (reg ? "btn-spruce" : "btn-line") + '" id="fxTabReg">' + tt("register") + '</button></div>' +
             '<form id="fxAuthForm">' +
-            (reg ? '<label>' + tt("name") + '</label><input type="text" id="fxName" autocomplete="name" />' : "") +
-            '<label>' + tt("email") + '</label><input type="email" id="fxEmail" autocomplete="email" required />' +
-            '<label>' + tt("password") + '</label><input type="password" id="fxPass" autocomplete="' + (reg ? "new-password" : "current-password") + '" required />' +
+            (reg ? '<label for="fxName">' + tt("name") + '</label><input type="text" id="fxName" autocomplete="name" />' : "") +
+            '<label for="fxEmail">' + tt("email") + '</label><input type="email" id="fxEmail" autocomplete="email" required />' +
+            '<label for="fxPass">' + tt("password") + '</label><input type="password" id="fxPass" autocomplete="' + (reg ? "new-password" : "current-password") + '" required />' +
             (reg ? '<div style="font-size:13px;color:#5d686f;margin-top:5px">' + tt("passHint") + '</div>' : "") +
-            '<div class="fx-ts" data-ts="auth" style="margin-top:12px"></div>' +
+            (reg ? '<div class="fx-ts" data-ts="auth" style="margin-top:12px"></div>' : "") +
             '<div class="fx-err" id="fxErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + (reg ? tt("register") : tt("signIn")) + '</button>' +
             '<button type="button" class="btn btn-line" id="fxCancel">' + tt("close") + '</button></div></form>' +
@@ -1107,15 +1155,18 @@
           document.getElementById("fxCancel").addEventListener("click", closeFx);
           document.getElementById("fxAuthForm").addEventListener("submit", function(e){
             e.preventDefault();
+            var sBtn = e.target.querySelector('button[type="submit"]'); if (sBtn) sBtn.disabled = true;
             var email = document.getElementById("fxEmail").value, pass = document.getElementById("fxPass").value;
             var err = document.getElementById("fxErr");
             var tsTok = tsToken("auth");
             if (reg && window.turnstile && !tsTok) { err.textContent = tt("captchaErr"); tsRenderAll(); return; }
             var payload = reg ? { name: document.getElementById("fxName").value, email: email, password: pass, lang: lang(), turnstileToken: tsTok } : { email: email, password: pass };
             api(reg ? "/api/user/register" : "/api/user/login", "POST", payload).then(function(d){
+              if (sBtn) sBtn.disabled = false;
               token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e2){}
               me = d.user; loadMe().then(function(){ showAccount(); });
             }).catch(function(er){
+              if (sBtn) sBtn.disabled = false;
               err.textContent = er.message === "credentials" ? tt("errCreds") : (er.message === "exists" ? tt("errExists") : (er.message === "banned" ? tt("bannedErr") : (er.message === "captcha" ? tt("captchaErr") : tt("errGeneric"))));
               if (er.message === "captcha") tsReset("auth");
             });
@@ -1129,22 +1180,23 @@
             myDrops = {}; (d.priceDrops || []).forEach(function(x){ myDrops[x.mls] = x; });
             savedSet = {}; (d.saved || []).forEach(function(m){ savedSet[m] = 1; });
             paintAcctBtn(); paintSaves();
-          }).catch(function(){ token = ""; try { localStorage.removeItem("re_user_token"); } catch(e){} me = null; paintAcctBtn(); });
+          }).catch(function(e){ if (e && e.message === "auth") { token = ""; try { localStorage.removeItem("re_user_token"); } catch(e2){} } me = null; paintAcctBtn(); });
         }
         function showAccount(){
           if (!me) return;
           var homes = Object.keys(savedSet).map(function(m){
-            var p = MINI[m] || [m, "", 0];
+            var p = miniOf(m);
             var drop = myDrops[m] ? ' · <b style="color:#9c2b2e">🔻 ' + tt("priceDrop") + ': ' + money(myDrops[m].was) + ' → ' + money(myDrops[m].now) + '</b>' : "";
             return '<div class="fx-row"><span><b>' + money(p[2]) + '</b> · ' + esc2(p[0]) + ', ' + esc2(p[1]) + drop + '</span><button type="button" class="linkbtn" data-unsave="' + m + '">' + tt("remove") + '</button></div>';
           }).join("");
           var searches = mySearches.map(function(s){
             var c = s.criteria || {};
-            var bits = [c.city, c.type, c.maxPrice ? ("≤ " + money(c.maxPrice)) : "", c.minBeds ? (c.minBeds + "+ bd") : "", c.q ? ('"' + c.q + '"') : ""].filter(Boolean).join(" · ");
+            var mpN = Number(c.maxPrice);
+            var bits = [c.city, c.type, (isFinite(mpN) && mpN > 0) ? ("≤ " + money(mpN)) : "", (c.minBeds && String(c.minBeds) !== "0") ? (c.minBeds + "+ bd") : "", c.q ? ('"' + c.q + '"') : ""].filter(Boolean).join(" · ");
             return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#5d686f;font-size:13.5px">' + esc2(bits) + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + '</span></span><button type="button" class="linkbtn" data-unsearch="' + s.id + '">' + tt("remove") + '</button></div>';
           }).join("");
           var recent = myRecent.map(function(m){
-            var p = MINI[m] || [m, "", 0];
+            var p = miniOf(m);
             return '<div class="fx-row"><span><b>' + money(p[2]) + '</b> · ' + esc2(p[0]) + ', ' + esc2(p[1]) + '</span><button type="button" class="linkbtn" data-open-listing="' + m + '">View</button></div>';
           }).join("");
           var pf = myProfile || {};
@@ -1158,13 +1210,13 @@
             (recent ? '<h3 style="font-size:16.5px;margin-top:16px">🕘 ' + tt("recent") + '</h3>' + recent : "") +
             '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#5d686f;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
             '<form id="fxProfForm">' +
-            '<label>' + tt("name") + '</label><input type="text" id="pfName" value="' + esc2(me.name) + '" />' +
-            '<label>' + tt("phone") + '</label><input type="tel" id="pfPhone" value="' + esc2(pf.phone || "") + '" />' +
-            '<label>' + tt("budget") + '</label><input type="text" id="pfBudget" value="' + esc2(pf.budget || "") + '" placeholder="$800,000" />' +
-            '<label>' + tt("interest") + '</label><select id="pfIntent">' + intOpts + '</select>' +
-            '<label>' + tt("areas") + '</label><input type="text" id="pfAreas" value="' + esc2((pf.areas || []).join(", ")) + '" placeholder="Burnaby, Coquitlam" />' +
-            '<label>' + tt("reachMe") + '</label><select id="pfContact">' + cpOpts + '</select>' +
-            '<label>Email language</label><select id="pfLang">' + langOpts + '</select>' +
+            '<label for="pfName">' + tt("name") + '</label><input type="text" id="pfName" value="' + esc2(me.name) + '" />' +
+            '<label for="pfPhone">' + tt("phone") + '</label><input type="tel" id="pfPhone" value="' + esc2(pf.phone || "") + '" />' +
+            '<label for="pfBudget">' + tt("budget") + '</label><input type="text" id="pfBudget" value="' + esc2(pf.budget || "") + '" placeholder="$800,000" />' +
+            '<label for="pfIntent">' + tt("interest") + '</label><select id="pfIntent">' + intOpts + '</select>' +
+            '<label for="pfAreas">' + tt("areas") + '</label><input type="text" id="pfAreas" value="' + esc2(Array.isArray(pf.areas) ? pf.areas.join(", ") : (pf.areas || "")) + '" placeholder="Burnaby, Coquitlam" />' +
+            '<label for="pfContact">' + tt("reachMe") + '</label><select id="pfContact">' + cpOpts + '</select>' +
+            '<label for="pfLang">Email language</label><select id="pfLang">' + langOpts + '</select>' +
             '<div style="display:flex;gap:10px;margin-top:14px"><button type="submit" class="btn btn-spruce" style="flex:1">' + tt("saveBtn") + '</button></div></form>' +
             '<div style="display:flex;gap:10px;margin-top:18px"><button type="button" class="btn btn-line" id="fxOut" style="flex:1">' + tt("signOut") + '</button>' +
             '<button type="button" class="btn btn-spruce" id="fxDone" style="flex:1">' + tt("close") + '</button></div>');
@@ -1177,21 +1229,22 @@
           box.querySelectorAll("[data-unsave]").forEach(function(b){ b.addEventListener("click", function(){ toggleSave(b.getAttribute("data-unsave")).then(function(){ loadMe().then(function(){ showAccount(); }); }); }); });
           box.querySelectorAll("[data-unsearch]").forEach(function(b){ b.addEventListener("click", function(){
             var sid = b.getAttribute("data-unsearch");
-            api("/api/user/searches/" + sid, "DELETE").then(function(){ mySearches = mySearches.filter(function(s){ return s.id !== sid; }); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
+            api("/api/user/searches/" + encodeURIComponent(sid), "DELETE").then(function(){ mySearches = mySearches.filter(function(s){ return String(s.id) !== String(sid); }); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
           }); });
           document.getElementById("fxProfForm").addEventListener("submit", function(e){
             e.preventDefault();
+            var pBtn = e.target.querySelector('button[type="submit"]'); if (pBtn) pBtn.disabled = true;
             var areas = document.getElementById("pfAreas").value.split(",").map(function(a){ return a.trim(); }).filter(Boolean);
             api("/api/user/profile", "POST", { name: document.getElementById("pfName").value, phone: document.getElementById("pfPhone").value, budget: document.getElementById("pfBudget").value, intent: document.getElementById("pfIntent").value, areas: areas, contactPref: document.getElementById("pfContact").value, lang: document.getElementById("pfLang").value })
-              .then(function(d){ me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
-              .catch(function(){ toast(tt("errGeneric")); });
+              .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
+              .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
             if (!el) return;
             if (!vw.length) { el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; return; }
-            var todayV = new Date().toISOString().slice(0, 10);
+            var nd = new Date(); var todayV = nd.getFullYear() + "-" + String(nd.getMonth() + 1).padStart(2, "0") + "-" + String(nd.getDate()).padStart(2, "0");
             el.innerHTML = vw.map(function(v){
               var L = v.listing || {};
               var can = (v.status === "new" || v.status === "confirmed") && v.date >= todayV;
@@ -1199,7 +1252,8 @@
               return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#5d686f">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
-              api("/api/user/viewings/" + b.getAttribute("data-vwcancel") + "/cancel", "POST", {}).then(function(){ toast(tt("cancelledOk")); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
+              if (!window.confirm(tt("cancelBooking") + "?")) return;
+              api("/api/user/viewings/" + encodeURIComponent(b.getAttribute("data-vwcancel")) + "/cancel", "POST", {}).then(function(){ toast(tt("cancelledOk")); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
             }); });
             el.querySelectorAll("[data-vwmove]").forEach(function(b){ b.addEventListener("click", function(){
               var vid = b.getAttribute("data-vwmove");
@@ -1207,8 +1261,8 @@
               var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
               slot.innerHTML = '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><select id="mvD-' + vid + '">' + dateOptions() + '</select><select id="mvT-' + vid + '">' + times + '</select><button type="button" class="btn btn-spruce" id="mvGo-' + vid + '">' + tt("saveBtn") + '</button></div>';
               document.getElementById("mvGo-" + vid).addEventListener("click", function(){
-                api("/api/user/viewings/" + vid + "/reschedule", "POST", { date: document.getElementById("mvD-" + vid).value, time: document.getElementById("mvT-" + vid).value })
-                  .then(function(){ toast(tt("movedOk")); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
+                api("/api/user/viewings/" + encodeURIComponent(vid) + "/reschedule", "POST", { date: document.getElementById("mvD-" + vid).value, time: document.getElementById("mvT-" + vid).value })
+                  .then(function(){ toast(tt("movedOk")); showAccount(); }).catch(function(er){ toast(er && er.message === "slot_unavailable" ? tt("slotGone") : tt("errGeneric")); });
               });
             }); });
           }).catch(function(){ var el = document.getElementById("fxMyVw"); if (el) el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; });
@@ -1221,12 +1275,16 @@
             b.textContent = on ? "♥" : "♡";
           });
         }
+        var saveBusy = {};
         function toggleSave(mls){
           if (!token) { showAuth("in"); toast(tt("needAuth")); return Promise.resolve(); }
+          if (saveBusy[mls]) return Promise.resolve();
+          saveBusy[mls] = true;
           return api("/api/user/save", "POST", { mls: mls }).then(function(d){
+            saveBusy[mls] = false;
             savedSet = {}; (d.saved || []).forEach(function(m){ savedSet[m] = 1; });
             paintSaves();
-          }).catch(function(){ toast(tt("errGeneric")); });
+          }).catch(function(){ saveBusy[mls] = false; toast(tt("errGeneric")); });
         }
         document.addEventListener("click", function(e){
           var b = e.target && e.target.closest ? e.target.closest("[data-save]") : null;
@@ -1246,7 +1304,7 @@
           var prevOpen = window.openListing;
           window.openListing = function(mls){
             curMls = mls;
-            if (token) { api("/api/user/recent", "POST", { mls: mls }).then(function(d){ myRecent = d.recent || myRecent; }).catch(function(){}); }
+            if (token && !window.__langSwitch) { api("/api/user/recent", "POST", { mls: mls }).then(function(d){ myRecent = d.recent || myRecent; }).catch(function(){}); }
             return prevOpen.apply(this, arguments);
           };
         }
@@ -1283,11 +1341,11 @@
             (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
             '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
             '<form id="fxViewForm">' +
-            '<label>' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +
-            '<label>' + tt("time") + '</label><select id="fxVTime">' + times + '</select>' +
-            '<label>' + tt("name") + '</label><input type="text" id="fxVName" value="' + (me ? esc2(me.name) : "") + '" required />' +
-            '<label>' + tt("email") + '</label><input type="email" id="fxVEmail" value="' + (me ? esc2(me.email) : "") + '" required />' +
-            '<label>' + tt("phone") + '</label><input type="tel" id="fxVPhone" />' +
+            '<label for="fxVDate">' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +
+            '<label for="fxVTime">' + tt("time") + '</label><select id="fxVTime">' + times + '</select>' +
+            '<label for="fxVName">' + tt("name") + '</label><input type="text" id="fxVName" value="' + (me ? esc2(me.name) : "") + '" required />' +
+            '<label for="fxVEmail">' + tt("email") + '</label><input type="email" id="fxVEmail" value="' + (me ? esc2(me.email) : "") + '" required />' +
+            '<label for="fxVPhone">' + tt("phone") + '</label><input type="tel" id="fxVPhone" />' +
             '<div class="fx-ts" data-ts="view" style="margin-top:12px"></div>' +
             '<div class="fx-err" id="fxVErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + tt("confirm") + '</button>' +
@@ -1295,16 +1353,24 @@
           document.getElementById("fxVCancel").addEventListener("click", closeFx);
           document.getElementById("fxViewForm").addEventListener("submit", function(e){
             e.preventDefault();
+            var vBtn = e.target.querySelector('button[type="submit"]'); if (vBtn) vBtn.disabled = true;
             var vTok = tsToken("view");
-            if (window.turnstile && !vTok) { document.getElementById("fxVErr").textContent = tt("captchaErr"); tsRenderAll(); return; }
+            if (window.turnstile && !vTok) { if (vBtn) vBtn.disabled = false; document.getElementById("fxVErr").textContent = tt("captchaErr"); tsRenderAll(); return; }
             var payload = { listingId: mls || "", date: document.getElementById("fxVDate").value, time: document.getElementById("fxVTime").value, name: document.getElementById("fxVName").value, email: document.getElementById("fxVEmail").value, phone: document.getElementById("fxVPhone").value, lang: lang(), turnstileToken: vTok };
             api("/api/viewing", "POST", payload).then(function(){ closeFx(); toast(tt("viewingDone")); })
-              .catch(function(er){ var em = (er && er.message) || ""; document.getElementById("fxVErr").textContent = em === "captcha" ? tt("captchaErr") : (em === "slot_unavailable" ? tt("slotGone") : (em === "banned" ? tt("bannedErr") : tt("errGeneric"))); if (em === "captcha") tsReset("view"); });
+              .catch(function(er){ if (vBtn) vBtn.disabled = false; var em = (er && er.message) || ""; document.getElementById("fxVErr").textContent = em === "captcha" ? tt("captchaErr") : (em === "slot_unavailable" ? tt("slotGone") : (em === "banned" ? tt("bannedErr") : tt("errGeneric"))); if (em === "captcha") tsReset("view"); });
           });
           // Owner-set availability: if the owner set viewing times for this home, offer ONLY those
           if (mls) {
             fetch(API + "/api/availability/" + encodeURIComponent(mls)).then(function(r){ return r.json(); }).then(function(d){
-              if (!d || !d.ok || !d.restricted || !d.dates || !d.dates.length) return;
+              if (!d || !d.ok || !d.restricted) return;
+              if (!d.dates || !d.dates.length) {
+                var dEl3 = document.getElementById("fxVDate"), tEl3 = document.getElementById("fxVTime"), nEl3 = document.getElementById("fxVNote"), sEl3 = document.querySelector("#fxViewForm button[type=submit]");
+                if (dEl3) dEl3.innerHTML = ""; if (tEl3) tEl3.innerHTML = "";
+                if (nEl3) nEl3.textContent = "🏠 " + tt("ownerTimes");
+                if (sEl3) sEl3.disabled = true;
+                return;
+              }
               var dateSel = document.getElementById("fxVDate"), timeSel = document.getElementById("fxVTime");
               if (!dateSel || !timeSel) return;
               var byDate = {};
@@ -1330,20 +1396,21 @@
             var g = function(id){ var el = document.getElementById(id); return el ? el.value : ""; };
             var criteria = { q: g("q"), city: g("fCity"), type: g("fType"), maxPrice: g("fPrice"), minBeds: g("fBeds"), presale: (document.getElementById("fPresale") && document.getElementById("fPresale").checked) ? "only" : "" };
             openFx('<h3>🔎 ' + tt("saveSearch") + '</h3><form id="fxSearchForm">' +
-              '<label>' + tt("searchName") + '</label><input type="text" id="fxSName" value="' + esc2([criteria.city, criteria.type].filter(Boolean).join(" · ") || "My search") + '" />' +
-              '<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="fxSNotify" checked style="width:auto" /> ' + tt("notify") + '</label>' +
+              '<label for="fxSName">' + tt("searchName") + '</label><input type="text" id="fxSName" value="' + esc2([criteria.city, criteria.type].filter(Boolean).join(" · ") || "My search") + '" />' +
+              '<label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="fxSNotify" style="width:auto" /> ' + tt("notify") + '</label>' +
               '<div class="fx-err" id="fxSErr"></div>' +
               '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + tt("saveSearch") + '</button>' +
               '<button type="button" class="btn btn-line" id="fxSCancel">' + tt("close") + '</button></div></form>');
             document.getElementById("fxSCancel").addEventListener("click", closeFx);
             document.getElementById("fxSearchForm").addEventListener("submit", function(e){
               e.preventDefault();
+              var ssBtn = e.target.querySelector('button[type="submit"]'); if (ssBtn) ssBtn.disabled = true;
               api("/api/user/searches", "POST", { name: document.getElementById("fxSName").value, criteria: criteria, notify: document.getElementById("fxSNotify").checked, lang: lang() })
-                .then(function(d){ if (d.search) mySearches.unshift(d.search); closeFx(); toast(tt("savedOk")); })
-                .catch(function(){ document.getElementById("fxSErr").textContent = tt("errGeneric"); });
+                .then(function(d){ if (ssBtn) ssBtn.disabled = false; if (d.search) mySearches.unshift(d.search); closeFx(); toast(tt("savedOk")); })
+                .catch(function(){ if (ssBtn) ssBtn.disabled = false; document.getElementById("fxSErr").textContent = tt("errGeneric"); });
             });
           });
         }
         loadMe();
-      } catch(e){}
+      } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();
