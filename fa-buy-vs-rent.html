@@ -122,6 +122,7 @@ section{padding:52px 0 8px}
 .card .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .badge{position:absolute;top:10px;inset-inline-start:10px;background:var(--spruce-deep);color:#f0e9d6;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px}
 .badge.pending{background:var(--danger)}
+.badge.sold{background:#4a4f57}
 .card .body{padding:16px 17px 18px;display:flex;flex-direction:column;gap:7px;flex:1}
 .price{font-family:"Playfair Display","Source Serif 4",serif;font-size:25px;font-weight:700;color:var(--spruce)}
 html[lang="fa"] .price,html[lang="hi"] .price,html[lang="zh-CN"] .price{font-family:inherit;font-weight:800}
@@ -394,7 +395,7 @@ body.print-chk #chkReport{display:block !important}
 <section id="buyvsrent">
 <div class="sec-head">
 <h1 data-i18n="bv_title">ماشین‌حساب خرید یا اجاره</h1>
-<p data-i18n="bv_sub">هزینه‌ی واقعی خرید را با اجاره در طول زمان مقایسه کنید. اجاره برای همیشه از دست می‌رود؛ خرید سهام ملکی (equity) می‌سازد، اما مالیات، شارژ و سود وام هم دارد.</p>
+<p data-i18n="bv_sub">هزینه‌ی واقعی خرید را با اجاره در طول زمان مقایسه کنید. اجاره برای همیشه از دست می‌رود؛ خرید، حقوق مالکانه (equity) ایجاد می‌کند، اما مالیات، شارژ و سود وام هم دارد.</p>
 </div>
 <div class="panel calc-grid">
 <div class="calc-inputs">
@@ -414,17 +415,17 @@ body.print-chk #chkReport{display:block !important}
 <div class="row"><span id="bvCostRentL">Total rent paid</span><b id="bvCostRent">—</b></div>
 <div class="row"><span data-i18n="bv_spent">کل هزینه‌ی خرید (پیش‌پرداخت + اقساط + مالیات + شارژ)</span><b id="bvSpent">—</b></div>
 <div class="row"><span id="bvEquityL">Your equity at the end</span><b id="bvEquity">—</b></div>
-<div class="row hero-row"><span data-i18n="bv_cost_buy">هزینه‌ی خالص خرید (هزینه‌ها منهای سهام ملکی پایانی)</span><b id="bvCostBuy">—</b></div>
+<div class="row hero-row"><span data-i18n="bv_cost_buy">هزینه‌ی خالص خرید (هزینه‌ها منهای حقوق مالکانه‌ی پایانی)</span><b id="bvCostBuy">—</b></div>
 </div>
 <div class="verdict" id="bvVerdict"></div>
-<p class="note" data-i18n="bv_assump">فرض‌ها: قسط وام با فرمول کانادایی (سود مرکب نیم‌سالانه) محاسبه می‌شود و ثابت می‌ماند؛ مالیات ملک و شارژ در سطح امروز ثابت‌اند؛ خانه با نرخ واردشده رشد می‌کند؛ اجاره سالی یک‌بار افزایش می‌یابد. هزینه‌ی فروش، تعمیرات پیش‌بینی‌نشده، بیمه‌ی CMHC و بازده سرمایه‌گذاری پیش‌پرداخت لحاظ نشده‌اند؛ پس این یک برآورد برنامه‌ریزی است، نه تضمین.</p>
+<p class="note" data-i18n="bv_assump">فرض‌ها: قسط وام با فرمول کانادایی (سود مرکب نیم‌سالانه) محاسبه می‌شود و ثابت می‌ماند؛ مالیات ملک و شارژ در سطح امروز ثابت‌اند؛ خانه با نرخ واردشده رشد می‌کند؛ اجاره سالی یک‌بار افزایش می‌یابد. مالیات انتقال ملک و سایر هزینه‌های پایانی خرید، هزینه‌ی فروش، تعمیرات پیش‌بینی‌نشده، بیمه‌ی CMHC و بازده سرمایه‌گذاری پیش‌پرداخت لحاظ نشده‌اند؛ پس این یک برآورد برنامه‌ریزی است، نه تضمین.</p>
 </div>
 </div>
 <div class="panel tbl-scroll">
 <table>
 <thead><tr>
 <th data-i18n="bv_th_year">سال</th><th data-i18n="bv_th_rent">مجموع اجاره‌ی پرداختی</th><th data-i18n="bv_th_spent">مجموع هزینه‌ی خرید</th>
-<th data-i18n="bv_th_value">ارزش خانه</th><th data-i18n="bv_th_bal">مانده‌ی وام</th><th data-i18n="bv_th_equity">سهام ملکی (equity)</th>
+<th data-i18n="bv_th_value">ارزش خانه</th><th data-i18n="bv_th_bal">مانده‌ی وام</th><th data-i18n="bv_th_equity">حقوق مالکانه (equity)</th>
 </tr></thead>
 <tbody id="bvBody"></tbody>
 </table>
@@ -436,7 +437,7 @@ body.print-chk #chkReport{display:block !important}
 <h2 style="font-size:21px" data-i18n="contact_title">تماس</h2>
 <p><span data-i18n="contact_text">برای پرسش‌های عمومی درباره‌ی ابزارها، راهنماها و فایل‌های نمونه‌ی این سایت، ایمیل بزنید:</span><br />
 <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p>
-<p class="licence-line" data-i18n="footer_licence">«Erfan BC Real Estate» پروژه‌ای پیش‌نمایشی از عرفان است؛ او هنوز مشاور املاک دارای مجوز نیست و با هیچ دفتر املاکی (بروکراژ) وابستگی ندارد. این سایت فقط ابزارهای آموزشی و اطلاعات عمومی ارائه می‌دهد — هیچ‌گونه خدمات معاملات املاک، نمایندگی یا مشاوره‌ی حرفه‌ای ارائه نمی‌شود.</p>
+<p class="licence-line" data-i18n="footer_licence">Erfan BC Real Estate is a preview project by Erfan, who is not yet a licensed real estate professional and is not affiliated with any brokerage. This site offers educational tools and general information only — no real estate trading services, representation, or professional advice are provided.</p>
 <p data-i18n="footer_note">این وب‌سایت پیش‌نمایش است. فایل‌ها داده‌ی نمونه‌اند، نه آگهی‌های زنده‌ی MLS®؛ داده‌ی زنده پس از دریافت لایسنس عرفان (آزمون ژانویه‌ی ۲۰۲۷) وصل می‌شود. عکس‌ها فقط برای نمایش نوع ملک‌اند.</p>
 <p data-i18n="rights">© 2026 Erfan BC Real Estate — بریتیش‌کلمبیا، کانادا</p>
 </div>
@@ -445,8 +446,8 @@ body.print-chk #chkReport{display:block !important}
 <div class="ai-panel" id="aiPanel" role="dialog" aria-labelledby="aiTitle">
 <div class="ai-head">
 <div>
-<div class="ai-title" id="aiTitle" data-i18n="ai_title">دستیار هوشمند املاک</div>
-<div class="ai-sub" data-i18n="ai_sub">فایل‌ها، راهنماها و ابزارهای همین سایت را جست‌وجو می‌کند</div>
+<div class="ai-title" id="aiTitle" data-i18n="ai_title">Real estate assistant</div>
+<div class="ai-sub" data-i18n="ai_sub">Site answers first — web search for current market questions</div>
 </div>
 <button type="button" class="ai-close" id="aiClose" aria-label="Close chat">✕</button>
 </div>
@@ -468,7 +469,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","fa")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"fa-listings.html","calculator":"fa-mortgage-calculator.html","buyvsrent":"#buyvsrent","afford":"fa-affordability.html","invest":"fa-investor-analysis.html","match":"fa-ai-assistant.html#match","assistant":"fa-ai-assistant.html#assistant","compare":"fa-listings.html#compare","seller-tools":"fa-seller-tools.html","guide":"fa-first-time-buyers.html","fhsa":"fa-first-time-buyers.html#fhsa","knowledge":"fa-knowledge-centre.html","newsletter":"fa-index.html#newsletter","contact":"fa-contact.html"};</script>
-<script src="bundle-shared.js?v=94a6506e"></script>
-<script src="bundle-page-buy-vs-rent.js?v=fcff5440"></script>
+<script src="bundle-shared.js?v=aa85d419"></script>
+<script src="bundle-page-buy-vs-rent.js?v=69dbf535"></script>
 </body>
 </html>

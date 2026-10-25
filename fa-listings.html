@@ -122,6 +122,7 @@ section{padding:52px 0 8px}
 .card .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .badge{position:absolute;top:10px;inset-inline-start:10px;background:var(--spruce-deep);color:#f0e9d6;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px}
 .badge.pending{background:var(--danger)}
+.badge.sold{background:#4a4f57}
 .card .body{padding:16px 17px 18px;display:flex;flex-direction:column;gap:7px;flex:1}
 .price{font-family:"Playfair Display","Source Serif 4",serif;font-size:25px;font-weight:700;color:var(--spruce)}
 html[lang="fa"] .price,html[lang="hi"] .price,html[lang="zh-CN"] .price{font-family:inherit;font-weight:800}
@@ -429,7 +430,7 @@ body.print-chk #chkReport{display:block !important}
 <h2 style="font-size:21px" data-i18n="contact_title">تماس</h2>
 <p><span data-i18n="contact_text">برای پرسش‌های عمومی درباره‌ی ابزارها، راهنماها و فایل‌های نمونه‌ی این سایت، ایمیل بزنید:</span><br />
 <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p>
-<p class="licence-line" data-i18n="footer_licence">«Erfan BC Real Estate» پروژه‌ای پیش‌نمایشی از عرفان است؛ او هنوز مشاور املاک دارای مجوز نیست و با هیچ دفتر املاکی (بروکراژ) وابستگی ندارد. این سایت فقط ابزارهای آموزشی و اطلاعات عمومی ارائه می‌دهد — هیچ‌گونه خدمات معاملات املاک، نمایندگی یا مشاوره‌ی حرفه‌ای ارائه نمی‌شود.</p>
+<p class="licence-line" data-i18n="footer_licence">Erfan BC Real Estate is a preview project by Erfan, who is not yet a licensed real estate professional and is not affiliated with any brokerage. This site offers educational tools and general information only — no real estate trading services, representation, or professional advice are provided.</p>
 <p data-i18n="footer_note">این وب‌سایت پیش‌نمایش است. فایل‌ها داده‌ی نمونه‌اند، نه آگهی‌های زنده‌ی MLS®؛ داده‌ی زنده پس از دریافت لایسنس عرفان (آزمون ژانویه‌ی ۲۰۲۷) وصل می‌شود. عکس‌ها فقط برای نمایش نوع ملک‌اند.</p>
 <p data-i18n="rights">© 2026 Erfan BC Real Estate — بریتیش‌کلمبیا، کانادا</p>
 </div>
@@ -438,8 +439,8 @@ body.print-chk #chkReport{display:block !important}
 <div class="ai-panel" id="aiPanel" role="dialog" aria-labelledby="aiTitle">
 <div class="ai-head">
 <div>
-<div class="ai-title" id="aiTitle" data-i18n="ai_title">دستیار هوشمند املاک</div>
-<div class="ai-sub" data-i18n="ai_sub">فایل‌ها، راهنماها و ابزارهای همین سایت را جست‌وجو می‌کند</div>
+<div class="ai-title" id="aiTitle" data-i18n="ai_title">Real estate assistant</div>
+<div class="ai-sub" data-i18n="ai_sub">Site answers first — web search for current market questions</div>
 </div>
 <button type="button" class="ai-close" id="aiClose" aria-label="Close chat">✕</button>
 </div>
@@ -468,7 +469,7 @@ body.print-chk #chkReport{display:block !important}
 <h3 style="font-size:17px;margin:16px 0 6px" data-i18n="m_desc">توضیحات</h3>
 <p id="dDesc" style="margin:0;color:var(--muted)"></p>
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-spruce" id="dAsk" href="#" data-i18n="m_ask">پرسش درباره‌ی این خانه</a><button class="btn btn-line" id="dTour" hidden style="padding:12px 22px;font-size:15px">🎥 Virtual tour</button></div>
-<p class="note" data-i18n="licence_short">عرفان هنوز مشاور املاک دارای مجوز نیست و با هیچ بروکراژی وابستگی ندارد — پرسش‌ها فقط برای اطلاعات عمومی‌اند.</p>
+<p class="note" data-i18n="licence_short">Erfan is not yet a licensed real estate professional and is not affiliated with any brokerage — inquiries are for general information only.</p>
 </div>
 </dialog>
 <div id="tourModal" style="position:fixed;inset:0;background:#000;display:none;z-index:200">
@@ -477,7 +478,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","fa")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"#listings","calculator":"fa-mortgage-calculator.html","buyvsrent":"fa-buy-vs-rent.html","afford":"fa-affordability.html","invest":"fa-investor-analysis.html","match":"fa-ai-assistant.html#match","assistant":"fa-ai-assistant.html#assistant","compare":"#compare","seller-tools":"fa-seller-tools.html","guide":"fa-first-time-buyers.html","fhsa":"fa-first-time-buyers.html#fhsa","knowledge":"fa-knowledge-centre.html","newsletter":"fa-index.html#newsletter","contact":"fa-contact.html"};</script>
-<script src="bundle-shared.js?v=94a6506e"></script>
-<script src="bundle-page-listings.js?v=aec6eabd"></script>
+<script src="bundle-shared.js?v=aa85d419"></script>
+<script src="bundle-page-listings.js?v=fbd57171"></script>
 </body>
 </html>
