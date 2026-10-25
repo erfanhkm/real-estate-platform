@@ -122,6 +122,7 @@ section{padding:52px 0 8px}
 .card .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .badge{position:absolute;top:10px;inset-inline-start:10px;background:var(--spruce-deep);color:#f0e9d6;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px}
 .badge.pending{background:var(--danger)}
+.badge.sold{background:#4a4f57}
 .card .body{padding:16px 17px 18px;display:flex;flex-direction:column;gap:7px;flex:1}
 .price{font-family:"Playfair Display","Source Serif 4",serif;font-size:25px;font-weight:700;color:var(--spruce)}
 html[lang="fa"] .price,html[lang="hi"] .price,html[lang="zh-CN"] .price{font-family:inherit;font-weight:800}
@@ -403,7 +404,7 @@ body.print-chk #chkReport{display:block !important}
 <div class="field"><label for="afHeat" data-i18n="af_heat">Heating cost (per month $)</label><input id="afHeat" type="number" min="0" step="10" value="120" /></div>
 <div class="field"><label for="afStrata" data-i18n="af_strata">Strata fees (per month $)</label><input id="afStrata" type="number" min="0" step="10" value="0" /></div>
 <div class="field"><label for="afTax" data-i18n="af_tax">Property tax estimate (per year $)</label><input id="afTax" type="number" min="0" step="50" value="4200" /></div>
-<div class="field"><label for="afRate" data-i18n="af_rate">Qualifying rate — stress test (%)</label><input id="afRate" type="number" min="0" max="15" step="0.01" value="6.79" /></div>
+<div class="field"><label for="afRate" data-i18n="af_rate">Contract rate (%)</label><input id="afRate" type="number" min="0" max="15" step="0.01" value="4.79" /></div>
 <div class="field"><label for="afAmort" data-i18n="af_amort">Amortization (years)</label><input id="afAmort" type="number" min="1" max="35" step="1" value="25" /></div>
 <div class="field"><label for="afDown" data-i18n="af_down">Down payment (%)</label><input id="afDown" type="number" min="0" max="100" step="1" value="20" /></div>
 </div>
@@ -457,7 +458,7 @@ body.print-chk #chkReport{display:block !important}
 <button id="tourClose" class="btn btn-line" style="position:absolute;top:14px;right:14px;z-index:201">✕ <span data-i18n="close">Close</span></button>
 </div>
 <script>window.PAGE_OF = {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"#afford","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};</script>
-<script src="bundle-shared.js?v=94a6506e"></script>
-<script src="bundle-page-affordability.js?v=d12770b3"></script>
+<script src="bundle-shared.js?v=aa85d419"></script>
+<script src="bundle-page-affordability.js?v=eb78dd76"></script>
 </body>
 </html>

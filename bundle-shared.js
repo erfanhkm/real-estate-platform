@@ -75,7 +75,7 @@
       if (tourViewer){ try { tourViewer.destroy(); } catch(e){} tourViewer = null; }
       $("tourPano").innerHTML = "";
     }
-    var CITIES = ["Burnaby","Coquitlam","Port Coquitlam","Surrey","Vancouver"];
+    var CITIES = ["Burnaby","Coquitlam","Port Coquitlam","Richmond","Surrey","Vancouver"];
     var LISTINGS = [
       {mls:"R2991001",price:689000,street:"2108-4981 Kingsway",city:"Burnaby",postal:"V5H 4M2",type:"condo",beds:2,baths:2,sqft:872,lot:null,year:2019,parking:"underground",stalls:1,strata:412,tax:2410,status:"active",listed:"2026-10-08",dom:10,photo:"photos/R2991001.webp",
        features:["balcony","laundry","gym","concierge"],
@@ -91,28 +91,28 @@
              zh:"位于 Lafarge 湖附近的端户联排别墅。双车位车库、围栏庭院,顶层主卧套房。"}},
       {mls:"R2991003",price:1299000,street:"7421 18th Avenue",city:"Burnaby",postal:"V3N 1H3",type:"house",beds:4,baths:3,sqft:2310,lot:6012,year:1988,parking:"garage",stalls:2,strata:null,tax:5260,status:"active",listed:"2026-09-28",dom:20,photo:"photos/R2991003.webp",
        features:["reno_kitchen","suite","deck"],
-       desc:{en:"Updated family home on a quiet street. Renovated kitchen (2023), legal 1-bed suite potential.",
-             fa:"خانه‌ی خانوادگی به‌روز در خیابانی آرام. آشپزخانه‌ی بازسازی‌شده (۲۰۲۳) و قابلیت سوئیت قانونی یک‌خوابه.",
-             hi:"शांत सड़क पर नवीनीकृत पारिवारिक घर। 2023 में नवीनीकृत रसोई, कानूनी 1-बेड सूट की संभावना।",
-             zh:"位于安静街道的翻新家庭住宅。厨房于 2023 年翻新,具备合法一卧套房潜力。"}},
+       desc:{en:"Updated family home on a quiet street. Renovated kitchen (2023), 1-bed suite potential (verify legality).",
+             fa:"خانه‌ی خانوادگی به‌روز در خیابانی آرام. آشپزخانه‌ی بازسازی‌شده (۲۰۲۳) و قابلیت سوئیت یک‌خوابه (قانونی‌بودن را بررسی کنید).",
+             hi:"शांत सड़क पर नवीनीकृत पारिवारिक घर। 2023 में नवीनीकृत रसोई, 1-बेड सूट की संभावना (वैधता जाँचें)।",
+             zh:"位于安静街道的翻新家庭住宅。厨房于 2023 年翻新,具备一卧套房潜力(请核实合法性)。"}},
       {mls:"R2991004",price:549000,street:"1506-833 Seymour Street",city:"Vancouver",postal:"V6B 0G4",type:"condo",beds:1,baths:1,sqft:618,lot:null,year:2011,parking:"underground",stalls:1,strata:498,tax:2050,status:"active",listed:"2026-10-12",dom:6,photo:"photos/R2991004.webp",
        features:["concierge","rooftop","bike_room"],
        desc:{en:"Downtown 1-bed, 2 blocks to Granville SkyTrain. Floor-to-ceiling windows, 24hr concierge.",
              fa:"یک‌خوابه در مرکز شهر، دو بلوک تا اسکای‌ترین گرنویل. پنجره‌های سرتاسری و پذیرش ۲۴ ساعته.",
              hi:"डाउनटाउन 1-बेड, ग्रानविल स्काईट्रेन से 2 ब्लॉक। फ़र्श से छत तक खिड़कियाँ, 24 घंटे कंसीयर्ज।",
-             zh:"市中心一卧单位,距 Granville 天车站仅两个街区。落地窗,24 小时门卫服务。"}},
+             zh:"市中心一卧单位,距 Granville 天车站仅两个街区。落地窗,24 小时礼宾服务。"}},
       {mls:"R2991005",price:899000,street:"22-15500 102A Avenue",city:"Surrey",postal:"V3R 7B4",type:"townhouse",beds:3,baths:2.5,sqft:1480,lot:null,year:2021,parking:"garage",stalls:2,strata:310,tax:3480,status:"pending",listed:"2026-09-20",dom:28,photo:"photos/R2991005.webp",
        features:["ac","ev","playground"],
-       desc:{en:"Near-new townhouse in Guildford. Air conditioning, EV-ready garage, steps to parks and schools.",
-             fa:"تاون‌هاوس تقریباً نوساز در گیلدفورد. کولر گازی، گاراژ آماده‌ی شارژ خودرو برقی و نزدیک پارک و مدرسه.",
-             hi:"गिल्डफ़ोर्ड में लगभग नया टाउनहाउस। एयर कंडीशनिंग, EV-तैयार गैरेज, पार्क और स्कूल पास में।",
-             zh:"Guildford 近乎全新的联排别墅。配备空调、电动车充电就绪车库,步行可达公园和学校。"}},
+       desc:{en:"Near-new townhouse in Guildford. Air conditioning, EV charging in the garage, steps to parks and schools.",
+             fa:"تاون‌هاوس تقریباً نوساز در گیلدفورد. کولر گازی، شارژر خودرو برقی در گاراژ و نزدیک پارک و مدرسه.",
+             hi:"गिल्डफ़ोर्ड में लगभग नया टाउनहाउस। एयर कंडीशनिंग, गैरेज में EV चार्जिंग, पार्क और स्कूल पास में।",
+             zh:"Guildford 近乎全新的联排别墅。配备空调、车库配备电动车充电,步行可达公园和学校。"}},
       {mls:"R2991006",price:425000,street:"309-550 Kirkland Avenue",city:"Port Coquitlam",postal:"V3B 1H2",type:"condo",beds:2,baths:1,sqft:795,lot:null,year:1994,parking:"underground",stalls:1,strata:365,tax:1760,status:"active",listed:"2026-10-05",dom:13,photo:"photos/R2991006.webp",
        features:["mt_view","new_roof","storage"],
-       desc:{en:"Affordable 2-bed with mountain views. Newer roof (2022), proactive strata, near West Coast Express.",
-             fa:"دوخوابه‌ی مقرون‌به‌صرفه با چشم‌انداز کوهستان. سقف نوسازی‌شده (۲۰۲۲)، مدیریت فعال ساختمان و نزدیک قطار West Coast Express.",
-             hi:"पहाड़ के दृश्य वाला किफ़ायती 2-बेड। नई छत (2022), सक्रिय स्ट्राटा, West Coast Express के पास।",
-             zh:"价格实惠的两卧单位,享山景。屋顶较新(2022年),物业管理积极,靠近 West Coast Express。"}}
+       desc:{en:"2-bed with mountain views. Newer roof (2022), well-managed strata, near West Coast Express.",
+             fa:"دوخوابه با چشم‌انداز کوهستان. سقف نسبتاً نوساز (۲۰۲۲)، مدیریت خوب ساختمان و نزدیک قطار West Coast Express.",
+             hi:"पहाड़ के दृश्य वाला 2-बेड। अपेक्षाकृत नई छत (2022), अच्छी तरह प्रबंधित स्ट्राटा, West Coast Express के पास।",
+             zh:"两卧单位,享山景。屋顶较新(2022年),物业管理良好,靠近西海岸快线。"}}
     ];
     var LEADS = [
       {name:"Sara Mohammadi",intent:"buyer",city:"Burnaby",budget:"b3",stage:"viewing",source:"web",sample:true},
@@ -130,11 +130,11 @@
       f_city:"City",all_cities:"All cities",f_type:"Property type",all_types:"All types",f_price:"Max price",any_price:"No limit",f_beds:"Min. bedrooms",any:"Any",
       f_sort:"Sort",s_featured:"Featured",s_price_asc:"Price: low to high",s_price_desc:"Price: high to low",s_newest:"Newest first",s_dom:"Longest on market",
       results:"{n} results",no_results:"No listings match these filters. Try loosening a filter or two.",reset:"Clear filters",
-      beds:"bd",baths:"ba",sqft:"sq ft",dom:"days on market",strata_mo:"strata/mo",view:"Details",active:"Active",pending:"Pending",presale:"Presale",completion:"Completion",deposit:"Deposit",under_orig:"under original contract",assignment_ok:"Assignment allowed",f_presale:"Presales only",
+      beds:"bd",baths:"ba",sqft:"sq ft",dom:"days on market",strata_mo:"strata/mo",view:"Details",active:"Active",pending:"Pending",sold:"Sold",presale:"Presale",completion:"Completion",deposit:"Deposit",under_orig:"under original contract",assignment_ok:"Assignment allowed",f_presale:"Presales only",
       type_condo:"Condo",type_townhouse:"Townhouse",type_house:"House",
-      cities:{Burnaby:"Burnaby",Coquitlam:"Coquitlam","Port Coquitlam":"Port Coquitlam",Surrey:"Surrey",Vancouver:"Vancouver"},
+      cities:{Burnaby:"Burnaby",Coquitlam:"Coquitlam","Port Coquitlam":"Port Coquitlam",Richmond:"Richmond",Surrey:"Surrey",Vancouver:"Vancouver"},
       m_price:"Price",m_type:"Property type",d_beds:"Bedrooms",m_baths:"Bathrooms",m_interior:"Interior area",m_lot:"Lot size",m_year:"Year built",m_parking:"Parking",
-      m_strata:"Strata fee (monthly)",mc_title:"Estimated monthly cost",mc_mort:"Mortgage (20% down · 4.79% · 25 yrs)",mc_tax:"Property tax",mc_heat:"Heating (est.)",mc_note:"Estimate for illustration only — not a quote.",est_mo:"est. /mo",m_dom:"Days on market",m_listed:"Listed",m_mls:"MLS® #",m_features:"Features",m_desc:"Description",na:"Not reported",m_ask:"Ask about this home",
+      m_strata:"Strata fee (monthly)",mc_title:"Estimated monthly cost",mc_mort:"Mortgage (20% down · 4.79% · 25 yrs)",mc_tax:"Property tax",mc_heat:"Heating (est.)",mc_note:"Estimate for illustration only — not a quote.",est_mo:"est. /mo",m_dom:"Days on market",m_listed:"Listed",m_mls:"MLS® #",m_features:"Features",m_desc:"Description",na:"Not reported",na_ap:"N/A",m_ask:"Ask about this home",
       parking_garage:"Garage",parking_underground:"Underground",parking_carport:"Carport",parking_street:"Street",parking_none:"None",stalls:" · {n} stall(s)",
       features:{balcony:"Balcony",laundry:"In-suite laundry",gym:"Gym",concierge:"Concierge",fenced_yard:"Fenced yard",dbl_garage:"Double garage",fireplace:"Gas fireplace",reno_kitchen:"Renovated kitchen",suite:"Suite potential",deck:"Deck",ac:"Air conditioning",ev:"EV charging",playground:"Playground",rooftop:"Rooftop deck",bike_room:"Bike room",mt_view:"Mountain view",new_roof:"Newer roof",storage:"Storage locker"},
       calc_title:"Mortgage calculator",calc_sub:"Estimates use the standard Canadian formula (semi-annual compounding). CMHC insurance is included when the down payment is under 20%.",
@@ -168,11 +168,11 @@
       f_city:"شهر",all_cities:"همه‌ی شهرها",f_type:"نوع ملک",all_types:"همه‌ی انواع",f_price:"حداکثر قیمت",any_price:"بدون محدودیت",f_beds:"حداقل خواب",any:"هر تعداد",
       f_sort:"مرتب‌سازی",s_featured:"پیش‌فرض",s_price_asc:"قیمت: کم به زیاد",s_price_desc:"قیمت: زیاد به کم",s_newest:"جدیدترین‌ها",s_dom:"بیشترین روزهای بازار",
       results:"{n} نتیجه",no_results:"با این فیلترها فایلی پیدا نشد. یکی دو فیلتر را کمتر کنید.",reset:"حذف فیلترها",
-      beds:"خواب",baths:"حمام",sqft:"فوت مربع",dom:"روز در بازار",strata_mo:"شارژ/ماه",view:"جزئیات",active:"فعال",pending:"در حال انجام",presale:"پیش‌فروش",completion:"تکمیل",deposit:"پیش‌پرداخت",under_orig:"زیر قیمت قرارداد اصلی",assignment_ok:"واگذاری مجاز است",f_presale:"فقط پیش‌فروش",
+      beds:"خواب",baths:"حمام",sqft:"فوت مربع",dom:"روز در بازار",strata_mo:"شارژ/ماه",view:"جزئیات",active:"فعال",pending:"در حال نهایی‌شدن",sold:"فروخته‌شده",presale:"پیش‌فروش",completion:"تکمیل",deposit:"ودیعه",under_orig:"زیر قیمت قرارداد اصلی",assignment_ok:"واگذاری مجاز است",f_presale:"فقط پیش‌فروش",
       type_condo:"آپارتمان",type_townhouse:"تاون‌هاوس",type_house:"خانه‌ی مستقل",
-      cities:{Burnaby:"برنابی",Coquitlam:"کوکیتلام","Port Coquitlam":"پورت کوکیتلام",Surrey:"ساری",Vancouver:"ونکوور"},
+      cities:{Burnaby:"برنابی",Coquitlam:"کوکیتلام","Port Coquitlam":"پورت کوکیتلام",Richmond:"ریچموند",Surrey:"ساری",Vancouver:"ونکوور"},
       m_price:"قیمت",m_type:"نوع ملک",d_beds:"اتاق خواب",m_baths:"حمام",m_interior:"زیربنا",m_lot:"مساحت زمین",m_year:"سال ساخت",m_parking:"پارکینگ",
-      m_strata:"شارژ ساختمان (ماهانه)",mc_title:"هزینه‌ی ماهانه‌ی تخمینی",mc_mort:"وام (۲۰٪ پیش‌پرداخت · ۴٫۷۹٪ · ۲۵ سال)",mc_tax:"مالیات ملک",mc_heat:"گرمایش (تخمینی)",mc_note:"فقط برآورد برای نمایش — پیشنهاد رسمی نیست.",est_mo:"تخمینی /ماه",m_dom:"روزهای در بازار",m_listed:"تاریخ ثبت",m_mls:"شماره MLS®",m_features:"امکانات",m_desc:"توضیحات",na:"ثبت نشده",m_ask:"پرسش درباره‌ی این خانه",
+      m_strata:"شارژ ساختمان (ماهانه)",mc_title:"هزینه‌ی ماهانه‌ی تخمینی",mc_mort:"وام (۲۰٪ پیش‌پرداخت · ۴٫۷۹٪ · ۲۵ سال)",mc_tax:"مالیات ملک",mc_heat:"گرمایش (تخمینی)",mc_note:"فقط برآورد برای نمایش — پیشنهاد رسمی نیست.",est_mo:"تخمینی /ماه",m_dom:"روزهای در بازار",m_listed:"تاریخ ثبت",m_mls:"شماره MLS®",m_features:"امکانات",m_desc:"توضیحات",na:"ثبت نشده",na_ap:"ندارد",m_ask:"پرسش درباره‌ی این خانه",
       parking_garage:"گاراژ",parking_underground:"زیرزمینی",parking_carport:"سرپوشیده",parking_street:"خیابانی",parking_none:"ندارد",stalls:" · {n} جای پارک",
       features:{balcony:"بالکن",laundry:"رختشویی داخل واحد",gym:"باشگاه",concierge:"پذیرش",fenced_yard:"حیاط محصور",dbl_garage:"گاراژ دوبل",fireplace:"شومینه گازی",reno_kitchen:"آشپزخانه بازسازی‌شده",suite:"قابلیت سوئیت",deck:"تراس",ac:"کولر گازی",ev:"شارژر خودرو برقی",playground:"زمین بازی",rooftop:"تراس پشت‌بام",bike_room:"اتاق دوچرخه",mt_view:"چشم‌انداز کوهستان",new_roof:"سقف نوسازی‌شده",storage:"انباری"},
       calc_title:"ماشین‌حساب وام مسکن",calc_sub:"برآورد با فرمول استاندارد کانادا (سود مرکب نیم‌سالانه). اگر پیش‌پرداخت کمتر از ۲۰٪ باشد، بیمه‌ی CMHC هم حساب می‌شود.",
@@ -208,13 +208,13 @@
       f_city:"शहर",all_cities:"सभी शहर",f_type:"प्रॉपर्टी प्रकार",all_types:"सभी प्रकार",f_price:"अधिकतम कीमत",any_price:"कोई सीमा नहीं",f_beds:"न्यूनतम बेडरूम",any:"कोई भी",
       f_sort:"क्रम",s_featured:"विशेष",s_price_asc:"कीमत: कम से ज़्यादा",s_price_desc:"कीमत: ज़्यादा से कम",s_newest:"सबसे नया पहले",s_dom:"बाज़ार में सबसे लंबे समय से",
       results:"{n} नतीजे",no_results:"इन फ़िल्टर के साथ कोई लिस्टिंग नहीं मिली। एक-दो फ़िल्टर ढीले करके देखें।",reset:"फ़िल्टर साफ़ करें",
-      beds:"बेड",baths:"बाथ",sqft:"वर्ग फुट",dom:"दिन बाज़ार में",strata_mo:"स्ट्राटा/माह",view:"विवरण",active:"सक्रिय",pending:"लंबित",presale:"प्रीसेल",completion:"पूर्णता",deposit:"जमा",under_orig:"मूल अनुबंध से कम",assignment_ok:"असाइनमेंट अनुमत है",f_presale:"केवल प्रीसेल",
+      beds:"बेड",baths:"बाथ",sqft:"वर्ग फुट",dom:"दिन बाज़ार में",strata_mo:"स्ट्राटा/माह",view:"विवरण",active:"सक्रिय",pending:"लंबित",sold:"बिक गया",presale:"प्रीसेल",completion:"पूर्णता",deposit:"जमा",under_orig:"मूल अनुबंध से कम",assignment_ok:"असाइनमेंट अनुमत है",f_presale:"केवल प्रीसेल",
       type_condo:"कॉन्डो",type_townhouse:"टाउनहाउस",type_house:"अलग मकान",
-      cities:{Burnaby:"बर्नाबी",Coquitlam:"कोक्विटलम","Port Coquitlam":"पोर्ट कोक्विटलम",Surrey:"सरी",Vancouver:"वैंकूवर"},
+      cities:{Burnaby:"बर्नाबी",Coquitlam:"कोक्विटलम","Port Coquitlam":"पोर्ट कोक्विटलम",Richmond:"रिचमंड",Surrey:"सरी",Vancouver:"वैंकूवर"},
       m_price:"कीमत",m_type:"प्रॉपर्टी प्रकार",d_beds:"बेडरूम",m_baths:"बाथरूम",m_interior:"आंतरिक क्षेत्र",m_lot:"प्लॉट क्षेत्र",m_year:"निर्माण वर्ष",m_parking:"पार्किंग",
-      m_strata:"स्ट्राटा शुल्क (मासिक)",mc_title:"अनुमानित मासिक लागत",mc_mort:"बंधक (20% डाउन · 4.79% · 25 वर्ष)",mc_tax:"संपत्ति कर",mc_heat:"हीटिंग (अनुमानित)",mc_note:"केवल अनुमान — आधिकारिक उद्धरण नहीं।",est_mo:"अनुमानित /माह",m_dom:"बाज़ार में दिन",m_listed:"सूचीबद्ध तिथि",m_mls:"MLS® नंबर",m_features:"विशेषताएँ",m_desc:"विवरण",na:"उपलब्ध नहीं",m_ask:"इस घर के बारे में पूछें",
+      m_strata:"स्ट्राटा शुल्क (मासिक)",mc_title:"अनुमानित मासिक लागत",mc_mort:"मॉर्गेज (20% डाउन · 4.79% · 25 वर्ष)",mc_tax:"संपत्ति कर",mc_heat:"हीटिंग (अनुमानित)",mc_note:"केवल अनुमान — आधिकारिक उद्धरण नहीं।",est_mo:"अनुमानित /माह",m_dom:"बाज़ार में दिन",m_listed:"सूचीबद्ध तिथि",m_mls:"MLS® नंबर",m_features:"विशेषताएँ",m_desc:"विवरण",na:"उपलब्ध नहीं",na_ap:"लागू नहीं",m_ask:"इस घर के बारे में पूछें",
       parking_garage:"गैरेज",parking_underground:"भूमिगत",parking_carport:"कारपोर्ट",parking_street:"सड़क",parking_none:"नहीं",stalls:" · {n} स्थान",
-      features:{balcony:"बालकनी",laundry:"यूनिट में लॉन्ड्री",gym:"जिम",concierge:"कंसीयर्ज",fenced_yard:"बाड़ वाला आँगन",dbl_garage:"डबल गैरेज",fireplace:"गैस फ़ायरप्लेस",reno_kitchen:"नवीनीकृत रसोई",suite:"सूट की संभावना",deck:"डेक",ac:"एयर कंडीशनिंग",ev:"EV चार्जिंग",playground:"खेल का मैदान",rooftop:"रूफ़टॉप डेक",bike_room:"बाइक रूम",mt_view:"पहाड़ का दृश्य",new_roof:"नई छत",storage:"स्टोरेज लॉकर"},
+      features:{balcony:"बालकनी",laundry:"यूनिट में लॉन्ड्री",gym:"जिम",concierge:"कंसीयर्ज",fenced_yard:"बाड़ वाला आँगन",dbl_garage:"डबल गैरेज",fireplace:"गैस फ़ायरप्लेस",reno_kitchen:"नवीनीकृत रसोई",suite:"सूट की संभावना",deck:"डेक",ac:"एयर कंडीशनिंग",ev:"EV चार्जिंग",playground:"खेल का मैदान",rooftop:"रूफ़टॉप डेक",bike_room:"बाइक रूम",mt_view:"पहाड़ का दृश्य",new_roof:"अपेक्षाकृत नई छत",storage:"स्टोरेज लॉकर"},
       calc_title:"मॉर्गेज कैलकुलेटर",calc_sub:"अनुमान कनाडाई मानक सूत्र (अर्ध-वार्षिक चक्रवृद्धि) से लगाया जाता है। डाउन पेमेंट 20% से कम होने पर CMHC बीमा शामिल है।",
       c_price:"घर की कीमत ($)",c_down:"डाउन पेमेंट",c_rate:"वार्षिक ब्याज दर (%)",c_amort:"अवधि (वर्ष)",c_freq:"भुगतान आवृत्ति",
       freq_monthly:"मासिक",freq_biweekly:"हर दो सप्ताह",freq_weekly:"साप्ताहिक",pay_monthly:"मासिक किस्त",pay_biweekly:"द्वि-साप्ताहिक किस्त",pay_weekly:"साप्ताहिक किस्त",
@@ -225,7 +225,7 @@
       m_budget:"अधिकतम बजट",m_beds:"न्यूनतम बेडरूम",m_btn:"मेरे मैच खोजें",m_none:"इन शर्तों से कोई नमूना लिस्टिंग मेल नहीं खाती।",m_matches:"{n} मैच",
       why_under:"बजट से {x} कम",why_beds:"{n} बेडरूम",why_city:"{city} में",why_strata:"कम स्ट्राटा: {x}/माह",
       lead_title:"संपर्क करें",lead_sub:"फ़ॉर्म भरें — बटन दबाने पर आपका ईमेल ऐप खुल जाएगा, जिसमें सब कुछ erfanbcrealestate@gmail.com पर भेजने के लिए तैयार होगा।",
-      l_name:"पूरा नाम",l_email:"ईमेल",l_phone:"फ़ोन (वैकल्पिक)",l_intent:"आपका उद्देश्य",intent_buyer:"घर खरीदना",intent_seller:"घर बेचना",intent_investor:"निवेश",intent_renter:"किराया",
+      l_name:"पूरा नाम",l_email:"ईमेल",l_phone:"फ़ोन (वैकल्पिक)",l_intent:"आपका उद्देश्य",intent_buyer:"घर खरीदना",intent_seller:"घर बेचना",intent_investor:"निवेश",intent_renter:"किराए पर लेना",
       l_city:"रुचि का शहर",l_budget:"बजट सीमा",b0:"अभी निश्चित नहीं",b1:"$500k से कम",b2:"$500k – $750k",b3:"$750k – $1M",b4:"$1M – $1.5M",b5:"$1.5M से अधिक",
       l_msg:"आपका संदेश",l_msg_ph:"जैसे: बर्नाबी में स्काईट्रेन के पास 2-बेड कॉन्डो चाहिए…",l_lang:"जवाब की पसंदीदा भाषा",l_submit:"ईमेल से भेजें",
       l_success:"आपका ईमेल भेजने के लिए तैयार है — धन्यवाद।",
@@ -247,13 +247,13 @@
       f_city:"城市",all_cities:"全部城市",f_type:"物业类型",all_types:"全部类型",f_price:"最高价格",any_price:"不限",f_beds:"最少卧室",any:"不限",
       f_sort:"排序",s_featured:"推荐",s_price_asc:"价格从低到高",s_price_desc:"价格从高到低",s_newest:"最新上架",s_dom:"上市天数最长",
       results:"{n} 条结果",no_results:"没有符合这些条件的房源,请减少筛选条件。",reset:"清除筛选",
-      beds:"卧",baths:"卫",sqft:"平方英尺",dom:"上市天数",strata_mo:"管理费/月",view:"详情",active:"在售",pending:"待成交",presale:"预售",completion:"交付",deposit:"定金",under_orig:"低于原始合同价",assignment_ok:"可转让",f_presale:"仅预售",
+      beds:"卧",baths:"卫",sqft:"平方英尺",dom:"上市天数",strata_mo:"管理费/月",view:"详情",active:"在售",pending:"待成交",sold:"已售",presale:"预售",completion:"交付",deposit:"定金",under_orig:"低于原始合同价",assignment_ok:"可转让",f_presale:"仅预售",
       type_condo:"公寓",type_townhouse:"联排别墅",type_house:"独立屋",
-      cities:{Burnaby:"本拿比",Coquitlam:"高贵林","Port Coquitlam":"高贵林港",Surrey:"素里",Vancouver:"温哥华"},
+      cities:{Burnaby:"本拿比",Coquitlam:"高贵林","Port Coquitlam":"高贵林港",Richmond:"列治文",Surrey:"素里",Vancouver:"温哥华"},
       m_price:"价格",m_type:"物业类型",d_beds:"卧室",m_baths:"浴室",m_interior:"室内面积",m_lot:"占地面积",m_year:"建造年份",m_parking:"停车位",
-      m_strata:"管理费(每月)",mc_title:"预计每月费用",mc_mort:"房贷(20%首付 · 4.79% · 25年)",mc_tax:"物业税",mc_heat:"暖气(估算)",mc_note:"仅供参考的估算 — 非正式报价。",est_mo:"估算 /月",m_dom:"上市天数",m_listed:"上市日期",m_mls:"MLS® 编号",m_features:"特色",m_desc:"描述",na:"未提供",m_ask:"咨询此房源",
+      m_strata:"管理费(每月)",mc_title:"预计每月费用",mc_mort:"房贷(20%首付 · 4.79% · 25年)",mc_tax:"物业税",mc_heat:"暖气(估算)",mc_note:"仅供参考的估算 — 非正式报价。",est_mo:"估算 /月",m_dom:"上市天数",m_listed:"上市日期",m_mls:"MLS® 编号",m_features:"特色",m_desc:"描述",na:"未提供",na_ap:"不适用",m_ask:"咨询此房源",
       parking_garage:"车库",parking_underground:"地下停车",parking_carport:"车棚",parking_street:"路边",parking_none:"无",stalls:" · {n} 个车位",
-      features:{balcony:"阳台",laundry:"室内洗衣",gym:"健身房",concierge:"门卫服务",fenced_yard:"围栏庭院",dbl_garage:"双车位车库",fireplace:"燃气壁炉",reno_kitchen:"翻新厨房",suite:"套房潜力",deck:"露台",ac:"空调",ev:"电动车充电",playground:"儿童游乐场",rooftop:"屋顶露台",bike_room:"自行车房",mt_view:"山景",new_roof:"较新屋顶",storage:"储物柜"},
+      features:{balcony:"阳台",laundry:"室内洗衣",gym:"健身房",concierge:"礼宾服务",fenced_yard:"围栏庭院",dbl_garage:"双车位车库",fireplace:"燃气壁炉",reno_kitchen:"翻新厨房",suite:"套房潜力",deck:"露台",ac:"空调",ev:"电动车充电",playground:"儿童游乐场",rooftop:"屋顶露台",bike_room:"自行车房",mt_view:"山景",new_roof:"较新屋顶",storage:"储物柜"},
       calc_title:"房贷计算器",calc_sub:"按加拿大标准公式(半年复利)估算。首付低于 20% 时包含 CMHC 保险。",
       c_price:"房价($)",c_down:"首付",c_rate:"年利率(%)",c_amort:"贷款年限(年)",c_freq:"还款频率",
       freq_monthly:"每月",freq_biweekly:"每两周",freq_weekly:"每周",pay_monthly:"每月还款",pay_biweekly:"每两周还款",pay_weekly:"每周还款",
@@ -265,7 +265,7 @@
       why_under:"低于预算 {x}",why_beds:"{n} 间卧室",why_city:"位于{city}",why_strata:"管理费低:{x}/月",
       lead_title:"联系我们",lead_sub:"填写表格 — 点击按钮后将打开您的邮件应用,邮件已准备好发送至 erfanbcrealestate@gmail.com。",
       l_name:"姓名",l_email:"电子邮箱",l_phone:"电话(可选)",l_intent:"您的目的",intent_buyer:"买房",intent_seller:"卖房",intent_investor:"投资",intent_renter:"租房",
-      l_city:"意向城市",l_budget:"预算范围",b0:"尚未确定",b1:"50万以下",b2:"50万 – 75万",b3:"75万 – 100万",b4:"100万 – 150万",b5:"150万以上",
+      l_city:"意向城市",l_budget:"预算范围",b0:"尚未确定",b1:"$50万以下",b2:"$50万 – $75万",b3:"$75万 – $100万",b4:"$100万 – $150万",b5:"$150万以上",
       l_msg:"您的留言",l_msg_ph:"例如:我想在本拿比天车站附近找一套两卧公寓…",l_lang:"回复语言偏好",l_submit:"通过电子邮件发送",
       l_success:"您的邮件已准备好发送 — 谢谢。",
       crm_title:"顾问面板 — 客户线索",crm_sub:"CRM 示例视图。标记为「示例」的为测试数据;通过上方表单提交的线索会在本次会话中添加到此表。",
@@ -285,9 +285,9 @@
       bv_th_year:"Year",bv_th_rent:"Rent paid (total)",bv_th_spent:"Spent on buying (total)",bv_th_value:"Home value",bv_th_bal:"Mortgage left",bv_th_equity:"Equity",
       bv_cost_rent:"Total rent paid over {n} years",bv_spent:"Total spent on buying (down payment + payments + tax + strata)",bv_equity:"Your equity at year {n}",bv_cost_buy:"Net cost of buying (spending minus equity at the end)",
       bv_win_buy:"Buying comes out ahead by {x} over {n} years",bv_win_rent:"Renting comes out ahead by {x} over {n} years",bv_tie:"Over {n} years, buying and renting are essentially a tie",
-      bv_assump:"Assumptions: the mortgage payment uses the Canadian semi-annual formula and stays fixed; property tax and strata stay at today's amounts; the home grows at the rate you entered; rent rises once a year. Selling costs, unexpected maintenance, CMHC insurance and investment returns on the down payment are not included — treat this as a planning estimate, not a guarantee.",
+      bv_assump:"Assumptions: the mortgage payment uses the Canadian semi-annual formula and stays fixed; property tax and strata stay at today's amounts; the home grows at the rate you entered; rent rises once a year. Property transfer tax and other purchase closing costs, selling costs, unexpected maintenance, CMHC insurance and investment returns on the down payment are not included — treat this as a planning estimate, not a guarantee.",
       af_title:"Affordability estimator",af_sub:"Canadian lenders use two ratios: GDS — housing costs at or under 32% of gross income; TDS — all debts at or under 40% of gross income. The lower of the two sets your ceiling.",
-      af_income:"Gross household income (per year $)",af_debts:"Non-housing debts (per month $)",af_tax:"Property tax estimate (per year $)",af_heat:"Heating cost (per month $)",af_rate:"Qualifying rate — stress test (%)",af_amort:"Amortization (years)",af_down:"Down payment (%)",af_strata:"Strata fees (per month $)",
+      af_income:"Gross household income (per year $)",af_debts:"Non-housing debts (per month $)",af_tax:"Property tax estimate (per year $)",af_heat:"Heating cost (per month $)",af_rate:"Contract rate (%)",af_amort:"Amortization (years)",af_down:"Down payment (%)",af_strata:"Strata fees (per month $)",
       af_max_price:"Maximum home price",af_max_mort:"Maximum mortgage",af_budget:"Max monthly mortgage payment",af_gds_row:"GDS (32%) housing limit (per month)",af_tds_row:"TDS (40%) housing room after other debts (per month)",
       af_limit_gds:"Limiting factor: GDS (32%) — your housing-cost ratio is the binding limit.",af_limit_tds:"Limiting factor: TDS (40%) — your other debts are the binding limit.",
       af_note:"Housing costs in the GDS/TDS formulas are: mortgage payment + property tax + heating (plus 50% of strata fees for condos — not included here, so condo buyers should aim a little lower). Lenders qualify you at the stress-test rate — the higher of your contract rate + 2% or the federal benchmark rate — so enter that qualifying rate above. Estimates only; a lender or mortgage broker confirms the real number.",
@@ -298,14 +298,14 @@
       g_title:"First-time buyer guide — British Columbia",g_sub:"The steps, the minimum down payments, and the closing costs to budget for when you buy your first home in BC.",
       g_verify:"Tax and rebate rules change: the property transfer tax rates, first-time buyer exemptions and thresholds below are the general BC rules — verify the current figures at gov.bc.ca before you rely on them."},
     fa:{nav_bvr:"خرید یا اجاره",nav_afford:"برآورد توان خرید",nav_invest:"تحلیل سرمایه‌گذاری",nav_guide:"راهنمای خریدار اولی",
-      bv_title:"ماشین‌حساب خرید یا اجاره",bv_sub:"هزینه‌ی واقعی خرید را با اجاره در طول زمان مقایسه کنید. اجاره برای همیشه از دست می‌رود؛ خرید سهام ملکی (equity) می‌سازد، اما مالیات، شارژ و سود وام هم دارد.",
+      bv_title:"ماشین‌حساب خرید یا اجاره",bv_sub:"هزینه‌ی واقعی خرید را با اجاره در طول زمان مقایسه کنید. اجاره برای همیشه از دست می‌رود؛ خرید، حقوق مالکانه (equity) ایجاد می‌کند، اما مالیات، شارژ و سود وام هم دارد.",
       bv_price:"قیمت خانه (دلار)",bv_down:"پیش‌پرداخت (٪)",bv_rate:"نرخ سود وام (٪)",bv_amort:"مدت بازپرداخت (سال)",bv_tax:"مالیات ملک (سالانه، دلار)",bv_strata:"شارژ / نگهداری (ماهانه، دلار)",bv_appr:"رشد قیمت خانه (سالانه ٪)",bv_rent:"اجاره‌ی فعلی (ماهانه، دلار)",bv_rentinc:"افزایش اجاره (سالانه ٪)",bv_years:"دوره‌ی مقایسه (سال)",
-      bv_th_year:"سال",bv_th_rent:"مجموع اجاره‌ی پرداختی",bv_th_spent:"مجموع هزینه‌ی خرید",bv_th_value:"ارزش خانه",bv_th_bal:"مانده‌ی وام",bv_th_equity:"سهام ملکی (equity)",
-      bv_cost_rent:"کل اجاره‌ی پرداختی در {n} سال",bv_spent:"کل هزینه‌ی خرید (پیش‌پرداخت + اقساط + مالیات + شارژ)",bv_equity:"سهام ملکی شما در پایان سال {n}",bv_cost_buy:"هزینه‌ی خالص خرید (هزینه‌ها منهای سهام ملکی پایانی)",
+      bv_th_year:"سال",bv_th_rent:"مجموع اجاره‌ی پرداختی",bv_th_spent:"مجموع هزینه‌ی خرید",bv_th_value:"ارزش خانه",bv_th_bal:"مانده‌ی وام",bv_th_equity:"حقوق مالکانه (equity)",
+      bv_cost_rent:"کل اجاره‌ی پرداختی در {n} سال",bv_spent:"کل هزینه‌ی خرید (پیش‌پرداخت + اقساط + مالیات + شارژ)",bv_equity:"حقوق مالکانه‌ی شما در پایان سال {n}",bv_cost_buy:"هزینه‌ی خالص خرید (هزینه‌ها منهای حقوق مالکانه‌ی پایانی)",
       bv_win_buy:"خرید در {n} سال به اندازه‌ی {x} جلوتر است",bv_win_rent:"اجاره در {n} سال به اندازه‌ی {x} جلوتر است",bv_tie:"در {n} سال، خرید و اجاره تقریباً پایاپای‌اند",
-      bv_assump:"فرض‌ها: قسط وام با فرمول کانادایی (سود مرکب نیم‌سالانه) محاسبه می‌شود و ثابت می‌ماند؛ مالیات ملک و شارژ در سطح امروز ثابت‌اند؛ خانه با نرخ واردشده رشد می‌کند؛ اجاره سالی یک‌بار افزایش می‌یابد. هزینه‌ی فروش، تعمیرات پیش‌بینی‌نشده، بیمه‌ی CMHC و بازده سرمایه‌گذاری پیش‌پرداخت لحاظ نشده‌اند؛ پس این یک برآورد برنامه‌ریزی است، نه تضمین.",
+      bv_assump:"فرض‌ها: قسط وام با فرمول کانادایی (سود مرکب نیم‌سالانه) محاسبه می‌شود و ثابت می‌ماند؛ مالیات ملک و شارژ در سطح امروز ثابت‌اند؛ خانه با نرخ واردشده رشد می‌کند؛ اجاره سالی یک‌بار افزایش می‌یابد. مالیات انتقال ملک و سایر هزینه‌های پایانی خرید، هزینه‌ی فروش، تعمیرات پیش‌بینی‌نشده، بیمه‌ی CMHC و بازده سرمایه‌گذاری پیش‌پرداخت لحاظ نشده‌اند؛ پس این یک برآورد برنامه‌ریزی است، نه تضمین.",
       af_title:"برآورد توان خرید",af_sub:"وام‌دهنده‌های کانادایی از دو نسبت استفاده می‌کنند: GDS — هزینه‌های مسکن حداکثر ۳۲٪ درآمد ناخالص؛ TDS — همه‌ی بدهی‌ها حداکثر ۴۰٪ درآمد ناخالص. هرکدام کمتر باشد، سقف شما را تعیین می‌کند.",
-      af_income:"درآمد ناخالص خانوار (سالانه، دلار)",af_debts:"بدهی‌های غیرمسکن (ماهانه، دلار)",af_tax:"برآورد مالیات ملک (سالانه، دلار)",af_heat:"هزینه‌ی گرمایش (ماهانه، دلار)",af_rate:"نرخ احتسابی تست استرس (٪)",af_amort:"مدت بازپرداخت (سال)",af_down:"پیش‌پرداخت (٪)",af_strata:"شارژ ساختمان (ماهانه، دلار)",
+      af_income:"درآمد ناخالص خانوار (سالانه، دلار)",af_debts:"بدهی‌های غیرمسکن (ماهانه، دلار)",af_tax:"برآورد مالیات ملک (سالانه، دلار)",af_heat:"هزینه‌ی گرمایش (ماهانه، دلار)",af_rate:"نرخ قرارداد وام (٪)",af_amort:"مدت بازپرداخت (سال)",af_down:"پیش‌پرداخت (٪)",af_strata:"شارژ ساختمان (ماهانه، دلار)",
       af_max_price:"حداکثر قیمت خانه",af_max_mort:"حداکثر مبلغ وام",af_budget:"حداکثر قسط ماهانه‌ی وام",af_gds_row:"سقف GDS ‏(۳۲٪) برای هزینه‌های مسکن (ماهانه)",af_tds_row:"سقف TDS ‏(۴۰٪) پس از کسر بدهی‌ها (ماهانه)",
       af_limit_gds:"عامل محدودکننده: GDS ‏(۳۲٪) — نسبت هزینه‌های مسکن سقف شما را تعیین می‌کند.",af_limit_tds:"عامل محدودکننده: TDS ‏(۴۰٪) — بدهی‌های دیگر شما عامل محدودکننده‌اند.",
       af_note:"هزینه‌های مسکن در فرمول GDS/TDS شامل قسط وام + مالیات ملک + گرمایش است (به‌علاوه‌ی ۵۰٪ شارژ ساختمان برای آپارتمان‌ها — اینجا لحاظ نشده، پس خریداران آپارتمان بهتر است کمی پایین‌تر هدف بگیرند). وام‌دهنده با نرخ تست استرس — بیشترِ نرخ قرارداد + ۲٪ یا نرخ معیار فدرال — شما را ارزیابی می‌کند؛ همان نرخ را بالا وارد کنید. این ارقام فقط برآوردند — رقم واقعی را وام‌دهنده یا کارگزار وام تأیید می‌کند.",
@@ -321,9 +321,9 @@
       bv_th_year:"वर्ष",bv_th_rent:"कुल किराया दिया",bv_th_spent:"खरीद पर कुल खर्च",bv_th_value:"घर का मूल्य",bv_th_bal:"बचा मॉर्गेज",bv_th_equity:"इक्विटी",
       bv_cost_rent:"{n} वर्षों में कुल किराया दिया",bv_spent:"खरीद पर कुल खर्च (डाउन पेमेंट + किस्तें + कर + स्ट्राटा)",bv_equity:"वर्ष {n} के अंत में आपकी इक्विटी",bv_cost_buy:"खरीद की शुद्ध लागत (खर्च − अंतिम इक्विटी)",
       bv_win_buy:"{n} वर्षों में खरीदना {x} से आगे है",bv_win_rent:"{n} वर्षों में किराया {x} से आगे है",bv_tie:"{n} वर्षों में खरीदना और किराया लगभग बराबर हैं",
-      bv_assump:"धारणाएँ: मॉर्गेज किस्त कनाडाई अर्ध-वार्षिक सूत्र से स्थिर रहती है; संपत्ति कर और स्ट्राटा आज के स्तर पर स्थिर हैं; घर आपके दर्ज किए गए दर से बढ़ता है; किराया साल में एक बार बढ़ता है। बिक्री लागत, अप्रत्याशित मरम्मत, CMHC बीमा और डाउन पेमेंट पर निवेश रिटर्न शामिल नहीं हैं — यह योजना का अनुमान है, गारंटी नहीं।",
+      bv_assump:"धारणाएँ: मॉर्गेज किस्त कनाडाई अर्ध-वार्षिक सूत्र से स्थिर रहती है; संपत्ति कर और स्ट्राटा आज के स्तर पर स्थिर हैं; घर आपके दर्ज किए गए दर से बढ़ता है; किराया साल में एक बार बढ़ता है। संपत्ति हस्तांतरण कर और अन्य खरीद समापन लागतें, बिक्री लागत, अप्रत्याशित मरम्मत, CMHC बीमा और डाउन पेमेंट पर निवेश रिटर्न शामिल नहीं हैं — यह योजना का अनुमान है, गारंटी नहीं।",
       af_title:"खरीद क्षमता अनुमानक",af_sub:"कनाडाई ऋणदाता दो अनुपात इस्तेमाल करते हैं: GDS — आवास लागत सकल आय के 32% तक; TDS — सभी ऋण सकल आय के 40% तक। दोनों में जो कम हो, वही आपकी सीमा तय करता है।",
-      af_income:"सकल घरेलू आय (प्रति वर्ष $)",af_debts:"गैर-आवास ऋण (प्रति माह $)",af_tax:"संपत्ति कर अनुमान (प्रति वर्ष $)",af_heat:"हीटिंग लागत (प्रति माह $)",af_rate:"योग्यता दर — स्ट्रेस टेस्ट (%)",af_amort:"अवधि (वर्ष)",af_down:"डाउन पेमेंट (%)",af_strata:"स्ट्राटा शुल्क (प्रति माह $)",
+      af_income:"सकल घरेलू आय (प्रति वर्ष $)",af_debts:"गैर-आवास ऋण (प्रति माह $)",af_tax:"संपत्ति कर अनुमान (प्रति वर्ष $)",af_heat:"हीटिंग लागत (प्रति माह $)",af_rate:"अनुबंध दर (%)",af_amort:"अवधि (वर्ष)",af_down:"डाउन पेमेंट (%)",af_strata:"स्ट्राटा शुल्क (प्रति माह $)",
       af_max_price:"अधिकतम घर की कीमत",af_max_mort:"अधिकतम मॉर्गेज",af_budget:"अधिकतम मासिक मॉर्गेज किस्त",af_gds_row:"GDS (32%) आवास सीमा (प्रति माह)",af_tds_row:"TDS (40%) — अन्य ऋणों के बाद आवास गुंजाइश (प्रति माह)",
       af_limit_gds:"सीमित करने वाला कारक: GDS (32%) — आपकी आवास-लागत अनुपात ही सीमा है।",af_limit_tds:"सीमित करने वाला कारक: TDS (40%) — आपके अन्य ऋण ही सीमा हैं।",
       af_note:"GDS/TDS सूत्रों में आवास लागत = मॉर्गेज किस्त + संपत्ति कर + हीटिंग (कॉन्डो के लिए स्ट्राटा का 50% अतिरिक्त — यहाँ शामिल नहीं है, इसलिए कॉन्डो खरीदार थोड़ा कम लक्ष्य रखें)। ऋणदाता स्ट्रेस-टेस्ट दर — अनुबंध दर + 2% या संघीय बेंचमार्क दर, जो अधिक हो — पर योग्यता जाँचते हैं; ऊपर वही दर दर्ज करें। ये केवल अनुमान हैं — असली आंकड़ा ऋणदाता या मॉर्गेज ब्रोकर ही पुष्टि करता है।",
@@ -339,9 +339,9 @@
       bv_th_year:"年份",bv_th_rent:"累计已付租金",bv_th_spent:"买房累计支出",bv_th_value:"房屋价值",bv_th_bal:"剩余贷款",bv_th_equity:"净资产",
       bv_cost_rent:"{n} 年内共付租金",bv_spent:"买房总支出(首付 + 月供 + 地税 + 管理费)",bv_equity:"第 {n} 年末您的净资产",bv_cost_buy:"买房净成本(支出 − 期末净资产)",
       bv_win_buy:"{n} 年内买房领先 {x}",bv_win_rent:"{n} 年内租房领先 {x}",bv_tie:"{n} 年内买房与租房基本持平",
-      bv_assump:"假设:月供按加拿大半年复利公式计算且保持不变;地税和管理费维持当前水平;房价按您输入的涨幅增长;租金每年上调一次。未计入出售成本、意外维修、CMHC 保险及首付的投资回报,因此这只是规划估算,不是保证。",
+      bv_assump:"假设:月供按加拿大半年复利公式计算且保持不变;地税和管理费维持当前水平;房价按您输入的涨幅增长;租金每年上调一次。未计入房产转让税及其他购房过户费用、出售成本、意外维修、CMHC 保险及首付的投资回报,因此这只是规划估算,不是保证。",
       af_title:"负担能力估算器",af_sub:"加拿大贷款机构使用两个比率:GDS(住房成本不超过总收入的 32%)和 TDS(全部债务不超过总收入的 40%)。两者中较低者决定您的上限。",
-      af_income:"家庭年总收入($)",af_debts:"非住房债务(每月 $)",af_tax:"地税估算(每年 $)",af_heat:"取暖费(每月 $)",af_rate:"资格审核利率 — 压力测试(%)",af_amort:"贷款年限(年)",af_down:"首付(%)",af_strata:"物业管理费(每月 $)",
+      af_income:"家庭年总收入($)",af_debts:"非住房债务(每月 $)",af_tax:"地税估算(每年 $)",af_heat:"取暖费(每月 $)",af_rate:"合同利率(%)",af_amort:"贷款年限(年)",af_down:"首付(%)",af_strata:"物业管理费(每月 $)",
       af_max_price:"最高房价",af_max_mort:"最高贷款额",af_budget:"每月最高月供",af_gds_row:"GDS(32%)住房上限(每月)",af_tds_row:"TDS(40%)扣除其他债务后的住房空间(每月)",
       af_limit_gds:"限制因素:GDS(32%)— 您的住房成本比率决定了上限。",af_limit_tds:"限制因素:TDS(40%)— 您的其他债务决定了上限。",
       af_note:"GDS/TDS 公式中的住房成本包括:月供 + 地税 + 取暖费(公寓还需加上 50% 的管理费 — 此处未计入,因此公寓买家应把目标定得稍低)。贷款机构按压力测试利率(合同利率 + 2% 与联邦基准利率中的较高者)审核资格,请在上方输入该审核利率。以上仅为估算 — 实际数字须由贷款机构或房贷经纪确认。",
@@ -366,7 +366,7 @@
       fh_rules_title:"Key FHSA rules",
       fh_r1:"Contributions are tax-deductible — they lower your taxable income in the year you claim the deduction.",
       fh_r2:"Withdrawals used to buy a qualifying first home are tax-free.",
-      fh_r3:"The account must be closed within 15 years of opening it (or by the end of the year you turn 71).",
+      fh_r3:"The account must be closed within 15 years of opening it (or by the end of the year you turn 71, or the end of the year after your first qualifying withdrawal — whichever comes first).",
       fh_r4:"You generally count as a first-time buyer if, during the current calendar year or the previous 4 calendar years, you did not live in a home that you or your spouse owned.",
       fh_r5:"You gain $8,000 of new room for each year you hold the account, up to $40,000 in total. Unused room carries forward, but no more than $8,000 of it can be added in any single year.",
       fh_verify:"FHSA rules can change — verify the current rules with the Canada Revenue Agency (CRA) at canada.ca before you rely on them."},
@@ -381,7 +381,7 @@
       fh_rules_title:"قواعد کلیدی FHSA",
       fh_r1:"مشارکت‌ها از مالیات کسر می‌شوند — درآمد مشمول مالیات شما را در سالی که کسر را مطالبه می‌کنید، کم می‌کنند.",
       fh_r2:"برداشت برای خرید اولین خانه‌ی واجد شرایط، بدون مالیات است.",
-      fh_r3:"حساب باید حداکثر ۱۵ سال پس از بازشدن بسته شود (یا تا پایان سالی که ۷۱ ساله می‌شوید).",
+      fh_r3:"حساب باید حداکثر ۱۵ سال پس از بازشدن بسته شود (یا تا پایان سالی که ۷۱ ساله می‌شوید، یا پایان سالِ پس از اولین برداشت واجد شرایط — هرکدام زودتر باشد).",
       fh_r4:"به‌طور کلی خریدار اول محسوب می‌شوید اگر در سال جاری یا ۴ سال تقویمی گذشته، در خانه‌ای که شما یا همسرتان مالکش بوده‌اید زندگی نکرده باشید.",
       fh_r5:"هر سال ۸٬۰۰۰ دلار فضای جدید می‌گیرید، تا سقف مجموع ۴۰٬۰۰۰ دلار. فضای استفاده‌نشده به سال‌های بعد منتقل می‌شود، اما در هر سال حداکثر ۸٬۰۰۰ دلار از آن قابل افزودن است.",
       fh_verify:"قواعد FHSA ممکن است تغییر کنند — پیش از اتکا، قواعد جاری را از آژانس درآمد کانادا (CRA) در canada.ca بررسی کنید."},
@@ -396,7 +396,7 @@
       fh_rules_title:"FHSA के मुख्य नियम",
       fh_r1:"योगदान कर-कटौती योग्य हैं — जिस वर्ष आप कटौती का दावा करते हैं, वे आपकी कर योग्य आय घटाते हैं।",
       fh_r2:"पात्र पहला घर खरीदने के लिए निकासी कर-मुक्त होती है।",
-      fh_r3:"खाता खोलने के 15 वर्षों के भीतर बंद करना होगा (या जिस वर्ष आप 71 के होते हैं, उसके अंत तक)।",
+      fh_r3:"खाता खोलने के 15 वर्षों के भीतर बंद करना होगा (या जिस वर्ष आप 71 के होते हैं उसके अंत तक, या आपकी पहली पात्र निकासी के अगले वर्ष के अंत तक — जो भी पहले हो)।",
       fh_r4:"आप सामान्यतः पहली बार खरीदार माने जाते हैं यदि वर्तमान कैलेंडर वर्ष या पिछले 4 कैलेंडर वर्षों में आप ऐसे घर में नहीं रहे जो आपका या आपके जीवनसाथी का हो।",
       fh_r5:"खाता रखने के प्रत्येक वर्ष आपको $8,000 की नई सीमा मिलती है, कुल अधिकतम $40,000 तक। अप्रयुक्त सीमा आगे ले जाई जाती है, लेकिन किसी एक वर्ष में उसमें से अधिकतम $8,000 ही जोड़ा जा सकता है।",
       fh_verify:"FHSA नियम बदल सकते हैं — भरोसा करने से पहले कनाडा राजस्व एजेंसी (CRA) की वेबसाइट canada.ca पर वर्तमान नियम जाँचें।"},
@@ -411,7 +411,7 @@
       fh_rules_title:"FHSA 主要规则",
       fh_r1:"供款可抵税 — 可在您申报抵扣的年份减少应税收入。",
       fh_r2:"用于购买符合条件的首套住房的取款免税。",
-      fh_r3:"账户必须在开设后 15 年内关闭(或在您年满 71 岁那年的年底前关闭)。",
+      fh_r3:"账户必须在开设后 15 年内关闭(或在您年满 71 岁那年的年底前,或在您首次符合条件取款的次年年底前关闭——以较早者为准)。",
       fh_r4:"一般而言,如果您在当前日历年或此前 4 个日历年内,没有居住在您或您配偶拥有的住房中,您即被视为首次购房者。",
       fh_r5:"持有账户的每年可获得 $8,000 新额度,终身累计上限 $40,000。未用额度可结转,但每年最多只能加入 $8,000 的结转额度。",
       fh_verify:"FHSA 规则可能变更 — 依赖之前请先到加拿大税务局(CRA)网站 canada.ca 核实当前规则。"}
@@ -646,7 +646,7 @@
     };
     for (var L9 in I18N9) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9[L9][k9]; } }
     /* ---------- Pre-licence disclosure (BCFSA advertising compliance) ---------- */
-    var I18N9 = {
+    var I18N9b = {
     en:{licence_notice:"Please note: Erfan is not currently a licensed real estate professional. He is preparing for the BC real estate licensing exam and is not affiliated with any brokerage. This site provides educational tools and general information only — it does not offer real estate trading services, representation, or professional advice. For help with an actual purchase or sale, please contact a licensed real estate professional.",
       footer_licence:"Erfan BC Real Estate is a preview project by Erfan, who is not yet a licensed real estate professional and is not affiliated with any brokerage. This site offers educational tools and general information only — no real estate trading services, representation, or professional advice are provided.",
       licence_short:"Erfan is not yet a licensed real estate professional and is not affiliated with any brokerage — inquiries are for general information only."},
@@ -660,7 +660,7 @@
       footer_licence:"Erfan BC Real Estate 是 Erfan 的一个预览项目;他尚未取得房地产牌照,也不隶属于任何经纪公司。本站仅提供教育工具和一般信息——不提供任何房地产交易服务、代理服务或专业建议。",
       licence_short:"Erfan 尚未取得房地产牌照,也不隶属于任何经纪公司——咨询仅供一般信息参考。"}
     };
-    for (var L9 in I18N9) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9[L9][k9]; } }
+    for (var L9 in I18N9b) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9b[L9][k9]; } }
     /* ---------- Knowledge Center strings ---------- */
     var I18N10 = {
     en:{cta_kc:"Explore the Knowledge Center",
@@ -744,7 +744,7 @@
     var lang = "en";
     try { var saved = localStorage.getItem("erfan-re-lang"); if (saved && I18N[saved]) lang = saved; } catch(e){}
     function T(){ return I18N[lang]; }
-    function fmt(n){ n = Number(n); if (!isFinite(n)) n = 0; return "$" + Math.round(n).toLocaleString("en-US"); }
+    function fmt(n){ n = Number(n); if (!isFinite(n)) n = 0; var v = Math.round(n); return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US"); }
     function $(id){ return document.getElementById(id); }
     function fill(tpl, obj){ var s = tpl; for (var k in obj) s = s.split("{"+k+"}").join(obj[k]); return s; }
     function esc(s){ if (s === null || s === undefined) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
@@ -757,3 +757,6 @@
     function buildPriceSelect(sel){ opt(sel, "", T().any_price); PRICES.forEach(function(p){ opt(sel, String(p), fmt(p)); }); }
     function buildBedsSelect(sel){ opt(sel, "0", T().any); [1,2,3,4].forEach(function(n){ opt(sel, String(n), n + "+"); }); }
     function buildSortSelect(sel){ [["featured","s_featured"],["price-asc","s_price_asc"],["price-desc","s_price_desc"],["newest","s_newest"],["dom","s_dom"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); }
+
+    function domOf(l){ if (l && l.listed){ var d = new Date(String(l.listed).slice(0,10) + "T00:00:00"); if (!isNaN(d.getTime())){ var now = new Date(); now.setHours(0,0,0,0); var n = Math.floor((now - d) / 86400000); if (n >= 0) return n; } } return (l && l.dom) || 0; }
+    function statusKey(l){ return (l && (l.status === "pending" || l.status === "sold")) ? l.status : "active"; }

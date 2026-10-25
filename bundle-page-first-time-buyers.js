@@ -1,7 +1,7 @@
     var GUIDE = {
     en:"<h3>The buying steps in BC</h3><ol>"
       +"<li><b>Get pre-approved.</b> A lender or mortgage broker confirms your budget using the GDS/TDS ratios and the stress test — before you start shopping.</li>"
-      +"<li><b>Save your down payment and closing costs.</b> First-time buyers can use the FHSA (First Home Savings Account) and the RRSP Home Buyers' Plan.</li>"
+      +"<li><b>Save your down payment and closing costs.</b> First-time buyers can use the FHSA (First Home Savings Account) and the RRSP Home Buyers' Plan (withdraw up to $60,000 from your RRSP, tax-free, as of 2026).</li>"
       +"<li><b>Set your search criteria.</b> Cities, property type, must-haves and a budget range — so you can compare new listings against the same yardstick.</li>"
       +"<li><b>View homes and compare.</b> For condos and townhouses, read the strata documents: meeting minutes, the depreciation report, and any special levies.</li>"
       +"<li><b>Write an offer.</b> Price, deposit, dates, and subject conditions (financing, inspection, strata documents) with clear deadlines.</li>"
@@ -17,19 +17,19 @@
       +"<li>1% on the first $200,000 of the price.</li>"
       +"<li>2% on the portion from $200,000 to $2,000,000.</li>"
       +"<li>3% on the portion above $2,000,000 (an additional 2% can apply to the residential portion above $3,000,000).</li>"
-      +"<li><b>First-time buyer exemption:</b> qualifying first-time buyers can be fully or partially exempt on homes up to a threshold value. Eligibility and thresholds change — verify the current rules at gov.bc.ca before relying on them.</li>"
-      +"<li>Newly built homes may qualify for a separate exemption, and an additional property transfer tax for foreign buyers can apply in specified areas.</li></ul>"
+      +"<li><b>First-time buyer exemption:</b> as of October 2026, qualifying first-time buyers pay no tax on the first $500,000 (a saving of up to $8,000) on homes up to $835,000, with a partial exemption up to $860,000. You must be a Canadian citizen or permanent resident, a BC resident, and have never owned a principal residence. Thresholds change — verify the current rules at gov.bc.ca before relying on them.</li>"
+      +"<li>Newly built homes have their own exemption — full up to $1,100,000 and partial up to $1,150,000 — and an additional property transfer tax for foreign buyers can apply in specified areas.</li></ul>"
       +"<h3>Closing costs to budget for</h3><ul>"
       +"<li>Property transfer tax (above).</li>"
       +"<li>Legal / notary fees and disbursements.</li>"
       +"<li>Home inspection and appraisal fees.</li>"
       +"<li>Title insurance and registration fees.</li>"
-      +"<li>GST (5%) on newly built homes — not charged on resale homes.</li>"
+      +"<li>GST (5%) on newly built homes — not charged on resale homes. Since March 2026, first-time buyers can also claim a federal GST rebate on new homes: a full rebate up to $1,000,000, phasing out to $1,500,000.</li>"
       +"<li>Adjustments (prepaid property taxes, utilities, strata fees), moving costs, and utility hookups.</li>"
       +"<li><b>Rule of thumb:</b> budget roughly 1.5%–4% of the purchase price for closing costs, on top of your down payment.</li></ul>",
     fa:"<h3>مراحل خرید خانه در BC</h3><ol>"
       +"<li><b>پیش‌تأیید بگیرید.</b> وام‌دهنده یا کارگزار وام، پیش از شروع جست‌وجو، با نسبت‌های GDS/TDS و تست استرس بودجه‌تان را تأیید می‌کند.</li>"
-      +"<li><b>پیش‌پرداخت و هزینه‌های پایانی را پس‌انداز کنید.</b> خریداران اولی می‌توانند از حساب FHSA (پس‌انداز خانه‌ی اول) و طرح Home Buyers' Plan از RRSP استفاده کنند.</li>"
+      +"<li><b>پیش‌پرداخت و هزینه‌های پایانی را پس‌انداز کنید.</b> خریداران اولی می‌توانند از حساب FHSA (پس‌انداز خانه‌ی اول) و طرح Home Buyers' Plan از RRSP استفاده کنند (با این طرح می‌توانید تا ۶۰٬۰۰۰ دلار بدون مالیات از RRSP برداشت کنید؛ طبق قواعد ۲۰۲۶).</li>"
       +"<li><b>معیارهای جست‌وجو را مشخص کنید.</b> شهر، نوع ملک، بایدها و بازه‌ی بودجه — تا فایل‌های جدید را با یک معیار ثابت مقایسه کنید.</li>"
       +"<li><b>خانه‌ها را ببینید و مقایسه کنید.</b> برای آپارتمان و تاون‌هاوس، اسناد ساختمان را بخوانید: صورت‌جلسه‌ها، گزارش استهلاک و هزینه‌های ویژه (levy).</li>"
       +"<li><b>پیشنهاد (آفر) بنویسید.</b> قیمت، ودیعه، تاریخ‌ها و شروط (تأمین مالی، بازرسی، اسناد ساختمان) با مهلت مشخص.</li>"
@@ -45,19 +45,19 @@
       +"<li>۱٪ روی ۲۰۰ هزار دلار اول قیمت.</li>"
       +"<li>۲٪ روی بخش ۲۰۰ هزار تا ۲ میلیون دلار.</li>"
       +"<li>۳٪ روی بخش بالاتر از ۲ میلیون دلار (۲٪ اضافی می‌تواند روی بخش مسکونی بالاتر از ۳ میلیون دلار اعمال شود).</li>"
-      +"<li><b>معافیت خریدار اولی:</b> خریداران اولی واجد شرایط می‌توانند برای خانه‌هایی تا یک سقف قیمتی، معافیت کامل یا نسبی بگیرند. شرایط و سقف‌ها تغییر می‌کنند — پیش از اتکا، قواعد جاری را در gov.bc.ca بررسی کنید.</li>"
-      +"<li>خانه‌های نوساز ممکن است مشمول معافیت جداگانه‌ای شوند و در مناطق مشخص، مالیات اضافی انتقال برای خریداران خارجی اعمال می‌شود.</li></ul>"
+      +"<li><b>معافیت خریدار اولی:</b> طبق قواعد اکتبر ۲۰۲۶، خریداران اولی واجد شرایط برای خانه‌های تا ۸۳۵ هزار دلار، از مالیات روی ۵۰۰ هزار دلار اول (تا سقف ۸٬۰۰۰ دلار) معاف‌اند و تا ۸۶۰ هزار دلار معافیت نسبی می‌گیرند. باید شهروند یا مقیم دائم کانادا و ساکن BC باشید و هرگز مالک محل سکونت اصلی نبوده باشید. سقف‌ها تغییر می‌کنند — پیش از اتکا، قواعد جاری را در gov.bc.ca بررسی کنید.</li>"
+      +"<li>خانه‌های نوساز معافیت جداگانه‌ی خودشان را دارند: معافیت کامل تا ۱٫۱ میلیون دلار و نسبی تا ۱٫۱۵ میلیون دلار. در مناطق مشخص، مالیات اضافی انتقال برای خریداران خارجی هم اعمال می‌شود.</li></ul>"
       +"<h3>هزینه‌های پایانی که باید بودجه‌بندی کنید</h3><ul>"
       +"<li>مالیات انتقال ملک (بالا).</li>"
       +"<li>هزینه‌های وکیل / دفتر اسناد رسمی و مخارج اداری.</li>"
       +"<li>هزینه‌ی بازرسی خانه و ارزیابی (appraisal).</li>"
       +"<li>بیمه‌ی مالکیت (title insurance) و هزینه‌های ثبت.</li>"
-      +"<li>مالیات GST ‏(۵٪) روی خانه‌های نوساز — روی خانه‌های دست‌دوم اعمال نمی‌شود.</li>"
+      +"<li>مالیات GST ‏(۵٪) روی خانه‌های نوساز — روی خانه‌های دست‌دوم اعمال نمی‌شود. از مارس ۲۰۲۶، خریداران اولی می‌توانند برای خانه‌های نوساز از تخفیف فدرال GST هم استفاده کنند: تخفیف کامل تا ۱ میلیون دلار و کاهشی تا ۱٫۵ میلیون دلار.</li>"
       +"<li>تعدیل‌ها (مالیات ملک، آب‌وبرق و شارژ پیش‌پرداخت‌شده)، هزینه‌ی اسباب‌کشی و اتصال خدمات.</li>"
       +"<li><b>قاعده‌ی سرانگشتی:</b> برای هزینه‌های پایانی، علاوه بر پیش‌پرداخت، حدود ۱٫۵ تا ۴٪ قیمت خرید را کنار بگذارید.</li></ul>",
     hi:"<h3>BC में खरीद के चरण</h3><ol>"
       +"<li><b>पूर्व-अनुमोदन लें।</b> ऋणदाता या मॉर्गेज ब्रोकर, खोज शुरू करने से पहले, GDS/TDS अनुपात और स्ट्रेस टेस्ट से आपका बजट पुष्टि करता है।</li>"
-      +"<li><b>डाउन पेमेंट और समापन लागत बचाएँ।</b> पहली बार खरीदार FHSA (First Home Savings Account) और RRSP Home Buyers' Plan का उपयोग कर सकते हैं।</li>"
+      +"<li><b>डाउन पेमेंट और समापन लागत बचाएँ।</b> पहली बार खरीदार FHSA (First Home Savings Account) और RRSP Home Buyers' Plan का उपयोग कर सकते हैं (इस योजना से आप अपने RRSP से $60,000 तक कर-मुक्त निकाल सकते हैं, 2026 के अनुसार)।</li>"
       +"<li><b>अपने खोज मानदंड तय करें।</b> शहर, प्रॉपर्टी प्रकार, अनिवार्य चीज़ें और एक बजट सीमा — ताकि आप नई लिस्टिंग की तुलना एक ही पैमाने से कर सकें।</li>"
       +"<li><b>घर देखें और तुलना करें।</b> कॉन्डो और टाउनहाउस के लिए स्ट्राटा दस्तावेज़ पढ़ें: बैठक कार्यवृत्त (minutes), मूल्यह्रास रिपोर्ट और कोई विशेष शुल्क (levy)।</li>"
       +"<li><b>ऑफ़र लिखें।</b> कीमत, जमा, तिथियाँ और स्पष्ट समय-सीमा वाले शर्त-विषय (वित्तपोषण, निरीक्षण, स्ट्राटा दस्तावेज़)।</li>"
@@ -73,19 +73,19 @@
       +"<li>कीमत के पहले $200,000 पर 1%।</li>"
       +"<li>$200,000 से $2,000,000 के हिस्से पर 2%।</li>"
       +"<li>$2,000,000 से ऊपर के हिस्से पर 3% ($3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% लग सकता है)।</li>"
-      +"<li><b>पहली बार खरीदार छूट:</b> पात्र पहली बार खरीदार एक सीमा मूल्य तक के घरों पर पूर्ण या आंशिक छूट पा सकते हैं। पात्रता और सीमाएँ बदलती रहती हैं — भरोसा करने से पहले gov.bc.ca पर वर्तमान नियम जाँचें।</li>"
-      +"<li>नए बने घरों को अलग छूट मिल सकती है, और निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर लग सकता है।</li></ul>"
+      +"<li><b>पहली बार खरीदार छूट:</b> अक्टूबर 2026 के अनुसार, पात्र पहली बार खरीदार $835,000 तक के घरों पर पहले $500,000 पर लगने वाले कर (अधिकतम $8,000) से छूट पाते हैं, और $860,000 तक आंशिक छूट मिलती है। आपको कनाडा का नागरिक या स्थायी निवासी, BC निवासी होना चाहिए और पहले कभी मुख्य निवास का मालिक नहीं होना चाहिए। सीमाएँ बदलती रहती हैं — भरोसा करने से पहले gov.bc.ca पर वर्तमान नियम जाँचें।</li>"
+      +"<li>नए बने घरों की अपनी छूट है: $1,100,000 तक पूर्ण और $1,150,000 तक आंशिक। निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर भी लग सकता है।</li></ul>"
       +"<h3>बजट में रखने योग्य समापन लागतें</h3><ul>"
       +"<li>संपत्ति हस्तांतरण कर (ऊपर)।</li>"
       +"<li>वकील / नोटरी शुल्क और खर्चे।</li>"
       +"<li>गृह निरीक्षण और मूल्यांकन (appraisal) शुल्क।</li>"
       +"<li>टाइटल बीमा और पंजीकरण शुल्क।</li>"
-      +"<li>नए बने घरों पर GST (5%) — पुनर्विक्रय घरों पर नहीं लगता।</li>"
+      +"<li>नए बने घरों पर GST (5%) — पुनर्विक्रय घरों पर नहीं लगता। मार्च 2026 से, पहली बार खरीदार नए घरों पर संघीय GST छूट का दावा भी कर सकते हैं: $1,000,000 तक पूर्ण छूट, $1,500,000 तक क्रमिक कमी।</li>"
       +"<li>समायोजन (पूर्व-चुकता संपत्ति कर, उपयोगिताएँ, स्ट्राटा शुल्क), स्थानांतरण लागत और उपयोगिता कनेक्शन।</li>"
       +"<li><b>सामान्य नियम:</b> डाउन पेमेंट के अलावा, समापन लागतों के लिए खरीद कीमत का लगभग 1.5%–4% बजट रखें।</li></ul>",
     zh:"<h3>在 BC 买房的步骤</h3><ol>"
       +"<li><b>先取得预批。</b>在开始看房前,贷款机构或房贷经纪会用 GDS/TDS 比率和压力测试确认您的预算。</li>"
-      +"<li><b>存够首付和过户费用。</b>首次购房者可以使用 FHSA(首次购房储蓄账户)和 RRSP 的购房者计划(Home Buyers' Plan)。</li>"
+      +"<li><b>存够首付和过户费用。</b>首次购房者可以使用 FHSA(首次购房储蓄账户)和 RRSP 的购房者计划(Home Buyers' Plan)(通过该计划可从 RRSP 免税提取最高 $60,000,截至 2026 年)。</li>"
       +"<li><b>确定您的搜索标准。</b>城市、物业类型、必备条件和预算范围——这样您就能用同一把尺子比较新房源。</li>"
       +"<li><b>看房并比较。</b>购买公寓和联排别墅时,务必阅读物业文件:会议记录、折旧报告和任何特别征费。</li>"
       +"<li><b>提交报价(offer)。</b>价格、定金、日期和附带条件(贷款、验房、物业文件),并设定明确的截止日期。</li>"
@@ -101,14 +101,14 @@
       +"<li>房价首 $200,000 部分:1%。</li>"
       +"<li>$200,000 至 $2,000,000 部分:2%。</li>"
       +"<li>$2,000,000 以上部分:3%($3,000,000 以上的住宅部分可能另加 2%)。</li>"
-      +"<li><b>首次购房者减免:</b>符合条件的首次购房者,在门槛价值以内的房屋可获全额或部分减免。资格和门槛会变化 — 依赖之前请先到 gov.bc.ca 核实当前规则。</li>"
-      +"<li>新建房屋可能另有减免;在指定地区,外国买家可能需缴纳额外转让税。</li></ul>"
+      +"<li><b>首次购房者减免:</b>截至 2026 年 10 月,符合条件的首次购房者购买 $835,000 以内的房屋,可免除首 $500,000 部分的税款(最高 $8,000),$860,000 以内可获部分减免。您必须是加拿大公民或永久居民、BC 居民,且从未拥有过主要居所。门槛会变化 — 依赖之前请先到 gov.bc.ca 核实当前规则。</li>"
+      +"<li>新建房屋有单独的减免:价值 $1,100,000 以内全额减免,$1,150,000 以内部分减免。在指定地区,外国买家还可能需缴纳额外转让税。</li></ul>"
       +"<h3>需要预算的过户费用</h3><ul>"
       +"<li>房产转让税(见上)。</li>"
       +"<li>律师 / 公证费及杂费。</li>"
       +"<li>验房费和评估费。</li>"
       +"<li>产权保险和登记费。</li>"
-      +"<li>新建房屋的 GST(5%)— 二手房不收取。</li>"
+      +"<li>新建房屋的 GST(5%)— 二手房不收取。自 2026 年 3 月起,首次购房者购买新建房屋还可申请联邦 GST 退税:$1,000,000 以内全额退税,$1,500,000 以内逐步递减。</li>"
       +"<li>调整项(预付的地税、水电费、管理费)、搬家费和开通水电的费用。</li>"
       +"<li><b>经验法则:</b>除首付外,过户费用约为房价的 1.5%–4%。</li></ul>"
     };
@@ -233,10 +233,10 @@
             fa:["معافیت خریدار اولی","معافیت مالیاتی","معافیت"],
             hi:["पहली बार खरीदार छूट","कर छूट","छूट"],
             zh:["首次购房者减免","首次购房减免","免转让税","减免","免税"]},
-        ans:{en:"Qualifying first-time buyers in BC can get a full or partial exemption from the property transfer tax on homes up to a certain threshold value, which can save thousands on closing costs. The eligibility rules and threshold amounts are set by the province and change over time, so don't rely on a specific dollar figure — verify the current thresholds and rules at gov.bc.ca. <a href='#guide'>See the exemption note in the guide</a>",
-             fa:"خریداران اولی واجد شرایط در BC می‌توانند برای خانه‌هایی تا یک سقف قیمتی مشخص، از مالیات انتقال ملک معافیت کامل یا نسبی بگیرند که هزاران دلار در هزینه‌های پایانی صرفه‌جویی می‌کند. قواعد احراز شرایط و مبالغ سقف را استان تعیین می‌کند و در طول زمان تغییر می‌کنند؛ پس به رقم دلاری مشخصی اتکا نکنید — آستانه‌ها و قواعد جاری را در gov.bc.ca بررسی کنید. <a href='#guide'>یادداشت معافیت در راهنما را ببینید</a>",
-             hi:"BC में पात्र पहली बार खरीदार एक निश्चित सीमा मूल्य तक के घरों पर संपत्ति हस्तांतरण कर से पूर्ण या आंशिक छूट पा सकते हैं, जिससे समापन लागतों में हज़ारों की बचत हो सकती है। पात्रता नियम और सीमा राशियाँ प्रांत तय करता है और वे समय के साथ बदलती रहती हैं, इसलिए किसी निश्चित डॉलर आंकड़े पर भरोसा न करें — gov.bc.ca पर वर्तमान सीमाएँ और नियम जाँचें। <a href='#guide'>मार्गदर्शिका में छूट नोट देखें</a>",
-             zh:"符合条件的 BC 首次购房者,在门槛价值以内的房屋可获得房产转让税的全额或部分减免,可在过户费用上节省数千加元。资格规则和门槛金额由省政府制定且会随时间变化,因此不要依赖某个具体的美元数字——请到 gov.bc.ca 核实当前门槛和规则。<a href='#guide'>查看指南中的减免说明</a>"}},
+        ans:{en:"Qualifying first-time buyers in BC pay no property transfer tax on the first $500,000 of the price — a saving of up to $8,000 — on homes up to $835,000, with a partial exemption up to $860,000 (thresholds as of October 2026). You must be a Canadian citizen or permanent resident, a BC resident, and have never owned a principal residence anywhere in the world. The province sets the rules and they change over time — verify the current thresholds at gov.bc.ca. <a href='#guide'>See the exemption note in the guide</a>",
+             fa:"خریداران اولی واجد شرایط در BC برای خانه‌های تا ۸۳۵ هزار دلار، روی ۵۰۰ هزار دلار اول قیمت هیچ مالیات انتقال ملکی نمی‌پردازند — تا ۸٬۰۰۰ دلار صرفه‌جویی — و تا ۸۶۰ هزار دلار معافیت نسبی می‌گیرند (سقف‌ها طبق اکتبر ۲۰۲۶). باید شهروند یا مقیم دائم کانادا و ساکن BC باشید و هرگز در هیچ‌کجای دنیا مالک محل سکونت اصلی نبوده باشید. قواعد را استان تعیین می‌کند و در طول زمان تغییر می‌کنند — آستانه‌های جاری را در gov.bc.ca بررسی کنید. <a href='#guide'>یادداشت معافیت در راهنما را ببینید</a>",
+             hi:"BC में पात्र पहली बार खरीदार $835,000 तक के घरों पर कीमत के पहले $500,000 पर कोई संपत्ति हस्तांतरण कर नहीं देते — $8,000 तक की बचत — और $860,000 तक आंशिक छूट मिलती है (सीमाएँ अक्टूबर 2026 के अनुसार)। आपको कनाडा का नागरिक या स्थायी निवासी, BC निवासी होना चाहिए और दुनिया में कहीं भी कभी मुख्य निवास का मालिक नहीं होना चाहिए। नियम प्रांत तय करता है और वे समय के साथ बदलते हैं — gov.bc.ca पर वर्तमान सीमाएँ जाँचें। <a href='#guide'>मार्गदर्शिका में छूट नोट देखें</a>",
+             zh:"符合条件的 BC 首次购房者购买 $835,000 以内的房屋,首 $500,000 部分免缴房产转让税——最高可省 $8,000;$860,000 以内可获部分减免(门槛截至 2026 年 10 月)。您必须是加拿大公民或永久居民、BC 居民,且从未在世界任何地方拥有过主要居所。规则由省政府制定且会随时间变化——请到 gov.bc.ca 核实当前门槛。<a href='#guide'>查看指南中的减免说明</a>"}},
       { id:"subjects",
         kw:{en:["subject","subjects","offer conditions","conditional offer"],
             fa:["شروط","شرط","سابجکت","subjects"],
@@ -314,10 +314,10 @@
             fa:["fhsa","حساب پس‌انداز خانه","پس‌انداز خانه اول"],
             hi:["fhsa","प्रथम गृह बचत"],
             zh:["fhsa","首次购房储蓄","首购房储蓄"]},
-        ans:{en:"The FHSA (First Home Savings Account) helps first-time buyers save for a home: you gain $8,000 of contribution room per year up to a $40,000 lifetime limit, contributions are tax-deductible, and withdrawals for a qualifying first home are tax-free. The account must be closed within 15 years of opening (or by the end of the year you turn 71). Rules can change — verify them with the CRA at canada.ca. <a href='#fhsa'>Try the FHSA tracker on this page</a>",
-             fa:"حساب FHSA ‏(پس‌انداز خانه‌ی اول) به خریداران اولی کمک می‌کند: هر سال ۸٬۰۰۰ دلار فضای مشارکت می‌گیرید تا سقف مادام‌العمر ۴۰٬۰۰۰ دلار؛ مشارکت‌ها از مالیات کسر می‌شوند و برداشت برای خرید خانه‌ی اول واجد شرایط بدون مالیات است. حساب باید حداکثر ۱۵ سال پس از بازشدن بسته شود (یا تا پایان سالی که ۷۱ ساله می‌شوید). قواعد ممکن است تغییر کنند — آن‌ها را از CRA در canada.ca بررسی کنید. <a href='#fhsa'>ردیاب FHSA در همین صفحه</a>",
-             hi:"FHSA (First Home Savings Account) पहली बार खरीदारों की मदद करता है: हर वर्ष आपको $8,000 की योगदान सीमा मिलती है, जीवनकाल सीमा $40,000 तक; योगदान कर-कटौती योग्य हैं और पात्र पहले घर के लिए निकासी कर-मुक्त है। खाता खोलने के 15 वर्षों के भीतर बंद करना होगा (या जिस वर्ष आप 71 के होते हैं, उसके अंत तक)। नियम बदल सकते हैं — CRA से canada.ca पर जाँचें। <a href='#fhsa'>इस पेज पर FHSA ट्रैकर आज़माएँ</a>",
-             zh:"FHSA(首次购房储蓄账户)帮助首次购房者存钱:每年获得 $8,000 供款额度,终身上限 $40,000;供款可抵税,用于购买符合条件的首套住房时取款免税。账户必须在开设后 15 年内关闭(或在您年满 71 岁那年的年底前关闭)。规则可能变更——请到加拿大税务局网站 canada.ca 核实。<a href='#fhsa'>试试本页的 FHSA 追踪器</a>"}},
+        ans:{en:"The FHSA (First Home Savings Account) helps first-time buyers save for a home: you gain $8,000 of contribution room per year up to a $40,000 lifetime limit, contributions are tax-deductible, and withdrawals for a qualifying first home are tax-free. The account must be closed within 15 years of opening (or by the end of the year you turn 71, or the end of the year after your first qualifying withdrawal — whichever comes first). Rules can change — verify them with the CRA at canada.ca. <a href='#fhsa'>Try the FHSA tracker on this page</a>",
+             fa:"حساب FHSA ‏(پس‌انداز خانه‌ی اول) به خریداران اولی کمک می‌کند: هر سال ۸٬۰۰۰ دلار فضای مشارکت می‌گیرید تا سقف مادام‌العمر ۴۰٬۰۰۰ دلار؛ مشارکت‌ها از مالیات کسر می‌شوند و برداشت برای خرید خانه‌ی اول واجد شرایط بدون مالیات است. حساب باید حداکثر ۱۵ سال پس از بازشدن بسته شود (یا تا پایان سالی که ۷۱ ساله می‌شوید، یا پایان سالِ پس از اولین برداشت واجد شرایط — هرکدام زودتر باشد). قواعد ممکن است تغییر کنند — آن‌ها را از CRA در canada.ca بررسی کنید. <a href='#fhsa'>ردیاب FHSA در همین صفحه</a>",
+             hi:"FHSA (First Home Savings Account) पहली बार खरीदारों की मदद करता है: हर वर्ष आपको $8,000 की योगदान सीमा मिलती है, जीवनकाल सीमा $40,000 तक; योगदान कर-कटौती योग्य हैं और पात्र पहले घर के लिए निकासी कर-मुक्त है। खाता खोलने के 15 वर्षों के भीतर बंद करना होगा (या जिस वर्ष आप 71 के होते हैं उसके अंत तक, या आपकी पहली पात्र निकासी के अगले वर्ष के अंत तक — जो भी पहले हो)। नियम बदल सकते हैं — CRA से canada.ca पर जाँचें। <a href='#fhsa'>इस पेज पर FHSA ट्रैकर आज़माएँ</a>",
+             zh:"FHSA(首次购房储蓄账户)帮助首次购房者存钱:每年获得 $8,000 供款额度,终身上限 $40,000;供款可抵税,用于购买符合条件的首套住房时取款免税。账户必须在开设后 15 年内关闭(或在您年满 71 岁那年的年底前,或在您首次符合条件取款的次年年底前关闭——以较早者为准)。规则可能变更——请到加拿大税务局网站 canada.ca 核实。<a href='#fhsa'>试试本页的 FHSA 追踪器</a>"}},
       { id:"strata",
         kw:{en:["strata"],
             fa:["شارژ ساختمان","شارژ","استراتا"],
@@ -359,10 +359,10 @@
             fa:["اجاره","اجاره‌بها","اجاره بها","کرایه"],
             hi:["किराया","किराए","रेंट"],
             zh:["租金","租房","房租","租房子"]},
-        ans:{en:"Rents in Metro Vancouver vary a lot by city, size and building age. As a rough orientation from recent market reporting (2025–2026): a 1-bedroom apartment often rents for about $2,100–$2,800/month in Vancouver, $1,900–$2,400 in Burnaby, and $1,700–$2,200 in Surrey, Coquitlam and Port Coquitlam; a 2-bedroom typically runs about $700–$900/month more. These are general ranges for orientation only — not quotes for any specific home. For current figures, check live rental listings and CMHC's rental market data. This site's buy vs rent calculator uses $2,600/month as its example rent: <a href='#buyvsrent'>compare renting with buying</a>. BC also caps annual rent increases for existing tenancies — the 2026 limit is 2.3%; verify the current limit at gov.bc.ca.",
-             fa:"اجاره‌ها در مترو ونکوور بر اساس شهر، متراژ و سن ساختمان خیلی فرق می‌کنند. برای یک تصور کلی از گزارش‌های اخیر بازار (۲۰۲۵–۲۰۲۶): آپارتمان یک‌خوابه معمولاً حدود ۲٬۱۰۰ تا ۲٬۸۰۰ دلار در ماه در ونکوور، ۱٬۹۰۰ تا ۲٬۴۰۰ دلار در برنابی، و ۱٬۷۰۰ تا ۲٬۲۰۰ دلار در ساری، کوکیتلام و پورت کوکیتلام اجاره می‌رود؛ دوخوابه‌ها معمولاً حدود ۷۰۰ تا ۹۰۰ دلار در ماه بیشترند. این‌ها فقط بازه‌های کلی برای جهت‌یابی‌اند — قیمت هیچ خانه‌ی مشخصی نیستند. برای ارقام جاری، آگهی‌های زنده‌ی اجاره و داده‌های بازار اجاره‌ی CMHC را ببینید. ماشین‌حساب خرید یا اجاره‌ی این سایت ۲٬۶۰۰ دلار در ماه را به‌عنوان اجاره‌ی مثال استفاده می‌کند: <a href='#buyvsrent'>اجاره را با خرید مقایسه کنید</a>. در BC افزایش سالانه‌ی اجاره برای اجاره‌نشینان فعلی هم سقف دارد — سقف ۲۰۲۶ برابر ۲٫۳٪ است؛ سقف جاری را در gov.bc.ca بررسی کنید.",
-             hi:"मेट्रो वैंकूवर में किराए शहर, आकार और इमारत की उम्र के अनुसार बहुत बदलते हैं। हालिया बाज़ार रिपोर्टिंग (2025–2026) के मोटे अनुमान के तौर पर: 1-बेडरूम अपार्टमेंट का किराया अक्सर वैंकूवर में लगभग $2,100–$2,800/माह, बर्नाबी में $1,900–$2,400, और सरी, कोक्विटलम व पोर्ट कोक्विटलम में $1,700–$2,200 रहता है; 2-बेडरूम आमतौर पर लगभग $700–$900/माह अधिक होता है। ये केवल दिशा-निर्देश के लिए सामान्य सीमाएँ हैं — किसी विशिष्ट घर के भाव नहीं। वर्तमान आंकड़ों के लिए लाइव रेंटल लिस्टिंग और CMHC के रेंटल बाज़ार डेटा देखें। इस साइट का खरीद बनाम किराया कैलकुलेटर $2,600/माह को उदाहरण किराए के रूप में इस्तेमाल करता है: <a href='#buyvsrent'>किराए की तुलना खरीद से करें</a>। BC मौजूदा किरायेदारियों पर वार्षिक किराया वृद्धि की सीमा भी तय करता है — 2026 की सीमा 2.3% है; वर्तमान सीमा gov.bc.ca पर जाँचें।",
-             zh:"温哥华都会区的租金因城市、面积和楼龄差异很大。根据近期市场报道（2025–2026）的大致参考：一卧公寓在温哥华的月租通常约为 $2,100–$2,800，在本拿比约为 $1,900–$2,400，在素里、高贵林和高贵林港约为 $1,700–$2,200；两卧通常每月多出约 $700–$900。这些只是供参考的一般范围，并非任何具体房屋的报价。最新数字请查看实时租房房源和 CMHC 的租赁市场数据。本站的买房 vs 租房计算器以每月 $2,600 作为示例租金：<a href='#buyvsrent'>比较租房与买房</a>。BC 还对现有租约的年涨幅设上限——2026 年上限为 2.3%；请到 gov.bc.ca 核实当前上限。"}},
+        ans:{en:"Rents in Metro Vancouver vary a lot by city, size and building age. As a rough orientation from recent market reporting (2025–2026): a 1-bedroom apartment often rents for about $2,100–$2,800/month in Vancouver, $1,900–$2,400 in Burnaby, and $1,700–$2,200 in Surrey, Coquitlam and Port Coquitlam; a 2-bedroom typically runs about $700–$900/month more. These are general ranges for orientation only — not quotes for any specific home. For current figures, check live rental listings and CMHC's rental market data. This site's buy vs rent calculator uses $2,600/month as its example rent: <a href='#buyvsrent'>compare renting with buying</a>. BC also caps annual rent increases for existing tenancies — the limit is 2.3% for 2026 and 2.2% for 2027; verify the current limit at gov.bc.ca.",
+             fa:"اجاره‌ها در مترو ونکوور بر اساس شهر، متراژ و سن ساختمان خیلی فرق می‌کنند. برای یک تصور کلی از گزارش‌های اخیر بازار (۲۰۲۵–۲۰۲۶): آپارتمان یک‌خوابه معمولاً حدود ۲٬۱۰۰ تا ۲٬۸۰۰ دلار در ماه در ونکوور، ۱٬۹۰۰ تا ۲٬۴۰۰ دلار در برنابی، و ۱٬۷۰۰ تا ۲٬۲۰۰ دلار در ساری، کوکیتلام و پورت کوکیتلام اجاره می‌رود؛ دوخوابه‌ها معمولاً حدود ۷۰۰ تا ۹۰۰ دلار در ماه بیشترند. این‌ها فقط بازه‌های کلی برای جهت‌یابی‌اند — قیمت هیچ خانه‌ی مشخصی نیستند. برای ارقام جاری، آگهی‌های زنده‌ی اجاره و داده‌های بازار اجاره‌ی CMHC را ببینید. ماشین‌حساب خرید یا اجاره‌ی این سایت ۲٬۶۰۰ دلار در ماه را به‌عنوان اجاره‌ی مثال استفاده می‌کند: <a href='#buyvsrent'>اجاره را با خرید مقایسه کنید</a>. در BC افزایش سالانه‌ی اجاره برای اجاره‌نشینان فعلی هم سقف دارد — سقف افزایش برای ۲۰۲۶ برابر ۲٫۳٪ و برای ۲۰۲۷ برابر ۲٫۲٪ است؛ سقف جاری را در gov.bc.ca بررسی کنید.",
+             hi:"मेट्रो वैंकूवर में किराए शहर, आकार और इमारत की उम्र के अनुसार बहुत बदलते हैं। हालिया बाज़ार रिपोर्टिंग (2025–2026) के मोटे अनुमान के तौर पर: 1-बेडरूम अपार्टमेंट का किराया अक्सर वैंकूवर में लगभग $2,100–$2,800/माह, बर्नाबी में $1,900–$2,400, और सरी, कोक्विटलम व पोर्ट कोक्विटलम में $1,700–$2,200 रहता है; 2-बेडरूम आमतौर पर लगभग $700–$900/माह अधिक होता है। ये केवल दिशा-निर्देश के लिए सामान्य सीमाएँ हैं — किसी विशिष्ट घर के भाव नहीं। वर्तमान आंकड़ों के लिए लाइव रेंटल लिस्टिंग और CMHC के रेंटल बाज़ार डेटा देखें। इस साइट का खरीद बनाम किराया कैलकुलेटर $2,600/माह को उदाहरण किराए के रूप में इस्तेमाल करता है: <a href='#buyvsrent'>किराए की तुलना खरीद से करें</a>। BC मौजूदा किरायेदारियों पर वार्षिक किराया वृद्धि की सीमा भी तय करता है — 2026 की सीमा 2.3% और 2027 की 2.2% है; वर्तमान सीमा gov.bc.ca पर जाँचें।",
+             zh:"温哥华都会区的租金因城市、面积和楼龄差异很大。根据近期市场报道（2025–2026）的大致参考：一卧公寓在温哥华的月租通常约为 $2,100–$2,800，在本拿比约为 $1,900–$2,400，在素里、高贵林和高贵林港约为 $1,700–$2,200；两卧通常每月多出约 $700–$900。这些只是供参考的一般范围，并非任何具体房屋的报价。最新数字请查看实时租房房源和 CMHC 的租赁市场数据。本站的买房 vs 租房计算器以每月 $2,600 作为示例租金：<a href='#buyvsrent'>比较租房与买房</a>。BC 还对现有租约的年涨幅设上限——2026 年上限为 2.3%,2027 年为 2.2%；请到 gov.bc.ca 核实当前上限。"}},
       { id:"areas",
         kw:{en:["neighbourhood","neighborhood","neighbourhoods","neighborhoods","which area","where to live","best area","areas"],
             fa:["محله","محله‌ها","کدام شهر","کجا زندگی","منطقه","محله ها"],
