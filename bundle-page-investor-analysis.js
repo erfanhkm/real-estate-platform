@@ -1069,7 +1069,21 @@
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
           var gh = String(location.hash || "");
-          if (gh.indexOf("#gtoken=") === 0) { var gt = gh.slice(8); history.replaceState(null, "", location.pathname + location.search); if (/^u_[0-9a-f]{32}$/.test(gt)) { token = gt; try { localStorage.setItem("re_user_token", token); } catch(e){} setTimeout(function(){ toast(tt("signedIn")); }, 600); } else { setTimeout(function(){ toast(tt("errGeneric")); }, 600); } }
+          if (gh.indexOf("#gcode=") === 0) { var gc = gh.slice(7); history.replaceState(null, "", location.pathname + location.search); var gv = ""; try { gv = sessionStorage.getItem("re_gv") || ""; sessionStorage.removeItem("re_gv"); } catch(e){}
+            if (/^[0-9a-f]{48}$/.test(gc) && /^[0-9a-f]{64}$/.test(gv)) {
+              var exTry = function(n){
+                fetch(API + "/api/user/google/exchange", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: gc, verifier: gv }) })
+                .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { s: r.status, d: d }; }); })
+                .then(function(res){
+                  if (res.s === 401 && n < 1) { setTimeout(function(){ exTry(n + 1); }, 1500); return; }
+                  var d = res.d;
+                  if (d && d.ok && /^u_[0-9a-f]{32}$/.test(d.token || "")) { token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e){} me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {}; paintAcctBtn(); loadMe().then(function(){ if (me) toast(tt("signedIn")); else toast(tt("errGeneric")); }); }
+                  else { toast(tt("errGeneric")); }
+                }).catch(function(){ toast(tt("errGeneric")); });
+              };
+              exTry(0);
+            } else { setTimeout(function(){ toast(tt("errGeneric")); }, 600); } }
+          else if (gh.indexOf("#gtoken=") === 0) { history.replaceState(null, "", location.pathname + location.search); }
           else if (gh.indexOf("#gerror=") === 0) { var ge = gh.slice(8); history.replaceState(null, "", location.pathname + location.search); setTimeout(function(){ toast(ge === "banned" ? tt("bannedErr") : tt("errGeneric")); }, 600); }
         } catch(e){}
         var me = null, savedSet = {}, mySearches = [], myProfile = {}, myRecent = [], myDrops = {};
@@ -1129,11 +1143,26 @@
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + (reg ? tt("register") : tt("signIn")) + '</button>' +
             '<button type="button" class="btn btn-line" id="fxCancel">' + tt("close") + '</button></div></form>' +
             '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:#5d686f;font-size:13px"><span style="flex:1;border-top:1px solid #d8dcd9"></span>' + tt("or") + '<span style="flex:1;border-top:1px solid #d8dcd9"></span></div>' +
-            '<a class="btn btn-line" style="display:block;text-align:center;text-decoration:none" href="' + API + '/api/user/google/start">🔵 ' + tt("googleBtn") + '</a>';
+            '<a class="btn btn-line" id="fxGoogle" style="display:block;text-align:center;text-decoration:none" href="#">🔵 ' + tt("googleBtn") + '</a>';
           openFx(html);
           document.getElementById("fxTabIn").addEventListener("click", function(){ showAuth("in"); });
           document.getElementById("fxTabReg").addEventListener("click", function(){ showAuth("reg"); });
           document.getElementById("fxCancel").addEventListener("click", closeFx);
+          var fxG = document.getElementById("fxGoogle");
+          if (fxG) fxG.addEventListener("click", function(e){
+            e.preventDefault();
+            if (fxG._busy) return; fxG._busy = true;
+            try {
+              var rb = new Uint8Array(32); crypto.getRandomValues(rb);
+              var ver = ""; rb.forEach(function(b){ ver += ("0" + b.toString(16)).slice(-2); });
+              crypto.subtle.digest("SHA-256", new TextEncoder().encode(ver)).then(function(hb){
+                var ch = ""; new Uint8Array(hb).forEach(function(b){ ch += ("0" + b.toString(16)).slice(-2); });
+                try { sessionStorage.setItem("re_gv", ver); if (sessionStorage.getItem("re_gv") !== ver) throw 0; }
+                catch(e3){ fxG._busy = false; toast(tt("errGeneric")); return; }
+                location.href = API + "/api/user/google/start?c=" + ch;
+              }).catch(function(){ fxG._busy = false; toast(tt("errGeneric")); });
+            } catch(e2){ fxG._busy = false; toast(tt("errGeneric")); }
+          });
           document.getElementById("fxAuthForm").addEventListener("submit", function(e){
             e.preventDefault();
             var sBtn = e.target.querySelector('button[type="submit"]'); if (sBtn) sBtn.disabled = true;
@@ -1155,13 +1184,14 @@
           tsRenderAll();
         }
         function loadMe(){
-          if (!token) return Promise.resolve();
+          var t = token; if (!t) return Promise.resolve();
           return api("/api/user/me").then(function(d){
+            if (t !== token) return; // superseded by a newer sign-in while in flight
             me = d.user; mySearches = d.searches || []; myProfile = d.profile || {}; myRecent = d.recent || [];
             myDrops = {}; (d.priceDrops || []).forEach(function(x){ myDrops[x.mls] = x; });
             savedSet = {}; (d.saved || []).forEach(function(m){ savedSet[m] = 1; });
             paintAcctBtn(); paintSaves();
-          }).catch(function(e){ if (e && e.message === "auth") { token = ""; try { localStorage.removeItem("re_user_token"); } catch(e2){} } me = null; paintAcctBtn(); });
+          }).catch(function(e){ if (t !== token) return; if (e && e.message === "auth") { token = ""; try { localStorage.removeItem("re_user_token"); } catch(e2){} } me = null; paintAcctBtn(); });
         }
         function showAccount(){
           if (!me) return;
