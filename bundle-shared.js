@@ -1547,3 +1547,42 @@
 
     function domOf(l){ if (l && l.listed){ var d = new Date(String(l.listed).slice(0,10) + "T00:00:00"); if (!isNaN(d.getTime())){ var now = new Date(); now.setHours(0,0,0,0); var n = Math.floor((now - d) / 86400000); if (n >= 0) return n; } } return (l && l.dom) || 0; }
     function statusKey(l){ return (l && (l.status === "pending" || l.status === "sold")) ? l.status : "active"; }
+
+// ---- Portal Brain 2: site-chat bridge ----
+// One chat session id per browser (localStorage). A fetch wrapper adds
+// it to AI-chat requests (sessionId, so the chat worker can retain a
+// bounded transcript) and to lead/viewing/valuation submissions
+// (chatRef, so the advisor worker can connect a lead to its chat).
+// Anything else is passed through untouched.
+(function () {
+  try {
+    var KEY = "reChatSid";
+    var sid = "";
+    try { sid = localStorage.getItem(KEY) || ""; } catch (e) {}
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(sid)) {
+      sid = "chat-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      try { localStorage.setItem(KEY, sid); } catch (e) {}
+    }
+    window.__reChatSid = sid;
+    var of = window.fetch;
+    if (typeof of === "function" && !window.__reChatPatched) {
+      window.__reChatPatched = true;
+      window.fetch = function (input, init) {
+        try {
+          var url = typeof input === "string" ? input : (input && input.url) || "";
+          var isChat = url.indexOf("ai-chat.erfanbillion.workers.dev") !== -1;
+          var isForm = url.indexOf("advisor-api.erfanbillion.workers.dev") !== -1 && (url.indexOf("/api/lead") !== -1 || url.indexOf("/api/viewing") !== -1 || url.indexOf("/api/valuation") !== -1);
+          if ((isChat || isForm) && init && typeof init.body === "string" && init.method && String(init.method).toUpperCase() === "POST") {
+            var b = JSON.parse(init.body);
+            if (b && typeof b === "object" && !Array.isArray(b)) {
+              if (isChat && !b.sessionId) b.sessionId = sid;
+              if (isForm && !b.chatRef) b.chatRef = sid;
+              init = Object.assign({}, init, { body: JSON.stringify(b) });
+            }
+          }
+        } catch (e) {}
+        return of.call(this, input, init);
+      };
+    }
+  } catch (e) {}
+})();

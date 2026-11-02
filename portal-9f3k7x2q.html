@@ -752,6 +752,7 @@
         <div class="card"><h2>🔥 Hot leads</h2><div id="puTHot"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>⏰ Follow-ups due</h2><div id="puTFollow"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>✅ Tasks due</h2><div id="puTTasks"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>🔮 Predictions <span class="pu-mini">(estimates — rule-based, factors stored per lead/listing)</span></h2><div id="puTPred"><div class="empty">Loading…</div></div><div style="margin-top:8px"><button class="ghost small" id="puPredBtn">🔮 Recompute predictions</button> <span class="pu-mini" id="puPredMsg"></span></div></div>
         <div class="card"><h2>🔔 Alerts &amp; automations</h2><div id="puTAlerts"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>📈 Market Pulse</h2><div id="puTMarket"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>📡 Market Radar</h2><div id="puTRadar"><div class="empty">Loading…</div></div></div>
@@ -765,11 +766,17 @@
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
           <button class="ghost small" id="pbLangFa">فارسی</button>
           <button class="ghost small" id="pbLangEn">EN</button>
-          <span class="pu-mini">The assistant answers only from your portal data. It can queue held drafts and follow-up tasks — it never sends anything and never changes a lead's stage.</span>
+          <span class="pu-mini">The assistant answers from your portal data and can run multi-step plans (agent mode): drafts, follow-ups, research with sources, briefs, copy and prepared emails. Emails stay HELD unless both send gates are open; it never changes a lead's stage by itself.</span>
         </div>
         <div id="pbLog" style="display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto"></div>
         <div id="pbChips" style="margin:10px 0;display:flex;gap:6px;flex-wrap:wrap"></div>
-        <div style="display:flex;gap:8px"><input id="pbInput" type="text" placeholder="از دستیار بپرسید…" style="flex:1"><button id="pbSend">Send</button></div>
+        <div style="display:flex;gap:8px"><input id="pbInput" type="text" placeholder="از دستیار بپرسید…" style="flex:1"><button class="ghost" id="pbMic" title="Voice input (Persian first, English fallback)">🎤</button><button id="pbSend">Send</button></div>
+      </div>
+      <div class="card"><h2>🧠 Brain memory</h2><div id="pbMem"><div class="empty">Loading…</div></div>
+        <div style="margin-top:10px"><div class="pu-mini" style="margin-bottom:4px">Your preferences note (the brain follows this when writing):</div>
+        <textarea id="pbPrefs" rows="3" style="width:100%" placeholder="e.g. Short sentences. Never use exclamation marks. Sign off as Erfan H."></textarea>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="ghost small" id="pbPrefsSave">Save preferences</button><button class="ghost small" id="pbCalibrate">🧠 Run calibration</button><button class="ghost small" id="pbMemClear">Clear all brain memory</button></div>
+        <div class="pu-mini" id="pbMemMsg" style="margin-top:6px"></div></div>
       </div>
       <div class="card"><h2>🧠 Latest market brief</h2><div id="pbBrief"><div class="empty">No brief yet.</div></div>
         <div style="margin-top:8px"><button class="ghost small" id="pbBriefBtn">🧠 Generate market brief now</button> <span class="pu-mini" id="pbBriefMsg"></span></div>
@@ -792,7 +799,7 @@
     <section id="page-rules" hidden>
       <div class="pagehead"><h1>Automation rules</h1><button class="ghost small" id="puRulesRefresh">Refresh</button></div>
       <div class="card"><h2>Your rules</h2><div id="puRulesList"><div class="empty">Loading…</div></div>
-      <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” only queues HELD mail — nothing is ever sent automatically.</div></div>
+      <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” queues HELD mail. Agent-written emails (Assistant → prepare_email) are released ONLY when BOTH a business sender identity is configured AND the governing rule's 📤 Auto-send is ON — both default off, so everything stays held for your approval.</div></div>
       <div class="card"><h2 id="puRuleFormTitle">Add a rule</h2>
         <div class="pu-filters">
           <label>Name <input id="puRName" type="text" placeholder="e.g. Valuation → task" style="width:200px"></label>
@@ -829,6 +836,8 @@
         </div>
         <div id="puRepMsg" class="hint">Opens a print-ready document — use “Save as PDF” in the print dialog.</div>
         <div style="margin-top:12px"><button class="ghost" id="puCopyBtn">🤖 AI listing copy (draft)</button> <span class="pu-mini">Marketing description for the selected listing, in every portal language. Stored as an editable draft — never published to the site automatically.</span></div>
+        <div style="margin-top:10px"><button class="ghost" id="puVideoBtn">🎬 Video pack (script + storyboard)</button> <span class="pu-mini">Vertical video script (EN + FA) and a shot list mapped to the listing photos.</span></div>
+        <div id="puVideoBox" style="margin-top:10px"></div>
         <div id="puCopyBox" style="margin-top:8px"></div>
       </div>
       <div class="card"><h2>📖 Showing handbook</h2>
@@ -2152,7 +2161,7 @@
     var act = actB.getAttribute("data-act");
     var aem = actB.getAttribute("data-email") || crmOpen;
     var c = crmByEmail(aem);
-    if (act === "commgen" && c) { var kind2 = $("crmCommKind").value; if (kind2 === "drop" && !(c.opportunities || []).some(function(x){ return x.kind === "price_drop"; })) { toast("No price drop to share with this person right now", true); return; } var dr2 = crmCommDraft(c, kind2); $("crmCommSubject").value = dr2.subject; $("crmCommText").value = dr2.body; return; }
+    if (act === "commgen" && c) { var kind2 = $("crmCommKind").value; if (kind2 === "drop" && !(c.opportunities || []).some(function(x){ return x.kind === "price_drop"; })) { toast("No price drop to share with this person right now", true); return; } var dr2 = crmCommDraft(c, kind2); $("crmCommSubject").value = dr2.subject; $("crmCommText").value = dr2.body; window.__crmAiOriginal = dr2.body; return; }
     if (act === "copy") {
       var txt = $("crmCommText") ? $("crmCommText").value : "";
       if (!txt) { toast("Generate or write a draft first", true); return; }
@@ -2165,7 +2174,7 @@
       if (c.dnc) { toast("This person is marked Do Not Contact — email not queued", true); return; }
       var subj = $("crmCommSubject").value.trim(), body = $("crmCommText").value.trim();
       if (!subj || !body) { toast("Generate or write the subject and message first", true); return; }
-      api(API_URL, "/api/admin/mailq", { method: "POST", body: JSON.stringify({ to: c.email, name: c.name || "", lang: c.lang || "en", subject: subj, body: body }) })
+      api(API_URL, "/api/admin/mailq", { method: "POST", body: JSON.stringify({ to: c.email, name: c.name || "", lang: c.lang || "en", subject: subj, body: body, aiOriginal: window.__crmAiOriginal || "" }) })
         .then(function(d){ if (d && d.ok) toast("Queued ✓ — it will send once the email sender is activated"); else toast("Could not queue the email", true); })
         .catch(function(){ toast("Could not queue the email", true); });
       return;
@@ -2808,7 +2817,7 @@
         }).join(" ");
         return '<div class="lead"><div class="lead-top"><b>' + esc(v.name) + '</b><span class="stage s-' + (v.status === "new" ? "new" : v.status === "confirmed" ? "contacted" : v.status === "done" ? "closed" : "dropped") + '">' + esc(v.status) + '</span></div>' +
           '<div class="mut">📅 ' + esc(v.date) + ' · ' + esc(v.time) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</div>' + home +
-          '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + btns + '</div></div>';
+          '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + btns + ' <button class="ghost small" data-vmemo="' + esc(v.id) + '" data-vemail="' + esc(v.email || "") + '" title="Record a voice memo about this viewing — the brain transcribes it and proposes a note, follow-ups and a stage change for your approval">🎤 Voice memo</button></div></div>';
       }).join("") : '<div class="empty">No viewing requests yet.</div>';
       Array.prototype.forEach.call($("vwList").querySelectorAll("[data-vw]"), function(b){
         b.addEventListener("click", function(){
@@ -3405,6 +3414,14 @@
         (F.stale || []).map(function (x) { return '<div class="pu-row"><span>🕐 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">' + (x.ageUnknown ? "age unknown" : Math.floor(x.ageHours / 24) + "d waiting") + '</span></span><span style="display:flex;gap:6px">' + puAiDraftBtn(x) + '<button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></span></div>'; }).join("") +
         (F.post || []).map(function (x) { return '<div class="pu-row"><span>🏠 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">after viewing ' + esc(x.date || "") + '</span></span><span style="display:flex;gap:6px">' + puAiDraftBtn(x) + '<button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></span></div>'; }).join("") +
         (!F.staleCount && !F.postViewingCount ? '<div class="empty">Nothing overdue. 🎉</div>' : "");
+      var PR = t.predictions || null;
+      $("puTPred").innerHTML = puSrcChip(S.predictions) + (PR ? ('<div class="pu-mini" style="margin-bottom:6px">Computed ' + esc(fmtDate(PR.at)) + ' · ' + (PR.leads || 0) + ' leads · ' + (PR.listings || 0) + ' listings</div>' +
+        (PR.topClose && PR.topClose.length ? '<div style="margin-bottom:4px">🎯 <b>Likely to close:</b> ' + PR.topClose.map(function (x) { return esc(x.name || x.id); }).join(", ") + "</div>" : "") +
+        (PR.topCold && PR.topCold.length ? '<div style="margin-bottom:4px">🥶 <b>Going-cold risk:</b> ' + PR.topCold.map(function (x) { return esc(x.name || x.id); }).join(", ") + "</div>" : "") +
+        (PR.topStale && PR.topStale.length ? '<div style="margin-bottom:4px">🕸 <b>Stale listings:</b> ' + PR.topStale.map(function (x) { return esc(x.street || x.mls) + (x.city ? ", " + esc(x.city) : ""); }).join(" · ") + "</div>" : "") +
+        (PR.hoods && PR.hoods.length ? '<div>📈 <b>Momentum:</b> ' + PR.hoods.map(function (h) { return esc(h.board.toUpperCase()) + " " + (h.momentum === "rising" ? "▲ rising" : h.momentum === "cooling" ? "▼ cooling" : "→ flat") + " (" + (h.deltaPct > 0 ? "+" : "") + h.deltaPct + "%)"; }).join(" · ") + "</div>" : "") +
+        (!PR.topClose.length && !PR.topCold.length && !PR.topStale.length ? '<div class="empty">Nothing flagged right now.</div>' : ""))
+        : '<div class="empty">No predictions computed yet — they run with the daily automations, or recompute now.</div>');
       var T = t.tasks || { due: [], count: 0, overdue: 0 };
       $("puTTasks").innerHTML = puSrcChip(S.tasks) +
         '<div style="margin-bottom:6px"><b>' + T.count + "</b> due by tomorrow" + (T.overdue ? ' · <span style="color:#f87171"><b>' + T.overdue + " overdue</b></span>" : "") + "</div>" +
@@ -3476,7 +3493,11 @@
       $("puFLang").innerHTML = '<option value="">All languages</option>' + Object.keys(langs).sort().map(function (x) { var nm = x; NL_LANGS.forEach(function (p) { if (p[0] === x) nm = p[1]; }); return '<option value="' + esc(x) + '">' + esc(nm) + "</option>"; }).join("");
       $("puPipeMeta").textContent = puPipeData.total + " leads · scores " + fmtDate(puPipeData.scoresAt);
       puRenderBoard();
+      puLoadPredMap();
     }).catch(function () { $("puBoard").innerHTML = '<div class="empty">Could not load the pipeline.</div>'; });
+  }
+  function puLoadPredMap() {
+    api(API_URL, "/api/admin/brain/predictions/map").then(function (d) { if (d && d.ok) { window.__puPredMap = d.map || {}; puRenderBoard(); } }).catch(function () {});
   }
   function puRenderBoard() {
     if (!puPipeData) return;
@@ -3495,6 +3516,7 @@
             '<div><b>' + esc(c.name || "(no name)") + "</b> " + puChip(c.score !== null ? { score: c.score, band: c.band, next: c.next } : null) + "</div>" +
             '<div class="pu-mini">' + esc(c.source || "") + (c.city ? " · " + esc(c.city) : "") + (c.lang ? " · " + esc(c.lang.toUpperCase()) : "") + " · " + puAge(c.created_at) + " old" + (c.goingCold ? ' · <span style="color:#f87171">going cold</span>' : "") + "</div>" +
             (c.next ? '<div class="pu-mini" style="margin-top:3px">→ ' + esc(c.next.text) + "</div>" : "") +
+            (window.__puPredMap && window.__puPredMap[c.id] ? '<div class="pu-mini" style="margin-top:3px">🔮 close: <b>' + esc(window.__puPredMap[c.id].c) + "</b> · cold risk: <b>" + esc(window.__puPredMap[c.id].r) + '</b> <span title="Rule-based estimate — factors on the lead prediction">(est.)</span></div>' : "") +
             '<div style="margin-top:5px"><button class="ghost small" data-pu-open="' + esc(c.id) + '">Open</button> <button class="ghost small" data-pu-draft="' + esc(c.id) + '">✉️ Draft</button></div></div>';
         }).join("") : '<div class="empty">—</div>') + "</div>";
     }).join("");
@@ -3619,10 +3641,13 @@
         return '<div class="pu-row"><span><b>' + esc(r.name) + '</b> <span class="pu-mini">' + (r.enabled ? "🟢 on" : "⚪ off") + "</span>" +
           '<br><span class="pu-mini">When: ' + esc(puTrigLabel(r.trigger)) + (r.conditions && r.conditions.source ? " · source " + esc(r.conditions.source) : "") + (r.conditions && r.conditions.stage ? " · stage " + esc(r.conditions.stage) : "") + (r.conditions && r.conditions.days ? " · " + r.conditions.days + "d" : "") +
           "<br>Then: " + r.actions.map(function (a) { return esc(puActLabel(a.type)); }).join(" + ") + '</span></span>' +
-          '<span><button class="ghost small" data-rule-toggle="' + i + '">' + (r.enabled ? "Disable" : "Enable") + '</button> <button class="ghost small" data-rule-edit="' + i + '">Edit</button> <button class="ghost small" data-rule-del="' + i + '">Delete</button></span></div>';
+          '<span><button class="ghost small" data-rule-toggle="' + i + '">' + (r.enabled ? "Disable" : "Enable") + '</button>' +
+          (r.actions.some(function (a) { return a.type === "queue_draft"; }) ? ' <button class="ghost small" data-rule-autosend="' + i + '" title="Gate (b) of the agent email chain: when ON, agent-written emails under this rule may be released — but only if a business sender identity is also configured. Default OFF.">' + (r.autoSend ? "📤 Auto-send ON" : "📤 Auto-send off") + "</button>" : "") +
+          ' <button class="ghost small" data-rule-edit="' + i + '">Edit</button> <button class="ghost small" data-rule-del="' + i + '">Delete</button></span></div>';
       }).join("") : '<div class="empty">No rules yet.</div>';
       Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-toggle]"), function (b) { b.addEventListener("click", function () { var r = puRulesArr[Number(b.getAttribute("data-rule-toggle"))]; r.enabled = !r.enabled; puSaveRules(); }); });
       Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-edit]"), function (b) { b.addEventListener("click", function () { puRuleFormFill(puRulesArr[Number(b.getAttribute("data-rule-edit"))]); window.scrollTo({ top: $("puRuleFormTitle").offsetTop - 80, behavior: "smooth" }); }); });
+      Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-autosend]"), function (b) { b.addEventListener("click", function () { var r = puRulesArr[Number(b.getAttribute("data-rule-autosend"))]; r.autoSend = !r.autoSend; puSaveRules(); }); });
       Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-del]"), function (b) { b.addEventListener("click", function () { if (!confirm("Delete this rule?")) return; puRulesArr.splice(Number(b.getAttribute("data-rule-del")), 1); puSaveRules(); }); });
     }).catch(function () { $("puRulesList").innerHTML = '<div class="empty">Could not load rules.</div>'; });
     api(API_URL, "/api/admin/rules/log").then(function (d) {
@@ -3645,7 +3670,7 @@
     if ($("puRCondStage").value) cond.stage = $("puRCondStage").value;
     if ($("puRTrigger").value === "lead_cold") cond.days = Number($("puRCondDays").value || 7);
     var rule = { id: puRuleEditing || "", name: $("puRName").value || "Untitled rule", enabled: $("puREnabled").checked, trigger: $("puRTrigger").value, conditions: cond, actions: actions };
-    if (puRuleEditing) { for (var i = 0; i < puRulesArr.length; i++) if (puRulesArr[i].id === puRuleEditing) puRulesArr[i] = rule; }
+    if (puRuleEditing) { for (var i = 0; i < puRulesArr.length; i++) if (puRulesArr[i].id === puRuleEditing) { rule.autoSend = !!puRulesArr[i].autoSend; puRulesArr[i] = rule; } }
     else puRulesArr.push(rule);
     puRuleEditing = null;
     puSaveRules();
@@ -3922,7 +3947,7 @@
   function puRenderCopy(rec) {
     var box = $("puCopyBox");
     if (!rec || !rec.langs || !Object.keys(rec.langs).length) { box.innerHTML = '<div class="empty">No AI copy draft yet for this listing.</div>'; return; }
-    box.innerHTML = Object.keys(rec.langs).map(function (lg) {
+    box.innerHTML = (rec.critic && rec.critic.status ? '<div class="pu-mini" style="margin-bottom:8px">Critic: ' + (rec.critic.status === "passed" ? "✓ passed" : rec.critic.status === "revised" ? "✎ revised after critic feedback" : "⚠ flagged — review the copy carefully") + "</div>" : "") + Object.keys(rec.langs).map(function (lg) {
       var nm = lg; NL_LANGS.forEach(function (p) { if (p[0] === lg) nm = p[1]; });
       return '<div style="margin-bottom:10px"><div class="pu-mini" style="margin-bottom:3px"><b>' + esc(nm) + "</b> · draft · " + esc(fmtDate(rec.at)) + (rec.via ? " · via " + esc(rec.via) : "") + '</div><textarea id="puCopy-' + lg + '" rows="5" style="width:100%">' + esc(rec.langs[lg]) + '</textarea><div style="margin-top:3px"><button class="ghost small" data-copy-save="' + lg + '">Save ' + esc(nm) + " draft</button></div></div>";
     }).join("");
@@ -3944,6 +3969,12 @@
     var mls = $("puRepMls").value;
     if (!mls) return;
     api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderCopy(d && d.copy); }).catch(function () {});
+    api(API_URL, "/api/admin/brain/video-pack?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderVideoPack(d && d.pack); }).catch(function () {});
+  });
+  $("puVideoBtn").addEventListener("click", function () {
+    var mls = $("puRepMls").value;
+    if (!mls) { toast("Pick a listing first"); return; }
+    puVideoPackGenerate(mls);
   });
   var puHbInternalNotes = "";
   $("puShowBrief").addEventListener("click", function () {
@@ -3972,7 +4003,7 @@
   var PB_CHIPS = ["امروز چه کارهایی دارم؟", "لیدهای داغ رو برام توضیح بده", "خلاصه‌ی بازار این ماه چیه؟", "برای داغ‌ترین لید یه پیش‌نویس پیگیری بساز"];
   function pbRenderBriefInto(el, brief) {
     if (!el || !brief) return;
-    el.innerHTML = '<div dir="rtl" style="text-align:right;white-space:pre-wrap">' + esc(brief.text || "") + '</div><div class="pu-mini" style="margin-top:4px">' + esc(brief.month || "") + (brief.via ? " · via " + esc(brief.via) : "") + " · " + esc(fmtDate(brief.at)) + "</div>";
+    el.innerHTML = '<div dir="rtl" style="text-align:right;white-space:pre-wrap">' + esc(brief.text || "") + '</div><div class="pu-mini" style="margin-top:4px">' + esc(brief.month || "") + (brief.via ? " · via " + esc(brief.via) : "") + " · " + esc(fmtDate(brief.at)) + (brief.critic && brief.critic.status ? (brief.critic.status === "passed" ? " · ✓ critic passed" : brief.critic.status === "revised" ? " · ✎ critic revised" : " · ⚠ critic flagged") : "") + "</div>";
   }
   function pbBubble(role, text) {
     var mine = role === "user";
@@ -4001,7 +4032,145 @@
       else el.textContent = "🧠 " + d.used + "/" + d.cap + " brain calls today" + ((d.providers && (d.providers.claude || d.providers.grok || d.providers.perplexity)) ? " · paid slot present" : " · free stack");
     }).catch(function () {});
     api(API_URL, "/api/admin/brain/brief").then(function (d) { if (d && d.ok && d.brief) pbRenderBriefInto($("pbBrief"), d.brief); }).catch(function () {});
+    pbLoadMemory();
   }
+
+  // ---------- Portal Brain 2: memory panel, voice, video pack ----------
+  function pbCriticBadge(c) { if (!c || !c.status) return ""; return c.status === "passed" ? ' <span class="pu-mini">✓ critic passed</span>' : c.status === "revised" ? ' <span class="pu-mini">✎ critic revised</span>' : ' <span class="pu-mini" style="color:#fbbf24">⚠ critic flagged</span>'; }
+  function pbLoadMemory() {
+    if (!token) return;
+    api(API_URL, "/api/admin/brain/memory").then(function (d) {
+      var el = $("pbMem"); if (!el) return;
+      if (!d || !d.ok) { el.innerHTML = '<div class="empty">Could not load brain memory.</div>'; return; }
+      var h = '<div class="pu-mini" style="margin-bottom:6px">' + (d.outcomeCount || 0) + " outcome events recorded (feedback loop)</div>";
+      h += '<div class="pu-mini" style="margin:6px 0 3px"><b>🎨 Style pairs — how you edit AI drafts (' + (d.style || []).length + ")</b></div>";
+      h += (d.style && d.style.length) ? d.style.slice(0, 6).map(function (p) { return '<div class="pu-row" style="display:block"><div class="pu-mini">AI: ' + esc(String(p.original || "").slice(0, 160)) + '</div><div class="pu-mini">You: <b>' + esc(String(p.final || "").slice(0, 160)) + "</b></div></div>"; }).join("") : '<div class="empty">No edits learned yet — edit a held draft or a composer draft and the brain learns your voice.</div>';
+      h += '<div class="pu-mini" style="margin:10px 0 3px"><b>🧠 Lead summaries (' + (d.summaries || []).length + ")</b></div>";
+      h += (d.summaries && d.summaries.length) ? d.summaries.slice(0, 10).map(function (s) { return '<div class="pu-row"><span><b>' + esc(s.name || s.leadId) + '</b><br><span class="pu-mini">' + esc(s.summary || "") + '</span></span><span class="pu-mini">' + esc(fmtDate(s.updatedAt)) + "</span></div>"; }).join("") : '<div class="empty">No lead summaries yet — they build as leads are triaged and move.</div>';
+      el.innerHTML = h;
+      if (document.activeElement !== $("pbPrefs")) $("pbPrefs").value = d.prefs || "";
+    }).catch(function () {});
+  }
+  $("pbPrefsSave").addEventListener("click", function () {
+    api(API_URL, "/api/admin/brain/memory", { method: "PUT", body: JSON.stringify({ prefs: $("pbPrefs").value }) }).then(function (d) { $("pbMemMsg").textContent = d && d.ok ? "Preferences saved ✓ — new drafts will follow them." : "Could not save"; }).catch(function () { $("pbMemMsg").textContent = "Could not save"; });
+  });
+  $("pbMemClear").addEventListener("click", function () {
+    if (!confirm("Clear ALL brain memory (style pairs, preferences, lead summaries)? Outcomes history is kept.")) return;
+    api(API_URL, "/api/admin/brain/memory", { method: "DELETE" }).then(function (d) { $("pbMemMsg").textContent = d && d.ok ? "Brain memory cleared." : "Could not clear"; pbLoadMemory(); }).catch(function () {});
+  });
+  $("pbCalibrate").addEventListener("click", function () {
+    $("pbMemMsg").textContent = "Running calibration…";
+    api(API_URL, "/api/admin/brain/calibrate", { method: "POST", body: "{}" }).then(function (d) { $("pbMemMsg").textContent = d && d.ok ? d.text : "Calibration failed"; }).catch(function () { $("pbMemMsg").textContent = "Calibration failed"; });
+  });
+  var puPredBtnEl = $("puPredBtn");
+  if (puPredBtnEl) puPredBtnEl.addEventListener("click", function () {
+    $("puPredMsg").textContent = "Computing…";
+    api(API_URL, "/api/admin/brain/predictions", { method: "POST", body: "{}" }).then(function (d) { $("puPredMsg").textContent = d && d.ok ? "Done ✓" : "Failed"; if (d && d.ok) puLoadToday(); }).catch(function () { $("puPredMsg").textContent = "Failed"; });
+  });
+
+  // ---- voice: one recorder, several contexts ----
+  var pbRec = null, pbRecChunks = [], pbRecCtx = null, pbRecBtn = null;
+  function pbVoiceToggle(ctx2, btn) {
+    if (pbRec) { try { pbRec.stop(); } catch (e) {} return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { toast("Voice recording is not supported in this browser", true); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      pbRecChunks = []; pbRecCtx = ctx2; pbRecBtn = btn || null;
+      var mr = new MediaRecorder(stream);
+      pbRec = mr;
+      if (pbRecBtn) pbRecBtn.textContent = "⏹";
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) pbRecChunks.push(e.data); };
+      mr.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        var blob = new Blob(pbRecChunks, { type: mr.mimeType || "audio/webm" });
+        var myCtx = pbRecCtx, myBtn = pbRecBtn;
+        pbRec = null; pbRecCtx = null; pbRecBtn = null;
+        if (myBtn) myBtn.textContent = "🎤";
+        var rd = new FileReader();
+        rd.onload = function () {
+          var b64 = String(rd.result || "").split(",")[1] || "";
+          if (!b64) { toast("Recording failed", true); return; }
+          toast("Transcribing…");
+          api(API_URL, "/api/admin/brain/voice", { method: "POST", body: JSON.stringify(Object.assign({ audioBase64: b64, mime: blob.type || "audio/webm", lang: (typeof pbLang !== "undefined" && pbLang === "fa") ? "fa" : "en" }, myCtx.payload || {})) }).then(function (d) {
+            if (!d || !d.ok) {
+              toast("Transcription failed (" + ((d && d.error) || "error") + ") — here is the recording instead", true);
+              var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "voice-memo.webm"; a.textContent = "⬇ Download the voice memo"; a.style.display = "block"; a.style.margin = "8px 0";
+              var host = $("pbLog") || document.body; host.appendChild(a);
+              return;
+            }
+            myCtx.done(d);
+          }).catch(function () { toast("Transcription failed", true); });
+        };
+        rd.readAsDataURL(blob);
+      };
+      mr.start();
+      toast("Recording… tap 🎤 again to stop");
+    }).catch(function () { toast("Microphone permission denied", true); });
+  }
+  $("pbMic").addEventListener("click", function () {
+    pbVoiceToggle({ payload: {}, done: function (d) { $("pbInput").value = d.transcript || ""; $("pbInput").focus(); toast("Transcript ready — edit, then Send"); } }, $("pbMic"));
+  });
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var vm = t.closest("[data-vmemo]");
+    if (vm) {
+      var vid = vm.getAttribute("data-vmemo"), vemail = vm.getAttribute("data-vemail") || "";
+      pbVoiceToggle({ payload: { viewingId: vid }, done: function (d) {
+        var p = d.proposal || {};
+        var h = '<div class="pu-mini" style="margin-bottom:6px">Transcript</div><div style="white-space:pre-wrap;margin-bottom:10px">' + esc(d.transcript || "") + "</div>";
+        if (p.note) h += '<div class="pu-mini">Proposed CRM note</div><div style="white-space:pre-wrap;margin-bottom:6px">' + esc(p.note) + '</div><button class="ghost small" data-vp-note="' + esc(vemail) + '" data-vp-text="' + esc(p.note) + '">Add note to CRM</button> ';
+        if (p.tasks && p.tasks.length) h += '<div style="margin-top:10px"><div class="pu-mini">Proposed follow-ups</div>' + p.tasks.map(function (tk) { return '<div class="pu-row"><span>' + esc(tk.text) + '</span><button class="ghost small" data-vp-task="' + esc(vemail) + '" data-vp-text="' + esc(tk.text) + '" data-vp-days="' + (tk.dueInDays || 2) + '">Create</button></div>'; }).join("") + "</div>";
+        if (p.stageSuggestion) h += '<div class="pu-mini" style="margin-top:10px">Stage suggestion: <b>' + esc(p.stageSuggestion) + "</b> — apply it yourself in the pipeline if you agree (nothing was changed automatically).</div>";
+        if (!p.note && !(p.tasks && p.tasks.length) && !p.stageSuggestion) h += '<div class="empty">The brain could not structure this memo — the transcript above is yours to use.</div>';
+        puModalOpen("🎤 Voice memo — proposal", h);
+      } }, vm);
+      return;
+    }
+    var vn = t.closest("[data-vp-note]");
+    if (vn) {
+      api(API_URL, "/api/admin/crm/" + encodeURIComponent(vn.getAttribute("data-vp-note")) + "/notes", { method: "POST", body: JSON.stringify({ text: vn.getAttribute("data-vp-text"), kind: "note" }) }).then(function (d) { toast(d && d.ok ? "Note added ✓" : "Could not add", !(d && d.ok)); }).catch(function () { toast("Could not add", true); });
+      return;
+    }
+    var vt = t.closest("[data-vp-task]");
+    if (vt) {
+      var due = new Date(Date.now() + (Number(vt.getAttribute("data-vp-days")) || 2) * 86400000).toISOString().slice(0, 10);
+      api(API_URL, "/api/admin/tasks", { method: "POST", body: JSON.stringify({ email: vt.getAttribute("data-vp-task"), text: vt.getAttribute("data-vp-text"), due: due }) }).then(function (d) { toast(d && d.ok ? "Task created ✓" : "Could not create", !(d && d.ok)); }).catch(function () { toast("Could not create", true); });
+      return;
+    }
+    var ds = t.closest("[data-draft-save]");
+    if (ds) {
+      var mid = ds.getAttribute("data-draft-save");
+      var ta = $("puDraftEdit-" + mid);
+      if (!ta) return;
+      api(API_URL, "/api/admin/brain/draft-edit", { method: "PUT", body: JSON.stringify({ mailId: mid, text: ta.value }) }).then(function (d) {
+        toast(d && d.ok ? (d.learned ? "Saved ✓ — the brain learned from your edit" : "Saved ✓") : "Could not save", !(d && d.ok));
+        if (d && d.ok) { puModalClose(); pbLoadMemory(); }
+      }).catch(function () { toast("Could not save", true); });
+      return;
+    }
+    var vp = t.closest("[data-videopack]");
+    if (vp) { puVideoPackGenerate(vp.getAttribute("data-videopack")); return; }
+  });
+
+  // ---- video pack (Reports tab, next to the copywriter) ----
+  function puRenderVideoPack(pack) {
+    var box = $("puVideoBox"); if (!box) return;
+    if (!pack) { box.innerHTML = '<div class="empty">No video pack yet for this listing.</div>'; return; }
+    box.innerHTML = '<div class="pu-mini" style="margin-bottom:4px">🎬 Video pack · ' + esc(fmtDate(pack.at)) + (pack.via ? " · via " + esc(pack.via) : "") + (pack.rendered ? " · MP4 rendered" : " · script + storyboard (MP4 render is a follow-up step)") + "</div>" +
+      '<div style="margin-bottom:6px"><b>Hook:</b> ' + esc(pack.hook || "") + "</div>" +
+      '<div class="pu-mini">Script (EN)</div><div style="white-space:pre-wrap;margin-bottom:6px">' + esc(pack.scriptEn || "") + "</div>" +
+      '<div class="pu-mini">Script (FA)</div><div dir="rtl" style="text-align:right;white-space:pre-wrap;margin-bottom:6px">' + esc(pack.scriptFa || "") + "</div>" +
+      '<div style="margin-bottom:6px"><b>CTA:</b> ' + esc(pack.cta || "") + "</div>" +
+      '<div class="pu-mini">Storyboard</div>' + (pack.shots || []).map(function (s, i) { return '<div class="pu-row"><span>' + (i + 1) + ". " + esc(s.captionEn || "") + (s.captionFa ? '<br><span dir="rtl">' + esc(s.captionFa) + "</span>" : "") + '</span><span class="pu-mini">' + esc(s.seconds || 4) + "s · " + esc(s.photo || "") + "</span></div>"; }).join("");
+  }
+  function puVideoPackGenerate(mls) {
+    var box = $("puVideoBox"); if (box) box.innerHTML = '<div class="empty">Writing the video pack…</div>';
+    api(API_URL, "/api/admin/brain/video-pack", { method: "POST", body: JSON.stringify({ mls: mls }) }).then(function (d) {
+      if (d && d.ok) puRenderVideoPack(d.pack);
+      else if (box) box.innerHTML = '<div class="empty">Video pack unavailable (' + esc((d && d.error) || "ai") + ").</div>";
+    }).catch(function () { if (box) box.innerHTML = '<div class="empty">Video pack unavailable.</div>'; });
+  }
+
   function pbSend(text) {
     text = String(text || "").trim();
     if (!text || pbBusy) return;
@@ -4021,13 +4190,19 @@
       }
       pbMsgs.push({ role: "assistant", content: d.reply || "" });
       pbRenderLog();
+      var criticBadge = function (c) { if (!c || !c.status) return ""; return c.status === "passed" ? ' <span class="pu-mini" title="Second reviewer passed">✓ critic</span>' : c.status === "revised" ? ' <span class="pu-mini" title="Critic found issues; the text was revised once">✎ critic revised</span>' : ' <span class="pu-mini" style="color:#fbbf24" title="Critic flagged this text — review carefully">⚠ critic flagged</span>'; };
       var ex = (d.executed || []).map(function (x) {
-        if (!x.ok) return '<div class="pu-mini" style="color:#f87171">⚠️ ' + esc(x.action) + " — " + esc(x.error || "rejected") + "</div>";
-        if (x.action === "draft_message") return '<div class="pu-mini">✅ Draft queued (held) — nothing sent.</div>';
-        if (x.action === "create_followup") return '<div class="pu-mini">✅ Follow-up created · due ' + esc(x.due || "") + "</div>";
-        if (x.action === "explain_score") return '<div class="pu-mini">✅ ' + esc(x.name || "") + " — score " + x.score + " (" + esc(x.band || "") + "): " + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
+        var step = x.step ? '<span class="pu-mini">Step ' + x.step + ": </span>" : "";
+        if (!x.ok) return '<div class="pu-mini" style="color:#f87171">' + step + "⚠️ " + esc(x.action) + " — " + esc(x.error || "rejected") + (x.error === "skipped" ? " (plan stopped at the first failed step)" : "") + "</div>";
+        if (x.action === "draft_message") return '<div class="pu-mini">' + step + "✅ Draft queued (held) — nothing sent." + criticBadge(x.critic) + "</div>";
+        if (x.action === "create_followup") return '<div class="pu-mini">' + step + "✅ Follow-up created · due " + esc(x.due || "") + "</div>";
+        if (x.action === "explain_score") return '<div class="pu-mini">' + step + "✅ " + esc(x.name || "") + " — score " + x.score + " (" + esc(x.band || "") + "): " + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
+        if (x.action === "research") return '<div class="pu-mini">' + step + "🔍 <b>Research:</b> " + esc(x.answer || "") + (x.sources && x.sources.length ? '<br>Sources: ' + x.sources.map(function (s, i) { return "[" + (i + 1) + "] " + esc(s.title || s.url); }).join(" · ") : "") + (x.researchNote ? '<br><i>' + esc(x.researchNote) + "</i>" : "") + "</div>";
+        if (x.action === "prepare_email") return '<div class="pu-mini">' + step + (x.held ? "✉️ Email written and queued HELD — gate: " + (x.gate === "sender_not_configured" ? "no business sender identity configured" : x.gate === "autosend_off" ? "auto-send is OFF for the governing rule" : esc(x.gate || "")) + "." : "✉️ Email written and RELEASED to the mailer queue (both gates open).") + criticBadge(x.critic) + (x.complianceIssues && x.complianceIssues.length ? '<br>Compliance: ' + x.complianceIssues.map(esc).join("; ") : "") + "</div>";
+        if (x.action === "update_listing_copy_draft") return '<div class="pu-mini">' + step + "✅ Listing copy draft updated for " + esc(x.mls || "") + " (Reports tab)." + criticBadge(x.critic) + "</div>";
+        if (x.action === "create_viewing_brief") return '<div class="pu-mini">' + step + "✅ Viewing brief ready (Viewings / Reports)." + "</div>";
         if (x.link) return '<div style="margin-top:4px"><button class="ghost small" data-pb-doc="' + esc(x.link) + '">📖 Open in Reports &amp; handbook</button></div>';
-        return '<div class="pu-mini">✅ ' + esc(x.action) + "</div>";
+        return '<div class="pu-mini">' + step + "✅ " + esc(x.action) + "</div>";
       }).join("");
       if (ex) { $("pbLog").innerHTML += '<div style="align-self:flex-start;max-width:88%">' + ex + "</div>"; $("pbLog").scrollTop = $("pbLog").scrollHeight; }
     }).catch(function () { pbBusy = false; pbMsgs.push({ role: "assistant", content: pbLang === "fa" ? "الان دستیار در دسترس نیست." : "The assistant is unavailable right now." }); pbRenderLog(); });
