@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="/portal-manifest.webmanifest">
-<meta name="theme-color" content="#0B2239">
+<meta name="theme-color" content="#0B0B0B">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/portal-icon-192.png">
 <title>Site Admin — Erfan BC Real Estate</title>
 <style>
-  :root { color-scheme: dark; --bg:#081320; --panel:#0d1d30; --panel2:#132740; --line:#22344d; --txt:#e9eef5; --mut:#9db0c2; --acc:#c6a15b; --acc2:#a9863f; --good:#22c55e; --warn:#eab308; --bad:#ef4444; }
+  :root { color-scheme: dark; --bg:#0B0B0B; --panel:#161513; --panel2:#201D18; --line:#2E2A23; --txt:#F5F1E8; --mut:#A79E8C; --acc:#C9A24B; --acc2:#E6CB7E; --good:#22c55e; --warn:#eab308; --bad:#ef4444; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--txt); min-height: 100vh; }
   h1 { font-size: 20px; margin: 0; }
@@ -51,7 +51,7 @@
   .lfgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
   .navbtn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; color: var(--txt); border: 0; border-radius: 9px; padding: 11px 12px; font-size: 14px; font-weight: 500; cursor: pointer; }
   .navbtn:hover { background: var(--panel2); }
-  .navbtn.on { background: var(--acc); color: #fff; }
+  .navbtn.on { background: var(--acc); color: #15130E; }
   .navbtn .ic { font-size: 16px; width: 20px; text-align: center; }
   #side .sp { flex: 1; }
   #main { flex: 1; min-width: 0; padding: 22px 22px 64px; max-width: 1060px; margin: 0 auto; width: 100%; }
@@ -134,6 +134,29 @@
     img, canvas, svg, video { max-width: 100%; height: auto; }
     .stat .n { font-size: 20px; }
   }
+
+  /* portal upgrade (2026-11-01) */
+  .pu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .pu-src { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #201D18; color: #A79E8C; }
+  .pu-src.err { background: #3a0e0e; color: #f87171; }
+  .pu-attn { border: 1px solid #C9A24B; background: rgba(201,162,75,.08); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; }
+  .pu-chip { display: inline-block; min-width: 34px; text-align: center; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #201D18; color: #F5F1E8; }
+  .pu-chip.hot { background: #C9A24B; color: #15130E; }
+  .pu-chip.warm { background: #5c4a1f; color: #E6CB7E; }
+  .pu-chip.cold { background: #201D18; color: #A79E8C; }
+  .pu-board { display: grid; grid-template-columns: repeat(6, minmax(215px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+  .pu-col { background: #161513; border: 1px solid #2E2A23; border-radius: 12px; padding: 10px; min-height: 120px; }
+  .pu-col.over { border-color: #C9A24B; }
+  .pu-col h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; }
+  .pu-card2 { background: #201D18; border: 1px solid #2E2A23; border-radius: 10px; padding: 9px 10px; margin-bottom: 8px; cursor: grab; }
+  .pu-card2.cold { border-color: #b91c1c; }
+  .pu-filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+  .pu-filters label { font-size: 12px; color: #A79E8C; display: flex; flex-direction: column; gap: 4px; }
+  .pu-filters select, .pu-filters input { width: auto; }
+  .pu-chk { flex-direction: row !important; align-items: center; gap: 6px !important; }
+  .pu-mini { font-size: 12px; color: #A79E8C; }
+  .pu-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #2E2A23; }
+  .pu-row:last-child { border-bottom: 0; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
@@ -156,14 +179,19 @@
 <div id="appView" hidden>
   <aside id="side">
     <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
-    <button class="navbtn on" data-nav="overview"><span class="ic">📊</span>Overview</button>
+    <button class="navbtn on" data-nav="today"><span class="ic">🌅</span>Today</button>
+    <button class="navbtn" data-nav="overview"><span class="ic">📊</span>Overview</button>
     <button class="navbtn" data-nav="workspace"><span class="ic">🧭</span>Workspace</button>
+    <button class="navbtn" data-nav="pipeline"><span class="ic">🗂</span>Pipeline</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
+    <button class="navbtn" data-nav="reports"><span class="ic">📖</span>Reports &amp; handbook</button>
     <button class="navbtn" data-nav="site"><span class="ic">🧩</span>Site content</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
+    <button class="navbtn" data-nav="demand"><span class="ic">🗺</span>Demand map</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
+    <button class="navbtn" data-nav="rules"><span class="ic">⚙️</span>Automation rules</button>
     <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
@@ -173,7 +201,7 @@
 
   <main id="main">
     <!-- OVERVIEW -->
-    <section id="page-overview">
+    <section id="page-overview" hidden>
       <div class="pagehead"><h1>Overview</h1><button class="ghost small" id="ovRefresh">Refresh</button></div>
       <div class="stats">
         <div class="stat"><div class="n" id="stTotal">–</div><div class="l">Total leads</div></div>
@@ -215,7 +243,7 @@
       <style>
         .wsbar{display:inline-flex;flex-wrap:wrap;border:1px solid rgba(127,127,127,.4);border-radius:10px;overflow:hidden;margin-bottom:14px}
         .wsbar button{background:transparent;border:0;color:inherit;padding:8px 13px;cursor:pointer;font-size:13.5px}
-        .wsbar button.on{background:#C6A15B;color:#0B2239;font-weight:700}
+        .wsbar button.on{background:#C9A24B;color:#0B0B0B;font-weight:700}
         #crmViews{display:none}
       </style>
       <div class="wsbar" role="tablist" aria-label="Workspace views">
@@ -256,7 +284,7 @@
           <tbody id="leadRows"></tbody>
         </table>
         <div class="empty" id="emptyMsg" hidden>No leads match. New contact-form submissions appear here automatically.</div>
-        <div id="bulkBar" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 2px;border-top:1px solid #22384f;margin-top:6px">
+        <div id="bulkBar" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 2px;border-top:1px solid #2E2A23;margin-top:6px">
           <b id="bulkCount"></b>
           <select id="bulkStage"><option value="new">New</option><option value="contacted">Contacted</option><option value="viewing">Viewing</option><option value="offer">Offer</option><option value="closed">Closed</option><option value="dropped">Dropped</option></select>
           <button type="button" class="ghost small" id="bulkApply">Set stage</button>
@@ -312,7 +340,7 @@
         .crm-health{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
         .seg{display:inline-flex;border:1px solid rgba(255,255,255,.2);border-radius:9px;overflow:hidden}
         .seg button{background:transparent;border:0;color:inherit;padding:7px 13px;cursor:pointer;font-size:13px}
-        .seg button.on{background:#C6A15B;color:#0B2239;font-weight:700}
+        .seg button.on{background:#C9A24B;color:#0B0B0B;font-weight:700}
       </style>
       <div class="pagehead">
         <div><h1>🧑‍💼 CRM</h1><div class="mut" id="crmCount">Every person in one place — accounts, leads, viewings, saved homes and searches merged by email</div></div>
@@ -700,6 +728,96 @@
         </div>
       </div>
     </section>
+
+    <section id="page-today">
+      <div class="pagehead"><h1>Today</h1><button class="ghost small" onclick="cacheClear();puLoadToday()">Refresh</button></div>
+      <div id="puAttention"></div>
+      <div class="pu-grid">
+        <div class="card"><h2>🗓 Viewings — today &amp; tomorrow</h2><div id="puTViewings"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>🔥 Hot leads</h2><div id="puTHot"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>⏰ Follow-ups due</h2><div id="puTFollow"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>✅ Tasks due</h2><div id="puTTasks"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>🔔 Alerts &amp; automations</h2><div id="puTAlerts"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>📈 Market Pulse</h2><div id="puTMarket"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>📡 Market Radar</h2><div id="puTRadar"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>✉️ Newsletter audience</h2><div id="puTNews"><div class="empty">Loading…</div></div></div>
+      </div>
+    </section>
+
+    <section id="page-pipeline" hidden>
+      <div class="pagehead"><h1>Lead pipeline</h1><button class="ghost small" onclick="cacheClear();puLoadPipeline()">Refresh</button></div>
+      <div class="card"><div class="pu-filters">
+        <label>Temperature <select id="puFTemp"><option value="">All</option><option value="hot">🔥 Hot</option><option value="warm">🌤 Warm</option><option value="cold">❄️ Cold</option></select></label>
+        <label>Source <select id="puFSource"><option value="">All sources</option></select></label>
+        <label>Language <select id="puFLang"><option value="">All languages</option></select></label>
+        <label class="pu-chk"><input type="checkbox" id="puFCold"> Going cold only</label>
+        <span class="pu-mini" id="puPipeMeta"></span>
+      </div></div>
+      <div id="puBoard" class="pu-board"><div class="empty">Loading…</div></div>
+      <div class="hint">Drag a card to another column to change its stage — it saves immediately. Red border = going cold (Contacted 7+ days).</div>
+    </section>
+
+    <section id="page-demand" hidden>
+      <div class="pagehead"><h1>Demand map</h1><button class="ghost small" onclick="cacheClear();puLoadDemand()">Refresh</button></div>
+      <div class="card"><div id="puMap" style="height:440px;border-radius:10px;overflow:hidden;background:#201D18"></div>
+      <div class="hint">Aggregate demand only — areas and counts, never an individual lead's address. Gold = supply (active listings), bright ring = search + valuation demand.</div></div>
+      <div class="pu-grid">
+        <div class="card"><h2>City balance — demand vs supply</h2><div id="puDemandCities"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>Valuation demand by area (FSA)</h2><div id="puDemandFsa"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>Census overlay — Metro Vancouver FSAs</h2><div id="puDemandCensus"><div class="empty">Loading…</div></div></div>
+      </div>
+    </section>
+
+    <section id="page-rules" hidden>
+      <div class="pagehead"><h1>Automation rules</h1><button class="ghost small" onclick="puLoadRules()">Refresh</button></div>
+      <div class="card"><h2>Your rules</h2><div id="puRulesList"><div class="empty">Loading…</div></div>
+      <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” only queues HELD mail — nothing is ever sent automatically.</div></div>
+      <div class="card"><h2 id="puRuleFormTitle">Add a rule</h2>
+        <div class="pu-filters">
+          <label>Name <input id="puRName" type="text" placeholder="e.g. Valuation → task" style="width:200px"></label>
+          <label>When <select id="puRTrigger"></select></label>
+          <label>Lead source (optional) <select id="puRCondSource"><option value="">Any source</option></select></label>
+          <label>Stage (optional) <select id="puRCondStage"><option value="">Any stage</option></select></label>
+          <label>Cold after (days) <input id="puRCondDays" type="number" min="1" max="90" value="7" style="width:80px"></label>
+          <label class="pu-chk"><input type="checkbox" id="puREnabled" checked> Enabled</label>
+        </div>
+        <div id="puRActionRows" style="margin-top:12px"></div>
+        <div style="margin-top:12px"><button id="puRuleSave">Save rule</button> <button class="ghost" id="puRuleCancel" hidden>Cancel edit</button> <span class="pu-mini" id="puRuleMsg"></span></div>
+      </div>
+      <div class="card"><h2>Recent firings</h2><div id="puRulesLog"><div class="empty">Loading…</div></div></div>
+    </section>
+
+    <section id="page-reports" hidden>
+      <div class="pagehead"><h1>Reports &amp; handbook</h1></div>
+      <div class="card"><h2>📁 Listing files</h2>
+        <div class="pu-filters">
+          <label>Listing <select id="puFileMls"></select></label>
+          <label>File (PDF, image or text · max 3 MB) <input type="file" id="puFileInput" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.csv"></label>
+          <button id="puFileUpload">Upload</button>
+        </div>
+        <div id="puFilesList" style="margin-top:10px"><div class="empty">Loading…</div></div>
+        <div class="hint">Files belong to the listing (or stand alone) and can be folded into its reports below — file content is always labelled as coming from your file.</div>
+      </div>
+      <div class="card"><h2>📊 Report builder</h2>
+        <div class="pu-filters">
+          <label>Type <select id="puRepType"><option value="seller">Seller listing-performance report</option><option value="property">Client property report</option></select></label>
+          <label>Listing <select id="puRepMls"></select></label>
+          <label>Language <select id="puRepLang"></select></label>
+          <label class="pu-chk"><input type="checkbox" id="puRepFiles"> Include uploaded file content</label>
+          <button id="puRepGen">Generate</button>
+        </div>
+        <div id="puRepMsg" class="hint">Opens a print-ready document — use “Save as PDF” in the print dialog.</div>
+      </div>
+      <div class="card"><h2>📖 Showing handbook</h2>
+        <div class="pu-filters">
+          <label>Listing <select id="puHbMls"></select></label>
+          <label>Client (lead) <select id="puHbLead"></select></label>
+          <label>Language <select id="puHbLang"></select></label>
+          <button id="puHbGen">Generate handbook</button>
+        </div>
+        <div id="puHbMsg" class="hint">Cover with the brand header, all photos, full specs, neighbourhood, price + indicative mortgage, viewing time and contacts — in the client's language.</div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -770,7 +888,7 @@
   // instantly and refreshes in the background, re-rendering the current page
   // only when the data actually changed and no form/editor is open. Any
   // mutation clears the whole cache; sign-out clears it too.
-  var _pcache = {}, _reval = {}, currentPage = "overview", _cacheGen = 0;
+  var _pcache = {}, _reval = {}, currentPage = "today", _cacheGen = 0;
   (function(){ try { for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0){ var e = JSON.parse(localStorage.getItem(k)); if (e && e.d && Date.now() - (e.t || 0) < 86400000) _pcache[k.slice(4)] = e; } } } catch(e){} })();
   function cacheStore(key, d){ _pcache[key] = { t: Date.now(), d: d }; try { var s = JSON.stringify(_pcache[key]); if (s.length < 400000) localStorage.setItem("pc1:" + key, s); } catch(e){} }
   function cacheClear(){ _pcache = {}; _cacheGen++; try { gsItems = null; } catch(e){} try { var ks = []; for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0) ks.push(k); } ks.forEach(function(k){ localStorage.removeItem(k); }); } catch(e){} }
@@ -843,7 +961,7 @@
   function go(page){
     if (page === "workspace") { wsOpen(); return; }
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","demand","rules","reports"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
@@ -851,6 +969,11 @@
       b.classList.toggle("on", b.getAttribute("data-nav") === navKey);
     });
     if (page === "overview") loadOverview();
+    if (page === "today") puLoadToday();
+    if (page === "pipeline") puLoadPipeline();
+    if (page === "demand") puLoadDemand();
+    if (page === "rules") puLoadRules();
+    if (page === "reports") puLoadReports();
     if (page === "leads") renderLeads();
     if (page === "crm") { loadCRM(); loadFollowups(); }
     if (page === "search") initTabSearch();
@@ -894,6 +1017,7 @@
   $("logoutBtn").addEventListener("click", signOut);
 
   function loadAll(){
+    puLoadToday();
     loadOverview();
     var warm = function(){ loadLeads(); loadTourList(); loadRadar(); };
     if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2500 });
@@ -1064,7 +1188,7 @@
       renderSmsThreads();
       $("callList").innerHTML = d.calls.length ? d.calls.map(function(c){
         var other = c.direction === "in" ? c.from : c.to;
-        var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#93c5fd">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
+        var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#E6CB7E">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
         return '<div class="tourrow"><div>' + (c.direction === "in" ? "📥" : "📤") + ' <b>' + who + '</b> <span class="mut">' + esc(other || "") + '</span></div>' +
           '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' +
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
@@ -1310,20 +1434,20 @@
       var conf = typeof l.confidence === "number" ? l.confidence : 0;
       var confColor = conf >= 70 ? "#22c55e" : conf >= 45 ? "#eab308" : "#ef4444";
       var ms = typeof l.matchScore === "number" ? l.matchScore : 0;
-      var msColor = ms >= 80 ? "#22c55e" : ms >= 60 ? "#C6A15B" : "#64748b";
+      var msColor = ms >= 80 ? "#22c55e" : ms >= 60 ? "#C9A24B" : "#64748b";
       var mot = typeof l.motivation === "number" ? l.motivation : null;
       var hot = ms >= 80 && mot !== null && mot >= 60;
       var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
-        '<span class="chip" style="background:' + confColor + ';color:#0c111d;font-weight:700">Confidence ' + conf + '</span>' +
-        (ms ? '<span class="chip" style="background:' + msColor + ';color:#0c111d;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
+        '<span class="chip" style="background:' + confColor + ';color:#0B0B0B;font-weight:700">Confidence ' + conf + '</span>' +
+        (ms ? '<span class="chip" style="background:' + msColor + ';color:#0B0B0B;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
         (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot pair</span>' : '') +
         (mot !== null ? '<span class="chip">💪 Motivation ' + mot + '</span>' : '') +
         ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
         '<span class="mut" style="margin-left:auto">' + esc(fmtDate(l.created_at)) + '</span></div>';
-      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener" style="color:#93c5fd;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
+      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener" style="color:#E6CB7E;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
@@ -1334,7 +1458,7 @@
         if (pp.completion) pbits.push('completion ' + esc(pp.completion));
         if (pp.depositPaid) pbits.push('deposit already paid: ' + esc(pp.depositPaid));
         if (pp.assignmentFee) pbits.push('assignment fee: ' + esc(pp.assignmentFee));
-        if (pbits.length) html += '<div style="font-size:13.5px;color:#C6A15B;margin-bottom:4px">' + pbits.join(' · ') + '</div>';
+        if (pbits.length) html += '<div style="font-size:13.5px;color:#C9A24B;margin-bottom:4px">' + pbits.join(' · ') + '</div>';
         var askN = pv(l); if (!askN) { var pn = parseInt(String(l.price || "").replace(/[^0-9]/g, ""), 10); askN = isFinite(pn) && pn > 10000 ? pn : null; }
         if (pp.originalPrice && askN && pp.originalPrice > askN) html += '<div style="font-size:14px;color:#4ade80;font-weight:700;margin-bottom:4px">💎 $' + (pp.originalPrice - askN).toLocaleString("en-US") + ' under the original contract price</div>';
         (pp.flags || []).forEach(function(fl){ html += '<div class="mut" style="font-size:12.5px">⚠️ ' + esc(fl) + '</div>'; });
@@ -1342,7 +1466,7 @@
       var mlist = (l.matches && l.matches.length) ? l.matches : (l.match && l.match.url ? [l.match] : []);
       mlist.forEach(function(m, i){
         if (!m || !m.url) return;
-        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || "listing") + ' ↗</a>' +
+        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener" style="color:#E6CB7E">' + esc(m.title || "listing") + ' ↗</a>' +
           (m.price ? ' · ' + esc(m.price) : '') +
           (m.note ? '<div class="mut" style="margin-top:4px">' + esc(m.note) + '</div>' : '') + '</div>';
       });
@@ -1671,10 +1795,10 @@
       if (!pairs.length) { box2.innerHTML = ""; return; }
       box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📡 Radar opportunities for ' + esc(c.name || c.email) + '</div>' + pairs.map(function(l){
         var m = (l.matches && l.matches[0]) || {};
-        return '<div class="kv">🔗 <a href="' + esc(safeUrl(m.url || l.url || "")) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(m.title || l.title || "listing") + '</a>' +
+        return '<div class="kv">🔗 <a href="' + esc(safeUrl(m.url || l.url || "")) + '" target="_blank" rel="noopener" style="color:#E6CB7E">' + esc(m.title || l.title || "listing") + '</a>' +
           (m.price ? ' · ' + esc(m.price) : '') +
           (typeof l.matchScore === "number" ? ' <span class="chip">🎯 ' + l.matchScore + '</span>' : '') +
-          '<div class="mut">buyer need: <a href="' + esc(safeUrl(l.url || "")) + '" target="_blank" rel="noopener" style="color:#93c5fd">' + esc(l.title || "") + '</a>' + (l.risk ? ' · ⚠ ' + esc(l.risk) : '') + '</div></div>';
+          '<div class="mut">buyer need: <a href="' + esc(safeUrl(l.url || "")) + '" target="_blank" rel="noopener" style="color:#E6CB7E">' + esc(l.title || "") + '</a>' + (l.risk ? ' · ⚠ ' + esc(l.risk) : '') + '</div></div>';
       }).join("");
     });
   }
@@ -2039,7 +2163,7 @@
         var srchH = (c.searches || []).map(function(s){ var cr = s.criteria || {}; return "<li>" + esc(s.name || "Saved search") + " — " + esc([cr.city, cr.type, cr.maxPrice ? "≤ " + fmt$(parseInt(cr.maxPrice, 10)) : "", cr.minBeds ? cr.minBeds + "+ bd" : ""].filter(Boolean).join(" · ")) + "</li>"; }).join("");
         var vwH = (c.viewings || []).map(function(v){ return "<li>" + esc(v.date + " " + v.time + " · " + (v.listingId || "") + " · " + v.status) + "</li>"; }).join("");
         var tpH = ai && ai.talkingPoints ? ai.talkingPoints.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") : "";
-        var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Meeting brief — ' + esc(c.name || c.email) + '</title><style>body{font-family:Georgia,serif;color:#14202e;max-width:720px;margin:32px auto;padding:0 18px;line-height:1.5}h1{font-size:24px;margin-bottom:2px}h2{font-size:16px;margin-top:22px;border-bottom:2px solid #C6A15B;padding-bottom:4px}table{width:100%;border-collapse:collapse}td{padding:5px 4px;border-bottom:1px solid #ddd}.mut{color:#5a6a78;font-size:13px}@media print{button{display:none}}</style></head><body>' +
+        var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Meeting brief — ' + esc(c.name || c.email) + '</title><style>body{font-family:Georgia,serif;color:#14202e;max-width:720px;margin:32px auto;padding:0 18px;line-height:1.5}h1{font-size:24px;margin-bottom:2px}h2{font-size:16px;margin-top:22px;border-bottom:2px solid #C9A24B;padding-bottom:4px}table{width:100%;border-collapse:collapse}td{padding:5px 4px;border-bottom:1px solid #ddd}.mut{color:#5a6a78;font-size:13px}@media print{button{display:none}}</style></head><body>' +
           '<button onclick="window.print()">🖨 Print</button><h1>' + esc(c.name || c.email) + '</h1><div class="mut">' + esc(c.email) + (c.phone ? ' · ' + esc(c.phone) : "") + ' · stage: ' + esc(crmStage(c)) + ' · score ' + esc(String(c.score == null ? "" : c.score)) + ' · conversion estimate ' + (Number(c.predict) || 0) + '%</div>' +
           (ai && ai.summary ? '<h2>Summary</h2><p>' + esc(ai.summary) + '</p>' : "") +
           (c.nextAction ? '<h2>Next step</h2><p>' + esc(c.nextAction.text) + '</p>' : "") +
@@ -2117,7 +2241,7 @@
       var rec = over || s;
       var state = deleted[s.mls] ? '<span class="pill" style="background:#f6dede;color:#8a2020">Hidden</span>'
         : over ? '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Your version</span>'
-        : '<span class="pill" style="background:#1d3049;color:#9fc3e8">Built-in sample</span>';
+        : '<span class="pill" style="background:#201D18;color:#E6CB7E">Built-in sample</span>';
       var btns = deleted[s.mls]
         ? '<button type="button" class="ghost small" data-lact="restore" data-mls="' + esc(s.mls) + '">Restore</button>'
         : '<button type="button" class="ghost small" data-lact="edit" data-mls="' + esc(s.mls) + '">Edit</button>' +
@@ -2402,7 +2526,7 @@
     $("lstAvail").innerHTML = listings.map(function(L){
       var restricted = L.dates && L.dates.length > 0;
       var badge = restricted ? '<span class="pill" data-avbadge="1" style="background:#fdeeda;color:#8a5a00">🔒 Owner times only · ' + L.dates.length + ' date' + (L.dates.length > 1 ? "s" : "") + '</span>'
-                             : '<span class="pill" data-avbadge="1" style="background:#1d3049;color:#9fc3e8">🟢 Open — all standard slots</span>';
+                             : '<span class="pill" data-avbadge="1" style="background:#201D18;color:#E6CB7E">🟢 Open — all standard slots</span>';
       var rows = (L.dates || []).map(avRowHtml).join("");
       return '<div class="card" data-mls="' + esc(L.mls) + '">' +
         '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 style="margin:0">' + esc(L.street) + ', ' + esc(L.city) + '</h2>' + badge + '</div>' +
@@ -2424,7 +2548,7 @@
     var b = card.querySelector("[data-avbadge]");
     if (!b) return;
     if (n > 0) { b.setAttribute("style", "background:#fdeeda;color:#8a5a00"); b.textContent = "🔒 Owner times only · " + n + " date" + (n > 1 ? "s" : ""); }
-    else { b.setAttribute("style", "background:#1d3049;color:#9fc3e8"); b.textContent = "🟢 Open — all standard slots"; }
+    else { b.setAttribute("style", "background:#201D18;color:#E6CB7E"); b.textContent = "🟢 Open — all standard slots"; }
   }
   $("lstAvail").addEventListener("click", function(e){
     var btn = e.target.closest("[data-act]");
@@ -2730,7 +2854,7 @@
       '<div class="kv"><b>Intent</b>' + esc(l.intent) + '</div>' +
       '<div class="kv"><b>City</b>' + esc(l.city || "—") + '</div>' +
       '<div class="kv"><b>Budget</b>' + esc(l.budget || "—") + '</div>' +
-      '<div class="kv"><b>Email</b>' + (l.email ? '<a href="mailto:' + esc(l.email) + '" style="color:#93c5fd">' + esc(l.email) + '</a>' : "—") + '</div>' +
+      '<div class="kv"><b>Email</b>' + (l.email ? '<a href="mailto:' + esc(l.email) + '" style="color:#E6CB7E">' + esc(l.email) + '</a>' : "—") + '</div>' +
       '<div class="kv"><b>Phone</b>' + esc(l.phone || "—") + '</div>' +
       '<div class="kv"><b>Source</b>' + esc(l.source || "—") + '</div>' +
       '<div class="kv"><b>Received</b>' + esc(fmtDate(l.created_at)) + '</div>' +
@@ -3035,7 +3159,7 @@
     $("gsResults").innerHTML = gsShown.map(function(it, i){
       var head = it.kind !== lastKind ? '<div class="mut" style="padding:8px 10px 2px;font-size:11px;letter-spacing:.08em">' + esc(it.kind.toUpperCase()) + "S</div>" : "";
       lastKind = it.kind;
-      return head + '<button type="button" data-gs="' + i + '" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:9px 10px;border:0;border-radius:9px;cursor:pointer;color:#eef4fa;background:' + (i === gsIdx ? "#1d3a55" : "transparent") + '">' + '<span>' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + "</span></span></button>";
+      return head + '<button type="button" data-gs="' + i + '" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:9px 10px;border:0;border-radius:9px;cursor:pointer;color:#F5F1E8;background:' + (i === gsIdx ? "#2A251E" : "transparent") + '">' + '<span>' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + "</span></span></button>";
     }).join("");
     Array.prototype.forEach.call($("gsResults").querySelectorAll("[data-gs]"), function(b){
       b.addEventListener("click", function(){ gsPick(Number(b.getAttribute("data-gs"))); });
@@ -3072,7 +3196,7 @@
     $("tabSearchCount").textContent = all.length + " result" + (all.length === 1 ? "" : "s") + (tsKind !== "All" ? " in " + tsKind + "s" : "") + (($("tabSearchInput").value || "").trim() ? ' for "' + $("tabSearchInput").value.trim() + '"' : "");
     var shown = all.slice(0, tsShown);
     $("tabSearchResults").innerHTML = shown.length ? shown.map(function(it, i){
-      return '<button type="button" data-ts="' + i + '" style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 10px;border:0;border-bottom:1px solid #1b3049;cursor:pointer;color:#eef4fa;background:transparent"><span style="font-size:18px">' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + '</span></span><span class="pill" style="background:#1d3049;color:#9fc3e8">' + esc(it.kind) + '</span></button>';
+      return '<button type="button" data-ts="' + i + '" style="display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 10px;border:0;border-bottom:1px solid #1b3049;cursor:pointer;color:#F5F1E8;background:transparent"><span style="font-size:18px">' + it.icon + '</span><span style="flex:1"><b>' + esc(it.title) + '</b><br><span class="mut">' + esc(it.sub) + '</span></span><span class="pill" style="background:#201D18;color:#E6CB7E">' + esc(it.kind) + '</span></button>';
     }).join("") : '<div class="empty">No matches — try a name, email, city, MLS # or phone.</div>';
     Array.prototype.forEach.call($("tabSearchResults").querySelectorAll("[data-ts]"), function(b){
       b.addEventListener("click", function(){ var it = shown[Number(b.getAttribute("data-ts"))]; if (it) it.act(); });
@@ -3081,7 +3205,7 @@
   }
   function initTabSearch(){
     Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(b){
-      b.style.background = b.getAttribute("data-skind") === tsKind ? "#1d3a55" : "";
+      b.style.background = b.getAttribute("data-skind") === tsKind ? "#2A251E" : "";
     });
     if (gsItems) { tsRender(); }
     else {
@@ -3097,7 +3221,7 @@
   Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(b){
     b.addEventListener("click", function(){
       tsKind = b.getAttribute("data-skind"); tsShown = 30;
-      Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(x){ x.style.background = x === b ? "#1d3a55" : ""; });
+      Array.prototype.forEach.call($("tabSearchKinds").querySelectorAll("[data-skind]"), function(x){ x.style.background = x === b ? "#2A251E" : ""; });
       tsRender();
     });
   });
@@ -3121,14 +3245,587 @@
     else if (e.key === "Escape" && !$("gsOverlay").hidden) gsClose();
   });
 
+  // ================= portal upgrade (2026-11-01) =================
+  // Systems 1–7 + 9 UI. Language lists come from NL_LANGS (the portal's
+  // single language constant) so the ES rollout flows through by
+  // changing one list. All data comes from the /api/admin/* PU
+  // endpoints; nothing here invents a figure.
+  function PU_TRIGGERS() { return [["lead_created", "New lead created"], ["valuation_submitted", "Valuation submitted"], ["viewing_booked", "Viewing booked"], ["viewing_cancelled", "Viewing cancelled"], ["stage_changed", "Stage changed"], ["search_match", "Saved-search match found"], ["lead_cold", "Lead went cold (days in Contacted)"]]; }
+  function PU_ACTIONS() { return [["create_followup", "Create follow-up task"], ["queue_draft", "Queue a draft message (held)"], ["flag_hot", "Flag as hot"], ["portal_note", "Add a portal note (Today)"]]; }
+  function PU_SOURCES() { return ["site-form", "home-valuation", "viewing", "call", "canary"]; }
+  function PU_STAGE_LABEL() { return { new: "New", contacted: "Contacted", viewing: "Viewing", offer: "Offer", closed: "Closed", dropped: "Dropped" }; }
+  function puMoney(n) { return "$" + Number(n || 0).toLocaleString("en-CA"); }
+  function puAge(iso) { var t = Date.parse(iso); if (!isFinite(t)) return "—"; var h = Math.max(0, (Date.now() - t) / 3600000); if (h < 24) return Math.floor(h) + "h"; return Math.floor(h / 24) + "d"; }
+  function puChip(s) { if (!s) return ""; return '<span class="pu-chip ' + s.band + '" title="' + esc(s.next ? s.next.text : "") + '">' + s.score + "</span>"; }
+  function puReasonText(r) { var M = { fresh_24h: "New (24h)", fresh_72h: "New (3d)", fresh_7d: "New (7d)", has_phone: "Has phone", has_email: "Has email", source_valuation: "Valuation request", source_viewing: "Viewing lead", source_call: "Call request", source_form: "Site form", searches_3plus: "3+ saved searches", searches_active: "Saved search", viewing_booked: "Viewing booked", viewing_attended: "Attended a viewing", stage_contacted: "Contacted", stage_viewing: "In viewings", stage_offer: "Offer stage", silent_new_48h: "No contact 48h+", silent_contacted_7d: "Silent 7d+" }; return (M[r.code] || r.code) + " " + (r.pts > 0 ? "+" : "") + r.pts; }
+  function puSrcChip(st) { return st === "ok" ? "" : ' <span class="pu-src err">source error</span>'; }
+  function puDelta(v, money) { if (v === null || v === undefined) return '<span class="pu-mini">no prior month</span>'; var up = v >= 0; return '<span style="color:' + (up ? "#4ade80" : "#f87171") + '">' + (up ? "▲ +" : "▼ ") + (money ? puMoney(Math.abs(v)) : Math.abs(v)) + "</span>"; }
+  function puQueueDraft(id, msgEl) {
+    api(API_URL, "/api/admin/leads/" + encodeURIComponent(id) + "/draft", { method: "POST", body: "{}" }).then(function (d) {
+      var msg = d && d.ok ? (d.queued ? "Draft queued (held) ✓" : "Already queued today") : "Could not queue";
+      if (msgEl) msgEl.textContent = msg;
+      toast(msg);
+    }).catch(function () { if (msgEl) msgEl.textContent = "Could not queue"; });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest ? e.target.closest("[data-pu-draft]") : null;
+    if (b) puQueueDraft(b.getAttribute("data-pu-draft"), null);
+  });
+
+  // ---------- system 1: Today ----------
+  function puLoadToday() {
+    if (!token) return;
+    api(API_URL, "/api/admin/today").then(function (d) {
+      if (!d || !d.ok || !d.today) { var el = $("puTViewings"); if (el) el.innerHTML = '<div class="empty">Could not load Today.</div>'; return; }
+      var t = d.today, S = t.sources || {};
+      var att = (t.attention && t.attention.items) || [];
+      $("puAttention").innerHTML = att.length ? '<div class="pu-attn"><h2 style="margin-bottom:6px">⚠️ Needs attention' + puSrcChip(S.attention) + "</h2>" + att.map(function (a) { return '<div class="pu-row"><span>' + esc(a.text) + '</span><span class="pu-mini">' + esc(fmtDate(a.at)) + "</span></div>"; }).join("") + "</div>" : "";
+      var vwRow = function (v) { return '<div class="pu-row"><span><b>' + esc(v.time || "") + "</b> · " + esc(v.name || "") + '<br><span class="pu-mini">' + esc(v.listing || "") + " · " + esc(v.status || "") + '</span></span><span class="pu-mini">' + esc(v.date || "") + "</span></div>"; };
+      var V = t.viewings || { today: [], tomorrow: [], awaiting: [], awaitingCount: 0 };
+      $("puTViewings").innerHTML = puSrcChip(S.viewings) +
+        '<div class="pu-mini" style="margin:4px 0">TODAY (' + esc(t.today) + ")</div>" + (V.today.length ? V.today.map(vwRow).join("") : '<div class="empty">No viewings today.</div>') +
+        '<div class="pu-mini" style="margin:10px 0 4px">TOMORROW (' + esc(t.tomorrow) + ")</div>" + (V.tomorrow.length ? V.tomorrow.map(vwRow).join("") : '<div class="empty">No viewings tomorrow.</div>') +
+        (V.awaitingCount ? '<div style="margin-top:8px">⏳ <b>' + V.awaitingCount + "</b> upcoming viewing(s) still unconfirmed</div>" : "");
+      var H = t.hotLeads || { counts: { hot: 0, warm: 0, cold: 0 }, hot: [] };
+      $("puTHot").innerHTML = puSrcChip(S.hotLeads) +
+        '<div style="margin-bottom:6px">🔥 <b>' + H.counts.hot + "</b> hot · 🌤 <b>" + H.counts.warm + "</b> warm · ❄️ <b>" + H.counts.cold + '</b> cold</div>' +
+        (H.hot.length ? H.hot.map(function (l) { return '<div class="pu-row"><span>' + puChip({ score: l.score, band: "hot", next: l.next }) + ' <b>' + esc(l.name || "") + '</b><br><span class="pu-mini">' + esc(l.next ? l.next.text : "") + '</span></span><button class="ghost small" data-pu-draft="' + esc(l.id) + '">✉️ Draft</button></div>'; }).join("") : '<div class="empty">No hot leads right now.</div>');
+      var F = t.followups || { newCount: 0, staleCount: 0, postViewingCount: 0, stale: [], post: [] };
+      $("puTFollow").innerHTML = puSrcChip(S.followups) +
+        '<div style="margin-bottom:6px"><b>' + F.newCount + "</b> new waiting · <b>" + F.staleCount + "</b> stale · <b>" + F.postViewingCount + '</b> post-viewing</div>' +
+        (F.stale || []).map(function (x) { return '<div class="pu-row"><span>🕐 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">' + (x.ageUnknown ? "age unknown" : Math.floor(x.ageHours / 24) + "d waiting") + '</span></span><button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></div>'; }).join("") +
+        (F.post || []).map(function (x) { return '<div class="pu-row"><span>🏠 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">after viewing ' + esc(x.date || "") + '</span></span><button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></div>'; }).join("") +
+        (!F.staleCount && !F.postViewingCount ? '<div class="empty">Nothing overdue. 🎉</div>' : "");
+      var T = t.tasks || { due: [], count: 0, overdue: 0 };
+      $("puTTasks").innerHTML = puSrcChip(S.tasks) +
+        '<div style="margin-bottom:6px"><b>' + T.count + "</b> due by tomorrow" + (T.overdue ? ' · <span style="color:#f87171"><b>' + T.overdue + " overdue</b></span>" : "") + "</div>" +
+        (T.due.length ? T.due.map(function (x) { return '<div class="pu-row"><span>' + esc(x.text || "") + '<br><span class="pu-mini">' + esc(x.email || "") + '</span></span><span class="pu-mini">' + esc(x.due || "") + "</span></div>"; }).join("") : '<div class="empty">No tasks due.</div>');
+      var A = t.alerts || { lastRun: null, unsentAlerts: 0 };
+      $("puTAlerts").innerHTML = puSrcChip(S.alerts) +
+        '<div class="pu-row"><span>Last automation run</span><b>' + (A.lastRun ? esc(fmtDate(A.lastRun.at)) : "—") + '</b></div>' +
+        '<div class="pu-row"><span>Search alerts queued (held)</span><b>' + A.unsentAlerts + '</b></div>' +
+        (A.lastRun && A.lastRun.error ? '<div class="pu-row"><span>Last run error</span><span style="color:#f87171">' + esc(A.lastRun.error) + "</span></div>" : "") +
+        '<div style="margin-top:8px"><button class="ghost small" onclick="go(\'rules\')">⚙️ Automation rules</button></div>';
+      var M = t.marketPulse || { month: null, cur: null, deltas: null };
+      if (M.cur) {
+        var c = M.cur, dl = M.deltas || {};
+        $("puTMarket").innerHTML = puSrcChip(S.marketPulse) +
+          '<div class="pu-row"><span>Latest dataset month</span><b>' + esc(M.month || "") + '</b></div>' +
+          '<div class="pu-row"><span>GVR benchmark</span><span><b>' + puMoney(c.gvr && c.gvr.benchmark) + "</b> " + puDelta(dl.gvrBenchmark, true) + '</span></div>' +
+          '<div class="pu-row"><span>FVREB benchmark</span><span><b>' + puMoney(c.fvreb && c.fvreb.benchmark) + "</b> " + puDelta(dl.fvrebBenchmark, true) + '</span></div>' +
+          '<div class="pu-row"><span>BC sales</span><span><b>' + (c.bc && c.bc.sales != null ? Number(c.bc.sales).toLocaleString("en-CA") : "—") + "</b> " + puDelta(dl.bcSales, false) + '</span></div>' +
+          '<div class="pu-row"><span>Policy rate</span><b>' + (c.rates && c.rates.policyRate != null ? c.rates.policyRate + "%" : "—") + '</b></div>' +
+          '<div class="pu-mini" style="margin-top:6px">Sources: ' + esc([c.gvr && c.gvr.source, c.bc && c.bc.source].filter(Boolean).join(" · ")) + "</div>";
+      } else {
+        $("puTMarket").innerHTML = puSrcChip(S.marketPulse) + '<div class="empty">No market dataset yet — the monthly newsletter job seeds it.</div>';
+      }
+      var R = t.radar || { enabled: false, pairs: 0, hotPairs: 0 };
+      $("puTRadar").innerHTML = puSrcChip(S.radar) +
+        '<div class="pu-row"><span>Switch</span><b>' + (R.enabled ? "🟢 ON" : "⚪ OFF") + '</b></div>' +
+        '<div class="pu-row"><span>Candidate pairs</span><b>' + R.pairs + '</b></div>' +
+        '<div class="pu-row"><span>Hot pairs (fit ≥80 + motivation ≥60)</span><b>' + R.hotPairs + "</b></div>" +
+        (R.enabled ? "" : '<div class="pu-mini" style="margin-top:6px">The radar stays off until you flip it (expected after licensing).</div>');
+      var N = t.newsletter || { total: 0, byLang: {} };
+      $("puTNews").innerHTML = puSrcChip(S.newsletter) +
+        '<div class="pu-row"><span>Total subscribers</span><b>' + N.total + "</b></div>" +
+        Object.keys(N.byLang || {}).map(function (k) { return '<div class="pu-row"><span>' + esc(k.toUpperCase()) + '</span><b>' + N.byLang[k] + "</b></div>"; }).join("");
+    }).catch(function () { var el = $("puTViewings"); if (el) el.innerHTML = '<div class="empty">Could not load Today.</div>'; });
+  }
+
+  // ---------- system 3: pipeline board ----------
+  var puPipeData = null;
+  function puLoadPipeline() {
+    if (!token) return;
+    api(API_URL, "/api/admin/pipeline").then(function (d) {
+      if (!d || !d.ok) { $("puBoard").innerHTML = '<div class="empty">Could not load the pipeline.</div>'; return; }
+      puPipeData = d.pipeline;
+      var srcs = {}, langs = {};
+      puPipeData.stages.forEach(function (st) { (puPipeData.columns[st] || []).forEach(function (c) { if (c.source) srcs[c.source] = 1; if (c.lang) langs[c.lang] = 1; }); });
+      $("puFSource").innerHTML = '<option value="">All sources</option>' + Object.keys(srcs).sort().map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + "</option>"; }).join("");
+      $("puFLang").innerHTML = '<option value="">All languages</option>' + Object.keys(langs).sort().map(function (x) { var nm = x; NL_LANGS.forEach(function (p) { if (p[0] === x) nm = p[1]; }); return '<option value="' + esc(x) + '">' + esc(nm) + "</option>"; }).join("");
+      $("puPipeMeta").textContent = puPipeData.total + " leads · scores " + fmtDate(puPipeData.scoresAt);
+      puRenderBoard();
+    }).catch(function () { $("puBoard").innerHTML = '<div class="empty">Could not load the pipeline.</div>'; });
+  }
+  function puRenderBoard() {
+    if (!puPipeData) return;
+    var ft = $("puFTemp").value, fs = $("puFSource").value, fl = $("puFLang").value, fc = $("puFCold").checked;
+    $("puBoard").innerHTML = puPipeData.stages.map(function (st) {
+      var cards = (puPipeData.columns[st] || []).filter(function (c) {
+        if (ft && c.band !== ft) return false;
+        if (fs && c.source !== fs) return false;
+        if (fl && c.lang !== fl) return false;
+        if (fc && !c.goingCold) return false;
+        return true;
+      });
+      return '<div class="pu-col" data-stage="' + st + '"><h3>' + esc(PU_STAGE_LABEL()[st] || st) + ' · ' + puPipeData.counts[st] + "</h3>" +
+        (cards.length ? cards.map(function (c) {
+          return '<div class="pu-card2' + (c.goingCold ? " cold" : "") + '" draggable="true" data-card="' + esc(c.id) + '">' +
+            '<div><b>' + esc(c.name || "(no name)") + "</b> " + puChip(c.score !== null ? { score: c.score, band: c.band, next: c.next } : null) + "</div>" +
+            '<div class="pu-mini">' + esc(c.source || "") + (c.city ? " · " + esc(c.city) : "") + (c.lang ? " · " + esc(c.lang.toUpperCase()) : "") + " · " + puAge(c.created_at) + " old" + (c.goingCold ? ' · <span style="color:#f87171">going cold</span>' : "") + "</div>" +
+            (c.next ? '<div class="pu-mini" style="margin-top:3px">→ ' + esc(c.next.text) + "</div>" : "") +
+            '<div style="margin-top:5px"><button class="ghost small" data-pu-open="' + esc(c.id) + '">Open</button> <button class="ghost small" data-pu-draft="' + esc(c.id) + '">✉️ Draft</button></div></div>';
+        }).join("") : '<div class="empty">—</div>') + "</div>";
+    }).join("");
+    Array.prototype.forEach.call($("puBoard").querySelectorAll("[data-pu-open]"), function (b) {
+      b.addEventListener("click", function () { go("leads"); openDetail(b.getAttribute("data-pu-open")); });
+    });
+    Array.prototype.forEach.call($("puBoard").querySelectorAll("[data-card]"), function (card) {
+      card.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", card.getAttribute("data-card")); e.dataTransfer.effectAllowed = "move"; });
+    });
+    Array.prototype.forEach.call($("puBoard").querySelectorAll(".pu-col"), function (col) {
+      col.addEventListener("dragover", function (e) { e.preventDefault(); col.classList.add("over"); });
+      col.addEventListener("dragleave", function () { col.classList.remove("over"); });
+      col.addEventListener("drop", function (e) {
+        e.preventDefault(); col.classList.remove("over");
+        var id = e.dataTransfer.getData("text/plain");
+        var stage = col.getAttribute("data-stage");
+        if (!id || !stage) return;
+        api(API_URL, "/api/leads/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify({ stage: stage }) }).then(function (dd) {
+          if (dd && dd.ok) { toast("Stage saved ✓"); cacheClear(); puLoadPipeline(); loadLeads(); }
+          else toast("Could not save the stage");
+        }).catch(function () { toast("Could not save the stage"); });
+      });
+    });
+  }
+  ["puFTemp", "puFSource", "puFLang", "puFCold"].forEach(function (id) { $(id).addEventListener("change", puRenderBoard); });
+
+  // ---------- system 4: demand map ----------
+  var puLeafletP = null, puMapObj = null;
+  function puEnsureLeaflet() {
+    if (window.L) return Promise.resolve(true);
+    if (puLeafletP) return puLeafletP;
+    puLeafletP = new Promise(function (res) {
+      var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(css);
+      var sc = document.createElement("script"); sc.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      sc.onload = function () { res(true); };
+      sc.onerror = function () { res(false); };
+      document.head.appendChild(sc);
+      setTimeout(function () { res(!!window.L); }, 6000);
+    });
+    return puLeafletP;
+  }
+  function puLoadDemand() {
+    if (!token) return;
+    api(API_URL, "/api/admin/demand").then(function (d) {
+      if (!d || !d.ok) { $("puDemandCities").innerHTML = '<div class="empty">Could not load demand data.</div>'; return; }
+      var dm = d.demand;
+      var demByCity = {};
+      Object.keys((dm.searchDemand && dm.searchDemand.byCity) || {}).forEach(function (c) { demByCity[c.toLowerCase()] = (demByCity[c.toLowerCase()] || 0) + dm.searchDemand.byCity[c]; });
+      Object.keys(dm.valuations.byCity || {}).forEach(function (c) { demByCity[c.toLowerCase()] = (demByCity[c.toLowerCase()] || 0) + dm.valuations.byCity[c]; });
+      var cityRows = (dm.supply || []).map(function (s) {
+        var dem = demByCity[s.city.toLowerCase()] || 0;
+        var hint = dem === 0 ? "No recorded demand yet" : dem > s.count ? "Demand ahead of supply — prospect here" : "Supply ahead of demand";
+        return { city: s.city, supply: s.count, median: s.median, dem: dem, hint: hint };
+      });
+      Object.keys(demByCity).forEach(function (lc) { if (!cityRows.some(function (r) { return r.city.toLowerCase() === lc; })) cityRows.push({ city: lc, supply: 0, median: null, dem: demByCity[lc], hint: "Demand with no active supply — prospect here" }); });
+      cityRows.sort(function (a, b) { return b.dem - a.dem || b.supply - a.supply; });
+      $("puDemandCities").innerHTML = cityRows.length ? cityRows.map(function (r) {
+        return '<div class="pu-row"><span><b>' + esc(r.city) + '</b><br><span class="pu-mini">' + esc(r.hint) + '</span></span><span class="pu-mini">demand <b>' + r.dem + "</b> · supply <b>" + r.supply + "</b>" + (r.median ? "<br>median " + puMoney(r.median) : "") + "</span></div>";
+      }).join("") : '<div class="empty">No demand or supply recorded yet.</div>';
+      var fsaRows = Object.keys(dm.valuations.byFsa || {}).sort(function (a, b) { return dm.valuations.byFsa[b] - dm.valuations.byFsa[a]; });
+      $("puDemandFsa").innerHTML = (dm.sources && dm.sources.valuations === "error" ? '<span class="pu-src err">source error</span>' : "") +
+        (fsaRows.length ? fsaRows.map(function (f) { return '<div class="pu-row"><span><b>' + esc(f) + '</b></span><b>' + dm.valuations.byFsa[f] + " valuation(s)</b></div>"; }).join("") : '<div class="empty">No valuation requests yet.</div>') +
+        '<div class="pu-mini" style="margin-top:6px">Saved-search demand: ' + (dm.searchDemand ? dm.searchDemand.searches + " searches across " + dm.searchDemand.usersScanned + " of " + dm.searchDemand.usersTotal + " accounts" : "unavailable") + (dm.pool ? " · Radar pool records: " + dm.pool.total + " (" + dm.pool.sampled + " sampled)" : "") + "</div>";
+      var cens = Object.keys(dm.census || {}).map(function (f) { return [f, dm.census[f]]; }).filter(function (x) { return x[1].pop; }).sort(function (a, b) { return b[1].pop - a[1].pop; }).slice(0, 14);
+      $("puDemandCensus").innerHTML = cens.length ? cens.map(function (x) {
+        var c = x[1];
+        return '<div class="pu-row"><span><b>' + esc(x[0]) + '</b><br><span class="pu-mini">non-official language at home: ' + (c.pctNonOfficialAtHome != null ? c.pctNonOfficialAtHome + "%" : "—") + " · owners " + (c.pctOwner != null ? c.pctOwner + "%" : "—") + '</span></span><span class="pu-mini">pop ' + Number(c.pop).toLocaleString("en-CA") + "<br>income " + (c.medianIncome ? puMoney(c.medianIncome) : "—") + "</span></div>";
+      }).join("") : '<div class="empty">No census overlay available.</div>';
+      puEnsureLeaflet().then(function (okL) {
+        if (!okL || !window.L) { $("puMap").innerHTML = '<div class="empty" style="padding:34px">Map library could not load (CDN) — the tables below carry the same data.</div>'; return; }
+        if (puMapObj) { puMapObj.remove(); puMapObj = null; }
+        puMapObj = L.map("puMap").setView([49.25, -122.95], 10);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors", maxZoom: 18 }).addTo(puMapObj);
+        (dm.supply || []).forEach(function (s) {
+          if (!s.coords) return;
+          var dem = demByCity[s.city.toLowerCase()] || 0;
+          L.circleMarker(s.coords, { radius: 8 + Math.min(14, s.count * 2), color: "#C9A24B", weight: 2, fillColor: "#C9A24B", fillOpacity: 0.35 }).addTo(puMapObj)
+            .bindPopup("<b>" + esc(s.city) + "</b><br>Active listings: " + s.count + (s.median ? "<br>Median: " + puMoney(s.median) : "") + "<br>Demand signals: " + dem + "<br><i>" + (dem > s.count ? "More demand than supply — prospecting opportunity." : dem === 0 ? "No recorded demand yet." : "Supply ahead of recorded demand.") + "</i>");
+          if (dem > 0) L.circleMarker(s.coords, { radius: 4 + Math.min(10, dem * 2), color: "#E6CB7E", weight: 1, fillColor: "#E6CB7E", fillOpacity: 0.9 }).addTo(puMapObj);
+        });
+      });
+    }).catch(function () { $("puDemandCities").innerHTML = '<div class="empty">Could not load demand data.</div>'; });
+  }
+
+  // ---------- system 5: automation rules ----------
+  var puRulesArr = [], puRuleEditing = null;
+  function puTrigLabel(v) { var s = v; PU_TRIGGERS().forEach(function (p) { if (p[0] === v) s = p[1]; }); return s; }
+  function puActLabel(v) { var s = v; PU_ACTIONS().forEach(function (p) { if (p[0] === v) s = p[1]; }); return s; }
+  function puActionRow(i, a) {
+    a = a || {};
+    return '<div class="pu-filters" style="margin-bottom:8px"><label>Action ' + (i + 1) + ' <select id="puA' + i + 'Type">' +
+      PU_ACTIONS().map(function (p) { return '<option value="' + p[0] + '"' + (a.type === p[0] ? " selected" : "") + ">" + p[1] + "</option>"; }).join("") + "</select></label>" +
+      '<label>Text (task / note) <input id="puA' + i + 'Text" type="text" style="width:230px" value="' + esc(a.text || "") + '"></label>' +
+      '<label>Due in days (tasks) <input id="puA' + i + 'Due" type="number" min="0" max="30" style="width:80px" value="' + (a.dueDays != null ? a.dueDays : 1) + '"></label>' +
+      '<label class="pu-chk"><input type="checkbox" id="puA' + i + 'On"' + (a.type ? " checked" : "") + "> Use</label></div>";
+  }
+  function puRuleFormFill(r) {
+    $("puRuleFormTitle").textContent = r ? "Edit rule" : "Add a rule";
+    $("puRName").value = r ? r.name : "";
+    $("puRTrigger").value = r ? r.trigger : "lead_created";
+    $("puRCondSource").value = r && r.conditions ? (r.conditions.source || "") : "";
+    $("puRCondStage").value = r && r.conditions ? (r.conditions.stage || "") : "";
+    $("puRCondDays").value = r && r.conditions && r.conditions.days ? r.conditions.days : 7;
+    $("puREnabled").checked = r ? !!r.enabled : true;
+    $("puRActionRows").innerHTML = [0, 1, 2].map(function (i) { return puActionRow(i, r && r.actions ? r.actions[i] : (i === 0 ? { type: "create_followup", text: "", dueDays: 1 } : null)); }).join("");
+    $("puRuleCancel").hidden = !r;
+    $("puRuleMsg").textContent = "";
+    puRuleEditing = r ? r.id : null;
+  }
+  function puLoadRules() {
+    if (!token) return;
+    if (!$("puRTrigger").options.length) {
+      $("puRTrigger").innerHTML = PU_TRIGGERS().map(function (p) { return '<option value="' + p[0] + '">' + p[1] + "</option>"; }).join("");
+      $("puRCondSource").innerHTML = '<option value="">Any source</option>' + PU_SOURCES().map(function (x) { return '<option value="' + x + '">' + x + "</option>"; }).join("");
+      $("puRCondStage").innerHTML = '<option value="">Any stage</option>' + Object.keys(PU_STAGE_LABEL()).map(function (x) { return '<option value="' + x + '">' + PU_STAGE_LABEL()[x] + "</option>"; }).join("");
+      puRuleFormFill(null);
+    }
+    api(API_URL, "/api/admin/rules").then(function (d) {
+      if (!d || !d.ok) { $("puRulesList").innerHTML = '<div class="empty">Could not load rules.</div>'; return; }
+      puRulesArr = d.rules || [];
+      $("puRulesList").innerHTML = puRulesArr.length ? puRulesArr.map(function (r, i) {
+        return '<div class="pu-row"><span><b>' + esc(r.name) + '</b> <span class="pu-mini">' + (r.enabled ? "🟢 on" : "⚪ off") + "</span>" +
+          '<br><span class="pu-mini">When: ' + esc(puTrigLabel(r.trigger)) + (r.conditions && r.conditions.source ? " · source " + esc(r.conditions.source) : "") + (r.conditions && r.conditions.stage ? " · stage " + esc(r.conditions.stage) : "") + (r.conditions && r.conditions.days ? " · " + r.conditions.days + "d" : "") +
+          "<br>Then: " + r.actions.map(function (a) { return esc(puActLabel(a.type)); }).join(" + ") + '</span></span>' +
+          '<span><button class="ghost small" data-rule-toggle="' + i + '">' + (r.enabled ? "Disable" : "Enable") + '</button> <button class="ghost small" data-rule-edit="' + i + '">Edit</button> <button class="ghost small" data-rule-del="' + i + '">Delete</button></span></div>';
+      }).join("") : '<div class="empty">No rules yet.</div>';
+      Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-toggle]"), function (b) { b.addEventListener("click", function () { var r = puRulesArr[Number(b.getAttribute("data-rule-toggle"))]; r.enabled = !r.enabled; puSaveRules(); }); });
+      Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-edit]"), function (b) { b.addEventListener("click", function () { puRuleFormFill(puRulesArr[Number(b.getAttribute("data-rule-edit"))]); window.scrollTo({ top: $("puRuleFormTitle").offsetTop - 80, behavior: "smooth" }); }); });
+      Array.prototype.forEach.call($("puRulesList").querySelectorAll("[data-rule-del]"), function (b) { b.addEventListener("click", function () { if (!confirm("Delete this rule?")) return; puRulesArr.splice(Number(b.getAttribute("data-rule-del")), 1); puSaveRules(); }); });
+    }).catch(function () { $("puRulesList").innerHTML = '<div class="empty">Could not load rules.</div>'; });
+    api(API_URL, "/api/admin/rules/log").then(function (d) {
+      var log = (d && d.log) || [];
+      $("puRulesLog").innerHTML = log.length ? log.slice(0, 30).map(function (e) { return '<div class="pu-row"><span>' + esc(e.rule || e.ruleId) + '<br><span class="pu-mini">' + esc(e.trigger) + " → " + (e.actions || []).join(", ") + '</span></span><span class="pu-mini">' + esc(fmtDate(e.at)) + "</span></div>"; }).join("") : '<div class="empty">No firings yet.</div>';
+    }).catch(function () {});
+  }
+  function puSaveRules() {
+    api(API_URL, "/api/admin/rules", { method: "PUT", body: JSON.stringify({ rules: puRulesArr }) }).then(function (d) {
+      if (d && d.ok) { toast("Rules saved ✓"); puLoadRules(); }
+      else toast("Could not save rules");
+    }).catch(function () { toast("Could not save rules"); });
+  }
+  $("puRuleSave").addEventListener("click", function () {
+    var actions = [];
+    [0, 1, 2].forEach(function (i) { if ($("puA" + i + "On") && $("puA" + i + "On").checked) actions.push({ type: $("puA" + i + "Type").value, text: $("puA" + i + "Text").value, dueDays: Number($("puA" + i + "Due").value || 0) }); });
+    if (!actions.length) { $("puRuleMsg").textContent = "Pick at least one action."; return; }
+    var cond = {};
+    if ($("puRCondSource").value) cond.source = $("puRCondSource").value;
+    if ($("puRCondStage").value) cond.stage = $("puRCondStage").value;
+    if ($("puRTrigger").value === "lead_cold") cond.days = Number($("puRCondDays").value || 7);
+    var rule = { id: puRuleEditing || "", name: $("puRName").value || "Untitled rule", enabled: $("puREnabled").checked, trigger: $("puRTrigger").value, conditions: cond, actions: actions };
+    if (puRuleEditing) { for (var i = 0; i < puRulesArr.length; i++) if (puRulesArr[i].id === puRuleEditing) puRulesArr[i] = rule; }
+    else puRulesArr.push(rule);
+    puRuleEditing = null;
+    puSaveRules();
+    puRuleFormFill(null);
+  });
+  $("puRuleCancel").addEventListener("click", function () { puRuleFormFill(null); });
+
+  // ---------- systems 6+7: report generator core (Black & Gold) ----------
+  function puDocT(lang) {
+  var T = {
+    en: { perf: "Listing performance report", prop: "Property report", handbook: "Showing handbook", views: "Views", saves: "Saves", bookings: "Viewing bookings", leadsGen: "Leads generated", since: "Tracking since", market: "Market context", neigh: "Neighbourhood", schools: "Schools in this city", pop: "Population (2021 Census)", income: "Median household income", owners: "Homeowners", renters: "Renters", age65: "Residents 65+", nonoff: "Non-official language at home", price: "Price", specs: "Property details", desc: "About this home", mortgage: "Indicative mortgage", down: "Down payment (20%)", principal: "Mortgage principal", rate: "Rate (5-yr fixed)", monthly: "Estimated monthly payment", estimate: "Estimate only — not a quote, pre-approval or financial advice.", viewing: "Your viewing", client: "Prepared for", contact: "Contact", fromfile: "From owner's file", photos: "Photos", type: "Type", beds: "Bedrooms", baths: "Bathrooms", sqft: "Living area (sq ft)", year: "Year built", strata: "Strata fee (monthly)", tax: "Property tax (annual)", parking: "Parking", benchmark: "Benchmark price", sales: "Sales", board: "Board statistics", disc1: "Erfan Hakimian is not yet a licensed REALTOR® in British Columbia. This document is general information only and is not an offer of real estate services.", disc2: "Figures are drawn from the sources named on this page (board statistics, Statistics Canada 2021 Census Profile, BC Ministry of Education school data and platform records). Property assessment values are not market value.", bestEffort: "Text extracted from the file on a best-effort basis; check the original file for exact wording.", map: "View on map" },
+    fa: { perf: "گزارش عملکرد آگهی", prop: "گزارش ملک", handbook: "دفترچه‌ی بازدید", views: "بازدید", saves: "ذخیره‌ها", bookings: "رزرو بازدید", leadsGen: "سرنخ‌های ایجادشده", since: "ردیابی از", market: "وضعیت بازار", neigh: "محله", schools: "مدارس این شهر", pop: "جمعیت (سرشماری ۲۰۲۱)", income: "درآمد میانه‌ی خانوار", owners: "مالکان", renters: "مستأجران", age65: "ساکنان ۶۵ سال به بالا", nonoff: "زبان غیررسمی در خانه", price: "قیمت", specs: "مشخصات ملک", desc: "درباره‌ی این خانه", mortgage: "برآورد وام مسکن", down: "پیش‌پرداخت (۲۰٪)", principal: "اصل وام", rate: "نرخ (ثابت ۵ ساله)", monthly: "قسط ماهانه‌ی برآوردی", estimate: "فقط برآورد است — نه پیشنهاد رسمی، نه تأییدیه و نه مشاوره‌ی مالی.", viewing: "بازدید شما", client: "تهیه‌شده برای", contact: "تماس", fromfile: "از پرونده‌ی مالک", photos: "عکس‌ها", type: "نوع", beds: "خواب", baths: "حمام", sqft: "متراژ (فوت مربع)", year: "سال ساخت", strata: "شارژ ماهانه", tax: "مالیات سالانه‌ی ملک", parking: "پارکینگ", benchmark: "قیمت معیار", sales: "فروش", board: "آمار هیئت املاک", disc1: "عرفان حکیمیان هنوز دارای پروانه‌ی رسمی مشاور املاک در بریتیش کلمبیا نیست. این سند صرفاً اطلاع‌رسانی عمومی است و پیشنهاد خدمات املاک محسوب نمی‌شود.", disc2: "اعداد از منابع نام‌برده در این صفحه گرفته شده‌اند (آمار هیئت‌های املاک، سرشماری ۲۰۲۱ آمار کانادا، داده‌های مدارس بریتیش کلمبیا و سوابق سامانه). ارزش ارزیابی مالیاتی، ارزش بازار نیست.", bestEffort: "متن از فایل با بهترین تلاش استخراج شده است؛ برای عبارت دقیق به فایل اصلی مراجعه کنید.", map: "مشاهده روی نقشه" },
+    hi: { perf: "लिस्टिंग प्रदर्शन रिपोर्ट", prop: "संपत्ति रिपोर्ट", handbook: "शोइंग हैंडबुक", views: "व्यूज़", saves: "सेव", bookings: "व्यूइंग बुकिंग", leadsGen: "बनी लीड्स", since: "ट्रैकिंग शुरू", market: "बाज़ार संदर्भ", neigh: "मोहल्ला", schools: "इस शहर के स्कूल", pop: "जनसंख्या (2021 जनगणना)", income: "मध्य घरेलू आय", owners: "घर मालिक", renters: "किरायेदार", age65: "65+ निवासी", nonoff: "घर पर गैर-आधिकारिक भाषा", price: "कीमत", specs: "संपत्ति विवरण", desc: "इस घर के बारे में", mortgage: "संकेतक बंधक", down: "डाउन पेमेंट (20%)", principal: "बंधक मूलधन", rate: "दर (5-वर्ष फिक्स्ड)", monthly: "अनुमानित मासिक भुगतान", estimate: "केवल अनुमान — कोई कोट, पूर्व-स्वीकृति या वित्तीय सलाह नहीं।", viewing: "आपकी व्यूइंग", client: "के लिए तैयार", contact: "संपर्क", fromfile: "मालिक की फ़ाइल से", photos: "तस्वीरें", type: "प्रकार", beds: "बेडरूम", baths: "बाथरूम", sqft: "क्षेत्रफल (वर्ग फ़ुट)", year: "निर्माण वर्ष", strata: "स्ट्राटा शुल्क (मासिक)", tax: "संपत्ति कर (वार्षिक)", parking: "पार्किंग", benchmark: "बेंचमार्क कीमत", sales: "बिक्री", board: "बोर्ड आँकड़े", disc1: "एरफ़ान हकीमियन अभी ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR® नहीं हैं। यह दस्तावेज़ केवल सामान्य जानकारी है और रियल एस्टेट सेवाओं का प्रस्ताव नहीं है।", disc2: "आँकड़े इस पृष्ठ पर नामित स्रोतों से हैं (बोर्ड आँकड़े, Statistics Canada 2021 जनगणना, BC शिक्षा मंत्रालय के स्कूल डेटा और प्लेटफ़ॉर्म रिकॉर्ड)। कर-मूल्यांकन मूल्य बाज़ार मूल्य नहीं है।", bestEffort: "पाठ फ़ाइल से सर्वोत्तम प्रयास से निकाला गया है; सटीक शब्दों के लिए मूल फ़ाइल देखें।", map: "मानचित्र पर देखें" },
+    zh: { perf: "房源表现报告", prop: "房产报告", handbook: "看房手册", views: "浏览量", saves: "收藏", bookings: "看房预约", leadsGen: "产生的客户线索", since: "统计起始", market: "市场背景", neigh: "社区概况", schools: "本市学校", pop: "人口(2021年人口普查)", income: "家庭收入中位数", owners: "自住业主", renters: "租户", age65: "65岁以上居民", nonoff: "在家使用非官方语言", price: "价格", specs: "房产详情", desc: "房源介绍", mortgage: "参考按揭", down: "首付(20%)", principal: "贷款本金", rate: "利率(5年固定)", monthly: "预计月供", estimate: "仅为估算 — 并非报价、预批或财务建议。", viewing: "您的看房安排", client: "为以下客户准备", contact: "联系方式", fromfile: "来自业主文件", photos: "照片", type: "类型", beds: "卧室", baths: "浴室", sqft: "面积(平方英尺)", year: "建造年份", strata: "管理费(每月)", tax: "房产税(每年)", parking: "停车位", benchmark: "基准价格", sales: "成交量", board: "地产局统计", disc1: "Erfan Hakimian 目前尚未在不列颠哥伦比亚省取得持牌 REALTOR® 资格。本文件仅提供一般信息,不构成房地产服务要约。", disc2: "数据来自本页注明来源(地产局统计、加拿大统计局2021年人口普查、BC省教育部学校数据及平台记录)。政府评估价并非市场价值。", bestEffort: "文字为尽力从文件中提取;准确措辞请查阅原文件。", map: "在地图上查看" }
+  };
+    return T[lang] || T.en;
+  }
+  function puDocOpen(title, lang, brand, bodyHtml) {
+    var D = puDocT(lang);
+    var w = window.open("", "_blank");
+    if (!w) { toast("Popup blocked — allow popups for the portal"); return; }
+    var name = (brand && brand.name) || "Erfan BC Real Estate"; // BRAND HEADER SLOT — name/contact come from site settings; the real brand swaps in by settings only
+    var contact = [brand && brand.email, brand && brand.phone].filter(Boolean).join(" · ");
+    var rtl = lang === "fa";
+    var css = '@page { size: A4; margin: 14mm; } * { box-sizing: border-box; } body { font-family: Georgia, "Times New Roman", serif; color: #15130E; background: #FAFAF8; margin: 0; line-height: 1.55; }' +
+      '.band { background: #0B0B0B; color: #FAFAF8; padding: 26px 30px 20px; border-bottom: 4px solid #C9A24B; }' +
+      '.brand { font-family: "Playfair Display", Georgia, serif; font-size: 27px; color: #C9A24B; letter-spacing: .02em; }' +
+      '.bcontact { font-size: 12.5px; opacity: .85; margin-top: 3px; } main { padding: 24px 30px 30px; }' +
+      'h1 { font-family: "Playfair Display", Georgia, serif; font-size: 24px; margin: 0 0 2px; } h2 { font-family: "Playfair Display", Georgia, serif; font-size: 17px; margin: 24px 0 8px; border-bottom: 2px solid #C9A24B; padding-bottom: 4px; }' +
+      '.sub { color: #6d675c; font-size: 13px; } table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; } td, th { padding: 6px 8px; border-bottom: 1px solid #e5e0d2; font-size: 13.5px; vertical-align: top; text-align: ' + (rtl ? "right" : "left") + '; } th { color: #6d675c; font-weight: normal; width: 38%; }' +
+      '.kpis { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; } .kpi { border: 1px solid #e5e0d2; border-top: 3px solid #C9A24B; padding: 10px 14px; min-width: 110px; background: #fff; } .kpi b { font-size: 20px; display: block; } .kpi span { font-size: 11.5px; color: #6d675c; }' +
+      '.fromfile { border: 1.5px dashed #C9A24B; background: #fffdf4; padding: 12px 14px; margin: 10px 0; white-space: pre-wrap; font-size: 13px; } .fftag { display: inline-block; background: #0B0B0B; color: #E6CB7E; font-size: 11px; padding: 2px 8px; border-radius: 999px; margin-bottom: 6px; }' +
+      '.photos img { width: 100%; max-height: 340px; object-fit: cover; margin: 0 0 10px; border: 1px solid #e5e0d2; } .photos2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .photos2 img { width: 100%; height: 190px; object-fit: cover; border: 1px solid #e5e0d2; }' +
+      '.disc { font-size: 11px; color: #6d675c; margin-top: 26px; border-top: 1px solid #e5e0d2; padding-top: 10px; } .price { font-family: "Playfair Display", Georgia, serif; font-size: 26px; } @media print { body { background: #fff; } }';
+    var html = '<!DOCTYPE html><html lang="' + lang + '"' + (rtl ? ' dir="rtl"' : "") + '><head><meta charset="utf-8"><title>' + esc(title) + "</title><style>" + css + '</style></head><body><div class="band"><div class="brand">' + esc(name) + "</div>" + (contact ? '<div class="bcontact">' + esc(contact) + "</div>" : "") + "</div><main>" + bodyHtml +
+      '<div class="disc">' + esc(D.disc1) + "<br>" + esc(D.disc2) + "</div></main></body></html>";
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function () { try { w.focus(); w.print(); } catch (e) {} }, 400);
+  }
+  function puSpecRows(D, h) {
+    var rows = [[D.price, puMoney(h.price)], [D.type, h.type || ""], [D.beds, h.beds != null ? h.beds : ""], [D.baths, h.baths != null ? h.baths : ""], [D.sqft, h.sqft != null ? h.sqft : ""], [D.year, h.year != null ? h.year : ""], [D.strata, h.strata != null ? puMoney(h.strata) : ""], [D.tax, h.tax != null ? puMoney(h.tax) : ""], [D.parking, h.parking || ""]];
+    return "<table>" + rows.filter(function (r) { return r[1] !== "" && r[1] != null; }).map(function (r) { return "<tr><th>" + esc(r[0]) + "</th><td>" + esc(String(r[1])) + "</td></tr>"; }).join("") + "</table>";
+  }
+  function puNeighHtml(D, nb) {
+    if (!nb) return "";
+    var out = "<h2>" + D.neigh + "</h2>";
+    if (nb.census) {
+      var c = nb.census;
+      out += "<table>" + [[D.pop, c.pop != null ? Number(c.pop).toLocaleString("en-CA") : ""], [D.income, c.medianIncome ? puMoney(c.medianIncome) : ""], [D.owners, c.pctOwner != null ? c.pctOwner + "%" : ""], [D.renters, c.pctRenter != null ? c.pctRenter + "%" : ""], [D.age65, c.pctAge65plus != null ? c.pctAge65plus + "%" : ""], [D.nonoff, c.pctNonOfficialAtHome != null ? c.pctNonOfficialAtHome + "%" : ""]].filter(function (r) { return r[1] !== ""; }).map(function (r) { return "<tr><th>" + esc(r[0]) + "</th><td>" + esc(String(r[1])) + "</td></tr>"; }).join("") + "</table>";
+    }
+    if (nb.schools && nb.schools.length) out += "<b>" + D.schools + "</b><br>" + nb.schools.map(function (s) { return esc(s.name); }).join(" · ");
+    return out;
+  }
+  function puMarketHtml(D, m) {
+    if (!m) return "";
+    var out = "<h2>" + D.market + " — " + esc(m.month || "") + "</h2><table>";
+    if (m.gvr && m.gvr.benchmark) out += "<tr><th>GVR " + D.benchmark + "</th><td>" + puMoney(m.gvr.benchmark) + "</td></tr>";
+    if (m.fvreb && m.fvreb.benchmark) out += "<tr><th>FVREB " + D.benchmark + "</th><td>" + puMoney(m.fvreb.benchmark) + "</td></tr>";
+    if (m.bc && m.bc.sales != null) out += "<tr><th>BC " + D.sales + "</th><td>" + Number(m.bc.sales).toLocaleString("en-CA") + "</td></tr>";
+    out += "</table>";
+    var srcs = [m.gvr && m.gvr.source ? "GVR " + m.gvr.sourceDate : "", m.bc && m.bc.source ? m.bc.source + " " + m.bc.sourceDate : ""].filter(Boolean).join(" · ");
+    if (srcs) out += '<div class="sub">' + D.board + ": " + esc(srcs) + "</div>";
+    return out;
+  }
+  function puPhotoUrl(p) { if (/^https?:\/\//.test(p)) return p; if (p.charAt(0) === "/") return SITE_URL + p; return SITE_URL + "/" + p; }
+  function puFetchFileBlob(id) { return fetch(API_URL + "/api/admin/files/" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + token } }).then(function (r) { return r.blob(); }); }
+  function puPdfText(buf) {
+    return (async function () {
+      var bytes = new Uint8Array(buf);
+      var latin = "";
+      for (var i = 0; i < bytes.length; i += 8192) latin += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(bytes.length, i + 8192)));
+      var streams = latin.match(/stream\r?\n[\s\S]*?\r?\nendstream/g) || [];
+      var text = "";
+      for (var si = 0; si < streams.length && si < 24; si++) {
+        var raw = streams[si].replace(/^stream\r?\n/, "").replace(/\r?\nendstream$/, "");
+        var rb = new Uint8Array(raw.length);
+        for (var j = 0; j < raw.length; j++) rb[j] = raw.charCodeAt(j) & 255;
+        var content = null;
+        try { var dec = await new Response(new Blob([rb]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer(); var db = new Uint8Array(dec); content = ""; for (var k = 0; k < db.length; k += 8192) content += String.fromCharCode.apply(null, db.subarray(k, Math.min(db.length, k + 8192))); } catch (e) {}
+        if (!content) continue;
+        var m2, re = /\((?:\\.|[^()\\])*\)\s*(?:Tj|TJ)/g;
+        while ((m2 = re.exec(content)) !== null) { text += m2[0].replace(/\s*(?:Tj|TJ)$/, "").slice(1, -1).replace(/\\([()\\])/g, "$1").replace(/\\n/g, " ") + " "; }
+        if (text.length < 40) { var re2 = /\((?:\\.|[^()\\])*\)/g; while ((m2 = re2.exec(content)) !== null) text += m2[0].slice(1, -1).replace(/\\([()\\])/g, "$1") + " "; }
+      }
+      return text.replace(/\s+/g, " ").trim().slice(0, 4000);
+    })();
+  }
+  async function puFilesHtml(D, files, include) {
+    if (!include || !files || !files.length) return "";
+    var out = "";
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      try {
+        var blob = await puFetchFileBlob(f.id);
+        if (/^image\//.test(f.type || "")) {
+          var du = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(blob); });
+          out += '<div class="fromfile"><span class="fftag">📁 ' + esc(D.fromfile) + " · " + esc(f.name) + '</span><br><img src="' + du + '" style="max-width:100%"></div>';
+        } else if (f.type === "application/pdf") {
+          var tx = await puPdfText(await blob.arrayBuffer());
+          out += '<div class="fromfile"><span class="fftag">📁 ' + esc(D.fromfile) + " · " + esc(f.name) + "</span><br>" + esc(tx || "(no extractable text layer)") + '<br><span class="sub">' + esc(D.bestEffort) + "</span></div>";
+        } else if (/^text\//.test(f.type || "")) {
+          out += '<div class="fromfile"><span class="fftag">📁 ' + esc(D.fromfile) + " · " + esc(f.name) + "</span><br>" + esc((await blob.text()).slice(0, 4000)) + "</div>";
+        }
+      } catch (e) {}
+    }
+    return out;
+  }
+  // reports page wiring
+  var puListingsCache = [];
+  function puFillListingSelects() {
+    return api(API_URL, "/api/admin/listings").then(function (d) {
+      var all = [];
+      if (d && d.ok) { (d.seeds || []).forEach(function (r) { all.push(r); }); (d.listings || []).forEach(function (r) { all.push(r); }); }
+      puListingsCache = all;
+      var opts = all.map(function (r) { return '<option value="' + esc(r.mls) + '">' + esc(r.mls) + " — " + esc(r.street || "") + ", " + esc(r.city || "") + "</option>"; }).join("");
+      $("puFileMls").innerHTML = '<option value="">— standalone / all —</option>' + opts;
+      $("puRepMls").innerHTML = opts;
+      $("puHbMls").innerHTML = opts;
+    }).catch(function () {});
+  }
+  function puLoadFiles() {
+    var mls = $("puFileMls").value;
+    api(API_URL, "/api/admin/files" + (mls ? "?mls=" + encodeURIComponent(mls) : "")).then(function (d) {
+      var files = (d && d.files) || [];
+      $("puFilesList").innerHTML = files.length ? files.map(function (f) {
+        return '<div class="pu-row"><span>📄 <b>' + esc(f.name) + '</b><br><span class="pu-mini">' + esc(f.type) + " · " + Math.round(f.size / 1024) + " KB" + (f.mls ? " · " + esc(f.mls) : " · standalone") + " · " + esc(fmtDate(f.at)) + '</span></span><span><button class="ghost small" data-file-dl="' + esc(f.id) + '">Download</button> <button class="ghost small" data-file-del="' + esc(f.id) + '">Delete</button></span></div>';
+      }).join("") : '<div class="empty">No files for this selection.</div>';
+      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-dl]"), function (b) { b.addEventListener("click", function () { puFetchFileBlob(b.getAttribute("data-file-dl")).then(function (blob) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "file"; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); }); }); });
+      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-del]"), function (b) { b.addEventListener("click", function () { if (!confirm("Delete this file?")) return; api(API_URL, "/api/admin/files/" + encodeURIComponent(b.getAttribute("data-file-del")), { method: "DELETE" }).then(function () { puLoadFiles(); }); }); });
+    }).catch(function () { $("puFilesList").innerHTML = '<div class="empty">Could not load files.</div>'; });
+  }
+  function puLoadReports() {
+    if (!token) return;
+    if (!$("puRepLang").options.length) {
+      var lopts = NL_LANGS.map(function (p) { return '<option value="' + p[0] + '">' + esc(p[1]) + "</option>"; }).join("");
+      $("puRepLang").innerHTML = lopts;
+      $("puHbLang").innerHTML = lopts;
+    }
+    puFillListingSelects().then(function () { puLoadFiles(); });
+    api(API_URL, "/api/leads").then(function (d) {
+      var ll = (d && d.leads) || leads || [];
+      $("puHbLead").innerHTML = '<option value="">— no specific client —</option>' + ll.map(function (l) { return '<option value="' + esc(l.id) + '">' + esc(l.name || l.email || l.id) + "</option>"; }).join("");
+    }).catch(function () {});
+  }
+  $("puFileMls").addEventListener("change", puLoadFiles);
+  $("puFileUpload").addEventListener("click", function () {
+    var inp = $("puFileInput");
+    if (!inp.files || !inp.files.length) { toast("Choose a file first"); return; }
+    var file = inp.files[0];
+    if (file.size > 3 * 1024 * 1024) { toast("That file is over the 3 MB limit"); return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var b64 = String(fr.result).split(",")[1] || "";
+      api(API_URL, "/api/admin/files", { method: "POST", body: JSON.stringify({ name: file.name, type: file.type || "application/octet-stream", mls: $("puFileMls").value, dataBase64: b64 }) }).then(function (d) {
+        if (d && d.ok) { toast("File uploaded ✓"); inp.value = ""; puLoadFiles(); }
+        else toast("Upload failed" + (d && d.error ? ": " + d.error : ""));
+      }).catch(function () { toast("Upload failed"); });
+    };
+    fr.readAsDataURL(file);
+  });
+  $("puRepGen").addEventListener("click", async function () {
+    var type = $("puRepType").value, mls = $("puRepMls").value, lang = $("puRepLang").value, inc = $("puRepFiles").checked;
+    var D = puDocT(lang);
+    if (!mls) { toast("Pick a listing first"); return; }
+    $("puRepMsg").textContent = "Building…";
+    try {
+      var brandR = null;
+      try { var stR = await api(API_URL, "/api/settings"); if (stR && stR.settings) brandR = { name: stR.settings.brand || "", email: stR.settings.email || "", phone: stR.settings.phone || "" }; } catch (e) {}
+      if (type === "seller") {
+        var d = await api(API_URL, "/api/admin/reports/listing-performance?mls=" + encodeURIComponent(mls));
+        if (!d || !d.ok) throw new Error("bad");
+        var h = d.listing, p = d.perf;
+        var body = "<h1>" + esc(D.perf) + "</h1><div class=\"sub\">" + esc(h.street || "") + ", " + esc(h.city || "") + " · MLS " + esc(h.mls) + " · " + new Date().toLocaleDateString("en-CA") + "</div>" +
+          '<div class="price">' + puMoney(h.price) + "</div>" +
+          '<div class="kpis"><div class="kpi"><b>' + p.views + "</b><span>" + D.views + '</span></div><div class="kpi"><b>' + p.saves + "</b><span>" + D.saves + '</span></div><div class="kpi"><b>' + p.bookings + "</b><span>" + D.bookings + '</span></div><div class="kpi"><b>' + p.leads + "</b><span>" + D.leadsGen + "</span></div></div>" +
+          (p.since ? '<div class="sub">' + D.since + ": " + esc(fmtDate(p.since)) + "</div>" : "") +
+          puMarketHtml(D, d.market) + puNeighHtml(D, await (async function () { var pr = await api(API_URL, "/api/admin/reports/property?mls=" + encodeURIComponent(mls)); return pr && pr.neighbourhood; })()) +
+          (await puFilesHtml(D, d.files, inc));
+        puDocOpen(D.perf + " — " + h.mls, lang, brandR, body);
+      } else {
+        var d2 = await api(API_URL, "/api/admin/reports/property?mls=" + encodeURIComponent(mls));
+        if (!d2 || !d2.ok) throw new Error("bad");
+        var h2 = d2.listing;
+        var body2 = "<h1>" + esc(D.prop) + "</h1><div class=\"sub\">" + esc(h2.street || "") + ", " + esc(h2.city || "") + " · MLS " + esc(h2.mls) + "</div>" +
+          '<div class="price">' + puMoney(h2.price) + "</div>" + puSpecRows(D, h2) +
+          (h2.desc ? "<h2>" + D.desc + "</h2><p>" + esc(h2.desc[lang] || h2.desc.en || "") + "</p>" : "") +
+          puNeighHtml(D, d2.neighbourhood) + puMarketHtml(D, d2.market) +
+          '<p><a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((h2.street || "") + ", " + (h2.city || "") + ", BC") + '">' + D.map + "</a></p>" +
+          (await puFilesHtml(D, d2.files, inc));
+        puDocOpen(D.prop + " — " + h2.mls, lang, brandR, body2);
+      }
+      $("puRepMsg").textContent = "Opened — use “Save as PDF” in the print dialog.";
+    } catch (e) { $("puRepMsg").textContent = "Could not build the report."; }
+  });
+  $("puHbGen").addEventListener("click", async function () {
+    var mls = $("puHbMls").value, leadId = $("puHbLead").value, lang = $("puHbLang").value;
+    if (!mls) { toast("Pick a listing first"); return; }
+    $("puHbMsg").textContent = "Building…";
+    try {
+      var d = await api(API_URL, "/api/admin/handbook-data?mls=" + encodeURIComponent(mls) + (leadId ? "&leadId=" + encodeURIComponent(leadId) : ""));
+      if (!d || !d.ok) throw new Error("bad");
+      var useLang = (d.client && d.client.lang) || lang;
+      var D = puDocT(useLang);
+      var h = d.listing;
+      var photos = (d.photos || []).map(puPhotoUrl);
+      var body = "<h1>" + esc(D.handbook) + "</h1><div class=\"sub\">" + esc(h.street || "") + ", " + esc(h.city || "") + " · MLS " + esc(h.mls) + "</div>" +
+        '<div class="price">' + puMoney(h.price) + "</div>";
+      if (d.client) body += "<h2>" + D.client + "</h2><p><b>" + esc(d.client.name || "") + "</b>" + (d.client.email ? " · " + esc(d.client.email) : "") + (d.client.phone ? " · " + esc(d.client.phone) : "") + "</p>";
+      if (d.viewing) body += "<h2>" + D.viewing + "</h2><p><b>" + esc(d.viewing.date) + " · " + esc(d.viewing.time) + "</b> (" + esc(d.viewing.status) + ")</p>";
+      if (photos.length) body += "<h2>" + D.photos + '</h2><div class="photos">' + (photos[0] ? '<img src="' + esc(photos[0]) + '">' : "") + "</div>" + (photos.length > 1 ? '<div class="photos2">' + photos.slice(1).map(function (p) { return '<img src="' + esc(p) + '">'; }).join("") + "</div>" : "");
+      body += puSpecRows(D, h);
+      if (h.desc) body += "<h2>" + D.desc + "</h2><p>" + esc(h.desc[useLang] || h.desc.en || "") + "</p>";
+      body += puNeighHtml(D, d.neighbourhood);
+      if (d.mortgage) {
+        var mg = d.mortgage;
+        body += "<h2>" + D.mortgage + "</h2><table>" +
+          "<tr><th>" + D.down + "</th><td>" + puMoney(mg.downPayment) + "</td></tr>" +
+          "<tr><th>" + D.principal + "</th><td>" + puMoney(mg.principal) + "</td></tr>" +
+          "<tr><th>" + D.rate + "</th><td>" + mg.ratePct + "% (" + esc(mg.rateSource) + ")</td></tr>" +
+          "<tr><th>" + D.monthly + "</th><td><b>" + puMoney(mg.monthly) + "</b></td></tr></table>" +
+          '<div class="sub">' + esc(D.estimate) + "</div>";
+      }
+      body += '<p><a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((h.street || "") + ", " + (h.city || "") + ", BC") + '">' + D.map + "</a></p>";
+      body += (await puFilesHtml(D, d.files, true));
+      puDocOpen(D.handbook + " — " + h.mls, useLang, d.brand, body);
+      $("puHbMsg").textContent = "Opened — use “Save as PDF” in the print dialog.";
+    } catch (e) { $("puHbMsg").textContent = "Could not build the handbook."; }
+  });
+
+  // ---------- system 2 surfacing: leads table chips + lead detail ----------
+  var puScoreMap = null;
+  function puEnsureScores(cb) {
+    if (puScoreMap) { cb(); return; }
+    api(API_URL, "/api/admin/lead-scores").then(function (d) { if (d && d.ok) puScoreMap = d.scores; cb(); }).catch(function () { cb(); });
+  }
+  function puEnhanceLeadRows() {
+    if (!puScoreMap) return;
+    Array.prototype.forEach.call(document.querySelectorAll("#leadRows tr[data-id]"), function (tr) {
+      var s = puScoreMap[tr.getAttribute("data-id")];
+      if (!s) return;
+      var cell = tr.querySelectorAll("td")[1];
+      if (cell && !cell.querySelector(".pu-chip")) cell.innerHTML += " " + puChip(s);
+    });
+  }
+  var renderLeadsPU = renderLeads;
+  renderLeads = function () { renderLeadsPU(); puEnsureScores(puEnhanceLeadRows); };
+  var openDetailPU = openDetail;
+  openDetail = function (id) {
+    openDetailPU(id);
+    puEnsureScores(function () {
+      if (currentId !== id) return;
+      var s = puScoreMap && puScoreMap[id];
+      var body = $("dBody");
+      if (!body) return;
+      var html = '<div class="kv"><b>Lead score</b>' + (s ? puChip(s) + " " + esc(s.band.toUpperCase()) + '<br><span class="pu-mini">' + s.reasons.map(puReasonText).join(" · ") + "</span>" : "—") + "</div>";
+      if (s && s.next) html += '<div class="kv"><b>Next best action</b>' + esc(s.next.text) + "</div>";
+      html += '<div style="margin-top:8px"><button class="ghost small" id="puDraftBtn">✉️ Queue follow-up draft (held)</button> <span class="pu-mini" id="puDraftMsg"></span></div>';
+      body.innerHTML += html;
+      var b = $("puDraftBtn");
+      if (b) b.addEventListener("click", function () { puQueueDraft(id, $("puDraftMsg")); });
+    });
+  };
+
+  // ---------- system 9: command palette extension ----------
+  var gsBuildPU = gsBuild;
+  gsBuild = function () {
+    return gsBuildPU().then(function (items) {
+      var extra = [
+        { kind: "Action", icon: "🌅", title: "Open Today", sub: "Portal action", hay: "open today dashboard home start", act: function () { go("today"); } },
+        { kind: "Action", icon: "🗂", title: "Open lead pipeline", sub: "Portal action", hay: "pipeline board kanban stages crm leads", act: function () { go("pipeline"); } },
+        { kind: "Action", icon: "➕", title: "New listing", sub: "Portal action", hay: "new listing add create property", act: function () { go("listings"); var b = $("lstAdd"); if (b) b.click(); } },
+        { kind: "Action", icon: "🗺", title: "Demand map", sub: "Portal action", hay: "demand map areas prospecting supply", act: function () { go("demand"); } },
+        { kind: "Action", icon: "⚙️", title: "Automation rules", sub: "Portal action", hay: "rules automation triggers followup", act: function () { go("rules"); } },
+        { kind: "Action", icon: "📖", title: "Reports & handbook", sub: "Portal action", hay: "report handbook pdf seller property generate files", act: function () { go("reports"); } },
+        { kind: "Action", icon: "▶️", title: "Run automations now", sub: "Portal action", hay: "run automations alerts reminders followups now", act: function () { api(API_URL, "/api/admin/followups/run", { method: "POST", body: "{}" }).then(function () { toast("Automations ran ✓"); }); } }
+      ];
+      return api(API_URL, "/api/market-leads").then(function (d) {
+        ((d && d.leads) || []).forEach(function (m) {
+          extra.push({ kind: "Radar pair", icon: "📡", title: m.title || "(untitled)", sub: [m.area, m.kind, m.matchScore ? "match " + m.matchScore : ""].filter(Boolean).join(" · "), hay: ((m.title || "") + " " + (m.area || "")).toLowerCase(), act: function () { go("radar"); } });
+        });
+        return items.concat(extra);
+      }).catch(function () { return items.concat(extra); });
+    });
+  };
+  var gsRenderPU = gsRender, gsServerQ = "";
+  gsRender = function () {
+    gsRenderPU();
+    var q = ($("gsInput").value || "").trim().toLowerCase();
+    if (q.length >= 2 && gsItems && gsShown.length === 0 && gsServerQ !== q) {
+      gsServerQ = q;
+      api(API_URL, "/api/admin/search?q=" + encodeURIComponent(q)).then(function (d) {
+        if (!d || !d.ok || !gsItems) return;
+        var added = [];
+        (d.leads || []).forEach(function (l) { added.push({ kind: "Lead", icon: "🧲", title: l.name || "(no name)", sub: [l.email, l.stage].filter(Boolean).join(" · "), hay: ((l.name || "") + " " + (l.email || "")).toLowerCase(), act: function () { go("leads"); openDetail(l.id); } }); });
+        (d.listings || []).forEach(function (h) { added.push({ kind: "Listing", icon: "🏠", title: (h.street || "") + ", " + (h.city || ""), sub: "MLS " + h.mls, hay: ((h.street || "") + " " + (h.city || "") + " " + h.mls).toLowerCase(), act: function () { go("listings"); } }); });
+        (d.viewings || []).forEach(function (v) { added.push({ kind: "Viewing", icon: "📅", title: (v.name || "") + " — " + (v.date || "") + " " + (v.time || ""), sub: v.listingId || "", hay: ((v.name || "") + " " + (v.email || "")).toLowerCase(), act: function () { go("viewings"); } }); });
+        (d.pairs || []).forEach(function (m) { added.push({ kind: "Radar pair", icon: "📡", title: m.title || "(untitled)", sub: m.area || "", hay: ((m.title || "") + " " + (m.area || "")).toLowerCase(), act: function () { go("radar"); } }); });
+        if (added.length) { gsItems = gsItems.concat(added); gsRenderPU(); }
+      }).catch(function () {});
+    }
+  };
+
   if (token) { showApp(); loadAll(); } else { showLogin(); }
 })();
 </script>
-<div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(5,13,24,.6);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
-  <div style="background:#0d1f33;border:1px solid #28455f;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
-    <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #22384f;color:#eef4fa;outline:none">
+<div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
+  <div style="background:#161513;border:1px solid #2E2A23;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
+    <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #2E2A23;color:#F5F1E8;outline:none">
     <div id="gsResults" style="max-height:56vh;overflow:auto;padding:8px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #22384f"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #2E2A23"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
   </div>
 </div>
 <script>
@@ -3147,7 +3844,7 @@
   }
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/portal-sw.js").catch(function () {}); }
   var chip = document.createElement("div");
-  chip.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:400;background:#132740;border:1px solid #c6a15b;color:#e9eef5;border-radius:999px;padding:7px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none";
+  chip.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:400;background:#201D18;border:1px solid #C9A24B;color:#F5F1E8;border-radius:999px;padding:7px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none";
   document.body.appendChild(chip);
   function showStale(whenMs) {
     var d = whenMs ? new Date(whenMs) : null;
@@ -3180,7 +3877,7 @@
     var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
     api2("/api/admin/push/status").then(function (d) {
       if (!d || !d.ok) { el.innerHTML = '<div class="empty">Could not load alert status.</div>'; return; }
-      puState = d.push;
+      puState = d.push || { configured: false, sending: "disabled", subscriptions: 0 };
       var subP = ("serviceWorker" in navigator) ? navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).catch(function () { return null; }) : Promise.resolve(null);
       subP.then(function (sub) {
         var lines = [];
@@ -3208,7 +3905,7 @@
   function puEnable() {
     Notification.requestPermission().then(function (perm) {
       if (perm !== "granted") { alert("Notifications are blocked in this browser — allow them for this site, then try again."); return; }
-      var ensure = (puState && puState.publicKey) ? Promise.resolve(puState) : api2("/api/admin/push/ensure-keys", { method: "POST" }).then(function (d) { puState = d.push; return d.push; });
+      var ensure = (puState && puState.publicKey) ? Promise.resolve(puState) : api2("/api/admin/push/ensure-keys", { method: "POST" }).then(function (d) { puState = (d && d.push) || puState; return puState; });
       ensure.then(function (s) {
         return navigator.serviceWorker.ready.then(function (reg) {
           return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(s.publicKey) });
