@@ -997,8 +997,15 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var tiles = "", msg = "", warn = false;
       if (mpRates && mpRates.ok) {
         tiles += mpRateTile("mp_policy", mpPct(mpRates.policy.value), "Bank of Canada · " + mpRates.policy.date);
-        tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + mpRates.prime.date);
-        tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + mpRates.bond5.date);
+        /* Pack I (MP-01 M3): prime / bond5 may arrive null (their Valet
+           series missing or older than its freshness cap — the worker
+           reports them in mpRates.missing). Degrade per tile: prime
+           falls back to the dated dataset snapshot (labelled as such,
+           like the no-live-data path below); the bond has no snapshot
+           counterpart, so its tile is omitted rather than faked. */
+        if (mpRates.prime) tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + mpRates.prime.date);
+        else if (snap && snap.prime != null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
+        if (mpRates.bond5) tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + mpRates.bond5.date);
         mpDrawPolicy(mpRates.policySeries);
         if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) }); warn = true; }
         else msg = fill(t.mp_live_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) });
