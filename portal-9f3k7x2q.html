@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="/portal-manifest.webmanifest">
+<meta name="theme-color" content="#0B2239">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Site Admin">
+<link rel="apple-touch-icon" href="/portal-icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/portal-icon-192.png">
 <title>Site Admin — Erfan BC Real Estate</title>
 <style>
   :root { color-scheme: dark; --bg:#081320; --panel:#0d1d30; --panel2:#132740; --line:#22344d; --txt:#e9eef5; --mut:#9db0c2; --acc:#c6a15b; --acc2:#a9863f; --good:#22c55e; --warn:#eab308; --bad:#ef4444; }
@@ -195,6 +203,10 @@
           <button class="ghost" id="qaSite">🌐 Open the website</button>
         </div>
         <div class="hint">Everything on the website that changes — leads from the contact form and virtual tours — is managed right here. Page content and listings are updated by your developer (Muse) for now; full listing management arrives with the live MLS feed.</div>
+      </div>
+      <div class="card" id="puPwaCard">
+        <h2>📲 Portal app &amp; alerts</h2>
+        <div id="puPushBody"><div class="empty">Loading…</div></div>
       </div>
     </section>
 
@@ -3119,5 +3131,110 @@
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #22384f"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
   </div>
 </div>
+<script>
+/* Portal upgrade — system 8: PWA + Web Push (2026-11-01). Standalone
+   block: the main portal script is an IIFE, so this block keeps its own
+   tiny API helper and reads the session token from the same storage
+   keys the portal itself uses. */
+(function () {
+  var API = "https://advisor-api.erfanbillion.workers.dev";
+  function tok() { try { return localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || ""; } catch (e) { return ""; } }
+  function api2(path, opts) {
+    opts = opts || {};
+    var h = { "Content-Type": "application/json" };
+    var t = tok(); if (t) h["Authorization"] = "Bearer " + t;
+    return fetch(API + path, { method: opts.method || "GET", headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) { return r.json(); });
+  }
+  if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/portal-sw.js").catch(function () {}); }
+  var chip = document.createElement("div");
+  chip.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:400;background:#132740;border:1px solid #c6a15b;color:#e9eef5;border-radius:999px;padding:7px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none";
+  document.body.appendChild(chip);
+  function showStale(whenMs) {
+    var d = whenMs ? new Date(whenMs) : null;
+    chip.textContent = "📴 Offline — showing saved data" + (d && !isNaN(d.getTime()) ? " from " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "");
+    chip.style.display = "block";
+  }
+  function hideStale() { chip.style.display = "none"; }
+  var _fetch = window.fetch.bind(window);
+  window.fetch = function () {
+    return _fetch.apply(null, arguments).then(function (res) {
+      try {
+        var at = res.headers.get("x-pu-cached-at");
+        if (at) showStale(parseInt(at, 10)); else if (navigator.onLine) hideStale();
+      } catch (e) {}
+      return res;
+    }, function (err) { showStale(null); throw err; });
+  };
+  window.addEventListener("offline", function () { showStale(null); });
+  window.addEventListener("online", function () { hideStale(); });
+  var deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferredInstall = e; puRenderPush(); });
+  function urlB64ToUint8(s) { var pad = "=".repeat((4 - (s.length % 4)) % 4); var b = atob((s + pad).replace(/-/g, "+").replace(/_/g, "/")); var out = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) out[i] = b.charCodeAt(i); return out; }
+  function esc2(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  var puState = null;
+  function puRenderPush() {
+    var el = document.getElementById("puPushBody");
+    if (!el) return;
+    if (!tok()) { el.innerHTML = '<div class="empty">Sign in to manage alerts.</div>'; return; }
+    var supported = ("serviceWorker" in navigator) && ("PushManager" in window) && ("Notification" in window);
+    var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    api2("/api/admin/push/status").then(function (d) {
+      if (!d || !d.ok) { el.innerHTML = '<div class="empty">Could not load alert status.</div>'; return; }
+      puState = d.push;
+      var subP = ("serviceWorker" in navigator) ? navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).catch(function () { return null; }) : Promise.resolve(null);
+      subP.then(function (sub) {
+        var lines = [];
+        lines.push('<div class="mut" style="margin-bottom:8px">Get an instant alert on this device when a <b>hot lead</b> arrives or a <b>viewing is booked</b>. Alerts are sent by the platform worker; email stays held as usual.</div>');
+        lines.push('<div style="font-size:13.5px;line-height:1.9">');
+        lines.push('Sending: <b>' + (puState.configured ? '🟢 Live' : '⚪ Not provisioned yet') + '</b>' + (puState.fingerprint ? ' · key <span class="mut">' + esc2(puState.fingerprint) + '</span>' : '') + '<br>');
+        lines.push('Subscribed devices: <b>' + puState.subscriptions + '</b>' + (sub ? ' · this device: <b>subscribed ✅</b>' : ' · this device: not subscribed') + '<br>');
+        lines.push('App: ' + (standalone ? '<b>installed ✅</b>' : 'not installed yet') + '</div>');
+        lines.push('<div class="row2" style="margin-top:10px">');
+        if (!supported) lines.push('<span class="mut">This browser does not support push alerts. On iPhone: install the portal to the Home Screen first (Share → Add to Home Screen), then open it from there and enable alerts.</span>');
+        else if (!sub) lines.push('<button id="puEnable">🔔 Enable alerts on this device</button>');
+        else lines.push('<button class="ghost" id="puDisable">🔕 Turn off alerts on this device</button>');
+        if (sub) lines.push('<button class="ghost" id="puTest">Send a test alert</button>');
+        if (!standalone && deferredInstall) lines.push('<button class="ghost" id="puInstall">⬇️ Install the portal app</button>');
+        lines.push('</div>');
+        if (!standalone && !deferredInstall) lines.push('<div class="hint" style="margin-top:8px">Tip: you can install this portal as an app — browser menu → “Install app” / “Add to Home Screen”. It opens full-screen and keeps your last data available offline (marked with a saved-data note).</div>');
+        el.innerHTML = lines.join("");
+        var en = document.getElementById("puEnable"); if (en) en.addEventListener("click", puEnable);
+        var dis = document.getElementById("puDisable"); if (dis) dis.addEventListener("click", puDisable);
+        var te = document.getElementById("puTest"); if (te) te.addEventListener("click", puTest);
+        var ins = document.getElementById("puInstall"); if (ins) ins.addEventListener("click", function () { if (deferredInstall) { deferredInstall.prompt(); deferredInstall.userChoice.then(function () { deferredInstall = null; puRenderPush(); }); } });
+      });
+    }).catch(function () { el.innerHTML = '<div class="empty">Could not load alert status.</div>'; });
+  }
+  function puEnable() {
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== "granted") { alert("Notifications are blocked in this browser — allow them for this site, then try again."); return; }
+      var ensure = (puState && puState.publicKey) ? Promise.resolve(puState) : api2("/api/admin/push/ensure-keys", { method: "POST" }).then(function (d) { puState = d.push; return d.push; });
+      ensure.then(function (s) {
+        return navigator.serviceWorker.ready.then(function (reg) {
+          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(s.publicKey) });
+        });
+      }).then(function (sub) {
+        return api2("/api/admin/push/subscribe", { method: "POST", body: { subscription: sub.toJSON() } });
+      }).then(function () { puRenderPush(); }).catch(function (e) { alert("Could not enable alerts: " + (e && e.message ? e.message : e)); });
+    });
+  }
+  function puDisable() {
+    navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+      if (!sub) { puRenderPush(); return; }
+      var ep = sub.endpoint;
+      return sub.unsubscribe().then(function () { return api2("/api/admin/push/unsubscribe", { method: "POST", body: { endpoint: ep } }); });
+    }).then(function () { puRenderPush(); }).catch(function () { puRenderPush(); });
+  }
+  function puTest() {
+    api2("/api/admin/push/test", { method: "POST" }).then(function (d) {
+      if (d && d.ok && d.result) alert(d.result.sent > 0 ? "Test alert sent ✅ — check your notifications." : "No alert was delivered (attempted " + d.result.attempted + ", failed " + d.result.failed + ").");
+      else alert("Test failed.");
+    }).catch(function () { alert("Test failed."); });
+  }
+  function puBoot() { if (document.getElementById("puPushBody")) puRenderPush(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", puBoot); else puBoot();
+  setInterval(function () { if (document.getElementById("puPushBody") && tok() && !puState) puRenderPush(); }, 4000);
+})();
+</script>
 </body>
 </html>
