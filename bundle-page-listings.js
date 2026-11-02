@@ -23,7 +23,7 @@
         if (l.developer) pbits.push(esc(l.developer));
         if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
         if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#a8842f">' + pbits.join(" · ") + "</div>" +
+        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
           ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
       }
       var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
@@ -35,7 +35,7 @@
       }
       return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
         '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#a8842f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#5d686f">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
         '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
         '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
@@ -78,14 +78,14 @@
         kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
         kv(t.m_strata, l.strata ? fmt(l.strata) : t.na_ap) + kv(t.m_dom, domOf(l)) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
       var mc = monthlyCost(l);
-      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#faf5ea;border:1px solid #e5d9bd;border-radius:12px;padding:12px 14px;color:#26313b">' +
-        '<div style="font-weight:700;margin-bottom:6px;color:#0b2239">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
+      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#fbf6e9;border:1px solid #e7d9b4;border-radius:12px;padding:12px 14px;color:#2a251c">' +
+        '<div style="font-weight:700;margin-bottom:6px;color:#0b0b0b">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
         '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px">' +
         '<span>' + esc(t.mc_mort) + '</span><b>' + fmt(Math.round(mc.mort)) + '</b>' +
         (mc.strata ? '<span>' + esc(t.m_strata) + '</span><b>' + fmt(mc.strata) + '</b>' : "") +
         '<span>' + esc(t.mc_tax) + '</span><b>' + fmt(Math.round(mc.tax)) + '</b>' +
         '<span>' + esc(t.mc_heat) + '</span><b>' + fmt(mc.heat) + '</b></div>' +
-        '<div style="font-size:12px;color:#5d686f;margin-top:6px">' + esc(t.mc_note) + '</div></div>';
+        '<div style="font-size:12px;color:#6e685b;margin-top:6px">' + esc(t.mc_note) + '</div></div>';
       $("dFeat").innerHTML = l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("");
       if (l.pt === "presale"){
         var pchips = [];
@@ -998,8 +998,8 @@
         if (!bar) {
           bar = document.createElement("div");
           bar.id = "annBar";
-          bar.setAttribute("style", "background:#C6A15B;color:#0B2239;text-align:center;padding:9px 44px 9px 14px;font-size:14.5px;font-weight:600;position:relative");
-          bar.innerHTML = '<span id="annTxt"></span><button type="button" aria-label="Close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:17px;cursor:pointer;color:#0B2239">✕</button>';
+          bar.setAttribute("style", "background:#C9A24B;color:#0B0B0B;text-align:center;padding:9px 44px 9px 14px;font-size:14.5px;font-weight:600;position:relative");
+          bar.innerHTML = '<span id="annTxt"></span><button type="button" aria-label="Close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:17px;cursor:pointer;color:#0B0B0B">✕</button>';
           bar.querySelector("button").addEventListener("click", function(){ try { sessionStorage.setItem("annClosed", bar.dataset.annKey || ""); } catch (e) {} bar.remove(); });
           var hdr = document.querySelector("header");
           if (hdr && hdr.parentNode) hdr.parentNode.insertBefore(bar, hdr);
@@ -1139,16 +1139,16 @@
         var me = null, savedSet = {}, mySearches = [], myProfile = {}, myRecent = [], myDrops = {};
         var css = ".save-btn{position:absolute;top:10px;inset-inline-end:10px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#9c2b2e;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;z-index:2}" +
           ".save-btn.on{background:#9c2b2e;color:#fff}" +
-          ".fx-ov{position:fixed;inset:0;background:rgba(5,15,26,.55);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}" +
+          ".fx-ov{position:fixed;inset:0;background:rgba(5,5,5,.55);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}" +
           ".fx-ov.open{display:flex}" +
-          ".fx-box{background:#fff;color:#1c2420;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:15px}" +
+          ".fx-box{background:#fff;color:#15130e;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:15px}" +
           ".fx-box h3{margin:0 0 12px;font-size:20px}" +
           ".fx-box label{display:block;font-weight:600;margin:12px 0 5px}" +
-          ".fx-box input[type=text],.fx-box input[type=email],.fx-box input[type=password],.fx-box input[type=tel],.fx-box select{width:100%;padding:11px 12px;border:1.5px solid #ccd4cd;border-radius:10px;font:inherit;background:#fff;color:#1c2420}" +
+          ".fx-box input[type=text],.fx-box input[type=email],.fx-box input[type=password],.fx-box input[type=tel],.fx-box select{width:100%;padding:11px 12px;border:1.5px solid #d9d4c7;border-radius:10px;font:inherit;background:#fff;color:#15130e}" +
           ".fx-tabs{display:flex;gap:8px;margin-bottom:6px}" +
           ".fx-err{color:#b3261e;min-height:20px;font-size:14px;margin-top:8px}" +
-          ".fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #edf0ec}" +
-          ".fx-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#17352b;color:#f0e9d6;padding:11px 18px;border-radius:999px;z-index:600;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;max-width:92vw;text-align:center}";
+          ".fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #efece4}" +
+          ".fx-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0b0b0b;color:#f0e9d6;padding:11px 18px;border-radius:999px;z-index:600;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;max-width:92vw;text-align:center}";
         var stEl = document.createElement("style"); stEl.textContent = css; document.head.appendChild(stEl);
         var ov = document.createElement("div"); ov.className = "fx-ov"; ov.innerHTML = '<div class="fx-box" role="dialog" aria-modal="true"></div>';
         document.body.appendChild(ov);
@@ -1187,12 +1187,12 @@
             (reg ? '<label for="fxName">' + tt("name") + '</label><input type="text" id="fxName" autocomplete="name" />' : "") +
             '<label for="fxEmail">' + tt("email") + '</label><input type="email" id="fxEmail" autocomplete="email" required />' +
             '<label for="fxPass">' + tt("password") + '</label><input type="password" id="fxPass" autocomplete="' + (reg ? "new-password" : "current-password") + '" required />' +
-            (reg ? '<div style="font-size:13px;color:#5d686f;margin-top:5px">' + tt("passHint") + '</div>' : "") +
+            (reg ? '<div style="font-size:13px;color:#6e685b;margin-top:5px">' + tt("passHint") + '</div>' : "") +
             (reg ? '<div class="fx-ts" data-ts="auth" style="margin-top:12px"></div>' : "") +
             '<div class="fx-err" id="fxErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + (reg ? tt("register") : tt("signIn")) + '</button>' +
             '<button type="button" class="btn btn-line" id="fxCancel">' + tt("close") + '</button></div></form>' +
-            '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:#5d686f;font-size:13px"><span style="flex:1;border-top:1px solid #d8dcd9"></span>' + tt("or") + '<span style="flex:1;border-top:1px solid #d8dcd9"></span></div>' +
+            '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:#6e685b;font-size:13px"><span style="flex:1;border-top:1px solid #e4dfd3"></span>' + tt("or") + '<span style="flex:1;border-top:1px solid #e4dfd3"></span></div>' +
             '<a class="btn btn-line" id="fxGoogle" style="display:block;text-align:center;text-decoration:none" href="#">🔵 ' + tt("googleBtn") + '</a>';
           openFx(html);
           document.getElementById("fxTabIn").addEventListener("click", function(){ showAuth("in"); });
@@ -1254,7 +1254,7 @@
             var c = s.criteria || {};
             var mpN = Number(c.maxPrice);
             var bits = [c.city, c.type, (isFinite(mpN) && mpN > 0) ? ("≤ " + money(mpN)) : "", (c.minBeds && String(c.minBeds) !== "0") ? (c.minBeds + "+ bd") : "", c.q ? ('"' + c.q + '"') : ""].filter(Boolean).join(" · ");
-            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#5d686f;font-size:13.5px">' + esc2(bits) + '<span data-alert-state>' + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + "</span>" + '</span></span><span style="display:flex;gap:10px;flex:none"><button type="button" class="linkbtn" data-unnotify="' + esc2(s.id) + '">' + (s.notify ? "🔔 " + tt("alertsOn") : "🔕 " + tt("alertsOff")) + '</button><button type="button" class="linkbtn" data-unsearch="' + esc2(s.id) + '">' + tt("remove") + '</button></span></div>';
+            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#6e685b;font-size:13.5px">' + esc2(bits) + '<span data-alert-state>' + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + "</span>" + '</span></span><span style="display:flex;gap:10px;flex:none"><button type="button" class="linkbtn" data-unnotify="' + esc2(s.id) + '">' + (s.notify ? "🔔 " + tt("alertsOn") : "🔕 " + tt("alertsOff")) + '</button><button type="button" class="linkbtn" data-unsearch="' + esc2(s.id) + '">' + tt("remove") + '</button></span></div>';
           }).join("");
           var recent = myRecent.map(function(m){
             var p = miniOf(m);
@@ -1264,12 +1264,12 @@
           var intOpts = [["", "—"], ["buy", tt("optBuy")], ["sell", tt("optSell")], ["rent", tt("optRent")], ["invest", tt("optInvest")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.intent === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           var cpOpts = [["", "—"], ["email", tt("optEmail")], ["phone", tt("optPhone")], ["either", tt("optEither")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.contactPref === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           var langOpts = [["en", "English"], ["fa", "فارسی"], ["hi", "हिन्दी"], ["zh", "中文"]].map(function(o){ return '<option value="' + o[0] + '"' + ((me.lang || "en") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
-          openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#5d686f;margin-bottom:8px">' + esc2(me.email) + '</div>' +
-            '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#5d686f">' + tt("noSaved") + '</p>') +
-            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#9c6b1e;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#5d686f">' + tt("noSearches") + '</p>') +
-            '<h3 style="font-size:16.5px;margin-top:16px">📅 ' + tt("myViewings") + '</h3><div id="fxMyVw"><p style="color:#5d686f">…</p></div>' +
+          openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#6e685b;margin-bottom:8px">' + esc2(me.email) + '</div>' +
+            '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#6e685b">' + tt("noSaved") + '</p>') +
+            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#96762f;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#6e685b">' + tt("noSearches") + '</p>') +
+            '<h3 style="font-size:16.5px;margin-top:16px">📅 ' + tt("myViewings") + '</h3><div id="fxMyVw"><p style="color:#6e685b">…</p></div>' +
             (recent ? '<h3 style="font-size:16.5px;margin-top:16px">🕘 ' + tt("recent") + '</h3>' + recent : "") +
-            '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#5d686f;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
+            '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#6e685b;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
             '<form id="fxProfForm">' +
             '<label for="pfName">' + tt("name") + '</label><input type="text" id="pfName" value="' + esc2(me.name) + '" />' +
             '<label for="pfPhone">' + tt("phone") + '</label><input type="tel" id="pfPhone" value="' + esc2(pf.phone || "") + '" />' +
@@ -1330,13 +1330,13 @@
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
             if (!el) return;
-            if (!vw.length) { el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; return; }
+            if (!vw.length) { el.innerHTML = '<p style="color:#6e685b">' + tt("noViewings") + '</p>'; return; }
             var nd = new Date(); var todayV = nd.getFullYear() + "-" + String(nd.getMonth() + 1).padStart(2, "0") + "-" + String(nd.getDate()).padStart(2, "0");
             el.innerHTML = vw.map(function(v){
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#5d686f">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;
@@ -1352,7 +1352,7 @@
                   .then(function(){ toast(tt("movedOk")); showAccount(); }).catch(function(er){ toast(er && er.message === "slot_unavailable" ? tt("slotGone") : tt("errGeneric")); });
               });
             }); });
-          }).catch(function(){ var el = document.getElementById("fxMyVw"); if (el) el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; });
+          }).catch(function(){ var el = document.getElementById("fxMyVw"); if (el) el.innerHTML = '<p style="color:#6e685b">' + tt("noViewings") + '</p>'; });
         }
         function paintSaves(){
           document.querySelectorAll("[data-save]").forEach(function(b){
@@ -1425,7 +1425,7 @@
           var p = MINI[mls];
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
-            (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
+            (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
             '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
             '<form id="fxViewForm">' +
             '<label for="fxVDate">' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +

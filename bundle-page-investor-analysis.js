@@ -54,7 +54,7 @@
     /* ---------- investor report export (print view + downloadable HTML) ---------- */
     var RP_LOCALES = {en:"en-CA", fa:"fa-IR-u-ca-gregory", hi:"hi-IN", zh:"zh-CN"};
     var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）"};
-    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#1c2420;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
+    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#15130e;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
       + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
       + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
       + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
@@ -62,18 +62,18 @@
       + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
       + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
       + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
-      + ".rp-wrap{max-width:720px;margin:0 auto;color:#1c2420}"
-      + ".rp-brand{font-size:20px;font-weight:800;color:#071829}"
-      + ".rp-brandsub{color:#5c665f;font-size:13.5px;margin-top:2px}"
-      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#071829}"
-      + ".rp-meta{color:#5c665f;font-size:14px;margin:0 0 6px}"
-      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#071829}"
+      + ".rp-wrap{max-width:720px;margin:0 auto;color:#15130e}"
+      + ".rp-brand{font-size:20px;font-weight:800;color:#0b0b0b}"
+      + ".rp-brandsub{color:#6e685b;font-size:13.5px;margin-top:2px}"
+      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0b0b0b}"
+      + ".rp-meta{color:#6e685b;font-size:14px;margin:0 0 6px}"
+      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0b0b0b}"
       + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
-      + ".rp-table th{text-align:start;font-weight:600;color:#33424e;padding:8px 10px;border-bottom:1px solid #ddd5c4}"
-      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #ddd5c4}"
-      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#5c665f;border:1px solid #ddd5c4;border-radius:9px;padding:12px 14px}"
+      + ".rp-table th{text-align:start;font-weight:600;color:#3a362c;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#6e685b;border:1px solid #e4dfd3;border-radius:9px;padding:12px 14px}"
       + ".rp-foot{margin-top:16px;font-size:14.5px}"
-      + ".rp-foot a{color:#0b2239;font-weight:700}";
+      + ".rp-foot a{color:#0b0b0b;font-weight:700}";
     function reportData(){
       var t = T();
       try { investCalc(); } catch(e){}
@@ -948,8 +948,8 @@
         if (!bar) {
           bar = document.createElement("div");
           bar.id = "annBar";
-          bar.setAttribute("style", "background:#C6A15B;color:#0B2239;text-align:center;padding:9px 44px 9px 14px;font-size:14.5px;font-weight:600;position:relative");
-          bar.innerHTML = '<span id="annTxt"></span><button type="button" aria-label="Close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:17px;cursor:pointer;color:#0B2239">✕</button>';
+          bar.setAttribute("style", "background:#C9A24B;color:#0B0B0B;text-align:center;padding:9px 44px 9px 14px;font-size:14.5px;font-weight:600;position:relative");
+          bar.innerHTML = '<span id="annTxt"></span><button type="button" aria-label="Close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;font-size:17px;cursor:pointer;color:#0B0B0B">✕</button>';
           bar.querySelector("button").addEventListener("click", function(){ try { sessionStorage.setItem("annClosed", bar.dataset.annKey || ""); } catch (e) {} bar.remove(); });
           var hdr = document.querySelector("header");
           if (hdr && hdr.parentNode) hdr.parentNode.insertBefore(bar, hdr);
@@ -1089,16 +1089,16 @@
         var me = null, savedSet = {}, mySearches = [], myProfile = {}, myRecent = [], myDrops = {};
         var css = ".save-btn{position:absolute;top:10px;inset-inline-end:10px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.94);color:#9c2b2e;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;z-index:2}" +
           ".save-btn.on{background:#9c2b2e;color:#fff}" +
-          ".fx-ov{position:fixed;inset:0;background:rgba(5,15,26,.55);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}" +
+          ".fx-ov{position:fixed;inset:0;background:rgba(5,5,5,.55);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 12px}" +
           ".fx-ov.open{display:flex}" +
-          ".fx-box{background:#fff;color:#1c2420;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:15px}" +
+          ".fx-box{background:#fff;color:#15130e;border-radius:16px;max-width:440px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-size:15px}" +
           ".fx-box h3{margin:0 0 12px;font-size:20px}" +
           ".fx-box label{display:block;font-weight:600;margin:12px 0 5px}" +
-          ".fx-box input[type=text],.fx-box input[type=email],.fx-box input[type=password],.fx-box input[type=tel],.fx-box select{width:100%;padding:11px 12px;border:1.5px solid #ccd4cd;border-radius:10px;font:inherit;background:#fff;color:#1c2420}" +
+          ".fx-box input[type=text],.fx-box input[type=email],.fx-box input[type=password],.fx-box input[type=tel],.fx-box select{width:100%;padding:11px 12px;border:1.5px solid #d9d4c7;border-radius:10px;font:inherit;background:#fff;color:#15130e}" +
           ".fx-tabs{display:flex;gap:8px;margin-bottom:6px}" +
           ".fx-err{color:#b3261e;min-height:20px;font-size:14px;margin-top:8px}" +
-          ".fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #edf0ec}" +
-          ".fx-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#17352b;color:#f0e9d6;padding:11px 18px;border-radius:999px;z-index:600;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;max-width:92vw;text-align:center}";
+          ".fx-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #efece4}" +
+          ".fx-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0b0b0b;color:#f0e9d6;padding:11px 18px;border-radius:999px;z-index:600;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;max-width:92vw;text-align:center}";
         var stEl = document.createElement("style"); stEl.textContent = css; document.head.appendChild(stEl);
         var ov = document.createElement("div"); ov.className = "fx-ov"; ov.innerHTML = '<div class="fx-box" role="dialog" aria-modal="true"></div>';
         document.body.appendChild(ov);
@@ -1137,12 +1137,12 @@
             (reg ? '<label for="fxName">' + tt("name") + '</label><input type="text" id="fxName" autocomplete="name" />' : "") +
             '<label for="fxEmail">' + tt("email") + '</label><input type="email" id="fxEmail" autocomplete="email" required />' +
             '<label for="fxPass">' + tt("password") + '</label><input type="password" id="fxPass" autocomplete="' + (reg ? "new-password" : "current-password") + '" required />' +
-            (reg ? '<div style="font-size:13px;color:#5d686f;margin-top:5px">' + tt("passHint") + '</div>' : "") +
+            (reg ? '<div style="font-size:13px;color:#6e685b;margin-top:5px">' + tt("passHint") + '</div>' : "") +
             (reg ? '<div class="fx-ts" data-ts="auth" style="margin-top:12px"></div>' : "") +
             '<div class="fx-err" id="fxErr"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px"><button type="submit" class="btn btn-spruce" style="flex:1">' + (reg ? tt("register") : tt("signIn")) + '</button>' +
             '<button type="button" class="btn btn-line" id="fxCancel">' + tt("close") + '</button></div></form>' +
-            '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:#5d686f;font-size:13px"><span style="flex:1;border-top:1px solid #d8dcd9"></span>' + tt("or") + '<span style="flex:1;border-top:1px solid #d8dcd9"></span></div>' +
+            '<div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px;color:#6e685b;font-size:13px"><span style="flex:1;border-top:1px solid #e4dfd3"></span>' + tt("or") + '<span style="flex:1;border-top:1px solid #e4dfd3"></span></div>' +
             '<a class="btn btn-line" id="fxGoogle" style="display:block;text-align:center;text-decoration:none" href="#">🔵 ' + tt("googleBtn") + '</a>';
           openFx(html);
           document.getElementById("fxTabIn").addEventListener("click", function(){ showAuth("in"); });
@@ -1204,7 +1204,7 @@
             var c = s.criteria || {};
             var mpN = Number(c.maxPrice);
             var bits = [c.city, c.type, (isFinite(mpN) && mpN > 0) ? ("≤ " + money(mpN)) : "", (c.minBeds && String(c.minBeds) !== "0") ? (c.minBeds + "+ bd") : "", c.q ? ('"' + c.q + '"') : ""].filter(Boolean).join(" · ");
-            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#5d686f;font-size:13.5px">' + esc2(bits) + '<span data-alert-state>' + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + "</span>" + '</span></span><span style="display:flex;gap:10px;flex:none"><button type="button" class="linkbtn" data-unnotify="' + esc2(s.id) + '">' + (s.notify ? "🔔 " + tt("alertsOn") : "🔕 " + tt("alertsOff")) + '</button><button type="button" class="linkbtn" data-unsearch="' + esc2(s.id) + '">' + tt("remove") + '</button></span></div>';
+            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#6e685b;font-size:13.5px">' + esc2(bits) + '<span data-alert-state>' + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + "</span>" + '</span></span><span style="display:flex;gap:10px;flex:none"><button type="button" class="linkbtn" data-unnotify="' + esc2(s.id) + '">' + (s.notify ? "🔔 " + tt("alertsOn") : "🔕 " + tt("alertsOff")) + '</button><button type="button" class="linkbtn" data-unsearch="' + esc2(s.id) + '">' + tt("remove") + '</button></span></div>';
           }).join("");
           var recent = myRecent.map(function(m){
             var p = miniOf(m);
@@ -1214,12 +1214,12 @@
           var intOpts = [["", "—"], ["buy", tt("optBuy")], ["sell", tt("optSell")], ["rent", tt("optRent")], ["invest", tt("optInvest")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.intent === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           var cpOpts = [["", "—"], ["email", tt("optEmail")], ["phone", tt("optPhone")], ["either", tt("optEither")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.contactPref === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           var langOpts = [["en", "English"], ["fa", "فارسی"], ["hi", "हिन्दी"], ["zh", "中文"]].map(function(o){ return '<option value="' + o[0] + '"' + ((me.lang || "en") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
-          openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#5d686f;margin-bottom:8px">' + esc2(me.email) + '</div>' +
-            '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#5d686f">' + tt("noSaved") + '</p>') +
-            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#9c6b1e;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#5d686f">' + tt("noSearches") + '</p>') +
-            '<h3 style="font-size:16.5px;margin-top:16px">📅 ' + tt("myViewings") + '</h3><div id="fxMyVw"><p style="color:#5d686f">…</p></div>' +
+          openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#6e685b;margin-bottom:8px">' + esc2(me.email) + '</div>' +
+            '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#6e685b">' + tt("noSaved") + '</p>') +
+            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#96762f;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#6e685b">' + tt("noSearches") + '</p>') +
+            '<h3 style="font-size:16.5px;margin-top:16px">📅 ' + tt("myViewings") + '</h3><div id="fxMyVw"><p style="color:#6e685b">…</p></div>' +
             (recent ? '<h3 style="font-size:16.5px;margin-top:16px">🕘 ' + tt("recent") + '</h3>' + recent : "") +
-            '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#5d686f;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
+            '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#6e685b;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
             '<form id="fxProfForm">' +
             '<label for="pfName">' + tt("name") + '</label><input type="text" id="pfName" value="' + esc2(me.name) + '" />' +
             '<label for="pfPhone">' + tt("phone") + '</label><input type="tel" id="pfPhone" value="' + esc2(pf.phone || "") + '" />' +
@@ -1280,13 +1280,13 @@
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
             if (!el) return;
-            if (!vw.length) { el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; return; }
+            if (!vw.length) { el.innerHTML = '<p style="color:#6e685b">' + tt("noViewings") + '</p>'; return; }
             var nd = new Date(); var todayV = nd.getFullYear() + "-" + String(nd.getMonth() + 1).padStart(2, "0") + "-" + String(nd.getDate()).padStart(2, "0");
             el.innerHTML = vw.map(function(v){
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#5d686f">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;
@@ -1302,7 +1302,7 @@
                   .then(function(){ toast(tt("movedOk")); showAccount(); }).catch(function(er){ toast(er && er.message === "slot_unavailable" ? tt("slotGone") : tt("errGeneric")); });
               });
             }); });
-          }).catch(function(){ var el = document.getElementById("fxMyVw"); if (el) el.innerHTML = '<p style="color:#5d686f">' + tt("noViewings") + '</p>'; });
+          }).catch(function(){ var el = document.getElementById("fxMyVw"); if (el) el.innerHTML = '<p style="color:#6e685b">' + tt("noViewings") + '</p>'; });
         }
         function paintSaves(){
           document.querySelectorAll("[data-save]").forEach(function(b){
@@ -1375,7 +1375,7 @@
           var p = MINI[mls];
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
-            (p ? '<p style="color:#5d686f;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
+            (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
             '<div id="fxVNote" style="font-size:13.5px;color:var(--brass);margin:0 0 4px"></div>' +
             '<form id="fxViewForm">' +
             '<label for="fxVDate">' + tt("date") + '</label><select id="fxVDate">' + dateOptions() + '</select>' +
