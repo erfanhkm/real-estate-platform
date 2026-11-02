@@ -458,7 +458,7 @@
       return fill(t.sr_found, {n: hits.length}) + "<br>" + lines.join("<br>");
     }
     /* --- site search: sections + the live Knowledge Center cards on this page --- */
-    var PAGE_OF = window.PAGE_OF || {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};
+    var PAGE_OF = window.PAGE_OF || {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};
     var SECTIONS_IDX = [
       {id:"listings", key:"search_title", kw:"search listings homes browse mls"},
       {id:"calculator", key:"calc_title", kw:"mortgage calculator payment loan interest"},
@@ -559,7 +559,7 @@
       if (!welcomeEls.length) welcomeEls = postMsg("bot", esc(T().as_welcome));
       else welcomeEls.forEach(function(el){ el.innerHTML = esc(T().as_welcome); });
       var t = T();
-      if ($("aiFab")) $("aiFab").setAttribute("aria-label", t.ai_open);
+      if ($("aiFab")) $("aiFab").setAttribute("aria-label", "Ask AI"); /* fixed micro-label — literal in all languages, matches the pill text */
       if ($("aiClose")) $("aiClose").setAttribute("aria-label", t.ai_close);
     }
     /* --- live AI brain: the Gemini worker (Google Search grounding) answers
@@ -795,6 +795,175 @@
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
+    /* ---------- market pulse ---------- */
+    var MP_API = "https://advisor-api.erfanbillion.workers.dev";
+    var mpStats = undefined, mpRates = undefined, mpLoadStarted = false;
+    function mpMoney(n){ var v = Number(n); return isFinite(v) ? "$" + Math.round(v).toLocaleString("en-US") : "—"; }
+    function mpPct(v, dec){ var x = Number(v); return isFinite(x) ? x.toFixed(dec == null ? 2 : dec) + "%" : "—"; }
+    function mpDeltaHtml(v){
+      var x = Number(v); if (!isFinite(x)) return "";
+      var cls = x < 0 ? "mp-down" : (x > 0 ? "mp-up" : "");
+      return '<span class="' + cls + '">' + (x > 0 ? "+" : (x < 0 ? "−" : "")) + Math.abs(x).toFixed(1) + "%</span>";
+    }
+    function mpMonthLabel(ym){
+      var parts = String(ym || "").split("-");
+      var names = String(T().mp_months || "").split("|");
+      var m = names[parseInt(parts[1], 10) - 1] || parts[1] || "";
+      return (m + " " + (parts[0] || "")).trim();
+    }
+    function mpSrcLine(block, ym){ return block ? esc(block.source || "") + " · " + esc(mpMonthLabel(ym)) : ""; }
+    function mpTile(labelKey, value, subHtml, srcLine){
+      return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
+        '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
+        (subHtml ? '<p class="mp-sub">' + subHtml + "</p>" : "") +
+        (srcLine ? '<p class="mp-src">' + srcLine + "</p>" : "") + "</article>";
+    }
+    function mpDrawBars(mount, figList, monthsDesc, board){
+      if (!mount) return;
+      var t = T();
+      var months = (monthsDesc || []).slice().reverse(); // oldest first; bars read as a series when more months arrive
+      var typeKeys = ["detached", "townhouse", "apartment"];
+      var rows = [], max = 0, latestMonth = months[months.length - 1];
+      typeKeys.forEach(function (tk) {
+        months.forEach(function (m) {
+          var blk = m[board], tb = blk && blk.types && blk.types[tk];
+          if (tb && tb.price > 0) { rows.push({ tk: tk, month: m.month, price: tb.price, latest: m === latestMonth }); if (tb.price > max) max = tb.price; }
+        });
+      });
+      if (!rows.length) { mount.innerHTML = ""; if (figList) figList.innerHTML = ""; return; }
+      var W = 640, labelW = 108, barH = 20, gap = 8, groupGap = 16;
+      var height = 8, y = 8, parts = [];
+      rows.forEach(function (r, i) { if (i && rows[i - 1].tk !== r.tk) height += groupGap; height += barH + gap; });
+      var x0 = labelW, x1 = W - 118;
+      rows.forEach(function (r, i) {
+        if (i && rows[i - 1].tk !== r.tk) y += groupGap;
+        var w = Math.max(2, (x1 - x0) * r.price / max);
+        var lbl = (t["mp_" + r.tk] || r.tk) + (months.length > 1 ? " · " + mpMonthLabel(r.month) : "");
+        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="12.5" fill="var(--muted)">' + esc(lbl) + "</text>");
+        parts.push('<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + barH + '" rx="4" fill="' + (r.latest ? "var(--spruce)" : "var(--brass)") + '"></rect>');
+        parts.push('<text x="' + (x0 + w + 8) + '" y="' + (y + barH - 6) + '" font-size="13" font-weight="700" fill="var(--ink)">' + esc(mpMoney(r.price)) + "</text>");
+        y += barH + gap;
+      });
+      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" aria-label="' + esc(board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + '">' + parts.join("") + "</svg>";
+      if (figList) {
+        var latest = (latestMonth && latestMonth[board]) || {};
+        figList.innerHTML = typeKeys.map(function (tk) {
+          var tb = latest.types && latest.types[tk]; if (!tb) return "";
+          return "<li><span>" + esc(t["mp_" + tk] || tk) + "</span><b>" + esc(mpMoney(tb.price)) + (tb.yoyPct != null ? " " + mpDeltaHtml(tb.yoyPct) : "") + "</b></li>";
+        }).join("");
+      }
+    }
+    function mpDrawPolicy(series){
+      var mount = $("mpChartPolicy"); if (!mount) return;
+      if (!series || series.length < 2) { mount.innerHTML = ""; return; }
+      var W = 640, H = 190, padL = 44, padR = 14, padT = 16, padB = 26;
+      var vals = series.map(function (p) { return p[1]; });
+      var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+      if (mx - mn < 0.5) { var mid = (mx + mn) / 2; mn = mid - 0.25; mx = mid + 0.25; }
+      var iw = W - padL - padR, ih = H - padT - padB;
+      function X(i) { return padL + iw * i / (series.length - 1); }
+      function Y(v) { return padT + ih * (1 - (v - mn) / (mx - mn)); }
+      var pts = series.map(function (p, i) { return X(i).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
+      var last = series[series.length - 1], first = series[0];
+      var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img">';
+      s += '<line x1="' + padL + '" y1="' + Y(mx) + '" x2="' + (W - padR) + '" y2="' + Y(mx) + '" stroke="var(--line)"></line>';
+      s += '<line x1="' + padL + '" y1="' + Y(mn) + '" x2="' + (W - padR) + '" y2="' + Y(mn) + '" stroke="var(--line)"></line>';
+      s += '<text x="' + (padL - 6) + '" y="' + (Y(mx) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + mx.toFixed(2) + "%</text>";
+      s += '<text x="' + (padL - 6) + '" y="' + (Y(mn) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + mn.toFixed(2) + "%</text>";
+      s += '<polyline fill="none" stroke="var(--brass)" stroke-width="2.5" points="' + pts + '"></polyline>';
+      s += '<circle cx="' + X(series.length - 1) + '" cy="' + Y(last[1]) + '" r="4" fill="var(--spruce)"></circle>';
+      s += '<text x="' + X(series.length - 1) + '" y="' + (Y(last[1]) - 10) + '" text-anchor="end" font-size="13" font-weight="700" fill="var(--ink)">' + Number(last[1]).toFixed(2) + "%</text>";
+      s += '<text x="' + padL + '" y="' + (H - 6) + '" font-size="11.5" fill="var(--muted)">' + esc(first[0]) + "</text>";
+      s += '<text x="' + (W - padR) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + esc(last[0]) + "</text>";
+      mount.innerHTML = s + "</svg>";
+    }
+    function mpRenderStats(){
+      var box = $("mpKpis"); if (!box) return;
+      var t = T();
+      if (!mpStats || !mpStats.months || !mpStats.months.length) {
+        box.innerHTML = '<p class="note">' + esc(t.mp_no_data) + "</p>";
+        var sc0 = $("mpSources"); if (sc0) sc0.innerHTML = "";
+        return;
+      }
+      var m = mpStats.months[0];
+      var note = $("mpMonthNote");
+      if (note) note.textContent = fill(t.mp_data_for, { month: mpMonthLabel(m.month) });
+      var tiles = "";
+      if (m.bc && m.bc.sales != null) tiles += mpTile("mp_kpi_bc_sales", Number(m.bc.sales).toLocaleString("en-US"), mpDeltaHtml(m.bc.salesYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.bc, m.month));
+      if (m.gvr && m.gvr.benchmark != null) tiles += mpTile("mp_kpi_gvr_bench", mpMoney(m.gvr.benchmark), mpDeltaHtml(m.gvr.benchmarkYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.gvr, m.month));
+      if (m.fvreb && m.fvreb.benchmark != null) tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(m.fvreb.benchmark), mpDeltaHtml(m.fvreb.benchmarkYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.fvreb, m.month));
+      if (m.gvr && m.gvr.salesToActivePct != null) tiles += mpTile("mp_kpi_salr", mpPct(m.gvr.salesToActivePct, 1), esc(t.mp_salr_sub), mpSrcLine(m.gvr, m.month));
+      if (m.canada && m.canada.monthsInventory != null) tiles += mpTile("mp_kpi_moi", String(m.canada.monthsInventory), esc(t.mp_moi_sub), mpSrcLine(m.canada, m.month));
+      box.innerHTML = tiles;
+      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), mpStats.months, "gvr");
+      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), mpStats.months, "fvreb");
+      var sc = $("mpSources");
+      if (sc) {
+        var items = [];
+        ["canada", "bc", "gvr", "fvreb", "rates"].forEach(function (b) {
+          if (m[b] && m[b].source) items.push("<li>" + esc(m[b].source) + " — " + esc(m[b].sourceDate || "") + "</li>");
+        });
+        sc.innerHTML = "<ul>" + items.join("") + "</ul>";
+      }
+    }
+    function mpRateTile(labelKey, value, srcText){
+      return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
+        '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
+        '<p class="mp-src">' + esc(srcText) + "</p></article>";
+    }
+    function mpRenderRates(){
+      var box = $("mpRatesTiles"); if (!box) return;
+      var t = T();
+      var snap = (mpStats && mpStats.months && mpStats.months.length) ? (mpStats.months[0].rates || null) : null;
+      var tiles = "", msg = "", warn = false;
+      if (mpRates && mpRates.ok) {
+        tiles += mpRateTile("mp_policy", mpPct(mpRates.policy.value), "Bank of Canada · " + mpRates.policy.date);
+        tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + mpRates.prime.date);
+        tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + mpRates.bond5.date);
+        mpDrawPolicy(mpRates.policySeries);
+        if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) }); warn = true; }
+        else msg = fill(t.mp_live_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) });
+      } else {
+        if (snap && snap.policyRate != null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), t.mp_snapshot + " · " + (snap.policyDate || snap.sourceDate || ""));
+        if (snap && snap.prime != null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
+        var pc = $("mpChartPolicy"); if (pc) pc.innerHTML = "";
+        msg = t.mp_unavailable_note; warn = true;
+      }
+      if (snap && snap.bestFixed5 != null) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), (snap.bestSource || "nesto") + " · " + (snap.bestRatesDate || "") + " · " + t.mp_snapshot);
+      if (snap && snap.bestVariable5 != null) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), (snap.bestSource || "nesto") + " · " + (snap.bestRatesDate || "") + " · " + t.mp_snapshot);
+      box.innerHTML = tiles;
+      var msgEl = $("mpRatesMsg");
+      if (msgEl) { msgEl.textContent = msg || ""; msgEl.className = "mp-msg" + (warn ? " warn" : ""); }
+    }
+    function mpRenderBandRate(){
+      var tile = $("mpBandPolicy"); if (!tile) return; /* homepage band only; no-op on the hub page */
+      var t = T();
+      var val = null, src = "";
+      if (mpRates && mpRates.ok && mpRates.policy && mpRates.policy.value != null) {
+        val = mpRates.policy.value; src = "Bank of Canada · " + esc(mpRates.policy.date || "");
+      } else {
+        var snap = (mpStats && mpStats.months && mpStats.months.length) ? (mpStats.months[0].rates || null) : null;
+        if (snap && snap.policyRate != null) { val = snap.policyRate; src = esc(t.mp_snapshot || "") + " · " + esc(snap.policyDate || snap.sourceDate || ""); }
+      }
+      if (val == null) return; /* no data: keep the baked tile */
+      tile.innerHTML = "<h3>" + esc(t.mp_policy || "mp_policy") + '</h3><p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(mpPct(val)) + '</p><p class="mp-src">' + src + "</p>";
+    }
+    function renderMarketPulse(){
+      if (!$("mpKpis")) return;
+      if (mpStats !== undefined && mpRates !== undefined) { mpRenderStats(); mpRenderRates(); mpRenderBandRate(); return; }
+      var note = $("mpMonthNote");
+      if (note && mpStats === undefined) note.textContent = T().mp_loading;
+      if (mpLoadStarted) return;
+      mpLoadStarted = true;
+      var done = 0;
+      function fin() { if (++done === 2) { mpRenderStats(); mpRenderRates(); mpRenderBandRate(); } }
+      fetch(MP_API + "/api/market/stats").then(function (r) { return r.json(); })
+        .then(function (j) { mpStats = (j && j.ok) ? j : { months: [] }; })
+        .catch(function () { mpStats = { months: [] }; }).then(fin);
+      fetch(MP_API + "/api/market/rates").then(function (r) { return r.json(); })
+        .then(function (j) { mpRates = j || { ok: false }; })
+        .catch(function () { mpRates = { ok: false }; }).then(fin);
+    }
     /* ---------- home featured listings (build-generated shim) ---------- */
     window.openListing = function(){ window.location.href = "listings.html"; };
     function renderFeatured(){
@@ -811,7 +980,7 @@
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       $("nlLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang(); renderFeatured();
+      renderAssistantLang(); renderFeatured(); renderMarketPulse();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
@@ -1013,10 +1182,10 @@
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。" }
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" }
         };
         function miniOf(m){ for (var i = 0; i < LISTINGS.length; i++){ if (LISTINGS[i].mls === m) return [LISTINGS[i].street, LISTINGS[i].city, LISTINGS[i].price]; } return [m, "", 0]; }
         function lang(){ var L = "en"; try { L = localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){} L = String(L).slice(0, 2); return STR[L] ? L : "en"; }
@@ -1179,7 +1348,7 @@
             var c = s.criteria || {};
             var mpN = Number(c.maxPrice);
             var bits = [c.city, c.type, (isFinite(mpN) && mpN > 0) ? ("≤ " + money(mpN)) : "", (c.minBeds && String(c.minBeds) !== "0") ? (c.minBeds + "+ bd") : "", c.q ? ('"' + c.q + '"') : ""].filter(Boolean).join(" · ");
-            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#5d686f;font-size:13.5px">' + esc2(bits) + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + '</span></span><button type="button" class="linkbtn" data-unsearch="' + s.id + '">' + tt("remove") + '</button></div>';
+            return '<div class="fx-row"><span><b>' + esc2(s.name) + '</b><br><span style="color:#5d686f;font-size:13.5px">' + esc2(bits) + '<span data-alert-state>' + (s.notify ? " · 🔔 " + tt("alertsOn") : "") + "</span>" + '</span></span><span style="display:flex;gap:10px;flex:none"><button type="button" class="linkbtn" data-unnotify="' + esc2(s.id) + '">' + (s.notify ? "🔔 " + tt("alertsOn") : "🔕 " + tt("alertsOff")) + '</button><button type="button" class="linkbtn" data-unsearch="' + esc2(s.id) + '">' + tt("remove") + '</button></span></div>';
           }).join("");
           var recent = myRecent.map(function(m){
             var p = miniOf(m);
@@ -1191,7 +1360,7 @@
           var langOpts = [["en", "English"], ["fa", "فارسی"], ["hi", "हिन्दी"], ["zh", "中文"]].map(function(o){ return '<option value="' + o[0] + '"' + ((me.lang || "en") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#5d686f;margin-bottom:8px">' + esc2(me.email) + '</div>' +
             '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#5d686f">' + tt("noSaved") + '</p>') +
-            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + (searches || '<p style="color:#5d686f">' + tt("noSearches") + '</p>') +
+            '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#9c6b1e;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#5d686f">' + tt("noSearches") + '</p>') +
             '<h3 style="font-size:16.5px;margin-top:16px">📅 ' + tt("myViewings") + '</h3><div id="fxMyVw"><p style="color:#5d686f">…</p></div>' +
             (recent ? '<h3 style="font-size:16.5px;margin-top:16px">🕘 ' + tt("recent") + '</h3>' + recent : "") +
             '<h3 style="font-size:16.5px;margin-top:16px">⚙️ ' + tt("profile") + '</h3><p style="color:#5d686f;font-size:13.5px;margin:2px 0 4px">' + tt("optional") + '</p>' +
@@ -1217,6 +1386,32 @@
             var sid = b.getAttribute("data-unsearch");
             api("/api/user/searches/" + encodeURIComponent(sid), "DELETE").then(function(){ mySearches = mySearches.filter(function(s){ return String(s.id) !== String(sid); }); showAccount(); }).catch(function(){ toast(tt("errGeneric")); });
           }); });
+          box.querySelectorAll("[data-unnotify]").forEach(function(b){ b.addEventListener("click", function(){
+            var sid = b.getAttribute("data-unnotify");
+            var cur = mySearches.filter(function(s){ return String(s.id) === String(sid); })[0];
+            if (!cur || b.disabled) return;
+            b.disabled = true;
+            /* row-only update on success (F-05): the returned projection is the
+               truth — the consent shown must equal what the worker stored */
+            api("/api/user/searches/" + encodeURIComponent(sid), "PATCH", { notify: !cur.notify }).then(function(d){
+              b.disabled = false;
+              if (d && d.search && typeof d.search.notify === "boolean") {
+                cur.notify = d.search.notify;
+                b.textContent = cur.notify ? ("🔔 " + tt("alertsOn")) : ("🔕 " + tt("alertsOff"));
+                var row = b.closest ? b.closest(".fx-row") : null;
+                var st = row ? row.querySelector("[data-alert-state]") : null;
+                if (st) st.textContent = cur.notify ? (" · 🔔 " + tt("alertsOn")) : "";
+                if (cur.notify) toast(tt("alertsFromNow"));
+              } else toast(tt("errGeneric"));
+            }).catch(function(er){
+              b.disabled = false;
+              var code = er && er.message;
+              if (code === "auth") { token = ""; me = null; try { localStorage.removeItem("re_user_token"); } catch(e2){} paintAcctBtn(); closeFx(); toast(tt("sessionExpired")); }
+              else if (code === "not_found") { mySearches = mySearches.filter(function(s){ return String(s.id) !== String(sid); }); toast(tt("searchGone")); showAccount(); }
+              else if (code === "unavailable") toast(tt("errBusy"));
+              else toast(tt("errGeneric"));
+            });
+          }); });
           document.getElementById("fxProfForm").addEventListener("submit", function(e){
             e.preventDefault();
             var pBtn = e.target.querySelector('button[type="submit"]'); if (pBtn) pBtn.disabled = true;
@@ -1233,7 +1428,7 @@
             var nd = new Date(); var todayV = nd.getFullYear() + "-" + String(nd.getMonth() + 1).padStart(2, "0") + "-" + String(nd.getDate()).padStart(2, "0");
             el.innerHTML = vw.map(function(v){
               var L = v.listing || {};
-              var can = (v.status === "new" || v.status === "confirmed") && v.date >= todayV;
+              var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
               return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#5d686f">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
             }).join("");

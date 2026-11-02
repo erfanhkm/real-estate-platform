@@ -973,6 +973,42 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://real-estate-platform-0aei.onrender.com/market-pulse.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://real-estate-platform-0aei.onrender.com/fa-market-pulse.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://real-estate-platform-0aei.onrender.com/hi-market-pulse.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://real-estate-platform-0aei.onrender.com/zh-market-pulse.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-market-pulse.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/market-pulse.html"/>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>https://real-estate-platform-0aei.onrender.com/mortgage-calculator.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://real-estate-platform-0aei.onrender.com/mortgage-calculator.html"/>
     <xhtml:link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-mortgage-calculator.html"/>
