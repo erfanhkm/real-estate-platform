@@ -1255,7 +1255,7 @@
 
   // ---------- market radar ----------
   var mleads = [];
-  $("radarRefresh").addEventListener("click", loadRadar);
+  $("radarRefresh").addEventListener("click", function(){ cacheClear(); loadRadar(); }); // Pack F (RDR-02 L2): Refresh must clear the api() cache first — it used to show data up to 45s stale
   $("radarStatus").addEventListener("change", renderRadar);
   $("radarKind").addEventListener("change", renderRadar);
   ["radarClass", "radarScore", "radarConf", "radarValue", "radarCity", "radarSource", "radarSort"].forEach(function(id){ $(id).addEventListener("change", renderRadar); });
@@ -1414,35 +1414,67 @@
       renderRadar();
     }).catch(function(){ if (!mleads.length) toast("Could not load the radar list", true); renderRadar(); });
   }
+  var RADAR_RANK = { ok: 0, "deep-overdue": 1, unverifiable: 2, stale: 3, never: 4, debt: 5 };
+  function radarCellState(c, nowMs){
+    // Pack F (RDR-02 H1/H4): judge EVERY cell on its own state — the
+    // worker's verdict leads; staleness is per cell (delta passes run
+    // every 3h), never per group and never from the last-reported
+    // tier (M2). A 'none'-basis cell is "unverifiable": it is scanned
+    // (lastScanAt) but can never be called covered.
+    if (c.debt || c.verdict === "debt" || c.verdict === "short") return "debt";
+    if (c.verdict === "unverifiable") {
+      var sH = c.lastScanAt ? (nowMs - Date.parse(c.lastScanAt)) / 3600000 : null;
+      if (sH === null || !isFinite(sH)) return "never";
+      if (sH < -0.1 || sH > 6) return "stale";
+      return "unverifiable";
+    }
+    var h = c.lastOkAt ? (nowMs - Date.parse(c.lastOkAt)) / 3600000 : null;
+    if (h === null || !isFinite(h)) return "never";
+    if (h < -0.1 || h > 6) return "stale";
+    var dh = c.lastDeepOkAt ? (nowMs - Date.parse(c.lastDeepOkAt)) / 3600000 : null;
+    if (dh === null || !isFinite(dh) || dh > 26) return "deep-overdue"; // RDR-02 H3: a deep pass must land within ~26h, guaranteed by lastDeepOkAt
+    return "ok";
+  }
+  function radarBadge(st){
+    if (st === "debt") return '<span class="chip" style="background:#450a0a;color:#f87171;font-weight:700">🔴 owes coverage (debt)</span>';
+    if (st === "never") return '<span class="chip" style="background:#450a0a;color:#fca5a5;font-weight:700">🔴 never completed</span>';
+    if (st === "stale") return '<span class="chip" style="background:#451a03;color:#fbbf24;font-weight:700">⚠ stale</span>';
+    if (st === "unverifiable") return '<span class="chip" style="background:#1e293b;color:#94a3b8;font-weight:700">❔ unverifiable — no platform total</span>';
+    if (st === "deep-overdue") return '<span class="chip" style="background:#451a03;color:#fcd34d;font-weight:700">⚠ deep pass overdue</span>';
+    return '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">✓ covered</span>';
+  }
   function loadRadarCoverage(){
     api(API_URL, "/api/admin/radar-coverage").then(function(d){
       var box = $("radarCoverage");
       if (!d || !d.ok) { box.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; return; }
       var cells = d.cells || [];
-      if (!cells.length) { box.innerHTML = '<div class="mut">No coverage data yet — the ledger fills in once the radar runs under the v4 protocol.</div>'; return; }
-      // Compact view: one row per source × region (categories aggregated).
-      var groups = {}, order = [];
+      if (!cells.length) {
+        // RDR-02 L1: an empty ledger while the switch is ON is an
+        // alarm, not a calm state.
+        box.innerHTML = window._radarOn ? '<div style="color:#f87171;font-weight:600">⚠ The radar is ON but no coverage has been reported yet — the scan may not be running.</div>' : '<div class="mut">No coverage data yet — the ledger fills in once the radar runs under the v4 protocol.</div>';
+        return;
+      }
+      // One row per source × region, judged by its WORST cell (H1):
+      // a fresh category can no longer hide a stale or never-run one,
+      // and the bad categories are named under the row.
+      var nowMs = Date.now(), groups = {}, order = [], staleCells = 0;
       cells.forEach(function(c){
         var gk = c.source + "|" + c.region;
-        if (!groups[gk]) { groups[gk] = { source: c.source, region: c.region, lastOkAt: null, debt: false, deep: false, reported: 0, fetched: 0, hasCounts: false }; order.push(gk); }
+        if (!groups[gk]) { groups[gk] = { source: c.source, region: c.region, worst: "ok", bad: [], shortBy: 0, lastOkAt: null }; order.push(gk); }
         var g = groups[gk];
-        if (c.debt) g.debt = true;
-        if (c.tier === "deep") g.deep = true;
+        var st = radarCellState(c, nowMs);
+        if (st === "stale") staleCells++; // L1: stale counted per CELL, not per group
+        if (RADAR_RANK[st] > RADAR_RANK[g.worst]) g.worst = st;
+        if (st !== "ok") g.bad.push(esc(c.category || "?") + ": " + st);
+        if (typeof c.reported === "number" && typeof c.fetched === "number") g.shortBy += Math.max(0, c.reported - c.fetched); // M1: shortfalls summed per cell — an over-fetch can no longer mask a short one
         if (c.lastOkAt && (!g.lastOkAt || c.lastOkAt > g.lastOkAt)) g.lastOkAt = c.lastOkAt;
-        if (typeof c.reported === "number" && typeof c.fetched === "number") { g.reported += c.reported; g.fetched += c.fetched; g.hasCounts = true; }
       });
-      var nowMs = Date.now(), staleCount = 0;
-      var rows = order.map(function(gk){
-        var g = groups[gk];
+      var rows = order.map(function(gk){ return groups[gk]; }).sort(function(a, b){ return (RADAR_RANK[b.worst] - RADAR_RANK[a.worst]) || String(a.source).localeCompare(String(b.source)) || String(a.region).localeCompare(String(b.region)); }).map(function(g){
         var ageH = g.lastOkAt ? (nowMs - Date.parse(g.lastOkAt)) / 3600000 : null;
-        var limit = g.deep ? 26 : 6; // delta cells re-scan every 3h; deep cells daily
-        var stale = ageH === null || ageH > limit;
-        if (stale) staleCount++;
-        var ageTxt = ageH === null ? "never completed" : ageH < 1 ? Math.max(1, Math.round(ageH * 60)) + "m ago" : (Math.round(ageH * 10) / 10) + "h ago";
-        var badge = g.debt ? '<span class="chip" style="background:#450a0a;color:#f87171;font-weight:700">🔴 owes coverage (debt)</span>' : stale ? '<span class="chip" style="background:#451a03;color:#fbbf24;font-weight:700">⚠ stale</span>' : '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">✓ covered</span>';
-        return '<div class="tourrow"><div>' + badge + ' <b>' + esc(g.source) + '</b> <span class="mut">· ' + esc(g.region) + (g.deep ? ' · deep+daily' : '') + '</span></div><span class="mut">last full scan ' + esc(ageTxt) + (g.hasCounts ? ' · fetched ' + g.fetched + "/" + g.reported + " reported" : '') + '</span></div>';
+        var ageTxt = (ageH === null || !isFinite(ageH)) ? "never completed" : ageH < 0 ? "just now" : ageH < 1 ? Math.max(1, Math.round(ageH * 60)) + "m ago" : (Math.round(ageH * 10) / 10) + "h ago"; // L1: NaN can no longer print "NaNh ago"
+        return '<div class="tourrow"><div>' + radarBadge(g.worst) + ' <b>' + esc(g.source) + '</b> <span class="mut">· ' + esc(g.region) + '</span>' + (g.bad.length ? '<div class="mut" style="font-size:12px;margin-top:2px">' + g.bad.join(" · ") + '</div>' : '') + '</div><span class="mut">last complete pass ' + esc(ageTxt) + (g.shortBy > 0 ? ' · short by ' + g.shortBy : '') + '</span></div>';
       });
-      box.innerHTML = '<div class="mut" style="margin-bottom:6px">' + cells.length + ' cells · <b>' + (d.debtCount || 0) + '</b> in debt · <b>' + staleCount + '</b> stale · candidate pool: <b>' + (d.poolCount || 0) + '</b>' + (d.updatedAt ? ' · ledger updated ' + esc(fmtDate(d.updatedAt)) : '') + '</div>' + rows.join("");
+      box.innerHTML = '<div class="mut" style="margin-bottom:6px">' + cells.length + ' cells · <b>' + (d.debtCount || 0) + '</b> in debt · <b>' + staleCells + '</b> stale cells · candidate pool: <b>' + (d.poolCount || 0) + '</b>' + (d.updatedAt ? ' · ledger updated ' + esc(fmtDate(d.updatedAt)) : '') + '</div>' + rows.join("");
     }).catch(function(){ var b = $("radarCoverage"); if (b) b.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; });
   }
   function loadRadarSettings(){
@@ -1450,9 +1482,11 @@
       var on = !!(d && d.ok && d.enabled);
       $("radarToggle").checked = on;
       syncRadarState(on);
+      loadRadarCoverage(); // Pack F (RDR-02 L1): the coverage empty state depends on the switch — re-render now that it is known
     }).catch(function(){});
   }
   function syncRadarState(on){
+    window._radarOn = !!on;
     $("radarToggleLabel").textContent = on ? "On" : "Off";
     $("radarState").textContent = on ? "On — a delta scan runs every 3 hours across all of BC and a full deep drain runs daily; only matched pairs are stored and shown here." : "Off — no scans run at all. Turn it on when you want the 3-hourly deep scan.";
   }
@@ -1469,8 +1503,11 @@
     return k === "seller" ? "🏷️ Seller (FSBO)" : k === "pair" ? "🔗 Matched pair" : "🛒 Buyer looking";
   }
   function isHot(l){
-    // Hot-pair rule (radar v4 ext): strong fit AND a motivated seller.
-    return (l.matchScore || 0) >= 80 && typeof l.motivation === "number" && l.motivation >= 60;
+    // Hot-pair rule (radar v4 ext) — the SINGLE source of truth
+    // (Pack F, RDR-02 M4): only a NEW pair with strictly numeric
+    // scores pins/badges; a dismissed hot pair no longer buries new
+    // ones, and a string score can't pin without badging.
+    return l.status === "new" && typeof l.matchScore === "number" && l.matchScore >= 80 && typeof l.motivation === "number" && l.motivation >= 60;
   }
   function fillRadarSelect(id, values, allLabel){
     var sel = $(id); if (!sel) return;
@@ -1519,25 +1556,27 @@
       var ms = typeof l.matchScore === "number" ? l.matchScore : 0;
       var msColor = ms >= 80 ? "#22c55e" : ms >= 60 ? "#C9A24B" : "#64748b";
       var mot = typeof l.motivation === "number" ? l.motivation : null;
-      var hot = ms >= 80 && mot !== null && mot >= 60;
+      var hot = isHot(l); // Pack F (RDR-02 M4): the card uses the same rule as the pin — no second copy
       var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
         '<span class="chip" style="background:' + confColor + ';color:#0B0B0B;font-weight:700">Confidence ' + conf + '</span>' +
         (ms ? '<span class="chip" style="background:' + msColor + ';color:#0B0B0B;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
         (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot pair</span>' : '') +
-        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + ' (agent-estimated)</span>' : '') +
+        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + ' (worker-computed)</span>' : '') +
         ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
         '<span class="mut" style="margin-left:auto">' + esc(fmtDate(l.created_at)) + '</span></div>';
-      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener" style="color:#E6CB7E;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
+      html += '<div style="font-size:16px;font-weight:700;margin-bottom:4px"><a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener noreferrer" style="color:#E6CB7E;text-decoration:none">' + esc(l.title || "(untitled post)") + ' ↗</a></div>';
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
-      if (l.motivationSignals && l.motivationSignals.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💪 ' + l.motivationSignals.map(function(s){ return esc(s); }).join(' · ') + '</div>';
+      if (Array.isArray(l.motivationSignals) && l.motivationSignals.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💪 ' + l.motivationSignals.map(function(s){ return esc(s); }).join(' · ') + '</div>'; // Pack F (RDR-02 L2): Array.isArray — a string value used to throw and break the whole list render
       // Pack E (RDR-01 M7): server-derived pool counters, shown
-      // separately from the agent-estimated motivation above.
-      if (l.poolCounters) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">📊 Server counters: ' + num(l.poolCounters.priceCuts || 0) + ' price cut(s) · relisted ×' + num(l.poolCounters.relistCount || 0) + ' · seen ' + num(l.poolCounters.seenDays || 0) + ' day(s)' + (l.poolCounters.lastSeen ? ' · last seen ' + esc(fmtDate(l.poolCounters.lastSeen)) : '') + '</div>';
+      // separately from the motivation score above. Pack F (RDR-02
+      // L4): the pair's motivation is a snapshot — show how long ago
+      // the pool record was last confirmed live.
+      if (l.poolCounters) { var lsMs = l.poolCounters.lastSeen ? Date.parse(l.poolCounters.lastSeen) : NaN; var lsTxt = isFinite(lsMs) ? (Math.floor((Date.now() - lsMs) / 86400000) <= 0 ? 'today' : Math.floor((Date.now() - lsMs) / 86400000) + 'd ago') : ''; html += '<div class="mut" style="font-size:12.5px;margin-top:2px">📊 Server counters: ' + num(l.poolCounters.priceCuts || 0) + ' price cut(s) · relisted ×' + num(l.poolCounters.relistCount || 0) + ' · seen ' + num(l.poolCounters.seenDays || 0) + ' day(s)' + (lsTxt ? ' · last confirmed live ' + lsTxt : '') + '</div>'; }
       if (l.presale && typeof l.presale === "object"){
         var pp = l.presale, pbits = [];
         if (pp.project) pbits.push('🏗️ ' + esc(pp.project));
@@ -1552,14 +1591,14 @@
       var mlist = (l.matches && l.matches.length) ? l.matches : (l.match && l.match.url ? [l.match] : []);
       mlist.forEach(function(m, i){
         if (!m || !m.url) return;
-        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener" style="color:#E6CB7E">' + esc(m.title || "listing") + ' ↗</a>' +
+        html += '<div style="margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px">↳ <b>Match' + (mlist.length > 1 ? ' #' + (i + 1) + (i === 0 ? ' (best)' : '') : '') + ':</b> <a href="' + esc(safeUrl(m.url)) + '" target="_blank" rel="noopener noreferrer" style="color:#E6CB7E">' + esc(m.title || "listing") + ' ↗</a>' +
           (m.price ? ' · ' + esc(m.price) : '') +
           (m.note ? '<div class="mut" style="margin-top:4px">' + esc(m.note) + '</div>' : '') + '</div>';
       });
       if (l.marketNote) html += '<div style="margin-top:8px;font-size:13px" class="mut">📉 ' + esc(l.marketNote) + '</div>';
       if (l.risk) html += '<div style="margin-top:8px;font-size:13px;color:#fbbf24">⚠ Biggest risk: ' + esc(l.risk) + '</div>';
       html += '<div class="row2">' +
-        '<a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener"><button class="small">Open post</button></a>' +
+        '<a href="' + esc(safeUrl(l.url)) + '" target="_blank" rel="noopener noreferrer"><button class="small">Open post</button></a>' +
         (l.status !== "contacted" ? '<button class="ghost small" data-act="contacted">✓ I contacted them</button>' : "") +
         (l.status !== "dismissed" ? '<button class="ghost small" data-act="dismissed">✕ Dismiss</button>' : '<button class="ghost small" data-act="new">↩ Restore</button>') +
         '<button class="ghost small" data-act="delete">Delete</button>' +
