@@ -129,7 +129,7 @@
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
 
     /* ---------- Smart in-chat invitations: after a market answer, the assistant
-       points the visitor to this site's own monthly market report (all 4 languages) ---------- */
+       points the visitor to this site's own monthly market report (all 5 languages) ---------- */
     var I18N13 = {
     en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
       ai_nl_btn:"Get the free monthly report"},
