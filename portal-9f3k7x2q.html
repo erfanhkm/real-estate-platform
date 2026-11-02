@@ -1131,8 +1131,11 @@
   function perfUnavailable(){
     $("perfBody").innerHTML = '<div class="empty" role="status" style="margin-bottom:10px">⚠️ Performance counters are temporarily unavailable — nothing is shown rather than showing zeros. Try Refresh in a moment.</div>' + perfLastHtml;
   }
+  var perfSeq = 0; // Pack E (R-01 low): a slow earlier response must not overwrite a newer render
   function loadPerf(){
+    var mySeq = ++perfSeq;
     api(API_URL, "/api/admin/perf").then(function(d){
+      if (mySeq !== perfSeq) return; // a newer loadPerf superseded this one
       if (!d || !d.ok) { perfUnavailable(); return; }
       $("perfSince").textContent = d.startedAt ? ("Counting since " + fmtDate(d.startedAt) + " — earlier activity is not included.") : "";
       var rows = d.listings || [];
@@ -1143,9 +1146,18 @@
       if (src.length) h += '<h3 style="margin:14px 0 6px;font-size:15px">Lead sources</h3>' + src.map(function(r){
         return '<div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px"><span>' + esc(r[0]) + '</span><b>' + num(r[1]) + '</b></div>';
       }).join("");
+      // Pack E (R-01 low): dropped beacons are shown, not hidden — a
+      // rising dropped count is how a counter bug becomes visible.
+      if (d.dropped) h += '<div class="mut" style="margin-top:10px">⚠️ ' + num(d.dropped) + ' beacon event(s) were dropped (unknown or malformed listing ids) and are not counted above.</div>';
+      h += '<div class="mut" style="margin-top:6px">Counts lag a little: events are batched and folded into the totals on the automation cycle, and other server isolates\u2019 pending counts join at their next flush.</div>';
       perfLastHtml = h;
-      $("perfBody").innerHTML = (d.stale ? '<div class="empty" role="status" style="margin-bottom:10px">🕒 These counts may be out of date — the counter store answered with stale data.</div>' : "") + h;
-    }).catch(function(){ perfUnavailable(); });
+      // Pack E (R-01 N3): fold health — warn when the counter fold has
+      // not succeeded for over 36 hours (or never).
+      var foldWarn = "";
+      if (!d.lastFoldAt) foldWarn = '<div class="empty" role="status" style="margin-bottom:10px">⚠️ The performance counter fold has never completed — totals may be incomplete.</div>';
+      else if (Date.now() - Date.parse(d.lastFoldAt) > 36 * 3600000) foldWarn = '<div class="empty" role="status" style="margin-bottom:10px">⚠️ The performance counter fold last succeeded ' + esc(fmtDate(d.lastFoldAt)) + ' — over 36h ago. Totals may be stale.</div>';
+      $("perfBody").innerHTML = foldWarn + (d.stale ? '<div class="empty" role="status" style="margin-bottom:10px">🕒 These counts may be out of date — the counter store answered with stale data.</div>' : "") + h;
+    }).catch(function(){ if (mySeq === perfSeq) perfUnavailable(); });
   }
 
   // ---------- today's follow-ups + saved-search alerts (feature build 2026-10-29) ----------
@@ -1183,6 +1195,11 @@
       h += pv.length ? pv.map(function(x){
         return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">viewed ' + esc(x.viewingDate || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + "</span>" + puAiDraftBtn(x) + "</div>";
       }).join("") : '<div class="empty" style="padding:8px 0">No post-viewing follow-ups due.</div>';
+      // Pack E (R-03 N3): going cold — contacted 7+ days ago, no movement since.
+      var gc = d.goingCold || [];
+      h += fuHead("🥶 Going cold — contacted 7+ days ago", gc.length, d.goingColdCount || 0);
+      h += gc.length ? gc.map(fuLeadRow).join("") : '<div class="empty" style="padding:8px 0">Nobody is going cold. 🎉</div>';
+      if (d.skipped) h += '<div class="mut" style="margin-top:8px">⚠️ ' + num(d.skipped) + ' record(s) could not be read and were skipped — check Maintenance if this persists.</div>';
       $("fuBody").innerHTML = h;
     }).catch(function(){ $("fuBody").innerHTML = '<div class="empty">Could not load the follow-up list.</div>'; });
     api(API_URL, "/api/admin/alerts").then(function(d){
@@ -1499,7 +1516,7 @@
         '<span class="chip" style="background:' + confColor + ';color:#0B0B0B;font-weight:700">Confidence ' + conf + '</span>' +
         (ms ? '<span class="chip" style="background:' + msColor + ';color:#0B0B0B;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
         (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot pair</span>' : '') +
-        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + '</span>' : '') +
+        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + ' (agent-estimated)</span>' : '') +
         ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
@@ -1509,6 +1526,9 @@
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
       if (l.motivationSignals && l.motivationSignals.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💪 ' + l.motivationSignals.map(function(s){ return esc(s); }).join(' · ') + '</div>';
+      // Pack E (RDR-01 M7): server-derived pool counters, shown
+      // separately from the agent-estimated motivation above.
+      if (l.poolCounters) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">📊 Server counters: ' + num(l.poolCounters.priceCuts || 0) + ' price cut(s) · relisted ×' + num(l.poolCounters.relistCount || 0) + ' · seen ' + num(l.poolCounters.seenDays || 0) + ' day(s)' + (l.poolCounters.lastSeen ? ' · last seen ' + esc(fmtDate(l.poolCounters.lastSeen)) : '') + '</div>';
       if (l.presale && typeof l.presale === "object"){
         var pp = l.presale, pbits = [];
         if (pp.project) pbits.push('🏗️ ' + esc(pp.project));
