@@ -306,6 +306,17 @@
         <div><h1>🧑‍💼 CRM</h1><div class="mut" id="crmCount">Every person in one place — accounts, leads, viewings, saved homes and searches merged by email</div></div>
         <button class="ghost small" id="crmRefresh">Refresh</button>
       </div>
+      <div class="card" style="margin-bottom:14px">
+        <h2 style="margin-top:0">⏰ Today's follow-ups</h2>
+        <div id="fuBody"><div class="empty">Loading…</div></div>
+        <h3 style="margin:18px 0 6px;font-size:15px">🔔 Saved-search alerts</h3>
+        <div id="fuAlerts"><div class="empty">Loading…</div></div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="ghost small" id="fuRun">Run alerts &amp; reminders now</button>
+          <span class="mut" id="fuRunOut" aria-live="polite"></span>
+        </div>
+        <div class="hint" style="margin-top:8px">The same check also runs automatically once a day (around 1–2 AM Pacific). Alert and reminder emails are only queued — nothing is sent until email sending is activated.</div>
+      </div>
       <div class="crm-stats" id="crmStats"></div>
       <div class="crm-health" id="crmHealth"></div>
       <div class="filters">
@@ -377,7 +388,11 @@
         </div>
         <label class="toggle"><input type="checkbox" id="radarToggle"> <b id="radarToggleLabel">Off</b></label>
       </div>
-      <div class="hint" style="margin-bottom:12px">Your private deep market scan — buyer demand and for-sale-by-owner supply (residential + commercial), stored only as matched pairs with a match score. Use the filters to slice by score, confidence, value, area and source. Only you can see this page; it is not linked anywhere on the public website.</div>
+      <div class="hint" style="margin-bottom:12px">Your private deep market scan — buyer demand and for-sale-by-owner supply (residential + commercial), stored only as matched pairs with a match score. Use the filters to slice by score, confidence, value, area and source. Only you can see this page; it is not linked anywhere on the public website. Every candidate the scan reviews (paired or not) is also kept in a private 30-day pool, so a match can form across runs; the coverage ledger below shows exactly which source × region cells were fully drained and which still owe coverage.</div>
+      <div class="card" id="radarCoverageCard" style="margin-bottom:12px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">🗺️ Scan coverage — v4 ledger</div>
+        <div id="radarCoverage"><div class="mut">Loading coverage…</div></div>
+      </div>
       <div class="filters">
         <select id="radarStatus">
           <option value="">All statuses</option>
@@ -499,6 +514,11 @@
         <div><h1 style="font-size:20px">Viewing availability</h1><div class="mut">Optional: set the exact dates and times the owner can host viewings. When set, the site's Book a viewing shows ONLY those slots (booked ones disappear automatically). Leave a listing unset and all standard slots stay open.</div></div>
       </div>
       <div id="lstAvail"><div class="empty">Loading…</div></div>
+      <div class="pagehead" style="margin-top:28px">
+        <div><h1 style="font-size:20px">📊 Listing performance</h1><div class="mut">Aggregate counters only — detail views, saves, viewing bookings and attributed leads per listing, plus where leads come from. No visitor is tracked personally. <span id="perfSince" aria-live="polite"></span></div></div>
+        <button class="ghost small" id="perfRefresh">Refresh</button>
+      </div>
+      <div id="perfBody"><div class="empty">Loading…</div></div>
     </section>
 
     <!-- SITE CONTENT / SETTINGS -->
@@ -725,6 +745,8 @@
 
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function num(v){ var n = Number(v); return isFinite(n) ? String(n) : "0"; }
+  function vanToday(){ try { var p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()); var o = {}; p.forEach(function(x){ o[x.type] = x.value; }); return o.year + "-" + o.month + "-" + o.day; } catch(e){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); } }
   function safeUrl(u){ u = String(u == null ? "" : u).trim(); return /^https?:\/\//i.test(u) ? u : "#"; }
   function csvCell(x){ var s = String(x == null ? "" : x); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; }
   function toast(msg, bad){
@@ -818,10 +840,10 @@
     });
     if (page === "overview") loadOverview();
     if (page === "leads") renderLeads();
-    if (page === "crm") loadCRM();
+    if (page === "crm") { loadCRM(); loadFollowups(); }
     if (page === "search") initTabSearch();
     if (page === "tours") loadTourList();
-    if (page === "listings") { loadListings(); loadAvail(); }
+    if (page === "listings") { loadListings(); loadAvail(); loadPerf(); }
     if (page === "site") loadSiteSettings();
     if (page === "radar") loadRadar();
     if (page === "traffic") loadStats();
@@ -910,6 +932,107 @@
       miniTable($("tblRef"), t.ref, "No referrers yet — most visits so far are direct.");
     }).catch(function(){});
   }
+
+  // ---------- listing performance (aggregate counters, feature build 2026-10-29) ----------
+  $("perfRefresh").addEventListener("click", function(){ cacheClear(); loadPerf(); });
+  var perfLastHtml = ""; // last good render: kept under the banner when a reload fails, never replaced by invented zeros (F-06 M2)
+  function perfUnavailable(){
+    $("perfBody").innerHTML = '<div class="empty" role="status" style="margin-bottom:10px">⚠️ Performance counters are temporarily unavailable — nothing is shown rather than showing zeros. Try Refresh in a moment.</div>' + perfLastHtml;
+  }
+  function loadPerf(){
+    api(API_URL, "/api/admin/perf").then(function(d){
+      if (!d || !d.ok) { perfUnavailable(); return; }
+      $("perfSince").textContent = d.startedAt ? ("Counting since " + fmtDate(d.startedAt) + " — earlier activity is not included.") : "";
+      var rows = d.listings || [];
+      var h = rows.length ? '<div style="overflow-x:auto"><table><thead><tr><th>Listing</th><th>Views</th><th>Saves</th><th>Viewing bookings</th><th>Leads (incl. viewing requests)</th></tr></thead><tbody>' + rows.map(function(x){
+        return '<tr><td><b>' + esc(x.label) + '</b><br><span class="mut">' + esc(x.mls) + '</span></td><td>' + num(x.views) + '</td><td>' + num(x.saves) + '</td><td>' + num(x.bookings) + '</td><td>' + num(x.leads) + '</td></tr>';
+      }).join("") + '</tbody></table></div>' : '<div class="empty">No activity counted yet — counters fill as visitors view, save and book.</div>';
+      var src = topRows(d.sources || {}, 10);
+      if (src.length) h += '<h3 style="margin:14px 0 6px;font-size:15px">Lead sources</h3>' + src.map(function(r){
+        return '<div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px"><span>' + esc(r[0]) + '</span><b>' + num(r[1]) + '</b></div>';
+      }).join("");
+      perfLastHtml = h;
+      $("perfBody").innerHTML = (d.stale ? '<div class="empty" role="status" style="margin-bottom:10px">🕒 These counts may be out of date — the counter store answered with stale data.</div>' : "") + h;
+    }).catch(function(){ perfUnavailable(); });
+  }
+
+  // ---------- today's follow-ups + saved-search alerts (feature build 2026-10-29) ----------
+  function fuAge(x){
+    if (x.ageUnknown || x.ageHours === null || x.ageHours === undefined) return "age unknown";
+    return num(x.ageHours) + "h ago";
+  }
+  function fuLeadRow(x){
+    return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">' + esc(x.intent || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + '</span></div>';
+  }
+  function fuViewingRow(x){
+    return '<div class="tourrow"><div><b>' + esc(x.time || "") + '</b> ' + esc(x.name || "") + ' <span class="mut">' + esc(x.email || "") + '</span></div><span class="mut">' + (x.date ? esc(x.date) + " · " : "") + esc(x.listing || "") + " · " + esc(x.status || "") + '</span></div>';
+  }
+  function fuHead(label, shown, total){
+    return '<div style="margin:12px 0 6px"><b>' + label + " (" + num(total) + ")" + (shown < total ? ' <span class="mut">— showing ' + num(shown) + " of " + num(total) + "</span>" : "") + "</b></div>";
+  }
+  var fuStamp = 0, fuStampDay = "";
+  function loadFollowups(){
+    api(API_URL, "/api/admin/followups").then(function(d){
+      if (!d || !d.ok) { $("fuBody").innerHTML = '<div class="empty">Could not load the follow-up list.</div>'; return; }
+      fuStamp = Date.now(); fuStampDay = vanToday();
+      var tv = d.todayViewings || [], ac = d.awaitingConfirm || [], pv = d.postViewing || [];
+      var h = '<div style="margin-bottom:6px"><b>📅 Viewings today (' + num(tv.length) + ')</b></div>';
+      h += tv.length ? tv.map(function(x){
+        return '<div class="tourrow"><div><b>' + esc(x.time || "") + '</b> ' + esc(x.name || "") + ' <span class="mut">' + esc(x.email || "") + '</span></div><span class="mut">' + esc(x.listing || "") + " · " + esc(x.status || "") + '</span></div>';
+      }).join("") : '<div class="empty" style="padding:8px 0">No viewings today.</div>';
+      h += fuHead("🕐 Viewing requests awaiting confirmation", ac.length, d.awaitingConfirmCount || 0);
+      h += ac.length ? ac.map(fuViewingRow).join("") : '<div class="empty" style="padding:8px 0">No viewing requests waiting for confirmation.</div>';
+      h += fuHead("🆕 New leads, not yet contacted", (d.newLeads || []).length, d.newCount || 0);
+      h += (d.newLeads || []).length ? d.newLeads.map(fuLeadRow).join("") : '<div class="empty" style="padding:8px 0">No new leads waiting.</div>';
+      h += fuHead("⚠️ Stale — untouched for 48h+", (d.staleLeads || []).length, d.staleCount || 0);
+      h += (d.staleLeads || []).length ? d.staleLeads.map(fuLeadRow).join("") : '<div class="empty" style="padding:8px 0">Nothing stale. 🎉</div>';
+      h += fuHead("🏠 Viewed — follow-up call due", pv.length, d.postViewingCount || 0);
+      h += pv.length ? pv.map(function(x){
+        return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">viewed ' + esc(x.viewingDate || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + '</span></div>';
+      }).join("") : '<div class="empty" style="padding:8px 0">No post-viewing follow-ups due.</div>';
+      $("fuBody").innerHTML = h;
+    }).catch(function(){ $("fuBody").innerHTML = '<div class="empty">Could not load the follow-up list.</div>'; });
+    api(API_URL, "/api/admin/alerts").then(function(d){
+      if (!d || !d.ok) { $("fuAlerts").innerHTML = '<div class="empty">Could not load alert status.</div>'; return; }
+      var rows = (d.searches || []).filter(function(s){ return s.notify; });
+      var h = rows.length ? rows.map(function(s){
+        return '<div class="tourrow"><div><b>' + esc(s.name || "Search") + '</b> <span class="mut">' + esc(s.email) + '</span></div><span class="mut">' + num(s.notified) + ' known matches · ' + num(s.alertsQueued) + ' alert' + (Number(s.alertsQueued) === 1 ? "" : "s") + ' queued' + (s.lastAlertAt ? " · last " + esc(fmtDate(s.lastAlertAt)) : "") + '</span></div>';
+      }).join("") : '<div class="empty" style="padding:8px 0">No saved searches with alerts on.</div>';
+      if (d.lastRun && d.lastRun.at) h += '<div class="mut" style="margin-top:8px">Last automatic run: ' + esc(fmtDate(d.lastRun.at)) + (d.lastRun.source ? " (" + esc(d.lastRun.source) + ")" : "") + (d.lastRun.error ? " — ended with an error (" + esc(d.lastRun.error) + ")" : "") + "</div>";
+      if (d.truncated) h += '<div class="mut" style="margin-top:4px">Showing the newest 100 saved searches — the full list is truncated.</div>';
+      $("fuAlerts").innerHTML = h;
+    }).catch(function(){ $("fuAlerts").innerHTML = '<div class="empty">Could not load alert status.</div>'; });
+  }
+  function fuMaybeReload(){
+    if (document.hidden || !fuStamp) return;
+    var pg = $("page-crm"); if (!pg || pg.hidden) return;
+    if (fuStampDay !== vanToday() || Date.now() - fuStamp > 120000) { cacheClear(); loadFollowups(); }
+  }
+  document.addEventListener("visibilitychange", fuMaybeReload);
+  window.addEventListener("focus", fuMaybeReload);
+  function runSummary(d){
+    if (!d) return "Run failed.";
+    if (d.skipped) return "Another run is already in progress — nothing new was queued.";
+    if (d.error === "catalog_stale") return "Run did not complete — the listing catalog could not be proven fresh, so nothing was queued.";
+    if (d.error) return "Run did not complete (" + d.error + ").";
+    function step(label, r){
+      if (!r) return label + "s: no result";
+      if (r.error) return label + "s failed";
+      var s = num(r.queued) + " " + label + (Number(r.queued) === 1 ? "" : "s") + " queued";
+      if (r.errors) s += " (" + num(r.errors) + " error" + (Number(r.errors) === 1 ? "" : "s") + ")";
+      if (r.partial) s += " — partial, more users next run";
+      return s;
+    }
+    return "Done — " + step("alert", d.alerts) + ", " + step("reminder", d.reminders) + ".";
+  }
+  $("fuRun").addEventListener("click", function(){
+    $("fuRun").disabled = true; $("fuRunOut").textContent = "Running…";
+    api(API_URL, "/api/admin/followups/run", { method: "POST", body: "{}" }).then(function(d){
+      $("fuRun").disabled = false;
+      if (d && d.ok) { $("fuRunOut").textContent = runSummary(d); cacheClear(); loadFollowups(); }
+      else $("fuRunOut").textContent = "Run failed.";
+    }).catch(function(){ $("fuRun").disabled = false; $("fuRunOut").textContent = "Run failed."; });
+  });
 
   // ---------- market radar ----------
   var mleads = [];
@@ -1066,10 +1189,42 @@
   }
   function loadRadar(){
     loadRadarSettings();
+    loadRadarCoverage();
     api(API_URL, "/api/market-leads").then(function(d){
       if (d && d.ok) mleads = d.leads || []; else if (!mleads.length) toast("Could not load the radar list", true);
       renderRadar();
     }).catch(function(){ if (!mleads.length) toast("Could not load the radar list", true); renderRadar(); });
+  }
+  function loadRadarCoverage(){
+    api(API_URL, "/api/admin/radar-coverage").then(function(d){
+      var box = $("radarCoverage");
+      if (!d || !d.ok) { box.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; return; }
+      var cells = d.cells || [];
+      if (!cells.length) { box.innerHTML = '<div class="mut">No coverage data yet — the ledger fills in once the radar runs under the v4 protocol.</div>'; return; }
+      // Compact view: one row per source × region (categories aggregated).
+      var groups = {}, order = [];
+      cells.forEach(function(c){
+        var gk = c.source + "|" + c.region;
+        if (!groups[gk]) { groups[gk] = { source: c.source, region: c.region, lastOkAt: null, debt: false, deep: false, reported: 0, fetched: 0, hasCounts: false }; order.push(gk); }
+        var g = groups[gk];
+        if (c.debt) g.debt = true;
+        if (c.tier === "deep") g.deep = true;
+        if (c.lastOkAt && (!g.lastOkAt || c.lastOkAt > g.lastOkAt)) g.lastOkAt = c.lastOkAt;
+        if (typeof c.reported === "number" && typeof c.fetched === "number") { g.reported += c.reported; g.fetched += c.fetched; g.hasCounts = true; }
+      });
+      var nowMs = Date.now(), staleCount = 0;
+      var rows = order.map(function(gk){
+        var g = groups[gk];
+        var ageH = g.lastOkAt ? (nowMs - Date.parse(g.lastOkAt)) / 3600000 : null;
+        var limit = g.deep ? 26 : 6; // delta cells re-scan every 3h; deep cells daily
+        var stale = ageH === null || ageH > limit;
+        if (stale) staleCount++;
+        var ageTxt = ageH === null ? "never completed" : ageH < 1 ? Math.max(1, Math.round(ageH * 60)) + "m ago" : (Math.round(ageH * 10) / 10) + "h ago";
+        var badge = g.debt ? '<span class="chip" style="background:#450a0a;color:#f87171;font-weight:700">🔴 owes coverage (debt)</span>' : stale ? '<span class="chip" style="background:#451a03;color:#fbbf24;font-weight:700">⚠ stale</span>' : '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">✓ covered</span>';
+        return '<div class="tourrow"><div>' + badge + ' <b>' + esc(g.source) + '</b> <span class="mut">· ' + esc(g.region) + (g.deep ? ' · deep+daily' : '') + '</span></div><span class="mut">last full scan ' + esc(ageTxt) + (g.hasCounts ? ' · fetched ' + g.fetched + "/" + g.reported + " reported" : '') + '</span></div>';
+      });
+      box.innerHTML = '<div class="mut" style="margin-bottom:6px">' + cells.length + ' cells · <b>' + (d.debtCount || 0) + '</b> in debt · <b>' + staleCount + '</b> stale · candidate pool: <b>' + (d.poolCount || 0) + '</b>' + (d.updatedAt ? ' · ledger updated ' + esc(fmtDate(d.updatedAt)) : '') + '</div>' + rows.join("");
+    }).catch(function(){ var b = $("radarCoverage"); if (b) b.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; });
   }
   function loadRadarSettings(){
     api(API_URL, "/api/radar-settings").then(function(d){
@@ -1080,7 +1235,7 @@
   }
   function syncRadarState(on){
     $("radarToggleLabel").textContent = on ? "On" : "Off";
-    $("radarState").textContent = on ? "On — a deep scan runs every 3 hours and only matched pairs are stored and shown here." : "Off — no scans run at all. Turn it on when you want the 3-hourly deep scan.";
+    $("radarState").textContent = on ? "On — a delta scan runs every 3 hours across all of BC and a full deep drain runs daily; only matched pairs are stored and shown here." : "Off — no scans run at all. Turn it on when you want the 3-hourly deep scan.";
   }
   $("radarToggle").addEventListener("change", function(){
     var on = $("radarToggle").checked;
@@ -1093,6 +1248,10 @@
   });
   function kindLabel(k){
     return k === "seller" ? "🏷️ Seller (FSBO)" : k === "pair" ? "🔗 Matched pair" : "🛒 Buyer looking";
+  }
+  function isHot(l){
+    // Hot-pair rule (radar v4 ext): strong fit AND a motivated seller.
+    return (l.matchScore || 0) >= 80 && typeof l.motivation === "number" && l.motivation >= 60;
   }
   function fillRadarSelect(id, values, allLabel){
     var sel = $(id); if (!sel) return;
@@ -1127,8 +1286,10 @@
       if (sortBy === "priceAsc" || sortBy === "priceDesc") { var x = pv(a), y = pv(b); if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1; return sortBy === "priceAsc" ? x - y : y - x; }
       return String(b.created_at || "").localeCompare(String(a.created_at || ""));
     });
+    var hotRows = rows.filter(isHot);
+    if (hotRows.length) rows = hotRows.concat(rows.filter(function(l){ return !isHot(l); })); // 🔥 hot pairs pin to the top, chosen sort kept inside each group
     var newCount = mleads.filter(function(l){ return l.status === "new"; }).length;
-    $("radarCount").textContent = rows.length + " shown · " + newCount + " new of " + mleads.length + " total";
+    $("radarCount").textContent = rows.length + " shown · " + newCount + " new of " + mleads.length + " total" + (hotRows.length ? " · 🔥 " + hotRows.length + " hot" : "");
     var box = $("radarList");
     if (!rows.length){ box.innerHTML = '<div class="card"><div class="empty">' + (mleads.length ? 'Nothing matches the current filters — loosen a filter to see more.' : 'No matched pairs yet. While the radar is on, a deep scan runs every 3 hours and only matched pairs appear here.') + '</div></div>'; return; }
     box.innerHTML = "";
@@ -1138,10 +1299,14 @@
       var confColor = conf >= 70 ? "#22c55e" : conf >= 45 ? "#eab308" : "#ef4444";
       var ms = typeof l.matchScore === "number" ? l.matchScore : 0;
       var msColor = ms >= 80 ? "#22c55e" : ms >= 60 ? "#C6A15B" : "#64748b";
+      var mot = typeof l.motivation === "number" ? l.motivation : null;
+      var hot = ms >= 80 && mot !== null && mot >= 60;
       var html = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">' +
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
         '<span class="chip" style="background:' + confColor + ';color:#0c111d;font-weight:700">Confidence ' + conf + '</span>' +
         (ms ? '<span class="chip" style="background:' + msColor + ';color:#0c111d;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
+        (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot pair</span>' : '') +
+        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + '</span>' : '') +
         ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
@@ -1150,6 +1315,7 @@
       var meta = [l.area, l.price, l.source, l.posted_at ? "posted " + l.posted_at : ""].filter(Boolean).join(" · ");
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
+      if (l.motivationSignals && l.motivationSignals.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💪 ' + l.motivationSignals.map(function(s){ return esc(s); }).join(' · ') + '</div>';
       if (l.presale && typeof l.presale === "object"){
         var pp = l.presale, pbits = [];
         if (pp.project) pbits.push('🏗️ ' + esc(pp.project));
@@ -1294,7 +1460,7 @@
       .then(function(d){ if (d && d.ok) { toast("Address banned"); $("banEmail").value = ""; $("banReason").value = ""; loadCRM(); } else toast("Could not ban — check the address", true); })
       .catch(function(){ toast("Could not ban", true); });
   });
-  $("crmRefresh").addEventListener("click", function(){ cacheClear(); loadCRM(); });
+  $("crmRefresh").addEventListener("click", function(){ cacheClear(); loadCRM(); loadFollowups(); });
   $("crmSearch").addEventListener("input", function(){ if (!crmOpen) renderCRMMain(); });
   ["crmTier", "crmStageF", "crmFlag", "crmSort"].forEach(function(id){ $(id).addEventListener("change", function(){ crmOpen = null; crmShowN = 30; renderCRMMain(); }); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-crmview]"), function(b){
@@ -1676,7 +1842,7 @@
     var sel = e.target.closest("[data-lead-stage]");
     if (!sel) return;
     api(API_URL, "/api/leads/" + encodeURIComponent(sel.getAttribute("data-lead-stage")), { method: "PATCH", body: JSON.stringify({ stage: sel.value }) })
-      .then(function(d){ if (d && d.ok) { toast("Stage updated ✓"); loadCRM(); } else toast("Could not update the stage", true); })
+      .then(function(d){ if (d && d.ok) { toast("Stage updated ✓"); loadCRM(); loadFollowups(); } else toast("Could not update the stage", true); })
       .catch(function(){ toast("Could not update the stage", true); });
   });
   $("crmMain").addEventListener("click", function(e){
@@ -1796,7 +1962,7 @@
       var dnc = document.querySelector("[data-crm-dnc]").checked;
       var tags = $("crmTags").value.split(",").map(function(t){ return t.trim(); }).filter(Boolean);
       api(API_URL, "/api/admin/crm/" + encodeURIComponent(aem), { method: "PATCH", body: JSON.stringify({ stage: stage, dnc: dnc, tags: tags }) })
-        .then(function(d){ if (d && d.ok) { toast("Saved ✓"); loadCRM(); } else toast("Could not save", true); })
+        .then(function(d){ if (d && d.ok) { toast("Saved ✓"); loadCRM(); loadFollowups(); } else toast("Could not save", true); })
         .catch(function(){ toast("Could not save", true); });
       return;
     }
@@ -2511,7 +2677,7 @@
     chain.then(function(){
       leadSel = {};
       toast(failed ? ("Stage updated with " + failed + " failure(s)") : ("Stage set to " + st + " for " + sel.length + " lead" + (sel.length === 1 ? "" : "s") + " ✓"), !!failed);
-      loadLeads();
+      loadLeads(); loadFollowups();
     });
   });
   $("bulkDel").addEventListener("click", function(){
@@ -2568,7 +2734,7 @@
     $("dErr").textContent = "";
     api(API_URL, "/api/leads/" + encodeURIComponent(currentId), { method: "PATCH", body: JSON.stringify({ stage: $("dStage").value, notes: $("dNotes").value }) })
       .then(function(d){
-        if (d && d.ok){ $("detail").classList.remove("open"); toast("Lead saved ✓"); loadLeads(); }
+        if (d && d.ok){ $("detail").classList.remove("open"); toast("Lead saved ✓"); loadLeads(); loadFollowups(); }
         else $("dErr").textContent = "Could not save.";
       })
       .catch(function(){ $("dErr").textContent = "Could not reach the server."; });
