@@ -53,6 +53,8 @@
   .navbtn:hover { background: var(--panel2); }
   .navbtn.on { background: var(--acc); color: #15130E; }
   .navbtn .ic { font-size: 16px; width: 20px; text-align: center; }
+  .navbtn.sub { margin-left: 16px; width: calc(100% - 16px); font-size: 13.5px; padding: 9px 12px; }
+  #navOthersBtn.open { background: var(--panel2); }
   #side .sp { flex: 1; }
   #main { flex: 1; min-width: 0; padding: 22px 22px 64px; max-width: 1060px; margin: 0 auto; width: 100%; }
   .pagehead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -180,19 +182,22 @@
   <aside id="side">
     <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
     <button class="navbtn on" data-nav="today"><span class="ic">🌅</span>Today</button>
+    <button class="navbtn" data-nav="brain"><span class="ic">🧠</span>Assistant</button>
     <button class="navbtn" data-nav="overview"><span class="ic">📊</span>Overview</button>
     <button class="navbtn" data-nav="workspace"><span class="ic">🧭</span>Workspace</button>
-    <button class="navbtn" data-nav="pipeline"><span class="ic">🗂</span>Pipeline</button>
     <button class="navbtn" data-nav="tours"><span class="ic">🔄</span>Virtual Tours</button>
     <button class="navbtn" data-nav="listings"><span class="ic">🏠</span>Listings</button>
     <button class="navbtn" data-nav="reports"><span class="ic">📖</span>Reports &amp; handbook</button>
-    <button class="navbtn" data-nav="site"><span class="ic">🧩</span>Site content</button>
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
-    <button class="navbtn" data-nav="demand"><span class="ic">🗺</span>Demand map</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
-    <button class="navbtn" data-nav="rules"><span class="ic">⚙️</span>Automation rules</button>
-    <button class="navbtn" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
+    <button class="navbtn" id="navOthersBtn"><span class="ic">🧰</span>Others <span id="navOthersCaret" style="margin-left:auto">▸</span></button>
+    <div id="navOthers" hidden>
+      <button class="navbtn sub" data-nav="site"><span class="ic">🧩</span>Site content</button>
+      <button class="navbtn sub" data-nav="pipeline"><span class="ic">🗂</span>Pipeline</button>
+      <button class="navbtn sub" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
+      <button class="navbtn sub" data-nav="rules"><span class="ic">⚙️</span>Automation rules</button>
+    </div>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
     <button class="navbtn" data-nav="search"><span class="ic">🔍</span>Search</button>
@@ -479,6 +484,16 @@
         <input type="text" id="radarSearch" placeholder="Search title / area…" style="flex:1 1 160px">
       </div>
       <div id="radarList"><div class="empty">Loading…</div></div>
+      <div id="puDemandBlock" style="margin-top:16px">
+        <div class="pagehead"><h1 style="font-size:19px">🗺 Demand map</h1><button class="ghost small" id="puDemandRefresh">Refresh</button></div>
+        <div class="card"><div id="puMap" style="height:440px;border-radius:10px;overflow:hidden;background:#201D18"></div>
+        <div class="hint">Aggregate demand only — areas and counts, never an individual lead's address. Gold = supply (active listings), bright ring = search + valuation demand.</div></div>
+        <div class="pu-grid">
+          <div class="card"><h2>City balance — demand vs supply</h2><div id="puDemandCities"><div class="empty">Loading…</div></div></div>
+          <div class="card"><h2>Valuation demand by area (FSA)</h2><div id="puDemandFsa"><div class="empty">Loading…</div></div></div>
+          <div class="card"><h2>Census overlay — Metro Vancouver FSAs</h2><div id="puDemandCensus"><div class="empty">Loading…</div></div></div>
+        </div>
+      </div>
     </section>
 
     <!-- TRAFFIC -->
@@ -730,7 +745,7 @@
     </section>
 
     <section id="page-today">
-      <div class="pagehead"><h1>Today</h1><button class="ghost small" onclick="cacheClear();puLoadToday()">Refresh</button></div>
+      <div class="pagehead"><h1>Today</h1><button class="ghost small" id="puTodayRefresh">Refresh</button></div>
       <div id="puAttention"></div>
       <div class="pu-grid">
         <div class="card"><h2>🗓 Viewings — today &amp; tomorrow</h2><div id="puTViewings"><div class="empty">Loading…</div></div></div>
@@ -744,8 +759,25 @@
       </div>
     </section>
 
+    <section id="page-brain" hidden>
+      <div class="pagehead"><h1>🧠 Assistant</h1><span class="pu-mini" id="pbStatus">…</span></div>
+      <div class="card">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+          <button class="ghost small" id="pbLangFa">فارسی</button>
+          <button class="ghost small" id="pbLangEn">EN</button>
+          <span class="pu-mini">The assistant answers only from your portal data. It can queue held drafts and follow-up tasks — it never sends anything and never changes a lead's stage.</span>
+        </div>
+        <div id="pbLog" style="display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto"></div>
+        <div id="pbChips" style="margin:10px 0;display:flex;gap:6px;flex-wrap:wrap"></div>
+        <div style="display:flex;gap:8px"><input id="pbInput" type="text" placeholder="از دستیار بپرسید…" style="flex:1"><button id="pbSend">Send</button></div>
+      </div>
+      <div class="card"><h2>🧠 Latest market brief</h2><div id="pbBrief"><div class="empty">No brief yet.</div></div>
+        <div style="margin-top:8px"><button class="ghost small" id="pbBriefBtn">🧠 Generate market brief now</button> <span class="pu-mini" id="pbBriefMsg"></span></div>
+      </div>
+    </section>
+
     <section id="page-pipeline" hidden>
-      <div class="pagehead"><h1>Lead pipeline</h1><button class="ghost small" onclick="cacheClear();puLoadPipeline()">Refresh</button></div>
+      <div class="pagehead"><h1>Lead pipeline</h1><button class="ghost small" id="puPipeRefresh">Refresh</button></div>
       <div class="card"><div class="pu-filters">
         <label>Temperature <select id="puFTemp"><option value="">All</option><option value="hot">🔥 Hot</option><option value="warm">🌤 Warm</option><option value="cold">❄️ Cold</option></select></label>
         <label>Source <select id="puFSource"><option value="">All sources</option></select></label>
@@ -757,19 +789,8 @@
       <div class="hint">Drag a card to another column to change its stage — it saves immediately. Red border = going cold (Contacted 7+ days).</div>
     </section>
 
-    <section id="page-demand" hidden>
-      <div class="pagehead"><h1>Demand map</h1><button class="ghost small" onclick="cacheClear();puLoadDemand()">Refresh</button></div>
-      <div class="card"><div id="puMap" style="height:440px;border-radius:10px;overflow:hidden;background:#201D18"></div>
-      <div class="hint">Aggregate demand only — areas and counts, never an individual lead's address. Gold = supply (active listings), bright ring = search + valuation demand.</div></div>
-      <div class="pu-grid">
-        <div class="card"><h2>City balance — demand vs supply</h2><div id="puDemandCities"><div class="empty">Loading…</div></div></div>
-        <div class="card"><h2>Valuation demand by area (FSA)</h2><div id="puDemandFsa"><div class="empty">Loading…</div></div></div>
-        <div class="card"><h2>Census overlay — Metro Vancouver FSAs</h2><div id="puDemandCensus"><div class="empty">Loading…</div></div></div>
-      </div>
-    </section>
-
     <section id="page-rules" hidden>
-      <div class="pagehead"><h1>Automation rules</h1><button class="ghost small" onclick="puLoadRules()">Refresh</button></div>
+      <div class="pagehead"><h1>Automation rules</h1><button class="ghost small" id="puRulesRefresh">Refresh</button></div>
       <div class="card"><h2>Your rules</h2><div id="puRulesList"><div class="empty">Loading…</div></div>
       <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” only queues HELD mail — nothing is ever sent automatically.</div></div>
       <div class="card"><h2 id="puRuleFormTitle">Add a rule</h2>
@@ -807,14 +828,18 @@
           <button id="puRepGen">Generate</button>
         </div>
         <div id="puRepMsg" class="hint">Opens a print-ready document — use “Save as PDF” in the print dialog.</div>
+        <div style="margin-top:12px"><button class="ghost" id="puCopyBtn">🤖 AI listing copy (draft)</button> <span class="pu-mini">Marketing description for the selected listing, in every portal language. Stored as an editable draft — never published to the site automatically.</span></div>
+        <div id="puCopyBox" style="margin-top:8px"></div>
       </div>
       <div class="card"><h2>📖 Showing handbook</h2>
         <div class="pu-filters">
           <label>Listing <select id="puHbMls"></select></label>
           <label>Client (lead) <select id="puHbLead"></select></label>
           <label>Language <select id="puHbLang"></select></label>
+          <label class="pu-chk"><input type="checkbox" id="puHbFiles"> Include uploaded file content</label>
           <button id="puHbGen">Generate handbook</button>
         </div>
+        <div style="margin-top:10px"><button class="ghost" id="puShowBrief">🧠 Showing brief</button> <span class="pu-mini" id="puShowBriefMsg">One-screen AI brief for the selected listing + client (grounded in portal data only).</span></div>
         <div id="puHbMsg" class="hint">Cover with the brand header, all photos, full specs, neighbourhood, price + indicative mortgage, viewing time and contacts — in the client's language.</div>
       </div>
     </section>
@@ -857,8 +882,22 @@
   <button id="pvClose" style="position:absolute;top:14px;right:14px;z-index:51">✕ Close</button>
 </div>
 
+<div id="puModal" style="position:fixed;inset:0;background:rgba(5,4,2,.72);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:26px 12px;overflow:auto">
+  <div class="card" style="max-width:680px;width:100%;margin:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="puModalTitle" style="margin:0"></h2><button class="ghost small" id="puModalClose">✕ Close</button></div>
+    <div id="puModalBody" style="margin-top:10px"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
+<div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
+  <div style="background:#161513;border:1px solid #2E2A23;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
+    <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #2E2A23;color:#F5F1E8;outline:none">
+    <div id="gsResults" style="max-height:56vh;overflow:auto;padding:8px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #2E2A23"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
+  </div>
+</div>
 <script>
 (function(){
   "use strict";
@@ -958,18 +997,27 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){
     b.addEventListener("click", function(){ wsLens = b.getAttribute("data-wslens"); wsOpen(); });
   });
+  function navOthersOpen(open){
+    var g = $("navOthers"); if (!g) return;
+    g.hidden = !open;
+    var c = $("navOthersCaret"); if (c) c.textContent = open ? "▾" : "▸";
+    var b = $("navOthersBtn"); if (b) b.classList.toggle("open", open);
+  }
   function go(page){
     if (page === "workspace") { wsOpen(); return; }
+    if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","demand","rules","reports"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
+    if (["site", "pipeline", "maintenance", "rules"].indexOf(page) !== -1) navOthersOpen(true);
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
       b.classList.toggle("on", b.getAttribute("data-nav") === navKey);
     });
     if (page === "overview") loadOverview();
     if (page === "today") puLoadToday();
+    if (page === "brain") pbLoadBrain();
     if (page === "pipeline") puLoadPipeline();
     if (page === "demand") puLoadDemand();
     if (page === "rules") puLoadRules();
@@ -980,7 +1028,7 @@
     if (page === "tours") loadTourList();
     if (page === "listings") { loadListings(); loadAvail(); loadPerf(); }
     if (page === "site") loadSiteSettings();
-    if (page === "radar") loadRadar();
+    if (page === "radar") { loadRadar(); puLoadDemand(); }
     if (page === "traffic") loadStats();
     if (page === "viewings") loadViewings();
     if (page === "newsletter") loadNewsletter();
@@ -991,6 +1039,14 @@
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
     b.addEventListener("click", function(){ go(b.getAttribute("data-nav")); });
   });
+  $("navOthersBtn").addEventListener("click", function(){ var g = $("navOthers"); navOthersOpen(g ? g.hidden : true); });
+  // Page-head Refresh buttons (phase 2 fix: these used inline onclick
+  // attributes, which cannot see inside this script's closure — every
+  // one of them was dead. They are id-bound listeners now.)
+  $("puTodayRefresh").addEventListener("click", function(){ cacheClear(); puLoadToday(); });
+  $("puPipeRefresh").addEventListener("click", function(){ cacheClear(); puLoadPipeline(); });
+  $("puRulesRefresh").addEventListener("click", function(){ puLoadRules(); });
+  $("puDemandRefresh").addEventListener("click", function(){ cacheClear(); puLoadDemand(); });
   $("qaLeads").addEventListener("click", function(){ go("leads"); });
   $("qaTour").addEventListener("click", function(){ go("tours"); });
   $("qaSite").addEventListener("click", function(){ window.open(SITE_URL, "_blank", "noopener"); });
@@ -1098,7 +1154,7 @@
     return num(x.ageHours) + "h ago";
   }
   function fuLeadRow(x){
-    return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">' + esc(x.intent || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + '</span></div>';
+    return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">' + esc(x.intent || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + "</span>" + puAiDraftBtn(x) + "</div>";
   }
   function fuViewingRow(x){
     return '<div class="tourrow"><div><b>' + esc(x.time || "") + '</b> ' + esc(x.name || "") + ' <span class="mut">' + esc(x.email || "") + '</span></div><span class="mut">' + (x.date ? esc(x.date) + " · " : "") + esc(x.listing || "") + " · " + esc(x.status || "") + '</span></div>';
@@ -1110,6 +1166,7 @@
   function loadFollowups(){
     api(API_URL, "/api/admin/followups").then(function(d){
       if (!d || !d.ok) { $("fuBody").innerHTML = '<div class="empty">Could not load the follow-up list.</div>'; return; }
+      puAiDraftStore = [];
       fuStamp = Date.now(); fuStampDay = vanToday();
       var tv = d.todayViewings || [], ac = d.awaitingConfirm || [], pv = d.postViewing || [];
       var h = '<div style="margin-bottom:6px"><b>📅 Viewings today (' + num(tv.length) + ')</b></div>';
@@ -1124,7 +1181,7 @@
       h += (d.staleLeads || []).length ? d.staleLeads.map(fuLeadRow).join("") : '<div class="empty" style="padding:8px 0">Nothing stale. 🎉</div>';
       h += fuHead("🏠 Viewed — follow-up call due", pv.length, d.postViewingCount || 0);
       h += pv.length ? pv.map(function(x){
-        return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">viewed ' + esc(x.viewingDate || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + '</span></div>';
+        return '<div class="tourrow"><div><b>' + esc(x.name || x.email || "—") + '</b> <span class="mut">' + esc(x.email || "") + (x.phone ? " · " + esc(x.phone) : "") + '</span></div><span class="mut">viewed ' + esc(x.viewingDate || "") + (x.source ? " · " + esc(x.source) : "") + " · " + fuAge(x) + "</span>" + puAiDraftBtn(x) + "</div>";
       }).join("") : '<div class="empty" style="padding:8px 0">No post-viewing follow-ups due.</div>';
       $("fuBody").innerHTML = h;
     }).catch(function(){ $("fuBody").innerHTML = '<div class="empty">Could not load the follow-up list.</div>'; });
@@ -2660,7 +2717,12 @@
     api(API_URL, "/api/admin/ai-usage").then(function(d){
       var box = $("mtAi"); if (!box) return;
       if (!d || !d.ok) {
-        box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut">🤖 Remaining AI usage — site assistant</div><div class="mut" style="margin-top:6px">Could not read the AI counters right now' + (d && d.error === "ai_not_configured" ? " — the internal AI connection is not configured yet." : ".") + '</div></div>';
+        // Phase 2: never a bare "cannot read" — show what WAS read
+        // (the portal-brain counters are local to the advisor worker).
+        var bl = d && d.brain;
+        box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut">🤖 Remaining AI usage — site assistant</div>' +
+          (bl ? '<div style="margin-top:6px">🧠 Portal brain (read directly from this worker): <b>' + bl.used + " of " + bl.cap + '</b> calls used today · channel ' + (bl.configured ? "configured" : "NOT configured") + "</div>" : "") +
+          '<div class="mut" style="margin-top:6px">The site chat/search counters live in the ai-chat worker and could not be read this time' + (d && d.error ? " (" + esc(d.error) + ")" : "") + (d && d.error === "ai_not_configured" ? " — the internal AI connection is not configured yet." : ".") + '</div></div>';
         return;
       }
       var bar = function(label, u){
@@ -2669,7 +2731,8 @@
         return '<div style="flex:1 1 240px"><div style="display:flex;justify-content:space-between;font-size:14px"><span>' + label + '</span><b style="color:' + col + '">' + u.left + ' left</b></div><div style="height:9px;background:rgba(127,127,127,.25);border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:' + pct + '%;background:' + col + '"></div></div><div class="mut" style="margin-top:3px">' + u.used + ' of ' + u.budget + ' used today (UTC day) · refills at midnight UTC</div></div>';
       };
       var last = d.lastChat ? '<div class="mut" style="margin-top:9px">Last answer by <b>' + esc(d.lastChat.provider) + '</b>' + (d.lastChat.isLastBackup ? ' — <b style="color:#ef4444">⚠️ this is the LAST backup provider</b>' : '') + ' · ' + esc(fmtDate(d.lastChat.at)) + '</div>' : '<div class="mut" style="margin-top:9px">No chat answered yet today.</div>';
-      box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut" style="margin-bottom:8px">🤖 Remaining AI usage — site assistant</div><div style="display:flex;gap:18px;flex-wrap:wrap">' + bar("💬 Chats", d.chat) + bar("🔎 Web searches", d.search) + '</div>' + last + '<div class="mut" style="margin-top:4px">If chats hit zero, the assistant replies with a polite fallback instead of answering — the nightly maintenance email also flags it below 70 left.</div></div>';
+      var br = d.brain ? '<div class="mut" style="margin-top:9px">🧠 Portal brain: <b>' + d.brain.left + " left</b> of " + d.brain.cap + " calls today (soft daily cap)" + (d.remoteBrain ? " · ai-chat served " + d.remoteBrain.used + " brain calls today" : "") + "</div>" : "";
+      box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut" style="margin-bottom:8px">🤖 Remaining AI usage — site assistant</div><div style="display:flex;gap:18px;flex-wrap:wrap">' + bar("💬 Chats", d.chat) + bar("🔎 Web searches", d.search) + '</div>' + last + br + '<div class="mut" style="margin-top:4px">If chats hit zero, the assistant replies with a polite fallback instead of answering — the nightly maintenance email also flags it below 70 left.</div></div>';
     }).catch(function(){});
   }
   function runMaint(){
@@ -3267,9 +3330,34 @@
       toast(msg);
     }).catch(function () { if (msgEl) msgEl.textContent = "Could not queue"; });
   }
+  // ---------- shared modal + AI draft store (portal brain, 2026-11-01) ----------
+  function puModalOpen(title, bodyHtml) {
+    $("puModalTitle").textContent = title;
+    $("puModalBody").innerHTML = bodyHtml;
+    $("puModal").style.display = "flex";
+  }
+  function puModalClose() { $("puModal").style.display = "none"; }
+  $("puModalClose").addEventListener("click", puModalClose);
+  $("puModal").addEventListener("click", function (e) { if (e.target === $("puModal")) puModalClose(); });
+  var puAiDraftStore = []; // [{name, text, lang, via, at}] — indexes are handed out to rendered rows
+  function puAiDraftBtn(x, label) {
+    if (!x || !x.aiDraft || !x.aiDraft.text) return "";
+    var i = puAiDraftStore.push({ name: x.name || x.email || "", text: x.aiDraft.text, lang: x.aiDraft.lang || "", via: x.aiDraft.via || "", at: x.aiDraft.at || "" }) - 1;
+    return '<button class="ghost small" data-aidraft="' + i + '">' + (label || "✍️ AI draft ready") + "</button>";
+  }
   document.addEventListener("click", function (e) {
-    var b = e.target && e.target.closest ? e.target.closest("[data-pu-draft]") : null;
-    if (b) puQueueDraft(b.getAttribute("data-pu-draft"), null);
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var b = t.closest("[data-pu-draft]");
+    if (b) { puQueueDraft(b.getAttribute("data-pu-draft"), null); return; }
+    var g = t.closest("[data-pu-goto]");
+    if (g) { go(g.getAttribute("data-pu-goto")); return; }
+    var a = t.closest("[data-aidraft]");
+    if (a) {
+      var d = puAiDraftStore[Number(a.getAttribute("data-aidraft"))];
+      if (d) puModalOpen("✍️ AI follow-up draft — " + (d.name || ""), '<div class="pu-mini" style="margin-bottom:6px">Held draft · language ' + esc(d.lang || "") + (d.via ? " · written by " + esc(d.via) : "") + " · " + esc(fmtDate(d.at)) + ' — queued in the mail queue as HELD mail; nothing is sent automatically.</div><div style="white-space:pre-wrap">' + esc(d.text) + "</div>");
+      return;
+    }
   });
 
   // ---------- system 1: Today ----------
@@ -3291,10 +3379,11 @@
         '<div style="margin-bottom:6px">🔥 <b>' + H.counts.hot + "</b> hot · 🌤 <b>" + H.counts.warm + "</b> warm · ❄️ <b>" + H.counts.cold + '</b> cold</div>' +
         (H.hot.length ? H.hot.map(function (l) { return '<div class="pu-row"><span>' + puChip({ score: l.score, band: "hot", next: l.next }) + ' <b>' + esc(l.name || "") + '</b><br><span class="pu-mini">' + esc(l.next ? l.next.text : "") + '</span></span><button class="ghost small" data-pu-draft="' + esc(l.id) + '">✉️ Draft</button></div>'; }).join("") : '<div class="empty">No hot leads right now.</div>');
       var F = t.followups || { newCount: 0, staleCount: 0, postViewingCount: 0, stale: [], post: [] };
+      puAiDraftStore = [];
       $("puTFollow").innerHTML = puSrcChip(S.followups) +
         '<div style="margin-bottom:6px"><b>' + F.newCount + "</b> new waiting · <b>" + F.staleCount + "</b> stale · <b>" + F.postViewingCount + '</b> post-viewing</div>' +
-        (F.stale || []).map(function (x) { return '<div class="pu-row"><span>🕐 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">' + (x.ageUnknown ? "age unknown" : Math.floor(x.ageHours / 24) + "d waiting") + '</span></span><button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></div>'; }).join("") +
-        (F.post || []).map(function (x) { return '<div class="pu-row"><span>🏠 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">after viewing ' + esc(x.date || "") + '</span></span><button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></div>'; }).join("") +
+        (F.stale || []).map(function (x) { return '<div class="pu-row"><span>🕐 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">' + (x.ageUnknown ? "age unknown" : Math.floor(x.ageHours / 24) + "d waiting") + '</span></span><span style="display:flex;gap:6px">' + puAiDraftBtn(x) + '<button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></span></div>'; }).join("") +
+        (F.post || []).map(function (x) { return '<div class="pu-row"><span>🏠 ' + esc(x.name || x.email || "") + '<br><span class="pu-mini">after viewing ' + esc(x.date || "") + '</span></span><span style="display:flex;gap:6px">' + puAiDraftBtn(x) + '<button class="ghost small" data-pu-draft="' + esc(x.id) + '">✉️ Draft</button></span></div>'; }).join("") +
         (!F.staleCount && !F.postViewingCount ? '<div class="empty">Nothing overdue. 🎉</div>' : "");
       var T = t.tasks || { due: [], count: 0, overdue: 0 };
       $("puTTasks").innerHTML = puSrcChip(S.tasks) +
@@ -3305,7 +3394,7 @@
         '<div class="pu-row"><span>Last automation run</span><b>' + (A.lastRun ? esc(fmtDate(A.lastRun.at)) : "—") + '</b></div>' +
         '<div class="pu-row"><span>Search alerts queued (held)</span><b>' + A.unsentAlerts + '</b></div>' +
         (A.lastRun && A.lastRun.error ? '<div class="pu-row"><span>Last run error</span><span style="color:#f87171">' + esc(A.lastRun.error) + "</span></div>" : "") +
-        '<div style="margin-top:8px"><button class="ghost small" onclick="go(\'rules\')">⚙️ Automation rules</button></div>';
+        '<div style="margin-top:8px"><button class="ghost small" data-pu-goto="rules">⚙️ Automation rules</button></div>';
       var M = t.marketPulse || { month: null, cur: null, deltas: null };
       if (M.cur) {
         var c = M.cur, dl = M.deltas || {};
@@ -3315,7 +3404,18 @@
           '<div class="pu-row"><span>FVREB benchmark</span><span><b>' + puMoney(c.fvreb && c.fvreb.benchmark) + "</b> " + puDelta(dl.fvrebBenchmark, true) + '</span></div>' +
           '<div class="pu-row"><span>BC sales</span><span><b>' + (c.bc && c.bc.sales != null ? Number(c.bc.sales).toLocaleString("en-CA") : "—") + "</b> " + puDelta(dl.bcSales, false) + '</span></div>' +
           '<div class="pu-row"><span>Policy rate</span><b>' + (c.rates && c.rates.policyRate != null ? c.rates.policyRate + "%" : "—") + '</b></div>' +
-          '<div class="pu-mini" style="margin-top:6px">Sources: ' + esc([c.gvr && c.gvr.source, c.bc && c.bc.source].filter(Boolean).join(" · ")) + "</div>";
+          '<div class="pu-mini" style="margin-top:6px">Sources: ' + esc([c.gvr && c.gvr.source, c.bc && c.bc.source].filter(Boolean).join(" · ")) + "</div>" +
+          '<div style="margin-top:8px"><button class="ghost small" id="puBriefBtn">🧠 Market brief</button></div><div id="puBriefOut" style="margin-top:6px"></div>';
+        var bb = $("puBriefBtn");
+        if (bb) bb.addEventListener("click", function () {
+          bb.disabled = true; bb.textContent = "Writing…";
+          api(API_URL, "/api/admin/brain/market-brief", { method: "POST", body: "{}" }).then(function (d) {
+            bb.disabled = false; bb.textContent = "🧠 Market brief";
+            if (d && d.ok && d.brief) { pbRenderBriefInto($("puBriefOut"), d.brief); toast("Market brief ready ✓"); }
+            else toast("Brief unavailable (" + ((d && d.error) || "ai") + ")", true);
+          }).catch(function () { bb.disabled = false; bb.textContent = "🧠 Market brief"; toast("Brief unavailable", true); });
+        });
+        api(API_URL, "/api/admin/brain/brief").then(function (d) { if (d && d.ok && d.brief) pbRenderBriefInto($("puBriefOut"), d.brief); }).catch(function () {});
       } else {
         $("puTMarket").innerHTML = puSrcChip(S.marketPulse) + '<div class="empty">No market dataset yet — the monthly newsletter job seeds it.</div>';
       }
@@ -3324,7 +3424,18 @@
         '<div class="pu-row"><span>Switch</span><b>' + (R.enabled ? "🟢 ON" : "⚪ OFF") + '</b></div>' +
         '<div class="pu-row"><span>Candidate pairs</span><b>' + R.pairs + '</b></div>' +
         '<div class="pu-row"><span>Hot pairs (fit ≥80 + motivation ≥60)</span><b>' + R.hotPairs + "</b></div>" +
-        (R.enabled ? "" : '<div class="pu-mini" style="margin-top:6px">The radar stays off until you flip it (expected after licensing).</div>');
+        (R.enabled ? "" : '<div class="pu-mini" style="margin-top:6px">The radar stays off until you flip it (expected after licensing).</div>') +
+        '<div style="margin-top:8px"><button class="ghost small" id="puRadarBtn">' + (R.enabled ? "⏸ Turn radar OFF" : "▶️ Turn radar ON") + "</button></div>";
+      var rb = $("puRadarBtn");
+      if (rb) rb.addEventListener("click", function () {
+        rb.disabled = true; rb.textContent = "Saving…";
+        // Same endpoint + same radar:settings record the Radar tab's
+        // own switch uses — the two controls can never drift apart.
+        api(API_URL, "/api/radar-settings", { method: "PUT", body: JSON.stringify({ enabled: !R.enabled }) }).then(function (d) {
+          if (d && d.ok) { toast(d.enabled ? "Market scan ON — deep scan every 3 hours ✓" : "Market scan OFF"); cacheClear(); puLoadToday(); if (!$("page-radar").hidden) loadRadar(); }
+          else { rb.disabled = false; rb.textContent = R.enabled ? "⏸ Turn radar OFF" : "▶️ Turn radar ON"; toast("Could not save the switch", true); }
+        }).catch(function () { rb.disabled = false; rb.textContent = R.enabled ? "⏸ Turn radar OFF" : "▶️ Turn radar ON"; toast("Could not save the switch", true); });
+      });
       var N = t.newsletter || { total: 0, byLang: {} };
       $("puTNews").innerHTML = puSrcChip(S.newsletter) +
         '<div class="pu-row"><span>Total subscribers</span><b>' + N.total + "</b></div>" +
@@ -3582,6 +3693,14 @@
   }
   function puPhotoUrl(p) { if (/^https?:\/\//.test(p)) return p; if (p.charAt(0) === "/") return SITE_URL + p; return SITE_URL + "/" + p; }
   function puFetchFileBlob(id) { return fetch(API_URL + "/api/admin/files/" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + token } }).then(function (r) { return r.blob(); }); }
+  function puFileBlob(f) {
+    // Files that arrive WITH their content (handbook-data includeFiles)
+    // are used directly; metas-only records are fetched by id.
+    if (f && f.data) {
+      try { var bs = atob(f.data); var arr = new Uint8Array(bs.length); for (var i = 0; i < bs.length; i++) arr[i] = bs.charCodeAt(i); return Promise.resolve(new Blob([arr], { type: f.type || "application/octet-stream" })); } catch (e) {}
+    }
+    return puFetchFileBlob(f.id);
+  }
   function puPdfText(buf) {
     return (async function () {
       var bytes = new Uint8Array(buf);
@@ -3609,7 +3728,7 @@
     for (var i = 0; i < files.length; i++) {
       var f = files[i];
       try {
-        var blob = await puFetchFileBlob(f.id);
+        var blob = await puFileBlob(f);
         if (/^image\//.test(f.type || "")) {
           var du = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(blob); });
           out += '<div class="fromfile"><span class="fftag">📁 ' + esc(D.fromfile) + " · " + esc(f.name) + '</span><br><img src="' + du + '" style="max-width:100%"></div>';
@@ -3636,15 +3755,37 @@
       $("puHbMls").innerHTML = opts;
     }).catch(function () {});
   }
+  var puFilesCache = [];
+  async function puFileSummarise(fid) {
+    var f = puFilesCache.filter(function (x) { return x.id === fid; })[0];
+    if (!f) return;
+    toast("Reading the file…");
+    try {
+      var blob = await puFileBlob(f);
+      var text = "";
+      if (f.type === "application/pdf") text = await puPdfText(await blob.arrayBuffer());
+      else if (/^text\//.test(f.type || "")) text = (await blob.text()).slice(0, 6000);
+      if (!text || !text.trim()) { toast("No extractable text in that file", true); return; }
+      var d = await api(API_URL, "/api/admin/brain/file-summary", { method: "POST", body: JSON.stringify({ fileId: fid, text: text }) });
+      if (d && d.ok) {
+        toast("AI summary saved ✓");
+        puModalOpen("🧠 AI summary — " + f.name, "<ul>" + (d.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>");
+        puLoadFiles();
+      } else toast("Summary unavailable (" + ((d && d.error) || "ai") + ")", true);
+    } catch (e) { toast("Summary failed", true); }
+  }
   function puLoadFiles() {
     var mls = $("puFileMls").value;
     api(API_URL, "/api/admin/files" + (mls ? "?mls=" + encodeURIComponent(mls) : "")).then(function (d) {
       var files = (d && d.files) || [];
+      puFilesCache = files;
       $("puFilesList").innerHTML = files.length ? files.map(function (f) {
-        return '<div class="pu-row"><span>📄 <b>' + esc(f.name) + '</b><br><span class="pu-mini">' + esc(f.type) + " · " + Math.round(f.size / 1024) + " KB" + (f.mls ? " · " + esc(f.mls) : " · standalone") + " · " + esc(fmtDate(f.at)) + '</span></span><span><button class="ghost small" data-file-dl="' + esc(f.id) + '">Download</button> <button class="ghost small" data-file-del="' + esc(f.id) + '">Delete</button></span></div>';
+        return '<div class="pu-row"><span>📄 <b>' + esc(f.name) + '</b><br><span class="pu-mini">' + esc(f.type) + " · " + Math.round(f.size / 1024) + " KB" + (f.mls ? " · " + esc(f.mls) : " · standalone") + " · " + esc(fmtDate(f.at)) + '</span></span><span><button class="ghost small" data-file-dl="' + esc(f.id) + '">Download</button> ' + (f.aiSummary ? '<button class="ghost small" data-file-sumview="' + esc(f.id) + '">🧠 AI summary ✓</button>' : '<button class="ghost small" data-file-sum="' + esc(f.id) + '">🧠 Summarise with AI</button>') + ' <button class="ghost small" data-file-del="' + esc(f.id) + '">Delete</button></span></div>';
       }).join("") : '<div class="empty">No files for this selection.</div>';
       Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-dl]"), function (b) { b.addEventListener("click", function () { puFetchFileBlob(b.getAttribute("data-file-dl")).then(function (blob) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "file"; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); }); }); });
       Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-del]"), function (b) { b.addEventListener("click", function () { if (!confirm("Delete this file?")) return; api(API_URL, "/api/admin/files/" + encodeURIComponent(b.getAttribute("data-file-del")), { method: "DELETE" }).then(function () { puLoadFiles(); }); }); });
+      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-sum]"), function (b) { b.addEventListener("click", function () { puFileSummarise(b.getAttribute("data-file-sum")); }); });
+      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-sumview]"), function (b) { b.addEventListener("click", function () { var f = puFilesCache.filter(function (x) { return x.id === b.getAttribute("data-file-sumview"); })[0]; if (f && f.aiSummary) puModalOpen("🧠 AI summary — " + f.name, '<div class="pu-mini" style="margin-bottom:6px">Key facts from your file · via ' + esc(f.aiSummary.via || "") + " · " + esc(fmtDate(f.aiSummary.at)) + '</div><ul>' + (f.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>"); }); });
     }).catch(function () { $("puFilesList").innerHTML = '<div class="empty">Could not load files.</div>'; });
   }
   function puLoadReports() {
@@ -3654,10 +3795,14 @@
       $("puRepLang").innerHTML = lopts;
       $("puHbLang").innerHTML = lopts;
     }
-    puFillListingSelects().then(function () { puLoadFiles(); });
+    puFillListingSelects().then(function () {
+      puLoadFiles();
+      if (pbDocPreset && pbDocPreset.mls) { $("puHbMls").value = pbDocPreset.mls; $("puRepMls").value = pbDocPreset.mls; $("puRepMls").dispatchEvent(new Event("change")); }
+    });
     api(API_URL, "/api/leads").then(function (d) {
       var ll = (d && d.leads) || leads || [];
       $("puHbLead").innerHTML = '<option value="">— no specific client —</option>' + ll.map(function (l) { return '<option value="' + esc(l.id) + '">' + esc(l.name || l.email || l.id) + "</option>"; }).join("");
+      if (pbDocPreset && pbDocPreset.leadId) { $("puHbLead").value = pbDocPreset.leadId; pbDocPreset = null; var hb = $("puHbGen"); if (hb) hb.scrollIntoView({ behavior: "smooth", block: "center" }); }
     }).catch(function () {});
   }
   $("puFileMls").addEventListener("change", puLoadFiles);
@@ -3712,10 +3857,11 @@
   });
   $("puHbGen").addEventListener("click", async function () {
     var mls = $("puHbMls").value, leadId = $("puHbLead").value, lang = $("puHbLang").value;
+    var incHb = $("puHbFiles").checked;
     if (!mls) { toast("Pick a listing first"); return; }
     $("puHbMsg").textContent = "Building…";
     try {
-      var d = await api(API_URL, "/api/admin/handbook-data?mls=" + encodeURIComponent(mls) + (leadId ? "&leadId=" + encodeURIComponent(leadId) : ""));
+      var d = await api(API_URL, "/api/admin/handbook-data?mls=" + encodeURIComponent(mls) + (leadId ? "&leadId=" + encodeURIComponent(leadId) : "") + (incHb ? "&includeFiles=1" : ""));
       if (!d || !d.ok) throw new Error("bad");
       var useLang = (d.client && d.client.lang) || lang;
       var D = puDocT(useLang);
@@ -3739,10 +3885,158 @@
           '<div class="sub">' + esc(D.estimate) + "</div>";
       }
       body += '<p><a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((h.street || "") + ", " + (h.city || "") + ", BC") + '">' + D.map + "</a></p>";
-      body += (await puFilesHtml(D, d.files, true));
+      body += (await puFilesHtml(D, d.files, incHb));
+      if (puHbInternalNotes) {
+        // The AI showing brief rides as a clearly-marked INTERNAL page
+        // at the very end — it is never part of the client copy.
+        body += '<div style="page-break-before:always"><h2>INTERNAL — advisor notes (not for the client)</h2><div class="fromfile"><span class="fftag">🧠 AI showing brief — internal</span><br>' + esc(puHbInternalNotes) + "</div></div>";
+        puHbInternalNotes = "";
+        var atc = $("puBriefAttach"); if (atc) atc.checked = false;
+      }
       puDocOpen(D.handbook + " — " + h.mls, useLang, d.brand, body);
       $("puHbMsg").textContent = "Opened — use “Save as PDF” in the print dialog.";
     } catch (e) { $("puHbMsg").textContent = "Could not build the handbook."; }
+  });
+
+  // ---------- portal brain: listing copywriter + showing brief ----------
+  function puRenderCopy(rec) {
+    var box = $("puCopyBox");
+    if (!rec || !rec.langs || !Object.keys(rec.langs).length) { box.innerHTML = '<div class="empty">No AI copy draft yet for this listing.</div>'; return; }
+    box.innerHTML = Object.keys(rec.langs).map(function (lg) {
+      var nm = lg; NL_LANGS.forEach(function (p) { if (p[0] === lg) nm = p[1]; });
+      return '<div style="margin-bottom:10px"><div class="pu-mini" style="margin-bottom:3px"><b>' + esc(nm) + "</b> · draft · " + esc(fmtDate(rec.at)) + (rec.via ? " · via " + esc(rec.via) : "") + '</div><textarea id="puCopy-' + lg + '" rows="5" style="width:100%">' + esc(rec.langs[lg]) + '</textarea><div style="margin-top:3px"><button class="ghost small" data-copy-save="' + lg + '">Save ' + esc(nm) + " draft</button></div></div>";
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-copy-save]"), function (b) { b.addEventListener("click", function () {
+      var lg = b.getAttribute("data-copy-save");
+      api(API_URL, "/api/admin/brain/copy", { method: "PUT", body: JSON.stringify({ mls: $("puRepMls").value, lang: lg, text: $("puCopy-" + lg).value }) }).then(function (d) { toast(d && d.ok ? "Draft saved ✓" : "Could not save", !(d && d.ok)); }).catch(function () { toast("Could not save", true); });
+    }); });
+  }
+  $("puCopyBtn").addEventListener("click", function () {
+    var mls = $("puRepMls").value;
+    if (!mls) { toast("Pick a listing first"); return; }
+    $("puCopyBox").innerHTML = '<div class="empty">Writing in every language…</div>';
+    api(API_URL, "/api/admin/brain/copy", { method: "POST", body: JSON.stringify({ mls: mls }) }).then(function (d) {
+      if (d && d.ok) puRenderCopy(d.copy);
+      else $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable (' + esc((d && d.error) || "ai") + ").</div>";
+    }).catch(function () { $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable.</div>'; });
+  });
+  $("puRepMls").addEventListener("change", function () {
+    var mls = $("puRepMls").value;
+    if (!mls) return;
+    api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderCopy(d && d.copy); }).catch(function () {});
+  });
+  var puHbInternalNotes = "";
+  $("puShowBrief").addEventListener("click", function () {
+    var mls = $("puHbMls").value, leadId = $("puHbLead").value;
+    if (!mls) { toast("Pick a listing first"); return; }
+    $("puShowBriefMsg").textContent = "Writing…";
+    api(API_URL, "/api/admin/brain/showing-brief?mls=" + encodeURIComponent(mls) + (leadId ? "&leadId=" + encodeURIComponent(leadId) : "")).then(function (d) {
+      $("puShowBriefMsg").textContent = "One-screen AI brief for the selected listing + client (grounded in portal data only).";
+      if (!d || !d.ok) { toast("Brief unavailable (" + ((d && d.error) || "ai") + ")", true); return; }
+      var b = d.brief || {};
+      var txt = [b.summary, (b.talkingPoints || []).map(function (x) { return "• " + x; }).join("\n"), b.propertyNotes, b.followUp ? ("Follow-up: " + b.followUp) : ""].filter(Boolean).join("\n\n");
+      puHbInternalNotes = "";
+      puModalOpen("🧠 Showing brief — " + mls, '<div class="pu-mini" style="margin-bottom:6px">' + (d.cached ? "Cached (under 24h old)" : "Fresh") + (d.via ? " · via " + esc(d.via) : "") + "</div>" +
+        (b.summary ? "<p>" + esc(b.summary) + "</p>" : "") +
+        ((b.talkingPoints || []).length ? "<b>Talking points</b><ul>" + b.talkingPoints.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
+        (b.propertyNotes ? "<b>Property notes</b><p>" + esc(b.propertyNotes) + "</p>" : "") +
+        (b.followUp ? "<b>Follow-up</b><p>" + esc(b.followUp) + "</p>" : "") +
+        '<label class="pu-chk" style="display:block;margin-top:10px"><input type="checkbox" id="puBriefAttach"> Attach to the next handbook as an INTERNAL notes page (never in the client copy)</label>');
+      var at = $("puBriefAttach");
+      if (at) at.addEventListener("change", function () { puHbInternalNotes = at.checked ? txt : ""; if (at.checked) toast("Brief will ride the next handbook as an internal page"); });
+    }).catch(function () { $("puShowBriefMsg").textContent = "Brief unavailable."; });
+  });
+
+  // ================= portal brain UI (2026-11-01) =================
+  var pbLang = "fa", pbMsgs = [], pbBusy = false, pbDocPreset = null;
+  var PB_CHIPS = ["امروز چه کارهایی دارم؟", "لیدهای داغ رو برام توضیح بده", "خلاصه‌ی بازار این ماه چیه؟", "برای داغ‌ترین لید یه پیش‌نویس پیگیری بساز"];
+  function pbRenderBriefInto(el, brief) {
+    if (!el || !brief) return;
+    el.innerHTML = '<div dir="rtl" style="text-align:right;white-space:pre-wrap">' + esc(brief.text || "") + '</div><div class="pu-mini" style="margin-top:4px">' + esc(brief.month || "") + (brief.via ? " · via " + esc(brief.via) : "") + " · " + esc(fmtDate(brief.at)) + "</div>";
+  }
+  function pbBubble(role, text) {
+    var mine = role === "user";
+    return '<div style="align-self:' + (mine ? "flex-end" : "flex-start") + ';max-width:88%;background:' + (mine ? "#201D18" : "rgba(201,162,75,.10)") + ';border:1px solid ' + (mine ? "#2E2A23" : "#C9A24B") + ';border-radius:12px;padding:9px 12px;white-space:pre-wrap">' + esc(text) + "</div>";
+  }
+  function pbRenderLog() {
+    $("pbLog").innerHTML = pbMsgs.length ? pbMsgs.map(function (m) { return pbBubble(m.role, m.content); }).join("") : '<div class="empty">هنوز پیامی نیست — یکی از پیشنهادهای زیر رو بزنید یا خودتون بنویسید.</div>';
+    $("pbLog").scrollTop = $("pbLog").scrollHeight;
+  }
+  function pbSetLang(l) {
+    pbLang = l;
+    $("pbInput").placeholder = l === "fa" ? "از دستیار بپرسید…" : "Ask the assistant…";
+    $("pbInput").dir = l === "fa" ? "rtl" : "ltr";
+    $("pbLog").dir = l === "fa" ? "rtl" : "ltr";
+  }
+  function pbLoadBrain() {
+    if (!token) return;
+    pbSetLang(pbLang);
+    $("pbChips").innerHTML = PB_CHIPS.map(function (c, i) { return '<button class="ghost small" data-pb-chip="' + i + '">' + esc(c) + "</button>"; }).join("");
+    pbRenderLog();
+    api(API_URL, "/api/admin/brain/status").then(function (d) {
+      var el = $("pbStatus");
+      if (!d || !d.ok) { el.textContent = "status unavailable"; return; }
+      if (!d.configured) el.textContent = "⚠️ AI channel not configured yet — brain features stay paused";
+      else if (d.left <= 0) el.textContent = "⏸ AI paused — daily cap reached (" + d.used + "/" + d.cap + ")";
+      else el.textContent = "🧠 " + d.used + "/" + d.cap + " brain calls today" + ((d.providers && (d.providers.claude || d.providers.grok || d.providers.perplexity)) ? " · paid slot present" : " · free stack");
+    }).catch(function () {});
+    api(API_URL, "/api/admin/brain/brief").then(function (d) { if (d && d.ok && d.brief) pbRenderBriefInto($("pbBrief"), d.brief); }).catch(function () {});
+  }
+  function pbSend(text) {
+    text = String(text || "").trim();
+    if (!text || pbBusy) return;
+    pbBusy = true;
+    pbMsgs.push({ role: "user", content: text });
+    pbRenderLog();
+    $("pbLog").innerHTML += pbBubble("assistant", "…");
+    api(API_URL, "/api/admin/brain/chat", { method: "POST", body: JSON.stringify({ lang: pbLang, messages: pbMsgs.slice(-8) }) }).then(function (d) {
+      pbBusy = false;
+      if (!d || !d.ok) {
+        var why = d && d.error === "brain_cap" ? (pbLang === "fa" ? "سهمیه‌ی روزانه‌ی هوش مصنوعی تموم شده — فردا دوباره تلاش کنید." : "AI paused — the daily cap is reached.")
+          : d && d.error === "ai_not_configured" ? (pbLang === "fa" ? "کانال هوش مصنوعی هنوز پیکربندی نشده." : "The AI channel is not configured yet.")
+          : (pbLang === "fa" ? "الان دستیار در دسترس نیست — چند دقیقه‌ی دیگه دوباره تلاش کنید." : "The assistant is unavailable right now — try again in a few minutes.");
+        pbMsgs.push({ role: "assistant", content: why });
+        pbRenderLog();
+        return;
+      }
+      pbMsgs.push({ role: "assistant", content: d.reply || "" });
+      pbRenderLog();
+      var ex = (d.executed || []).map(function (x) {
+        if (!x.ok) return '<div class="pu-mini" style="color:#f87171">⚠️ ' + esc(x.action) + " — " + esc(x.error || "rejected") + "</div>";
+        if (x.action === "draft_message") return '<div class="pu-mini">✅ Draft queued (held) — nothing sent.</div>';
+        if (x.action === "create_followup") return '<div class="pu-mini">✅ Follow-up created · due ' + esc(x.due || "") + "</div>";
+        if (x.action === "explain_score") return '<div class="pu-mini">✅ ' + esc(x.name || "") + " — score " + x.score + " (" + esc(x.band || "") + "): " + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
+        if (x.link) return '<div style="margin-top:4px"><button class="ghost small" data-pb-doc="' + esc(x.link) + '">📖 Open in Reports &amp; handbook</button></div>';
+        return '<div class="pu-mini">✅ ' + esc(x.action) + "</div>";
+      }).join("");
+      if (ex) { $("pbLog").innerHTML += '<div style="align-self:flex-start;max-width:88%">' + ex + "</div>"; $("pbLog").scrollTop = $("pbLog").scrollHeight; }
+    }).catch(function () { pbBusy = false; pbMsgs.push({ role: "assistant", content: pbLang === "fa" ? "الان دستیار در دسترس نیست." : "The assistant is unavailable right now." }); pbRenderLog(); });
+  }
+  function pbOpenDoc(link) {
+    var mls = "", leadId = "";
+    try { var u = new URL(link, "https://x.local"); mls = u.searchParams.get("mls") || ""; leadId = u.searchParams.get("leadId") || ""; } catch (e) {}
+    pbDocPreset = { mls: mls, leadId: leadId };
+    go("reports");
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var c = t.closest("[data-pb-chip]");
+    if (c) { pbSend(PB_CHIPS[Number(c.getAttribute("data-pb-chip"))]); return; }
+    var dc = t.closest("[data-pb-doc]");
+    if (dc) pbOpenDoc(dc.getAttribute("data-pb-doc"));
+  });
+  $("pbSend").addEventListener("click", function () { var v = $("pbInput").value; $("pbInput").value = ""; pbSend(v); });
+  $("pbInput").addEventListener("keydown", function (e) { if (e.key === "Enter") $("pbSend").click(); });
+  $("pbLangFa").addEventListener("click", function () { pbSetLang("fa"); });
+  $("pbLangEn").addEventListener("click", function () { pbSetLang("en"); });
+  $("pbBriefBtn").addEventListener("click", function () {
+    var b = $("pbBriefBtn"); b.disabled = true;
+    api(API_URL, "/api/admin/brain/market-brief", { method: "POST", body: "{}" }).then(function (d) {
+      b.disabled = false;
+      if (d && d.ok && d.brief) { pbRenderBriefInto($("pbBrief"), d.brief); $("pbBriefMsg").textContent = "Ready ✓"; }
+      else $("pbBriefMsg").textContent = "Unavailable (" + ((d && d.error) || "ai") + ")";
+    }).catch(function () { b.disabled = false; $("pbBriefMsg").textContent = "Unavailable."; });
   });
 
   // ---------- system 2 surfacing: leads table chips + lead detail ----------
@@ -3785,9 +4079,10 @@
     return gsBuildPU().then(function (items) {
       var extra = [
         { kind: "Action", icon: "🌅", title: "Open Today", sub: "Portal action", hay: "open today dashboard home start", act: function () { go("today"); } },
+        { kind: "Action", icon: "🧠", title: "Ask the AI assistant", sub: "Portal action", hay: "assistant ai brain chat persian farsi", act: function () { go("brain"); } },
         { kind: "Action", icon: "🗂", title: "Open lead pipeline", sub: "Portal action", hay: "pipeline board kanban stages crm leads", act: function () { go("pipeline"); } },
         { kind: "Action", icon: "➕", title: "New listing", sub: "Portal action", hay: "new listing add create property", act: function () { go("listings"); var b = $("lstAdd"); if (b) b.click(); } },
-        { kind: "Action", icon: "🗺", title: "Demand map", sub: "Portal action", hay: "demand map areas prospecting supply", act: function () { go("demand"); } },
+        { kind: "Action", icon: "🗺", title: "Demand map", sub: "Portal action", hay: "demand map areas prospecting supply radar", act: function () { go("radar"); } },
         { kind: "Action", icon: "⚙️", title: "Automation rules", sub: "Portal action", hay: "rules automation triggers followup", act: function () { go("rules"); } },
         { kind: "Action", icon: "📖", title: "Reports & handbook", sub: "Portal action", hay: "report handbook pdf seller property generate files", act: function () { go("reports"); } },
         { kind: "Action", icon: "▶️", title: "Run automations now", sub: "Portal action", hay: "run automations alerts reminders followups now", act: function () { api(API_URL, "/api/admin/followups/run", { method: "POST", body: "{}" }).then(function () { toast("Automations ran ✓"); }); } }
@@ -3821,13 +4116,6 @@
   if (token) { showApp(); loadAll(); } else { showLogin(); }
 })();
 </script>
-<div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
-  <div style="background:#161513;border:1px solid #2E2A23;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
-    <input id="gsInput" type="search" placeholder="Search leads, people, listings, viewings…" autocomplete="off" style="width:100%;padding:14px 16px;font-size:16px;background:transparent;border:0;border-bottom:1px solid #2E2A23;color:#F5F1E8;outline:none">
-    <div id="gsResults" style="max-height:56vh;overflow:auto;padding:8px"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #2E2A23"><span class="mut" style="font-size:12px">↑↓ to move · Enter to open · Esc to close</span><button type="button" class="ghost small" id="gsFullBtn">Open full search tab →</button></div>
-  </div>
-</div>
 <script>
 /* Portal upgrade — system 8: PWA + Web Push (2026-11-01). Standalone
    block: the main portal script is an IIFE, so this block keeps its own
