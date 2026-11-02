@@ -100,7 +100,17 @@
       ai_thinking:"思考中…",ai_sources:"来源",
       ai_greet:"您好！很高兴见到您。关于在 BC 买房的任何问题都可以问我——步骤、首付、税费、物业管理费——或者市场行情；如果本站没有，我会联网搜索并简要回答、附上来源。",
       ai_thanks:"不客气！如果还有关于在 BC 买房的问题，随时问我。",
-      ai_err:"我现在连不上实时网络搜索，所以暂时只能根据本站内容回答。请过一会儿再试——也可以问我购房步骤、首付、税费、压力测试、物业管理费，或这里的示例房源。"}
+      ai_err:"我现在连不上实时网络搜索，所以暂时只能根据本站内容回答。请过一会儿再试——也可以问我购房步骤、首付、税费、压力测试、物业管理费，或这里的示例房源。"},
+    es:{
+     "ai_sub": "Busca en los anuncios, guías y herramientas de este sitio",
+     "as_sub": "Pregunte sobre comprar una casa en BC — los pasos, las cuotas iniciales, los impuestos, la prueba de estrés, la strata y más. Las respuestas se buscan en la guía y las calculadoras de esta misma página.",
+     "as_welcome": "¡Hola! Soy el asistente inmobiliario en esta página — busco en las propiedades, guías y herramientas de esta página y respondo preguntas comunes sobre comprar una casa en BC: los pasos de compra, las cuotas iniciales mínimas, el impuesto de transferencia de propiedad y los impuestos prediales anuales, los costos de cierre, la FHSA, la prueba de estrés, los ratios GDS/TDS, el seguro de CMHC, las condiciones de la oferta, las cuotas de mantenimiento, los vecindarios y las rentas típicas. Elija una sugerencia a continuación o escriba su propia pregunta.",
+     "ai_thinking": "Pensando…",
+     "ai_sources": "Fuentes",
+     "ai_greet": "¡Hola! Encantado de saludarte. Pregúntame lo que quieras sobre comprar una casa en BC — los pasos, la cuota inicial, los impuestos, la strata — o sobre el mercado de vivienda; si la respuesta no está en este sitio, la buscaré en la web y te responderé brevemente, con fuentes.",
+     "ai_thanks": "¡Con gusto! Si te surge cualquier otra pregunta sobre comprar una casa en BC, solo pregunta.",
+     "ai_err": "No pude acceder a la búsqueda web en vivo en este momento, así que por ahora solo puedo responder con el contenido de este sitio. Inténtalo de nuevo en un rato — o pregúntame sobre los pasos de compra, la cuota inicial, los impuestos, la prueba de resistencia, las cuotas de mantenimiento o las propiedades de muestra de aquí."
+    }
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
 
@@ -114,7 +124,11 @@
     hi:{ai_nl_pitch:"वैसे — हम हर महीने BC और कनाडा के लिए एक मुफ़्त आवास बाज़ार रिपोर्ट प्रकाशित करते हैं: कीमतों के रुझान, बिक्री गतिविधि, ब्याज दरों में बदलाव, और ख़रीदारों व विक्रेताओं के लिए इनका मतलब — आपकी भाषा में। क्या आप इसे हर महीने अपने इनबॉक्स में चाहते हैं? जुड़ने में बस 20 सेकंड लगते हैं: छोटा सा फ़ॉर्म भर दें।",
       ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं"},
     zh:{ai_nl_pitch:"顺便提一下——我们每月发布一份免费的 BC 与加拿大住房市场报告：价格走势、成交动态、利率变化，以及这些对买卖双方意味着什么——并以您的语言发送。想每月在邮箱中收到吗？加入只需约 20 秒：填写简短的订阅表单即可。",
-      ai_nl_btn:"获取免费月度报告"}
+      ai_nl_btn:"获取免费月度报告"},
+    es:{
+     "ai_nl_pitch": "Por cierto — publicamos un informe mensual gratuito del mercado de vivienda para BC y Canadá: tendencias de precios, actividad de ventas, movimientos de las tasas de interés y lo que significan para compradores y vendedores — en tu idioma. ¿Lo quieres en tu buzón cada mes? Unirte toma unos 20 segundos: solo completa el formulario corto.",
+     "ai_nl_btn": "Obtener el informe mensual gratuito"
+    }
     };
     for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
 
@@ -279,7 +293,189 @@
              fa:"مترو ونکوور یکی از گران‌ترین بازارهای مسکن کاناداست. برای یک تصور بسیار کلی (۲۰۲۶): آپارتمان‌ها معمولاً از حدود ۴۵۰ هزار دلار در مناطق بیرونی تا ۸۰۰ هزار دلار و بیشتر نزدیک مرکز شهر ونکوور هستند؛ تاون‌هاوس‌ها تقریباً ۷۵۰ هزار تا ۱٫۳ میلیون دلار؛ و خانه‌های مستقل از حدود ۱٫۲ میلیون دلار در ساری و کوکیتلام تا ۲ میلیون دلار و بیشتر در ونکوور. فایل‌های نمونه‌ی همین صفحه همین گستره را نشان می‌دهند. قیمت‌ها با نرخ بهره، عرضه و وضعیت کلی اقتصاد حرکت می‌کنند و ماه‌به‌ماه تغییر می‌کنند — این بازه‌ها را فقط جهت‌یابی آموزشی بدانید و پیش از اتکا، آمار جاری BCREA یا بورد املاک محلی‌تان را بررسی کنید. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
              hi:"मेट्रो वैंकूवर कनाडा के सबसे महंगे आवास बाज़ारों में से एक है। बहुत मोटे अनुमान के तौर पर (2026): कॉन्डो आमतौर पर बाहरी इलाकों में लगभग $450,000 से लेकर डाउनटाउन वैंकूवर के पास $800,000 या अधिक तक होते हैं; टाउनहाउस लगभग $750,000–$1,300,000; और अलग मकान सरी व कोक्विटलम में लगभग $1,200,000 से लेकर वैंकूवर में $2,000,000 या अधिक तक। इस पेज की नमूना लिस्टिंग इसी फैलाव को दर्शाती हैं। कीमतें ब्याज दरों, आपूर्ति और व्यापक अर्थव्यवस्था के साथ बदलती हैं और महीने-दर-महीने बदलती रहती हैं — इन सीमाओं को केवल शैक्षिक दिशा-निर्देश मानें और भरोसा करने से पहले BCREA या अपने स्थानीय रियल एस्टेट बोर्ड के वर्तमान आंकड़े जाँचें। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
              zh:"温哥华都会区是加拿大房价最高的市场之一。作为非常粗略的参考（2026 年）：公寓价格通常从外围地区约 $450,000 到温哥华市中心附近 $800,000 或更高；联排别墅约 $750,000–$1,300,000；独立屋从素里和高贵林约 $1,200,000 到温哥华 $2,000,000 或更高。本页的示例房源正反映了这一价格跨度。房价随利率、供应和整体经济而波动，逐月变化——请将这些范围仅作教育性参考，依赖之前请查看 BCREA 或当地房地产局的最新统计数据。<a href='#listings'>查看示例房源</a>"}}
-    ];
+    ]
+    var KB_ES = {
+     "fthb": {
+      "kw": [
+       "exención para compradores primerizos",
+       "exención comprador por primera vez",
+       "exención PTT",
+       "exención de impuestos",
+       "exención",
+       "reembolso",
+       "ptt"
+      ],
+      "ans": "Los compradores primerizos que califican en BC no pagan impuesto de transferencia de propiedad sobre los primeros $500,000 del precio — un ahorro de hasta $8,000 — en viviendas de hasta $835,000, con una exención parcial hasta $860,000 (umbrales a octubre de 2026). Debes ser ciudadano canadiense o residente permanente, residente de BC, y nunca haber sido propietario de una residencia principal en ninguna parte del mundo. La provincia establece las reglas y estas cambian con el tiempo — verifica los umbrales actuales en gov.bc.ca. <a href='#guide'>Consulta la nota sobre la exención en la guía</a>"
+     },
+     "subjects": {
+      "kw": [
+       "subjects",
+       "condiciones",
+       "condiciones de la oferta",
+       "oferta condicional"
+      ],
+      "ans": "“Subjects” son condiciones incluidas en una oferta en BC que deben cumplirse antes de una fecha límite establecida para que el acuerdo sea firme. Las más habituales son sujeto a financiamiento (que tu prestamista apruebe plenamente la hipoteca), sujeto a inspección (una inspección de la vivienda con la que quedes satisfecho) y, para propiedades strata, sujeto a revisar los documentos de la strata — actas, estados financieros, el informe de depreciación y cualquier cargo especial. Si una condición (subject) no puede cumplirse, normalmente puedes retirarte y recuperar tu depósito."
+     },
+     "completion": {
+      "kw": [
+       "día de cierre (completion)",
+       "día de posesión",
+       "completion",
+       "possession",
+       "día de cierre",
+       "recibir las llaves"
+      ],
+      "ans": "El día de cierre (completion) y el día de posesión son dos fechas diferentes en una compra en BC. El día de cierre (completion), tu abogado o notario registra la transferencia y se paga al vendedor — legalmente ya eres propietario de la vivienda. El día de posesión suele ser uno o dos días después: es cuando recibes las llaves y puedes mudarte, así que planifica la mudanza y los servicios en función de la fecha de posesión, no de la de cierre."
+     },
+     "stress": {
+      "kw": [
+       "prueba de estrés",
+       "stress test",
+       "tasa de calificación",
+       "calificar"
+      ],
+      "ans": "La prueba de estrés hipotecario significa que debes calificar a una tasa más alta de la que realmente pagarás: tu tasa contractual + 2%, o la tasa de referencia federal, la que sea mayor. Tu prestamista verifica que aún podrías pagar las cuotas a esa tasa de calificación, lo que te protege si las tasas suben al momento de la renovación. <a href='#calculator'>Consulta el pago de calificación en la calculadora</a>"
+     },
+     "cmhc": {
+      "kw": [
+       "cmhc",
+       "seguro hipotecario",
+       "seguro por incumplimiento",
+       "prima de seguro"
+      ],
+      "ans": "Cuando tu cuota inicial es inferior al 20%, el seguro por incumplimiento hipotecario (normalmente a través de CMHC) es obligatorio. La prima depende de tu cuota inicial — aproximadamente 4.00% de la hipoteca con 5–10% de cuota inicial, 3.10% con 10–15% de cuota inicial y 2.80% con 15–20% de cuota inicial — y se suma al saldo de tu hipoteca en lugar de pagarse en efectivo. Las viviendas con precio de $1.5M o más no pueden obtener hipotecas aseguradas. <a href='#calculator'>La calculadora estima la prima por ti</a>"
+     },
+     "gds": {
+      "kw": [
+       "gds",
+       "tds",
+       "servicio de la deuda",
+       "cuánto puedo pagar",
+       "índices",
+       "ratios"
+      ],
+      "ans": "Los prestamistas canadienses usan dos índices para establecer tu presupuesto. GDS (Gross Debt Service) mantiene los costos totales de vivienda — pago de la hipoteca, impuesto predial, calefacción y el 50% de las cuotas de mantenimiento — en o por debajo del 39% de tu ingreso bruto. TDS (Total Debt Service) mantiene todas tus deudas, incluidos los pagos del auto y las tarjetas de crédito, en o por debajo del 44%. El índice que dé la cifra menor establece el precio máximo de vivienda que puedes pagar. <a href='#afford'>Prueba el estimador de capacidad de pago</a>"
+     },
+     "down": {
+      "kw": [
+       "cuota inicial",
+       "cuota inicial mínima",
+       "cuánto de cuota inicial",
+       "down payment"
+      ],
+      "ans": "La cuota inicial mínima depende del precio: 5% en viviendas de menos de $500,000; para viviendas de $500,000 a $1,499,999, es el 5% de los primeros $500,000 más el 10% de la parte que supere esa cantidad; y 20% en viviendas de $1,500,000 o más. Con menos del 20% de cuota inicial, se requiere el seguro hipotecario de CMHC y la prima se suma a tu hipoteca. <a href='#guide'>Más información en la guía del comprador</a>"
+     },
+     "ptt": {
+      "kw": [
+       "impuesto de transferencia de propiedad",
+       "impuesto de transferencia",
+       "ptt"
+      ],
+      "ans": "El impuesto de transferencia de propiedad (PTT) de BC se cobra al 1% sobre los primeros $200,000 del precio, 2% sobre la parte entre $200,000 y $2,000,000, y 3% sobre la parte que supere los $2,000,000 — puede aplicarse un 2% adicional a la parte residencial que supere los $3,000,000. Se paga el día de cierre (completion), además de tu cuota inicial. <a href='#guide'>Consulta la sección de impuestos de la guía</a>"
+     },
+     "closing": {
+      "kw": [
+       "costos de cierre",
+       "gastos de cierre",
+       "costos adicionales",
+       "costos de comprar"
+      ],
+      "ans": "Una regla práctica común es presupuestar aproximadamente entre 1.5%–4% del precio de compra para los costos de cierre, además de tu cuota inicial. Incluyen el impuesto de transferencia de propiedad, honorarios legales o notariales, inspección y avalúo de la vivienda, seguro de título y tarifas de registro, GST en viviendas de nueva construcción (las viviendas de reventa están exentas) y ajustes como el impuesto predial y las cuotas de mantenimiento pagados por anticipado. <a href='#guide'>Lista completa de costos de cierre</a>"
+     },
+     "fhsa": {
+      "kw": [
+       "fhsa",
+       "ahorro para primera vivienda",
+       "cuenta de ahorro para primera vivienda"
+      ],
+      "ans": "La FHSA (First Home Savings Account) ayuda a los compradores primerizos a ahorrar para una vivienda: obtienes $8,000 de espacio de contribución por año hasta un límite vitalicio de $40,000, las contribuciones son deducibles de impuestos y los retiros para una primera vivienda que califique están libres de impuestos. La cuenta debe cerrarse dentro de los 15 años posteriores a su apertura (o al final del año en que cumplas 71 años, o al final del año siguiente a tu primer retiro que califique — lo que ocurra primero). Las reglas pueden cambiar — verifícalas con la CRA en canada.ca. <a href='#fhsa'>Prueba el rastreador de la FHSA en esta página</a>"
+     },
+     "strata": {
+      "kw": [
+       "strata",
+       "cuota de mantenimiento",
+       "cuotas de mantenimiento"
+      ],
+      "ans": "Las cuotas de mantenimiento (strata fees) son cargos mensuales que los propietarios de condominios y casas adosadas pagan a su corporación strata por los costos compartidos — seguro del edificio, mantenimiento de las áreas comunes, amenidades y contribuciones al fondo de reserva para contingencias para futuras reparaciones mayores. Las cuotas varían mucho según el edificio y se revisan en los documentos de la strata antes de retirar los subjects; los prestamistas también cuentan el 50% de la cuota en tu índice GDS. Los edificios más antiguos o las reparaciones importantes próximas pueden implicar cargos especiales además de la cuota mensual."
+     },
+     "steps": {
+      "kw": [
+       "pasos para comprar",
+       "pasos de compra",
+       "cómo comprar",
+       "proceso de compra",
+       "por dónde empiezo"
+      ],
+      "ans": "Comprar una vivienda en BC sigue ocho pasos: (1) obtener una preaprobación hipotecaria, (2) ahorrar tu cuota inicial y los costos de cierre, (3) establecer tus criterios de búsqueda, (4) visitar viviendas y comparar — leyendo los documentos de la strata para condominios y casas adosadas, (5) presentar una oferta con condiciones (subjects), (6) retirar los subjects y pagar el depósito, (7) completar la compra con un abogado o notario, y (8) el día de posesión, cuando recibes las llaves. <a href='#guide'>Consulta la guía completa</a>"
+     },
+     "listings": {
+      "kw": [
+       "anuncio",
+       "anuncios",
+       "mls",
+       "viviendas en venta",
+       "casas en venta",
+       "propiedades"
+      ],
+      "ans": "Las únicas propiedades que conozco son los anuncios de muestra en esta página (datos de muestra — para vista previa de diseño): {list} Los datos en vivo de MLS® se conectan después de la licencia, por lo que no puedo buscar ninguna otra propiedad — pero el Asistente de Coincidencias arriba puede filtrar estas muestras por presupuesto, recámaras, ciudad y tipo. <a href='#listings'>Explorar los anuncios de muestra</a>"
+     },
+     "proptax": {
+      "kw": [
+       "impuesto predial",
+       "impuesto municipal",
+       "tasa impositiva",
+       "impuesto anual",
+       "impuestos de una vivienda",
+       "home owner grant"
+      ],
+      "ans": "El impuesto predial anual es el impuesto municipal anual sobre una vivienda de tu propiedad — diferente del impuesto único de transferencia de propiedad que pagas cuando compras. Se calcula como el valor tasado de tu vivienda (establecido cada año por BC Assessment) multiplicado por la tasa impositiva (mill rate) de tu ciudad, y la BC Home Owner Grant puede reducirlo para tu residencia principal. No existe una única tasa para Metro Vancouver — difiere por ciudad, clase de propiedad y valor tasado — pero como orientación aproximada, muchas viviendas aquí pagan unos pocos miles de dólares al año; las calculadoras de este sitio usan $4,200/year como ejemplo práctico. Los avisos de impuestos suelen llegar a finales de la primavera y el pago vence a principios de julio. Verifica tu monto exacto con tu ciudad y BC Assessment (bcassessment.ca). <a href='#buyvsrent'>Consulta el impuesto predial en la calculadora de comprar vs. rentar</a>"
+     },
+     "rent": {
+      "kw": [
+       "renta",
+       "rentar",
+       "rentas",
+       " renta ",
+       "renta en ",
+       "renta por ",
+       "la renta es ",
+       "arrendamiento",
+       "renta típica"
+      ],
+      "ans": "Las rentas en Metro Vancouver varían mucho según la ciudad, el tamaño y la antigüedad del edificio. Como orientación aproximada a partir de informes recientes del mercado (2025–2026): un apartamento de 1 recámara suele rentarse por unos $2,100–$2,800/month en Vancouver, $1,900–$2,400 en Burnaby y $1,700–$2,200 en Surrey, Coquitlam y Port Coquitlam; uno de 2 recámaras suele costar unos $700–$900/month más. Estos son rangos generales solo como orientación — no cotizaciones para ninguna vivienda específica. Para cifras actuales, consulta anuncios de renta en vivo y los datos del mercado de renta de CMHC. La calculadora de comprar vs. rentar de este sitio usa $2,600/month como renta de ejemplo: <a href='#buyvsrent'>comparar rentar con comprar</a>. BC también limita los aumentos anuales de renta para arrendamientos existentes — el límite es 2.3% para 2026 y 2.2% para 2027; verifica el límite actual en gov.bc.ca."
+     },
+     "areas": {
+      "kw": [
+       "vecindario",
+       "barrio",
+       "vecindarios",
+       "barrios",
+       "qué zona",
+       "dónde vivir",
+       "mejor zona",
+       "zonas"
+      ],
+      "ans": "El Centro de Conocimiento de este sitio tiene guías en lenguaje sencillo sobre seis zonas de Metro Vancouver. Burnaby — Metrotown: vida en rascacielos, centrada en el transporte público, alrededor de un importante centro comercial y una estación central de SkyTrain. Coquitlam — Coquitlam Centre: un centro de ritmo familiar con SkyTrain y West Coast Express, junto a Lafarge Lake. Surrey — Surrey City Centre: un centro urbano joven y de rápido crecimiento con dos estaciones de SkyTrain y un campus universitario. Vancouver — Downtown: el núcleo urbano. Richmond: una ciudad plana, con servicio de transporte público, al sur de Vancouver. Port Coquitlam: un ambiente de ciudad más pequeña con servicio de West Coast Express. Cada guía cubre el carácter de la zona, cómo desplazarse, los tipos de vivienda y para quién es adecuada. <a href='#knowledge'>Leer las guías de vecindarios</a>"
+     },
+     "market": {
+      "kw": [
+       "mercado de vivienda",
+       "mercado inmobiliario",
+       "precios de vivienda",
+       "precios de casas",
+       "condiciones del mercado",
+       "cómo está el mercado",
+       "precios de propiedades"
+      ],
+      "ans": "Metro Vancouver es uno de los mercados de vivienda más caros de Canadá. Como orientación muy aproximada (2026): los condominios suelen oscilar entre unos $450,000 en zonas periféricas y $800,000 o más cerca del centro de Vancouver; las casas adosadas, aproximadamente $750,000–$1,300,000; y las casas unifamiliares, desde unos $1,200,000 en Surrey y Coquitlam hasta $2,000,000 o más en Vancouver. Los anuncios de muestra de esta página reflejan esa dispersión. Los precios se mueven con las tasas de interés, la oferta y la economía en general, y cambian mes a mes — trata estos rangos solo como orientación educativa y consulta las estadísticas actuales de BCREA o de tu junta inmobiliaria local antes de basarte en ellos. <a href='#listings'>Explorar los anuncios de muestra</a>"
+     }
+    };
+    KB.forEach(function(e){ var t = KB_ES[e.id]; if (t) { e.kw.es = t.kw; e.ans.es = t.ans; } });;
+Object.assign(I18N.en.cities, {"North Vancouver":"North Vancouver","West Vancouver":"West Vancouver","Langley":"Langley","Abbotsford":"Abbotsford","Delta":"Delta","New Westminster":"New Westminster","Port Moody":"Port Moody","Maple Ridge":"Maple Ridge","Pitt Meadows":"Pitt Meadows","White Rock":"White Rock","Mission":"Mission","Chilliwack":"Chilliwack"});
+Object.assign(I18N.fa.cities, {"North Vancouver":"ونکوور شمالی","West Vancouver":"ونکوور غربی","Langley":"لنگلی","Abbotsford":"ابوتسفورد","Delta":"دلتا","New Westminster":"نیو وست‌مینستر","Port Moody":"پورت مودی","Maple Ridge":"میپل ریج","Pitt Meadows":"پیت مدوز","White Rock":"وایت راک","Mission":"میشن","Chilliwack":"چیلیوک"});
+Object.assign(I18N.hi.cities, {"North Vancouver":"नॉर्थ वैंकूवर","West Vancouver":"वेस्ट वैंकूवर","Langley":"लैंगली","Abbotsford":"एबॉट्सफ़ोर्ड","Delta":"डेल्टा","New Westminster":"न्यू वेस्टमिंस्टर","Port Moody":"पोर्ट मूडी","Maple Ridge":"मेपल रिज","Pitt Meadows":"पिट मीडोज़","White Rock":"व्हाइट रॉक","Mission":"मिशन","Chilliwack":"चिलिवैक"});
+Object.assign(I18N.zh.cities, {"North Vancouver":"北温哥华","West Vancouver":"西温哥华","Langley":"兰里","Abbotsford":"阿伯茨福德","Delta":"三角洲","New Westminster":"新西敏","Port Moody":"满地宝","Maple Ridge":"枫树岭","Pitt Meadows":"匹特草原","White Rock":"白石","Mission":"米逊","Chilliwack":"奇利瓦克"});
+Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouver":"West Vancouver","Langley":"Langley","Abbotsford":"Abbotsford","Delta":"Delta","New Westminster":"New Westminster","Port Moody":"Port Moody","Maple Ridge":"Maple Ridge","Pitt Meadows":"Pitt Meadows","White Rock":"White Rock","Mission":"Mission","Chilliwack":"Chilliwack"});
     var CHIPS = [
       {q:{en:"What are the steps to buy a home in BC?", fa:"مراحل خرید خانه در BC چیست؟", hi:"BC में घर खरीदने के चरण क्या हैं?", zh:"在 BC 买房有哪些步骤？"}},
       {q:{en:"How much down payment do I need?", fa:"چقدر پیش‌پرداخت نیاز دارم؟", hi:"मुझे कितना डाउन पेमेंट चाहिए?", zh:"我需要多少首付？"}},
@@ -322,7 +518,7 @@
       var map = {};
       CITIES.forEach(function(c){
         map[c.toLowerCase()] = c;
-        ["en", "fa", "hi", "zh"].forEach(function(L){
+        ["en", "fa", "hi", "zh", "es"].forEach(function(L){
           var v = I18N[L].cities && I18N[L].cities[c];
           if (v) map[String(v).toLowerCase()] = c;
         });
@@ -406,7 +602,7 @@
       return fill(t.sr_found, {n: hits.length}) + "<br>" + lines.join("<br>");
     }
     /* --- site search: sections + the live Knowledge Center cards on this page --- */
-    var PAGE_OF = window.PAGE_OF || {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};
+    var PAGE_OF = window.PAGE_OF || {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","seller-tools":"seller-tools.html","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};
     var SECTIONS_IDX = [
       {id:"listings", key:"search_title", kw:"search listings homes browse mls"},
       {id:"calculator", key:"calc_title", kw:"mortgage calculator payment loan interest"},
@@ -415,7 +611,6 @@
       {id:"invest", key:"iv_title", kw:"investor rental cash flow cap rate return"},
       {id:"match", key:"match_title", kw:"match assistant find homes criteria"},
       {id:"assistant", key:"as_title", kw:"assistant questions help chat"},
-      {id:"compare", key:"cmp_title", kw:"compare homes side by side"},
       {id:"seller-tools", key:"st_title", kw:"seller selling checklist description draft staging"},
       {id:"guide", key:"g_title", kw:"guide first-time buyer steps process"},
       {id:"fhsa", key:"fh_title", kw:"fhsa savings account tracker contribution"},
@@ -771,7 +966,7 @@
         if (!rec.photo || typeof rec.photo !== "string" || /["'\s<>]/.test(rec.photo) || (/:/.test(rec.photo) && !/^https:\/\//i.test(rec.photo))) rec.photo = "photos/hero.webp";
         if (typeof rec.desc === "string") rec.desc = { en: rec.desc };
         if (!rec.desc || typeof rec.desc !== "object") rec.desc = { en: "" };
-        ["en","fa","hi","zh"].forEach(function(L){ if (typeof rec.desc[L] !== "string") rec.desc[L] = (L === "en" ? "" : rec.desc.en || ""); });
+        ["en","fa","hi","zh","es"].forEach(function(L){ if (typeof rec.desc[L] !== "string") rec.desc[L] = (L === "en" ? "" : rec.desc.en || ""); });
         var num = function(v, d){ var n = Number(v); return isFinite(n) ? n : d; };
         rec.price = num(rec.price, 0);
         if (!(rec.price > 0)) return; /* a portal record without a usable price is dropped, never rendered */
@@ -960,7 +1155,74 @@
           en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
           fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
           hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" }
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+    es:{
+     "account": "Cuenta",
+     "signIn": "Iniciar sesión",
+     "register": "Crear cuenta",
+     "name": "Nombre completo",
+     "email": "Correo electrónico",
+     "password": "Contraseña",
+     "signOut": "Cerrar sesión",
+     "savedHomes": "Propiedades guardadas",
+     "savedSearches": "Búsquedas guardadas",
+     "saveSearch": "Guardar esta búsqueda",
+     "searchName": "Nombra esta búsqueda",
+     "notify": "Enviarme por correo las nuevas coincidencias",
+     "bookViewing": "Reservar una visita",
+     "date": "Fecha",
+     "time": "Hora",
+     "phone": "Teléfono",
+     "confirm": "Confirmar solicitud",
+     "close": "Cerrar",
+     "remove": "Eliminar",
+     "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
+     "noSearches": "Aún no tienes búsquedas guardadas.",
+     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "errGeneric": "Algo salió mal — inténtalo de nuevo.",
+     "captchaErr": "Completa la verificación de seguridad.",
+     "errCreds": "El correo electrónico o la contraseña son incorrectos.",
+     "errExists": "Ya existe una cuenta con este correo electrónico — inicia sesión en su lugar.",
+     "needAuth": "Inicia sesión primero para guardar propiedades y búsquedas.",
+     "alertsOn": "Alertas activadas",
+     "alertsOff": "Alertas desactivadas",
+     "savedOk": "Guardado.",
+     "passHint": "Al menos 8 caracteres",
+     "profile": "Perfil",
+     "budget": "Presupuesto",
+     "interest": "Me interesa",
+     "optBuy": "Comprar",
+     "optSell": "Vender",
+     "optRent": "Rentar",
+     "optInvest": "Invertir",
+     "areas": "Zonas que te gustan (separadas por comas)",
+     "reachMe": "Mejor forma de contactarte",
+     "optEmail": "Correo electrónico",
+     "optPhone": "Teléfono",
+     "optEither": "Cualquiera funciona",
+     "optional": "Opcional — completa solo lo que quieras",
+     "saveBtn": "Guardar",
+     "profSaved": "Perfil guardado.",
+     "myViewings": "Mis visitas",
+     "noViewings": "Aún no tienes visitas reservadas.",
+     "recent": "Vistos recientemente",
+     "priceDrop": "Bajada de precio",
+     "cancelBooking": "Cancelar reserva",
+     "reschedule": "Reprogramar",
+     "bannedErr": "Esta cuenta ha sido suspendida. Contáctanos.",
+     "cancelledOk": "Reserva cancelada.",
+     "movedOk": "Visita reprogramada.",
+     "or": "o",
+     "googleBtn": "Continuar con Google",
+     "ownerTimes": "Horarios de visita establecidos por el propietario:",
+     "slotGone": "Ese horario ya no está disponible — elige otro.",
+     "signedIn": "Sesión iniciada.",
+     "verifyEmail": "Verifica tu correo electrónico para recibir alertas",
+     "alertsFromNow": "Se te notificará sobre los anuncios agregados a partir de ahora.",
+     "searchGone": "Esa búsqueda ya no existe.",
+     "errBusy": "Inténtalo de nuevo en un momento.",
+     "sessionExpired": "Tu sesión ha expirado — inicia sesión de nuevo."
+    }
         };
         function miniOf(m){ for (var i = 0; i < LISTINGS.length; i++){ if (LISTINGS[i].mls === m) return [LISTINGS[i].street, LISTINGS[i].city, LISTINGS[i].price]; } return [m, "", 0]; }
         function lang(){ var L = "en"; try { L = localStorage.getItem("erfan-re-lang") || document.documentElement.lang || "en"; } catch(e){} L = String(L).slice(0, 2); return STR[L] ? L : "en"; }
@@ -1132,7 +1394,7 @@
           var pf = myProfile || {};
           var intOpts = [["", "—"], ["buy", tt("optBuy")], ["sell", tt("optSell")], ["rent", tt("optRent")], ["invest", tt("optInvest")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.intent === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           var cpOpts = [["", "—"], ["email", tt("optEmail")], ["phone", tt("optPhone")], ["either", tt("optEither")]].map(function(o){ return '<option value="' + o[0] + '"' + (pf.contactPref === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
-          var langOpts = [["en", "English"], ["fa", "فارسی"], ["hi", "हिन्दी"], ["zh", "中文"]].map(function(o){ return '<option value="' + o[0] + '"' + ((me.lang || "en") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
+          var langOpts = [["en", "English"], ["fa", "فارسی"], ["hi", "हिन्दी"], ["zh", "中文"], ["es", "Español"]].map(function(o){ return '<option value="' + o[0] + '"' + ((me.lang || "en") === o[0] ? " selected" : "") + '>' + o[1] + '</option>'; }).join("");
           openFx('<h3>👤 ' + esc2(me.name) + '</h3><div style="color:#6e685b;margin-bottom:8px">' + esc2(me.email) + '</div>' +
             '<h3 style="font-size:16.5px;margin-top:16px">♥ ' + tt("savedHomes") + '</h3>' + (homes || '<p style="color:#6e685b">' + tt("noSaved") + '</p>') +
             '<h3 style="font-size:16.5px;margin-top:16px">🔎 ' + tt("savedSearches") + '</h3>' + ((me && me.verified === false) ? '<p style="color:#96762f;font-size:13.5px;margin:2px 0 6px">' + tt("verifyEmail") + '</p>' : "") + (searches || '<p style="color:#6e685b">' + tt("noSearches") + '</p>') +

@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-k48klJ534OhmZjFFpMpr0nsqOIzNRR/oCzEa08f3FDg=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-tnbUAPM+EJaYQZGyrEft0IspAzF//AEBVIKiknGfWRk='">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-WWgM7sc9wxWbk0X9l7tuf0iuhrbDqtBf9dxLtvCfVVo=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-P/bfEGs6ZWF5mG5e3GSATdyOy6Tf/YIN9mWq9HUP150='">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#0b0b0b" />
@@ -15,6 +15,7 @@
 <link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-buy-vs-rent.html">
 <link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-buy-vs-rent.html">
 <link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-buy-vs-rent.html">
+<link rel="alternate" hreflang="es" href="https://real-estate-platform-0aei.onrender.com/es-buy-vs-rent.html">
 <link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/buy-vs-rent.html">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
@@ -27,7 +28,7 @@
 <meta name="twitter:title" content="Buy vs Rent Calculator — BC | Erfan BC Real Estate">
 <meta name="twitter:description" content="Compare the true cost of buying vs renting in British Columbia over time, including strata, taxes, maintenance and opportunity cost.">
 <meta name="twitter:image" content="https://real-estate-platform-0aei.onrender.com/photos/hero.webp">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Buy vs Rent Calculator — BC | Erfan BC Real Estate","description":"Compare the true cost of buying vs renting in British Columbia over time, including strata, taxes, maintenance and opportunity cost.","url":"https://real-estate-platform-0aei.onrender.com/buy-vs-rent.html","inLanguage":["en","fa","hi","zh"],"isPartOf":{"@type":"WebSite","name":"Erfan BC Real Estate","url":"https://real-estate-platform-0aei.onrender.com/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Buy vs Rent Calculator — BC | Erfan BC Real Estate","description":"Compare the true cost of buying vs renting in British Columbia over time, including strata, taxes, maintenance and opportunity cost.","url":"https://real-estate-platform-0aei.onrender.com/buy-vs-rent.html","inLanguage":["en","fa","hi","zh","es"],"isPartOf":{"@type":"WebSite","name":"Erfan BC Real Estate","url":"https://real-estate-platform-0aei.onrender.com/"}}</script>
 <style>.sec-head h1{font-size:clamp(24px,3.4vw,34px)}</style>
 <link rel="stylesheet" href="fonts.css" />
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -395,7 +396,6 @@ body.print-chk #chkReport{display:block !important}
 <a href="investor-analysis.html" role="menuitem" data-i18n="nav_invest">Investor Analysis</a>
 <a href="ai-assistant.html#match" role="menuitem" data-i18n="nav_match">Match Assistant</a>
 <a href="ai-assistant.html#assistant" role="menuitem" data-i18n="nav_assistant">Home Buying Assistant</a>
-<a href="listings.html#compare" role="menuitem" data-i18n="nav_compare">Compare Homes</a>
 <a href="seller-tools.html" role="menuitem" data-i18n="nav_seller">Seller Tools</a>
 </div>
 </div>
@@ -406,11 +406,12 @@ body.print-chk #chkReport{display:block !important}
 </nav>
 <div class="langbox" role="group" aria-label="Language">
 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-<select id="langSel" aria-label="Language / زبان / भाषा / 语言">
+<select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
 <option value="en">English</option>
 <option value="fa">فارسی</option>
 <option value="hi">हिन्दी</option>
 <option value="zh">中文（简体）</option>
+<option value="es">Español</option>
 </select>
 </div>
 </div>
@@ -493,8 +494,8 @@ body.print-chk #chkReport{display:block !important}
 <div id="tourPano" style="position:absolute;inset:0"></div>
 <button id="tourClose" class="btn btn-line" style="position:absolute;top:14px;right:14px;z-index:201">✕ <span data-i18n="close">Close</span></button>
 </div>
-<script>window.PAGE_OF = {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"#buyvsrent","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","compare":"listings.html#compare","seller-tools":"seller-tools.html","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};</script>
-<script src="bundle-shared.js?v=3eb09ee4"></script>
-<script src="bundle-page-buy-vs-rent.js?v=5723ae39"></script>
+<script>window.PAGE_OF = {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"#buyvsrent","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","seller-tools":"seller-tools.html","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};</script>
+<script src="bundle-shared.js?v=98735186"></script>
+<script src="bundle-page-buy-vs-rent.js?v=2218c151"></script>
 </body>
 </html>

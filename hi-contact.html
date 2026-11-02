@@ -2,7 +2,7 @@
 <html lang="hi" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-haCKEzJ7aq+yX/nqD+846tV8wQFzgKNNfo55V/VzrkI=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-Z709bSFP3jEdAtfqwtu/TSQI/QLGgiFjFzb/obTOzuU=' 'sha256-Tq6tNztUA291PcB4xLsx76p22FBAWTVcsezJ2I4Nfu4='">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-QvIzxqxvbJPVcHnwtBPrMzK9EqMCvwWzXf67A+ykD+8=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-Z709bSFP3jEdAtfqwtu/TSQI/QLGgiFjFzb/obTOzuU=' 'sha256-O6QXAsFUWhYoMVfLnT1mMfKPnieAeg03RJFJ8i826cU='">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#0b0b0b" />
@@ -15,6 +15,7 @@
 <link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-contact.html">
 <link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-contact.html">
 <link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-contact.html">
+<link rel="alternate" hreflang="es" href="https://real-estate-platform-0aei.onrender.com/es-contact.html">
 <link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/contact.html">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
@@ -27,7 +28,7 @@
 <meta name="twitter:title" content="संपर्क | Erfan BC Real Estate">
 <meta name="twitter:description" content="मेट्रो वैंकूवर में घर खरीदने या बेचने के बारे में प्रश्न पूछें या परामर्श माँगें — अंग्रेज़ी, फ़ारसी, हिंदी या चीनी में उत्तर।">
 <meta name="twitter:image" content="https://real-estate-platform-0aei.onrender.com/photos/hero.webp">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Contact | Erfan BC Real Estate","description":"Ask a question or request a consultation about buying or selling a home in Metro Vancouver — replies in English, Farsi, Hindi or Chinese.","url":"https://real-estate-platform-0aei.onrender.com/hi-contact.html","inLanguage":["hi"],"isPartOf":{"@type":"WebSite","name":"Erfan BC Real Estate","url":"https://real-estate-platform-0aei.onrender.com/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Contact | Erfan BC Real Estate","description":"Ask a question or request a consultation about buying or selling a home in Metro Vancouver — replies in English, Farsi, Hindi, Chinese or Spanish.","url":"https://real-estate-platform-0aei.onrender.com/hi-contact.html","inLanguage":["hi"],"isPartOf":{"@type":"WebSite","name":"Erfan BC Real Estate","url":"https://real-estate-platform-0aei.onrender.com/"}}</script>
 <style>.sec-head h1{font-size:clamp(24px,3.4vw,34px)}</style>
 <link rel="stylesheet" href="fonts.css" />
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -395,7 +396,6 @@ body.print-chk #chkReport{display:block !important}
 <a href="hi-investor-analysis.html" role="menuitem" data-i18n="nav_invest">निवेशक विश्लेषण</a>
 <a href="hi-ai-assistant.html#match" role="menuitem" data-i18n="nav_match">मैच सहायक</a>
 <a href="hi-ai-assistant.html#assistant" role="menuitem" data-i18n="nav_assistant">घर ख़रीद सहायक</a>
-<a href="hi-listings.html#compare" role="menuitem" data-i18n="nav_compare">घरों की तुलना</a>
 <a href="hi-seller-tools.html" role="menuitem" data-i18n="nav_seller">विक्रेता टूल</a>
 </div>
 </div>
@@ -406,11 +406,12 @@ body.print-chk #chkReport{display:block !important}
 </nav>
 <div class="langbox" role="group" aria-label="Language">
 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-<select id="langSel" aria-label="Language / زبان / भाषा / 语言">
+<select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
 <option value="en">English</option>
 <option value="fa">فارسی</option>
 <option value="hi">हिन्दी</option>
 <option value="zh">中文（简体）</option>
+<option value="es">Español</option>
 </select>
 </div>
 </div>
@@ -433,7 +434,7 @@ body.print-chk #chkReport{display:block !important}
 <div class="field"><label for="lBudget" data-i18n="l_budget">बजट सीमा</label><select id="lBudget"></select></div>
 <div class="field wide"><label for="lMsg" data-i18n="l_msg">आपका संदेश</label><textarea id="lMsg" rows="3" data-i18n-ph="l_msg_ph" placeholder="जैसे: बर्नाबी में स्काईट्रेन के पास 2-बेड कॉन्डो चाहिए…"></textarea></div>
 <div class="field"><label for="lLang" data-i18n="l_lang">जवाब की पसंदीदा भाषा</label><select id="lLang">
-<option value="en">English</option><option value="fa">فارسی</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option>
+<option value="en">English</option><option value="fa">فارسی</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option><option value="es">Español</option>
 </select></div>
 <div class="field"><label data-i18n="nl_captcha">सुरक्षा जाँच</label><div class="cf-turnstile" data-sitekey="0x4AAAAAAFbCjECJ3G_8xgJE" data-size="flexible"></div></div>
 <div class="field" style="justify-content:flex-end"><button class="btn btn-spruce" type="submit" id="lSubmitBtn" data-i18n="l_submit">संदेश भेजें</button></div>
@@ -481,8 +482,8 @@ body.print-chk #chkReport{display:block !important}
 <button id="tourClose" class="btn btn-line" style="position:absolute;top:14px;right:14px;z-index:201">✕ <span data-i18n="close">Close</span></button>
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","hi")}catch(e){}</script>
-<script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","compare":"hi-listings.html#compare","seller-tools":"hi-seller-tools.html","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"#contact"};</script>
-<script src="bundle-shared.js?v=3eb09ee4"></script>
-<script src="bundle-page-contact.js?v=7aca8781"></script>
+<script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","seller-tools":"hi-seller-tools.html","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"#contact"};</script>
+<script src="bundle-shared.js?v=98735186"></script>
+<script src="bundle-page-contact.js?v=f7647f31"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="hi" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-r6Sh+3advJgxzGeH2DjGetKwlwZ5gbnz7EpmVu+MZYs=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-Z709bSFP3jEdAtfqwtu/TSQI/QLGgiFjFzb/obTOzuU=' 'sha256-nIgCFtwymYdNBxmVENjiuDflUcG6g0UkjGSVoWl7e78='">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' https://challenges.cloudflare.com 'sha256-r6Sh+3advJgxzGeH2DjGetKwlwZ5gbnz7EpmVu+MZYs=' 'sha256-QgBUmDbVKlb96CHWbMdyc0yUVvfJp/yB2OYQjGge8kQ=' 'sha256-Z709bSFP3jEdAtfqwtu/TSQI/QLGgiFjFzb/obTOzuU=' 'sha256-zopmNKsbUoQ2+QIR6zvQCy0IXV/F4uh3x6wWx5ON4LU='">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <meta name="theme-color" content="#0b0b0b" />
@@ -15,6 +15,7 @@
 <link rel="alternate" hreflang="fa" href="https://real-estate-platform-0aei.onrender.com/fa-seller-tools.html">
 <link rel="alternate" hreflang="hi" href="https://real-estate-platform-0aei.onrender.com/hi-seller-tools.html">
 <link rel="alternate" hreflang="zh-CN" href="https://real-estate-platform-0aei.onrender.com/zh-seller-tools.html">
+<link rel="alternate" hreflang="es" href="https://real-estate-platform-0aei.onrender.com/es-seller-tools.html">
 <link rel="alternate" hreflang="x-default" href="https://real-estate-platform-0aei.onrender.com/seller-tools.html">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
@@ -395,7 +396,6 @@ body.print-chk #chkReport{display:block !important}
 <a href="hi-investor-analysis.html" role="menuitem" data-i18n="nav_invest">निवेशक विश्लेषण</a>
 <a href="hi-ai-assistant.html#match" role="menuitem" data-i18n="nav_match">मैच सहायक</a>
 <a href="hi-ai-assistant.html#assistant" role="menuitem" data-i18n="nav_assistant">घर ख़रीद सहायक</a>
-<a href="hi-listings.html#compare" role="menuitem" data-i18n="nav_compare">घरों की तुलना</a>
 <a href="hi-seller-tools.html" role="menuitem" data-i18n="nav_seller">विक्रेता टूल</a>
 </div>
 </div>
@@ -406,11 +406,12 @@ body.print-chk #chkReport{display:block !important}
 </nav>
 <div class="langbox" role="group" aria-label="Language">
 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-<select id="langSel" aria-label="Language / زبان / भाषा / 语言">
+<select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
 <option value="en">English</option>
 <option value="fa">فارسی</option>
 <option value="hi">हिन्दी</option>
 <option value="zh">中文（简体）</option>
+<option value="es">Español</option>
 </select>
 </div>
 </div>
@@ -538,8 +539,8 @@ body.print-chk #chkReport{display:block !important}
 <button id="tourClose" class="btn btn-line" style="position:absolute;top:14px;right:14px;z-index:201">✕ <span data-i18n="close">Close</span></button>
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","hi")}catch(e){}</script>
-<script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","compare":"hi-listings.html#compare","seller-tools":"#seller-tools","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"hi-contact.html"};</script>
-<script src="bundle-shared.js?v=3eb09ee4"></script>
-<script src="bundle-page-seller-tools.js?v=704c60a4"></script>
+<script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"hi-contact.html"};</script>
+<script src="bundle-shared.js?v=98735186"></script>
+<script src="bundle-page-seller-tools.js?v=533d7094"></script>
 </body>
 </html>
