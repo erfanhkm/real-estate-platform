@@ -487,14 +487,15 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <div class="panel" style="margin-top:24px" id="property-report">
 <h3 style="font-size:21px" data-i18n="pr_title">संपत्ति और पड़ोस रिपोर्ट</h3>
-<p class="note" style="margin-top:6px" data-i18n="pr_sub">2021 की जनगणना से पड़ोस की झलक, निकटतम स्कूल और — वैंकूवर में — दर्ज अपराध का संदर्भ पाने के लिए BC का डाक कोड दर्ज करें। वैंकूवर का पूरा पता जोड़ने पर संपत्ति का सार्वजनिक मूल्यांकन रिकॉर्ड और हाल के भवन परमिट भी दिखेंगे। हर आंकड़े का स्रोत दिया गया है; यहाँ कुछ भी अनुमानित या मनगढ़ंत नहीं है।</p>
+<p class="note" style="margin-top:6px" data-i18n="pr_sub">2021 की जनगणना से पड़ोस की झलक, निकटतम स्कूल और — वैंकूवर में — दर्ज अपराध का संदर्भ पाने के लिए BC का डाक कोड दर्ज करें। वैंकूवर का पूरा पता जोड़ने पर संपत्ति का सार्वजनिक मूल्यांकन रिकॉर्ड और हाल के भवन परमिट भी दिखेंगे। हर आंकड़े का स्रोत दिया गया है; स्कूलों की दूरियाँ अनुमानित सीधी-रेखा माप हैं।</p>
 <form id="prForm" style="margin-top:16px">
 <div class="calc-inputs">
-<div class="field"><label for="prPostal" data-i18n="pr_postal">डाक कोड</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" data-i18n-ph="pr_postal_ph" placeholder="जैसे V6B 1A1" /></div>
-<div class="field"><label for="prCity" data-i18n="f_city">शहर</label><select id="prCity"></select></div>
-<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">गली का पता</span> <span class="note" data-i18n="pr_optional">(वैकल्पिक — संपत्ति रिकॉर्ड जोड़ता है)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
+<div class="field"><label for="prPostal" data-i18n="pr_postal">डाक कोड</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" autocapitalize="characters" spellcheck="false" maxlength="10" data-i18n-ph="pr_postal_ph" placeholder="जैसे V6B 1A1" /></div>
+<div class="field"><label for="prCity" data-i18n="f_city">शहर</label><select id="prCity"></select><p class="note" style="margin-top:6px" data-i18n="pr_city_note">संपत्ति रिकॉर्ड वैंकूवर के पतों के लिए है; अन्य शहरों को आधिकारिक रिकॉर्ड के लिंक मिलते हैं।</p></div>
+<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">गली का पता</span> <span class="note" data-i18n="pr_optional">(वैकल्पिक — संपत्ति रिकॉर्ड जोड़ता है)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
 </div>
 <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">मेरी रिपोर्ट बनाएँ</button></div>
+<p class="note" style="margin-top:10px" data-i18n="pr_privacy">गोपनीयता: आपके द्वारा दर्ज किया गया डाक कोड और पता यह रिपोर्ट बनाने के लिए सार्वजनिक डेटा सेवाओं (OpenStreetMap और वैंकूवर शहर के खुले डेटा) को भेजा जाता है।</p>
 </form>
 <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
 </div>
@@ -540,7 +541,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","hi")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"hi-contact.html"};</script>
-<script src="bundle-shared.js?v=98735186"></script>
-<script src="bundle-page-seller-tools.js?v=c2afa135"></script>
+<script src="bundle-shared.js?v=76a91f28"></script>
+<script src="bundle-page-seller-tools.js?v=c61608d9"></script>
 </body>
 </html>

@@ -487,14 +487,15 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <div class="panel" style="margin-top:24px" id="property-report">
 <h3 style="font-size:21px" data-i18n="pr_title">房产与社区报告</h3>
-<p class="note" style="margin-top:6px" data-i18n="pr_sub">输入 BC 省邮政编码，即可查看基于 2021 年人口普查的社区概况、最近的学校，以及（在温哥华）已报告犯罪的背景信息。再加上温哥华的完整地址，还可查看该房产的公开评估记录和近期建筑许可证。每个数字都注明来源；这里没有任何估算或虚构内容。</p>
+<p class="note" style="margin-top:6px" data-i18n="pr_sub">输入 BC 省邮政编码，即可查看基于 2021 年人口普查的社区概况、最近的学校，以及（在温哥华）已报告犯罪的背景信息。再加上温哥华的完整地址，还可查看该房产的公开评估记录和近期建筑许可证。每个数字都注明来源；学校距离为近似直线距离。</p>
 <form id="prForm" style="margin-top:16px">
 <div class="calc-inputs">
-<div class="field"><label for="prPostal" data-i18n="pr_postal">邮政编码</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" data-i18n-ph="pr_postal_ph" placeholder="例如 V6B 1A1" /></div>
-<div class="field"><label for="prCity" data-i18n="f_city">城市</label><select id="prCity"></select></div>
-<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">街道地址</span> <span class="note" data-i18n="pr_optional">（可选 — 添加房产记录）</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
+<div class="field"><label for="prPostal" data-i18n="pr_postal">邮政编码</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" autocapitalize="characters" spellcheck="false" maxlength="10" data-i18n-ph="pr_postal_ph" placeholder="例如 V6B 1A1" /></div>
+<div class="field"><label for="prCity" data-i18n="f_city">城市</label><select id="prCity"></select><p class="note" style="margin-top:6px" data-i18n="pr_city_note">房产记录适用于温哥华地址；其他城市将获得官方记录链接。</p></div>
+<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">街道地址</span> <span class="note" data-i18n="pr_optional">（可选 — 添加房产记录）</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
 </div>
 <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">生成我的报告</button></div>
+<p class="note" style="margin-top:10px" data-i18n="pr_privacy">隐私：您输入的邮政编码和地址会发送给公共数据服务（OpenStreetMap 和温哥华市开放数据）以生成此报告。</p>
 </form>
 <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
 </div>
@@ -540,7 +541,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","zh")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"zh-listings.html","calculator":"zh-mortgage-calculator.html","buyvsrent":"zh-buy-vs-rent.html","afford":"zh-affordability.html","invest":"zh-investor-analysis.html","match":"zh-ai-assistant.html#match","assistant":"zh-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"zh-market-pulse.html","guide":"zh-first-time-buyers.html","fhsa":"zh-first-time-buyers.html#fhsa","knowledge":"zh-knowledge-centre.html","newsletter":"zh-index.html#newsletter","contact":"zh-contact.html"};</script>
-<script src="bundle-shared.js?v=98735186"></script>
-<script src="bundle-page-seller-tools.js?v=c2afa135"></script>
+<script src="bundle-shared.js?v=76a91f28"></script>
+<script src="bundle-page-seller-tools.js?v=c61608d9"></script>
 </body>
 </html>

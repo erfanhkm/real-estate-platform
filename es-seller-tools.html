@@ -487,14 +487,15 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <div class="panel" style="margin-top:24px" id="property-report">
 <h3 style="font-size:21px" data-i18n="pr_title">Informe de propiedad y vecindario</h3>
-<p class="note" style="margin-top:6px" data-i18n="pr_sub">Ingresa un código postal de BC para obtener una instantánea del vecindario del Censo de 2021, las escuelas más cercanas y — en Vancouver — contexto de delitos reportados. Agrega una dirección completa de Vancouver para ver también el registro público de valuación de la propiedad y los permisos de construcción recientes. Cada cifra indica su fuente; nada aquí es estimado ni inventado.</p>
+<p class="note" style="margin-top:6px" data-i18n="pr_sub">Ingresa un código postal de BC para obtener una instantánea del vecindario del Censo de 2021, las escuelas más cercanas y — en Vancouver — contexto de delitos reportados. Agrega una dirección completa de Vancouver para ver también el registro público de valuación de la propiedad y los permisos de construcción recientes. Cada cifra indica su fuente; las distancias a las escuelas son mediciones aproximadas en línea recta.</p>
 <form id="prForm" style="margin-top:16px">
 <div class="calc-inputs">
-<div class="field"><label for="prPostal" data-i18n="pr_postal">Código postal</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" data-i18n-ph="pr_postal_ph" placeholder="ej. V6B 1A1" /></div>
-<div class="field"><label for="prCity" data-i18n="f_city">Ciudad</label><select id="prCity"></select></div>
-<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Dirección</span> <span class="note" data-i18n="pr_optional">(opcional — agrega el registro de la propiedad)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
+<div class="field"><label for="prPostal" data-i18n="pr_postal">Código postal</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" autocapitalize="characters" spellcheck="false" maxlength="10" data-i18n-ph="pr_postal_ph" placeholder="ej. V6B 1A1" /></div>
+<div class="field"><label for="prCity" data-i18n="f_city">Ciudad</label><select id="prCity"></select><p class="note" style="margin-top:6px" data-i18n="pr_city_note">El registro de la propiedad cubre direcciones de Vancouver; otras ciudades reciben los enlaces a los registros oficiales.</p></div>
+<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Dirección</span> <span class="note" data-i18n="pr_optional">(opcional — agrega el registro de la propiedad)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
 </div>
 <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">Crear mi informe</button></div>
+<p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacidad: el código postal y la dirección que ingresas se envían a servicios públicos de datos (OpenStreetMap y los datos abiertos de la Ciudad de Vancouver) para construir este informe.</p>
 </form>
 <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
 </div>
@@ -540,7 +541,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","es")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"es-listings.html","calculator":"es-mortgage-calculator.html","buyvsrent":"es-buy-vs-rent.html","afford":"es-affordability.html","invest":"es-investor-analysis.html","match":"es-ai-assistant.html#match","assistant":"es-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"es-market-pulse.html","guide":"es-first-time-buyers.html","fhsa":"es-first-time-buyers.html#fhsa","knowledge":"es-knowledge-centre.html","newsletter":"es-index.html#newsletter","contact":"es-contact.html"};</script>
-<script src="bundle-shared.js?v=98735186"></script>
-<script src="bundle-page-seller-tools.js?v=c2afa135"></script>
+<script src="bundle-shared.js?v=76a91f28"></script>
+<script src="bundle-page-seller-tools.js?v=c61608d9"></script>
 </body>
 </html>

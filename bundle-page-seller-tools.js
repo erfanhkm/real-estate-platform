@@ -1094,9 +1094,15 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       return { low: lo, high: hi, comps: n, basis: e.basis === "ppsf" ? "ppsf" : "price", confidence: e.confidence || "low" };
     }
     function hvMoney(v){
-      var tag = ({ en: "en-CA", fa: "fa-IR", hi: "hi-IN", zh: "zh-CN" })[lang] || "en-CA";
-      try { return new Intl.NumberFormat(tag, { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(v); }
-      catch(e){ return "$" + Number(v).toLocaleString("en-US"); }
+      /* a missing figure renders as "—", never as $0 (PR-02 M1: the
+         report worker returns null totals when a part is missing, and
+         Intl.format(null) would otherwise print a fabricated $0) */
+      if (v === null || v === undefined || v === "" || typeof v === "boolean") return "—";
+      var n = Number(v);
+      if (!isFinite(n)) return "—";
+      var tag = ({ en: "en-CA", fa: "fa-IR", hi: "hi-IN", zh: "zh-CN", es: "es-CA" })[lang] || "en-CA";
+      try { return new Intl.NumberFormat(tag, { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n); }
+      catch(e){ return "$" + n.toLocaleString("en-US"); }
     }
     function renderValuation(){
       if (!$("hvForm")) return;
@@ -1180,27 +1186,93 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     /* ---------- property & neighbourhood report (2026-11-01) ----------
        Postal code -> /api/report/neighbourhood (census snapshot, nearest
        schools, Vancouver crime context); optional address ->
-       /api/report/property (Vancouver public record). Sold history and
-       title search are built-but-gated until licensing (see the gated
-       cards rendered below and files/post-licensing-activation.md). */
-    var prBusy = false, prLast = null, prErrKey = null;
-    function prNum(n){ var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
-    function prPct(v){ return (Math.round(Number(v) * 10) / 10) + "%"; }
+       /api/report/property (Vancouver public record, POSTed so the
+       address stays out of URLs and logs). Sold history and title
+       search are built-but-gated until licensing (see the gated cards
+       rendered below and files/post-licensing-activation.md).
+       Pack H (2026-11-02, PR-02 verdict): parallel fetches with a 12s
+       timeout and per-part failure states, per-source status rendering
+       (the Pack G contract), null-safe figures, strata median and
+       truncated states, a response-aware title button, live gate-state
+       copy, and digit-normalised postal input. */
+    var PR_API = "https://advisor-api.erfanbillion.workers.dev";
+    var PR_LINK_HOSTS = ["www.bcassessment.ca", "maps.ltsa.ca", "www.walkscore.com", "ltsa.ca"];
+    var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false;
+    function prMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
+    function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
+    function prPct(v){ if (prMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? (Math.round(x * 10) / 10) + "%" : "—"; }
+    /* scoped safe fill (PR-02 L2): single-pass, a missing key becomes ""
+       instead of the shared fill()'s "," artefact; the site-wide fill()
+       itself is deliberately untouched */
+    function prFill(tpl, obj){
+      return String(tpl === null || tpl === undefined ? "" : tpl).replace(/\{(\w+)\}/g, function(m, k){
+        var v = obj ? obj[k] : null;
+        return (v === null || v === undefined) ? "" : String(v);
+      });
+    }
+    /* report links are worker constants, but esc() alone is not a URL
+       check (PR-02 L1): only https on a known host survives */
+    function prSafeUrl(u){
+      var s = String(u || "");
+      if (!/^https:\/\//i.test(s)) return "";
+      try { if (PR_LINK_HOSTS.indexOf(new URL(s).hostname.toLowerCase()) === -1) return ""; } catch (e) { return ""; }
+      return s;
+    }
+    /* postal input normalisation (PR-02 M7): Persian / Arabic-Indic /
+       Devanagari / full-width digits via hvNormDigits, full-width
+       letters folded to ASCII, then the Canadian shape is checked
+       client-side so a typo never spends a rate-limited request */
+    function prNormPostalInput(raw){
+      var s = hvNormDigits(raw === null || raw === undefined ? "" : String(raw));
+      s = s.replace(/[Ａ-Ｚａ-ｚ]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+      s = s.toUpperCase().replace(/[\s-]+/g, "");
+      if (!/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(s)) return "";
+      return s.slice(0, 3) + " " + s.slice(3);
+    }
+    /* fetch with a 12s ceiling that NEVER rejects (PR-02 H2): callers
+       branch on {status, d} per part, so one part's failure can neither
+       discard the other part's data nor lock the form */
+    function prFetch(url, opts){
+      var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      var tm = ac ? setTimeout(function(){ try { ac.abort(); } catch (e) {} }, 12000) : null;
+      var o = {};
+      if (opts) for (var k in opts) o[k] = opts[k];
+      if (ac) o.signal = ac.signal;
+      return fetch(url, o).then(function(r){
+        return r.json().catch(function(){ return null; }).then(function(d){ return { status: r.status, d: d }; });
+      }).catch(function(){ return { status: 0, d: null }; }).then(function(x){ if (tm) clearTimeout(tm); return x; });
+    }
     function prRow(label, val){ return '<div class="row"><span>' + esc(label) + '</span><b dir="ltr" style="unicode-bidi:isolate">' + esc(val) + "</b></div>"; }
     function buildPrCity(){
       if (!$("prCity")) return;
-      keep($("prCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
+      keep($("prCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); var vi = cs.indexOf("Vancouver"); if (vi > 0) { cs.splice(vi, 1); cs.unshift("Vancouver"); } cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
     }
     function prGatedHTML(){
       var t = T();
-      return '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_sold_title) + '</h4><p class="note" style="margin-top:6px">' + esc(t.pr_sold_gated) + "</p>" +
-        '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_title_title) + '</h4><p class="note" style="margin-top:6px">' + esc(t.pr_title_gated) + "</p>" +
-        '<div style="margin-top:10px"><button class="btn btn-line" type="button" id="prTitleBtn">' + esc(t.pr_title_btn) + '</button></div><p class="note" id="prTitleOut" style="margin-top:8px"></p>';
+      /* the gated copy renders by the worker's LIVE gate state (PR-02
+         M5): until the status fetch lands the gated wording shows; a
+         flag-on-but-unconfigured answer shows the neutral pending line */
+      var pending = !!(prGates && prGates.gated === false);
+      var soldTxt = pending ? t.pr_gated_pending : t.pr_sold_gated;
+      var titleTxt = pending ? t.pr_gated_pending : t.pr_title_gated;
+      var tbOff = (prTitleKey && prTitleKey !== "pr_err" && prTitleKey !== "pr_err_rate") ? " disabled" : "";
+      return '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_sold_title) + '</h4><p class="note" style="margin-top:6px">' + esc(soldTxt) + "</p>" +
+        '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_title_title) + '</h4><p class="note" style="margin-top:6px">' + esc(titleTxt) + "</p>" +
+        '<div style="margin-top:10px"><button class="btn btn-line" type="button" id="prTitleBtn"' + tbOff + '>' + esc(t.pr_title_btn) + '</button></div><p class="note" id="prTitleOut" style="margin-top:8px">' + (prTitleKey ? esc(t[prTitleKey] || "") : "") + "</p>";
+    }
+    function prLoadGates(){
+      if (prGates || prGatesBusy) return;
+      prGatesBusy = true;
+      prFetch(PR_API + "/api/report/sold-history").then(function(r){
+        prGatesBusy = false;
+        if (r.d && r.d.ok) { prGates = r.d; if (prLast) { try { paintReport(); } catch (e) {} } }
+      });
     }
     function paintReport(){
       var t = T(), out = $("prOut");
       if (!out) return;
-      if (prErrKey) { out.innerHTML = '<p class="note" role="alert" style="font-weight:600;color:#b3261e">' + esc(t[prErrKey] || t.pr_err) + "</p>"; return; }
+      out.setAttribute("aria-busy", "false");
+      if (prErrKey) { out.innerHTML = '<p class="note" style="font-weight:600;color:#b3261e">' + esc(t[prErrKey] || t.pr_err) + "</p>"; return; }
       if (!prLast) { out.innerHTML = ""; return; }
       var h = prLast.hood, p = prLast.prop, html = "";
       if (h && h.ok && h.inArea === false) {
@@ -1208,7 +1280,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         return;
       }
       if (h && h.ok) {
-        html += '<div class="out"><h4 style="font-size:17px">' + esc(fill(t.pr_hood_title, { fsa: h.fsa })) + (h.area ? " — " + esc(h.area) : "") + "</h4>";
+        var src = h.sources || {};
+        html += '<div class="out"><h4 id="prFirstHead" tabindex="-1" style="font-size:17px">' + esc(prFill(t.pr_hood_title, { fsa: h.fsa })) + (h.area ? " — <bdi>" + esc(h.area) + "</bdi>" : "") + "</h4>";
+        if (h.approximate) html += '<p class="note" style="margin-top:6px">' + esc(t.pr_approx) + "</p>";
         var c = h.census;
         if (c) {
           html += '<div style="margin-top:10px">';
@@ -1224,15 +1298,19 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           if (c.pctSingleDetached != null) html += prRow(t.pr_detached, prPct(c.pctSingleDetached));
           if (c.pctEnglishAtHome != null) html += prRow(t.pr_eng_home, prPct(c.pctEnglishAtHome));
           if (c.pctNonOfficialAtHome != null) html += prRow(t.pr_nonoff_home, prPct(c.pctNonOfficialAtHome));
-          html += '</div><p class="note" style="margin-top:8px">' + esc(fill(t.pr_src_census, { fsa: h.fsa })) + "</p>";
+          html += '</div><p class="note" style="margin-top:8px">' + esc(prFill(t.pr_src_census, { fsa: h.fsa })) + "</p>";
+        } else {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_census_na) + "</p>";
         }
         html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_schools_title) + "</h4>";
-        if (h.schools && h.schools.length) {
+        if (src.schools === "unavailable") {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_unavailable) + "</p>";
+        } else if (h.schools && h.schools.length) {
           html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
           h.schools.forEach(function(s){
             var lv = t["pr_school_" + String(s.level || "").toLowerCase()] || "";
-            var kd = s.kind === "independent" ? t.pr_school_ind : t.pr_school_pub;
-            html += "<li>" + esc(s.name) + (s.city ? " (" + esc(s.city) + ")" : "") + ' — <b dir="ltr">' + esc(s.km) + " km</b>" + (lv ? " · " + esc(lv) : "") + " · " + esc(kd) + "</li>";
+            var kd = s.kind === "independent" ? t.pr_school_ind : (s.kind === "public" ? t.pr_school_pub : (s.kind === "other" ? t.pr_school_other : ""));
+            html += "<li><bdi>" + esc(s.name) + "</bdi>" + (s.city ? " (<bdi>" + esc(s.city) + "</bdi>)" : "") + ' — <b dir="ltr">' + esc(s.km) + " " + esc(t.pr_km) + "</b>" + (lv ? " · " + esc(lv) : "") + (kd ? " · " + esc(kd) : "") + "</li>";
           });
           html += "</ul>";
         } else {
@@ -1241,34 +1319,48 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_src) + "</p>";
         html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_safety_title) + "</h4>";
         if (h.safety) {
-          html += '<p class="note" style="margin-top:6px;color:var(--ink)">' + esc(fill(t.pr_safety_body, { n: prNum(h.safety.incidents), area: h.safety.neighbourhood, year: h.safety.year, total: prNum(h.safety.cityTotal) })) + '</p><p class="note">' + esc(t.pr_safety_src) + "</p>";
+          html += '<p class="note" style="margin-top:6px;color:var(--ink)">' + esc(prFill(t.pr_safety_body, { n: prNum(h.safety.incidents), area: h.safety.neighbourhood, year: h.safety.year, total: prNum(h.safety.cityTotal) })) + '</p><p class="note">' + esc(t.pr_safety_src) + "</p>";
+        } else if (src.safety === "unavailable") {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_unavailable) + "</p>";
         } else {
           html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_na) + "</p>";
         }
         html += "</div>";
       }
-      if (p) {
+      if (p && p.failed) {
+        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + '</h4><p class="note" style="margin-top:6px">' + esc(p.failed === "rate" ? t.pr_err_rate : t.pr_prop_unavailable) + "</p></div>";
+      } else if (p) {
         html += '<div class="out" style="margin-top:14px">';
-        html += '<h4 style="font-size:17px">' + esc(fill(t.pr_card_title, { addr: prLast.address })) + "</h4>";
+        html += '<h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + "</h4>";
         if (p.supported && p.found && p.card) {
           var cd = p.card;
           html += '<div style="margin-top:10px">';
           if (cd.kind === "strata") {
-            html += '<p class="note" style="color:var(--ink)">' + esc(fill(t.pr_card_strata, { n: cd.units })) + "</p>";
-            html += prRow(t.pr_card_range, hvMoney(cd.rangeLow) + " – " + hvMoney(cd.rangeHigh));
-            html += prRow(fill(t.pr_card_total, { year: cd.assessedYear }), hvMoney(cd.medianTotal));
-          } else {
+            if (cd.truncated) {
+              /* a possibly-incomplete set shows the truncation state —
+                 no subset range or median presented as complete */
+              html += '<p class="note" style="color:var(--ink)">' + esc(t.pr_card_truncated) + "</p>";
+            } else {
+              html += '<p class="note" style="color:var(--ink)">' + esc(prFill(t.pr_card_strata, { n: cd.units })) + "</p>";
+              html += prRow(t.pr_card_range, hvMoney(cd.rangeLow) + " – " + hvMoney(cd.rangeHigh));
+              html += prRow(prFill(t.pr_card_median, { year: cd.assessedYear }), hvMoney(cd.medianTotal));
+            }
+          } else if (cd.kind === "single") {
             html += prRow(t.pr_card_land, hvMoney(cd.land));
             html += prRow(t.pr_card_building, hvMoney(cd.building));
-            html += prRow(fill(t.pr_card_total, { year: cd.assessedYear }), hvMoney(cd.total));
+            html += prRow(prFill(t.pr_card_total, { year: cd.assessedYear }), hvMoney(cd.total));
             if (cd.taxLevy != null) html += prRow(t.pr_card_levy, hvMoney(cd.taxLevy));
             if (cd.pid) html += prRow(t.pr_card_pid, cd.pid);
+          } else {
+            html += '<p class="note">' + esc(t.pr_prop_unavailable) + "</p>";
           }
           if (cd.yearBuilt) html += prRow(t.pr_card_built, String(cd.yearBuilt));
           if (cd.zoning) html += prRow(t.pr_card_zoning, cd.zoning);
           html += '</div><p class="note" style="margin-top:8px">' + esc(t.pr_card_note) + '</p><p class="note">' + esc(t.pr_card_src) + "</p>";
           html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_permits_title) + "</h4>";
-          if (p.permits && p.permits.length) {
+          if (p.sources && p.sources.permits === "unavailable") {
+            html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_unavailable) + "</p>";
+          } else if (p.permits && p.permits.length) {
             html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
             p.permits.forEach(function(pm){ html += "<li>" + esc(pm.number) + " · " + esc(pm.date) + (pm.category ? " · " + esc(pm.category) : "") + (pm.typeOfWork ? " · " + esc(pm.typeOfWork) : "") + "</li>"; });
             html += "</ul>";
@@ -1276,7 +1368,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_none) + "</p>";
           }
         } else if (p.supported) {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_notfound) + "</p>";
+          var psrc = p.sources || {};
+          html += '<p class="note" style="margin-top:6px">' + esc(psrc.parcels === "ambiguous" ? t.pr_prop_ambiguous : ((psrc.parcels === "unavailable" || psrc.geocode === "unavailable") ? t.pr_prop_unavailable : t.pr_prop_notfound)) + "</p>";
         } else {
           html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_na) + "</p>";
         }
@@ -1284,67 +1377,108 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       }
       var links = (p && p.links) || (h && h.links) || null;
       if (links) {
-        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_links_title) + "</h4>" +
-          '<p class="note" style="margin-top:8px"><a href="' + esc(links.bca) + '" target="_blank" rel="noopener">' + esc(t.pr_link_bca) + "</a></p>" +
-          '<p class="note"><a href="' + esc(links.parcel) + '" target="_blank" rel="noopener">' + esc(t.pr_link_parcel) + "</a></p>" +
-          '<p class="note"><a href="' + esc(links.walkscore) + '" target="_blank" rel="noopener">' + esc(t.pr_link_walkscore) + "</a></p>" +
-          '<p class="note"><a href="' + esc(links.ltsa) + '" target="_blank" rel="noopener">' + esc(t.pr_link_ltsa) + "</a></p></div>";
+        var lk = [["bca", t.pr_link_bca], ["parcel", t.pr_link_parcel], ["walkscore", t.pr_link_walkscore], ["ltsa", t.pr_link_ltsa]], lhtml = "", lfirst = true;
+        lk.forEach(function(pair){
+          var u = prSafeUrl(links[pair[0]]);
+          if (!u) return;
+          lhtml += '<p class="note"' + (lfirst ? ' style="margin-top:8px"' : "") + '><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(pair[1]) + "</a></p>";
+          lfirst = false;
+        });
+        if (lhtml) html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_links_title) + "</h4>" + lhtml + "</div>";
       }
       if (prLast.address) {
         html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_est_title) + '</h4><p class="note" style="margin-top:6px">' + esc(t.pr_est_body) + '</p><div style="margin-top:10px"><button class="btn btn-spruce" type="button" id="prEstBtn">' + esc(t.pr_est_btn) + "</button></div></div>";
       }
       html += '<div class="out" style="margin-top:14px"><p class="note">' + esc(t.pr_gated_note) + "</p>" + prGatedHTML() + "</div>";
       out.innerHTML = html;
+      if (prFocusPending) {
+        prFocusPending = false;
+        var fh = $("prFirstHead");
+        if (fh) { try { fh.focus({ preventScroll: true }); } catch (e) {} }
+      }
       var tb = $("prTitleBtn");
       if (tb) tb.addEventListener("click", function(){
         tb.disabled = true;
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: prLast.address || "", postal: (prLast.hood && prLast.hood.postal) || "" }) })
-          .then(function(r){ return r.json().catch(function(){ return {}; }); })
-          .then(function(){ var o = $("prTitleOut"); if (o) o.textContent = T().pr_title_sent; })
-          .catch(function(){ var o = $("prTitleOut"); if (o) o.textContent = T().pr_title_sent; });
+        prFetch(PR_API + "/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(function(r){
+          var d = r.d || {};
+          /* the answer follows the stub's REAL response (PR-02 M4):
+             success wording exists only for placed === true; a failure
+             is an error, never the gated text */
+          var key = "pr_title_sent";
+          if (r.status === 429) key = "pr_err_rate";
+          else if (d.placed === true) key = "pr_title_placed";
+          else if (d.gated === false && d.state === "not_configured") key = "pr_title_unavailable";
+          else if (!d.ok) key = "pr_err";
+          prTitleKey = key;
+          var o = $("prTitleOut");
+          if (o) o.textContent = T()[key] || "";
+          var b2 = $("prTitleBtn");
+          if (b2) b2.disabled = (key !== "pr_err" && key !== "pr_err_rate");
+        });
       });
       var eb = $("prEstBtn");
       if (eb) eb.addEventListener("click", function(){
         var f = $("hvForm"); if (!f) return;
-        if (prLast.address && $("hvAddress")) $("hvAddress").value = prLast.address;
+        /* clear the previous estimate first (PR-02 M6): a stale figure
+           must never sit next to the new address, and it repaints on
+           language switches so hvLast goes too */
+        hvLast = null; hvErr = null;
+        var ho = $("hvOut"); if (ho) ho.innerHTML = "";
+        var ha = $("hvAddress");
+        if (ha && prLast.address && !ha.value.trim()) ha.value = prLast.address; /* never overwrite what the visitor typed */
         var cityGuess = ($("prCity") && $("prCity").value) || (prLast.hood && prLast.hood.cityName) || "";
-        var hc = $("hvCity");
-        if (hc && cityGuess) { for (var i = 0; i < hc.options.length; i++) if (hc.options[i].value === cityGuess) { hc.value = cityGuess; break; } }
-        f.scrollIntoView({ behavior: "smooth", block: "start" });
-        var ht = $("hvType"); if (ht) try { ht.focus({ preventScroll: true }); } catch (e) {}
+        var hc = $("hvCity"), matched = false;
+        if (hc && cityGuess) { for (var i = 0; i < hc.options.length; i++) if (hc.options[i].value === cityGuess) { hc.value = cityGuess; matched = true; break; } }
+        if (hc && !matched) hc.value = ""; /* placeholder, not a stale city */
+        var reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+        f.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+        var ht = (hc && !hc.value) ? hc : $("hvType");
+        if (ht) try { ht.focus({ preventScroll: true }); } catch (e) {}
       });
     }
     if ($("prForm")) $("prForm").addEventListener("submit", function(e){
       e.preventDefault();
       if (prBusy) return;
       var t = T();
-      var pc = $("prPostal").value.trim();
-      var address = $("prAddress").value.trim();
+      var pc = prNormPostalInput($("prPostal").value);
+      var address = $("prAddress").value.trim().slice(0, 140);
       var citySel = $("prCity").value;
       if (!pc) { prErrKey = "pr_err_postal"; prLast = null; paintReport(); return; }
-      prBusy = true; prErrKey = null; prLast = null;
+      if (address && !citySel) { prErrKey = "pr_err_city"; prLast = null; paintReport(); return; }
+      prBusy = true; prErrKey = null; prLast = null; prTitleKey = null;
       var btn = $("prBtn"); btn.disabled = true; btn.textContent = t.pr_loading;
-      var out0 = $("prOut"); if (out0) out0.innerHTML = '<p class="note">' + esc(t.pr_loading) + "</p>";
-      var base = "https://advisor-api.erfanbillion.workers.dev";
-      fetch(base + "/api/report/neighbourhood?pc=" + encodeURIComponent(pc)).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { status: r.status, d: d || {} }; }); })
-        .then(function(r1){
-          if (r1.status === 429) throw "rate";
-          if (!r1.d.ok) throw (r1.d.error === "validation" ? "postal" : "err");
-          var hood = r1.d;
-          if (!address) return { hood: hood, prop: null };
-          var city = citySel || hood.cityName || "";
-          return fetch(base + "/api/report/property?address=" + encodeURIComponent(address) + "&city=" + encodeURIComponent(city)).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(pd){ return { hood: hood, prop: (pd && pd.ok) ? pd : null }; });
-        }).then(function(res){
-          prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn;
-          prLast = { hood: res.hood, prop: res.prop, address: address };
-          paintReport();
-        }).catch(function(kind){
-          prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn;
-          prErrKey = kind === "rate" ? "pr_err_rate" : (kind === "postal" ? "pr_err_postal" : "pr_err"); prLast = null; paintReport();
-        });
+      var out0 = $("prOut"); if (out0) { out0.setAttribute("aria-busy", "true"); out0.innerHTML = '<p class="note">' + esc(t.pr_loading) + "</p>"; }
+      /* both requests fire together (PR-02 H2) and each part keeps its
+         own outcome; the property request is skipped only when the
+         code cannot be in BC at all (a non-V FSA), and its answer is
+         discarded when the hood answer says out-of-area */
+      var hoodP = prFetch(PR_API + "/api/report/neighbourhood?pc=" + encodeURIComponent(pc.replace(/\s+/g, "")));
+      var propP = (address && pc.charAt(0) === "V") ? prFetch(PR_API + "/api/report/property", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: address, city: citySel }) }) : null;
+      Promise.all([hoodP, propP]).then(function(rs){
+        prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn;
+        var r1 = rs[0];
+        if (!(r1.status === 200 && r1.d && r1.d.ok)) {
+          prErrKey = r1.status === 429 ? "pr_err_rate" : (r1.status === 400 ? "pr_err_postal" : "pr_err");
+          prLast = null; paintReport(); return;
+        }
+        var hood = r1.d, prop = null;
+        if (propP && hood.inArea !== false) {
+          var r2 = rs[1];
+          prop = (r2.status === 200 && r2.d && r2.d.ok) ? r2.d : { failed: r2.status === 429 ? "rate" : "err" };
+        }
+        prLast = { hood: hood, prop: prop, address: address };
+        prFocusPending = true;
+        try { paintReport(); }
+        catch (err) { var o = $("prOut"); if (o) { o.setAttribute("aria-busy", "false"); o.innerHTML = '<p class="note">' + esc(T().pr_err) + "</p>"; } }
+        prLoadGates();
+      });
     });
+    /* language switches repaint the last report in the new language;
+       applyLang calls this hook too, so a programmatic switch (no
+       change event) repaints as well (PR-02 L4) */
+    window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) {} } };
     var prLangSel = $("langSel");
-    if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ buildPrCity(); if (prLast || prErrKey) paintReport(); }, 0); });
+    if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ if (window.__prRepaint) window.__prRepaint(); }, 0); });
     buildPrCity();
     /* ---------- language ---------- */
     function applyLang(next, save){

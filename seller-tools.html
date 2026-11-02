@@ -487,14 +487,15 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <div class="panel" style="margin-top:24px" id="property-report">
 <h3 style="font-size:21px" data-i18n="pr_title">Property &amp; neighbourhood report</h3>
-<p class="note" style="margin-top:6px" data-i18n="pr_sub">Enter a BC postal code for a neighbourhood snapshot from the 2021 Census, the nearest schools and — in Vancouver — reported-crime context. Add a full Vancouver address to also see the property's public assessment record and recent building permits. Every figure names its source; nothing here is estimated or invented.</p>
+<p class="note" style="margin-top:6px" data-i18n="pr_sub">Enter a BC postal code for a neighbourhood snapshot from the 2021 Census, the nearest schools and — in Vancouver — reported-crime context. Add a full Vancouver address to also see the property's public assessment record and recent building permits. Every figure names its source; school distances are approximate straight-line measurements.</p>
 <form id="prForm" style="margin-top:16px">
 <div class="calc-inputs">
-<div class="field"><label for="prPostal" data-i18n="pr_postal">Postal code</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" data-i18n-ph="pr_postal_ph" placeholder="e.g. V6B 1A1" /></div>
-<div class="field"><label for="prCity" data-i18n="f_city">City</label><select id="prCity"></select></div>
-<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Street address</span> <span class="note" data-i18n="pr_optional">(optional — adds the property record)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
+<div class="field"><label for="prPostal" data-i18n="pr_postal">Postal code</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" autocapitalize="characters" spellcheck="false" maxlength="10" data-i18n-ph="pr_postal_ph" placeholder="e.g. V6B 1A1" /></div>
+<div class="field"><label for="prCity" data-i18n="f_city">City</label><select id="prCity"></select><p class="note" style="margin-top:6px" data-i18n="pr_city_note">The property record covers Vancouver addresses; other cities get the official record links.</p></div>
+<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Street address</span> <span class="note" data-i18n="pr_optional">(optional — adds the property record)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
 </div>
 <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">Build my report</button></div>
+<p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacy: the postal code and address you enter are sent to public data services (OpenStreetMap and the City of Vancouver open data) to build this report.</p>
 </form>
 <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
 </div>
@@ -539,7 +540,7 @@ body.print-chk #chkReport{display:block !important}
 <button id="tourClose" class="btn btn-line" style="position:absolute;top:14px;right:14px;z-index:201">✕ <span data-i18n="close">Close</span></button>
 </div>
 <script>window.PAGE_OF = {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};</script>
-<script src="bundle-shared.js?v=98735186"></script>
-<script src="bundle-page-seller-tools.js?v=c2afa135"></script>
+<script src="bundle-shared.js?v=76a91f28"></script>
+<script src="bundle-page-seller-tools.js?v=c61608d9"></script>
 </body>
 </html>

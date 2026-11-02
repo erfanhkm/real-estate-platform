@@ -487,14 +487,15 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <div class="panel" style="margin-top:24px" id="property-report">
 <h3 style="font-size:21px" data-i18n="pr_title">گزارش ملک و محله</h3>
-<p class="note" style="margin-top:6px" data-i18n="pr_sub">یک کد پستیِ بریتیش کلمبیا وارد کنید تا نمایی از محله بر اساس سرشماری ۲۰۲۱، نزدیک‌ترین مدرسه‌ها و — در ونکوور — آمار جرم گزارش‌شده ببینید. اگر نشانی کاملِ یک ملک در ونکوور را هم اضافه کنید، سابقه‌ی عمومی ارزیابی ملک و پروانه‌های ساختمانی اخیر آن هم نشان داده می‌شود. هر عدد منبعش را دارد؛ هیچ‌چیز اینجا تخمینی یا ساختگی نیست.</p>
+<p class="note" style="margin-top:6px" data-i18n="pr_sub">یک کد پستیِ بریتیش کلمبیا وارد کنید تا نمایی از محله بر اساس سرشماری ۲۰۲۱، نزدیک‌ترین مدرسه‌ها و — در ونکوور — آمار جرم گزارش‌شده ببینید. اگر نشانی کاملِ یک ملک در ونکوور را هم اضافه کنید، سابقه‌ی عمومی ارزیابی ملک و پروانه‌های ساختمانی اخیر آن هم نشان داده می‌شود. هر عدد منبعش را دارد؛ فاصله‌ی مدرسه‌ها اندازه‌گیری تقریبیِ خط مستقیم است.</p>
 <form id="prForm" style="margin-top:16px">
 <div class="calc-inputs">
-<div class="field"><label for="prPostal" data-i18n="pr_postal">کد پستی</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" data-i18n-ph="pr_postal_ph" placeholder="مثلاً V6B 1A1" /></div>
-<div class="field"><label for="prCity" data-i18n="f_city">شهر</label><select id="prCity"></select></div>
-<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">نشانی خیابان</span> <span class="note" data-i18n="pr_optional">(اختیاری — سابقه‌ی ملک را اضافه می‌کند)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
+<div class="field"><label for="prPostal" data-i18n="pr_postal">کد پستی</label><input id="prPostal" type="text" autocomplete="postal-code" dir="ltr" autocapitalize="characters" spellcheck="false" maxlength="10" data-i18n-ph="pr_postal_ph" placeholder="مثلاً V6B 1A1" /></div>
+<div class="field"><label for="prCity" data-i18n="f_city">شهر</label><select id="prCity"></select><p class="note" style="margin-top:6px" data-i18n="pr_city_note">سابقه‌ی ملک نشانی‌های ونکوور را پوشش می‌دهد؛ شهرهای دیگر پیوند سوابق رسمی را می‌گیرند.</p></div>
+<div class="field wide"><label for="prAddress"><span data-i18n="hv_address">نشانی خیابان</span> <span class="note" data-i18n="pr_optional">(اختیاری — سابقه‌ی ملک را اضافه می‌کند)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
 </div>
 <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">گزارشم را بساز</button></div>
+<p class="note" style="margin-top:10px" data-i18n="pr_privacy">حریم خصوصی: کد پستی و نشانی‌ای که وارد می‌کنید برای ساختن این گزارش به خدمات داده‌ی عمومی (OpenStreetMap و داده‌های باز شهر ونکوور) فرستاده می‌شود.</p>
 </form>
 <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
 </div>
@@ -540,7 +541,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","fa")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"fa-listings.html","calculator":"fa-mortgage-calculator.html","buyvsrent":"fa-buy-vs-rent.html","afford":"fa-affordability.html","invest":"fa-investor-analysis.html","match":"fa-ai-assistant.html#match","assistant":"fa-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"fa-market-pulse.html","guide":"fa-first-time-buyers.html","fhsa":"fa-first-time-buyers.html#fhsa","knowledge":"fa-knowledge-centre.html","newsletter":"fa-index.html#newsletter","contact":"fa-contact.html"};</script>
-<script src="bundle-shared.js?v=98735186"></script>
-<script src="bundle-page-seller-tools.js?v=c2afa135"></script>
+<script src="bundle-shared.js?v=76a91f28"></script>
+<script src="bundle-page-seller-tools.js?v=c61608d9"></script>
 </body>
 </html>
