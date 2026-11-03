@@ -170,16 +170,18 @@
        points the visitor to this site's own monthly market report (all 5 languages) ---------- */
     var I18N13 = {
     en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
-      ai_nl_btn:"Get the free monthly report"},
+      ai_nl_btn:"Get the free monthly report",close:"Close",m_city:"Preferred city"},
     fa:{ai_nl_pitch:"راستی — ما هر ماه یک گزارش رایگان از بازار مسکن BC و کانادا منتشر می‌کنیم: روند قیمت‌ها، حجم معاملات، تغییرات نرخ بهره و اینکه همه‌ی این‌ها برای خریدار و فروشنده چه معنایی دارد — به زبان خودتان. دوست دارید هر ماه در ایمیل‌تان باشد؟ عضویت فقط حدود ۲۰ ثانیه طول می‌کشد: کافی است فرم کوتاه اشتراک را پر کنید.",
-      ai_nl_btn:"دریافت گزارش ماهانه‌ی رایگان"},
+      ai_nl_btn:"دریافت گزارش ماهانه‌ی رایگان",close:"بستن",m_city:"شهر ترجیحی"},
     hi:{ai_nl_pitch:"वैसे — हम हर महीने BC और कनाडा के लिए एक मुफ़्त आवास बाज़ार रिपोर्ट प्रकाशित करते हैं: कीमतों के रुझान, बिक्री गतिविधि, ब्याज दरों में बदलाव, और ख़रीदारों व विक्रेताओं के लिए इनका मतलब — आपकी भाषा में। क्या आप इसे हर महीने अपने इनबॉक्स में चाहते हैं? जुड़ने में बस 20 सेकंड लगते हैं: छोटा सा फ़ॉर्म भर दें।",
-      ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं"},
+      ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं",close:"बंद करें",m_city:"पसंदीदा शहर"},
     zh:{ai_nl_pitch:"顺便提一下——我们每月发布一份免费的 BC 与加拿大住房市场报告：价格走势、成交动态、利率变化，以及这些对买卖双方意味着什么——并以您的语言发送。想每月在邮箱中收到吗？加入只需约 20 秒：填写简短的订阅表单即可。",
-      ai_nl_btn:"获取免费月度报告"},
+      ai_nl_btn:"获取免费月度报告",close:"关闭",m_city:"首选城市"},
     es:{
      "ai_nl_pitch": "Por cierto — publicamos un informe mensual gratuito del mercado de vivienda para BC y Canadá: tendencias de precios, actividad de ventas, movimientos de las tasas de interés y lo que significan para compradores y vendedores — en tu idioma. ¿Lo quieres en tu buzón cada mes? Unirte toma unos 20 segundos: solo completa el formulario corto.",
-     "ai_nl_btn": "Obtener el informe mensual gratuito"
+     "ai_nl_btn": "Obtener el informe mensual gratuito",
+     "close": "Cerrar",
+     "m_city": "Ciudad preferida"
     }
     };
     for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
@@ -992,19 +994,67 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     });
     /* ---------- market pulse ---------- */
     var MP_API = "https://advisor-api.erfanbillion.workers.dev";
-    var mpStats = undefined, mpRates = undefined, mpLoadStarted = false;
-    function mpMoney(n){ var v = Number(n); return isFinite(v) ? "$" + Math.round(v).toLocaleString("en-US") : "—"; }
-    function mpPct(v, dec){ var x = Number(v); return isFinite(x) ? x.toFixed(dec == null ? 2 : dec) + "%" : "—"; }
+    var mpStats = undefined, mpRates = undefined;
+    /* Pack J (MP-02 H4): per-part transport-failure state. A failed part
+       keeps its last good (or baked) render and may retry after a backoff;
+       mpStats === { failed: true } means "never loaded, fetch failed". */
+    var mpStatsFailed = false, mpRatesFailed = false, mpLoading = false, mpRetryAt = 0;
+    function mpSafe(fn){ try { fn(); } catch (e) {} }
+    /* Pack J (MP-02 M5): missing means null/undefined/empty — a real 0 is data. */
+    function mpMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
+    function mpMoney(n){ if (mpMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? "$" + Math.round(v).toLocaleString("en-US") : "—"; }
+    function mpPct(v, dec){ if (mpMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? x.toFixed(dec == null ? 2 : dec) + "%" : "—"; }
     function mpDeltaHtml(v){
+      if (mpMissing(v)) return "";
       var x = Number(v); if (!isFinite(x)) return "";
-      var cls = x < 0 ? "mp-down" : (x > 0 ? "mp-up" : "");
-      return '<span class="' + cls + '">' + (x > 0 ? "+" : (x < 0 ? "−" : "")) + Math.abs(x).toFixed(1) + "%</span>";
+      var r = Math.round(x * 10) / 10; /* sign is chosen AFTER 1dp rounding: -0.04 renders "0.0%", never "-0.0%" */
+      var cls = r < 0 ? "mp-down" : (r > 0 ? "mp-up" : "");
+      return '<span class="' + cls + '" dir="ltr" style="unicode-bidi:isolate">' + (r > 0 ? "+" : (r < 0 ? "−" : "")) + Math.abs(r).toFixed(1) + "%</span>";
     }
-    function mpMonthLabel(ym){
+    function mpDeltaSub(v){ var d = mpDeltaHtml(v); return d ? d + " " + esc(T().mp_yoy) : ""; }
+    function mpMonthLabel(ym, short){
       var parts = String(ym || "").split("-");
       var names = String(T().mp_months || "").split("|");
       var m = names[parseInt(parts[1], 10) - 1] || parts[1] || "";
-      return (m + " " + (parts[0] || "")).trim();
+      return short ? m : (m + " " + (parts[0] || "")).trim();
+    }
+    /* Pack J (MP-02 M1/M4): the dataset's month objects, null-safe, newest first. */
+    function mpMonths(){
+      if (!mpStats || !Array.isArray(mpStats.months)) return [];
+      return mpStats.months.filter(function (m) { return m && typeof m === "object"; });
+    }
+    function mpLatestWith(block){
+      var ms = mpMonths();
+      for (var i = 0; i < ms.length; i++) { if (ms[i][block]) return ms[i]; }
+      return null;
+    }
+    /* Pack J (MP-02 H1/L1): retrieval dates are shown in Pacific time. */
+    function mpVanDate(iso){
+      var d = new Date(iso || "");
+      if (isNaN(d.getTime())) return String(iso || "").slice(0, 10);
+      try { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); }
+      catch (e) { return d.toISOString().slice(0, 10); }
+    }
+    /* Pack J (MP-02 M3): charts size to their container (300-640), so SVG
+       text renders at true size on phones instead of being scaled down. */
+    function mpChartWidth(mount){
+      var w = mount && mount.clientWidth ? mount.clientWidth : 0;
+      if (!w) w = 640;
+      return Math.max(300, Math.min(640, w));
+    }
+    /* Pack J (MP-02 H4): every MP fetch goes through here — 10s timeout,
+       any transport/parse failure resolves null (never rejects, never hangs). */
+    function mpGet(path){
+      return new Promise(function (resolve) {
+        var settled = false;
+        function fin(j){ if (!settled) { settled = true; resolve(j); } }
+        var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+        var tm = setTimeout(function () { if (ac) { try { ac.abort(); } catch (e) {} } fin(null); }, 10000);
+        fetch(MP_API + path, ac ? { signal: ac.signal } : undefined)
+          .then(function (r) { return r.json(); })
+          .then(function (j) { clearTimeout(tm); fin(j || null); })
+          .catch(function () { clearTimeout(tm); fin(null); });
+      });
     }
     function mpSrcLine(block, ym){ return block ? esc(block.source || "") + " · " + esc(mpMonthLabel(ym)) : ""; }
     function mpTile(labelKey, value, subHtml, srcLine){
@@ -1016,7 +1066,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     function mpDrawBars(mount, figList, monthsDesc, board){
       if (!mount) return;
       var t = T();
-      var months = (monthsDesc || []).slice().reverse(); // oldest first; bars read as a series when more months arrive
+      /* Pack J (MP-02 M1/M2): only months carrying this board's type data
+         count; the series is capped to the last 6 of them per board, and
+         the figure list below reads the newest of those months. */
+      var withBoard = (monthsDesc || []).filter(function (m) { return m && typeof m === "object" && m[board] && m[board].types; });
+      var months = withBoard.slice(0, 6).slice().reverse(); // oldest first; bars read as a series when more months arrive
       var typeKeys = ["detached", "townhouse", "apartment"];
       var rows = [], max = 0, latestMonth = months[months.length - 1];
       typeKeys.forEach(function (tk) {
@@ -1026,20 +1080,24 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         });
       });
       if (!rows.length) { mount.innerHTML = ""; if (figList) figList.innerHTML = ""; return; }
-      var W = 640, labelW = 108, barH = 20, gap = 8, groupGap = 16;
+      /* Pack J (MP-02 M2/M3): container-sized viewBox; wider label column
+         (short month suffix + smaller label font on narrow containers) so
+         "Type · Month Year" labels no longer clip at the left edge. */
+      var W = mpChartWidth(mount), small = W < 520;
+      var labelW = small ? 132 : 168, valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
       var height = 8, y = 8, parts = [];
       rows.forEach(function (r, i) { if (i && rows[i - 1].tk !== r.tk) height += groupGap; height += barH + gap; });
-      var x0 = labelW, x1 = W - 118;
+      var x0 = labelW, x1 = W - valW;
       rows.forEach(function (r, i) {
         if (i && rows[i - 1].tk !== r.tk) y += groupGap;
         var w = Math.max(2, (x1 - x0) * r.price / max);
-        var lbl = (t["mp_" + r.tk] || r.tk) + (months.length > 1 ? " · " + mpMonthLabel(r.month) : "");
-        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="12.5" fill="var(--muted)">' + esc(lbl) + "</text>");
+        var lbl = (t["mp_" + r.tk] || r.tk) + (months.length > 1 ? " · " + mpMonthLabel(r.month, small) : "");
+        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="' + (small ? "11.5" : "12.5") + '" fill="var(--muted)">' + esc(lbl) + "</text>");
         parts.push('<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + barH + '" rx="4" fill="' + (r.latest ? "var(--spruce)" : "var(--brass)") + '"></rect>');
         parts.push('<text x="' + (x0 + w + 8) + '" y="' + (y + barH - 6) + '" font-size="13" font-weight="700" fill="var(--ink)">' + esc(mpMoney(r.price)) + "</text>");
         y += barH + gap;
       });
-      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" aria-label="' + esc(board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + '">' + parts.join("") + "</svg>";
+      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" style="direction:ltr" aria-label="' + esc(board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + '">' + parts.join("") + "</svg>";
       if (figList) {
         var latest = (latestMonth && latestMonth[board]) || {};
         figList.innerHTML = typeKeys.map(function (tk) {
@@ -1050,55 +1108,85 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     }
     function mpDrawPolicy(series){
       var mount = $("mpChartPolicy"); if (!mount) return;
+      var t = T();
       if (!series || series.length < 2) { mount.innerHTML = ""; return; }
-      var W = 640, H = 190, padL = 44, padR = 14, padT = 16, padB = 26;
-      var vals = series.map(function (p) { return p[1]; });
-      var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+      /* Pack J (MP-02 M4): drop malformed points instead of poisoning the scale. */
+      var ptsIn = series.filter(function (p) { return p && !mpMissing(p[1]) && isFinite(Number(p[1])); });
+      if (ptsIn.length < 2) { mount.innerHTML = ""; return; }
+      /* Pack J (MP-02 L4/M3): container-sized viewBox, padT 26 so the
+         endpoint value never clips, and the axis labels/gridlines show the
+         REAL data extremes (the scale may still pad a flat series). */
+      var W = mpChartWidth(mount), H = 190, padL = 44, padR = 14, padT = 26, padB = 26;
+      var vals = ptsIn.map(function (p) { return Number(p[1]); });
+      var rawMn = Math.min.apply(null, vals), rawMx = Math.max.apply(null, vals);
+      var mn = rawMn, mx = rawMx;
       if (mx - mn < 0.5) { var mid = (mx + mn) / 2; mn = mid - 0.25; mx = mid + 0.25; }
       var iw = W - padL - padR, ih = H - padT - padB;
-      function X(i) { return padL + iw * i / (series.length - 1); }
+      function X(i) { return padL + iw * i / (ptsIn.length - 1); }
       function Y(v) { return padT + ih * (1 - (v - mn) / (mx - mn)); }
-      var pts = series.map(function (p, i) { return X(i).toFixed(1) + "," + Y(p[1]).toFixed(1); }).join(" ");
-      var last = series[series.length - 1], first = series[0];
-      var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img">';
-      s += '<line x1="' + padL + '" y1="' + Y(mx) + '" x2="' + (W - padR) + '" y2="' + Y(mx) + '" stroke="var(--line)"></line>';
-      s += '<line x1="' + padL + '" y1="' + Y(mn) + '" x2="' + (W - padR) + '" y2="' + Y(mn) + '" stroke="var(--line)"></line>';
-      s += '<text x="' + (padL - 6) + '" y="' + (Y(mx) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + mx.toFixed(2) + "%</text>";
-      s += '<text x="' + (padL - 6) + '" y="' + (Y(mn) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + mn.toFixed(2) + "%</text>";
+      var pts = ptsIn.map(function (p, i) { return X(i).toFixed(1) + "," + Y(Number(p[1])).toFixed(1); }).join(" ");
+      var last = ptsIn[ptsIn.length - 1], first = ptsIn[0];
+      var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" style="direction:ltr" aria-label="' + esc(t.mp_policy_caption) + '">';
+      s += '<line x1="' + padL + '" y1="' + Y(rawMx) + '" x2="' + (W - padR) + '" y2="' + Y(rawMx) + '" stroke="var(--line)"></line>';
+      s += '<line x1="' + padL + '" y1="' + Y(rawMn) + '" x2="' + (W - padR) + '" y2="' + Y(rawMn) + '" stroke="var(--line)"></line>';
+      s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMx) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMx.toFixed(2) + "%</text>";
+      s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMn) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMn.toFixed(2) + "%</text>";
       s += '<polyline fill="none" stroke="var(--brass)" stroke-width="2.5" points="' + pts + '"></polyline>';
-      s += '<circle cx="' + X(series.length - 1) + '" cy="' + Y(last[1]) + '" r="4" fill="var(--spruce)"></circle>';
-      s += '<text x="' + X(series.length - 1) + '" y="' + (Y(last[1]) - 10) + '" text-anchor="end" font-size="13" font-weight="700" fill="var(--ink)">' + Number(last[1]).toFixed(2) + "%</text>";
+      s += '<circle cx="' + X(ptsIn.length - 1) + '" cy="' + Y(Number(last[1])) + '" r="4" fill="var(--spruce)"></circle>';
+      s += '<text x="' + X(ptsIn.length - 1) + '" y="' + (Y(Number(last[1])) - 10) + '" text-anchor="end" font-size="13" font-weight="700" fill="var(--ink)">' + Number(last[1]).toFixed(2) + "%</text>";
       s += '<text x="' + padL + '" y="' + (H - 6) + '" font-size="11.5" fill="var(--muted)">' + esc(first[0]) + "</text>";
       s += '<text x="' + (W - padR) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + esc(last[0]) + "</text>";
-      mount.innerHTML = s + "</svg>";
+      mount.innerHTML = s + "</svg>" + '<p class="mp-src" style="margin-top:6px">' + esc(t.mp_policy_caption) + "</p>";
     }
     function mpRenderStats(){
       var box = $("mpKpis"); if (!box) return;
       var t = T();
-      if (!mpStats || !mpStats.months || !mpStats.months.length) {
-        box.innerHTML = '<p class="note">' + esc(t.mp_no_data) + "</p>";
-        var sc0 = $("mpSources"); if (sc0) sc0.innerHTML = "";
+      if (mpStats === undefined) return; /* Pack J (MP-02 H4): still loading — the baked tiles stay */
+      if (mpStats.failed) {
+        /* Pack J (MP-02 H4): transport failure — the baked tiles stay and
+           the note says the figures could not be refreshed (never the
+           "no data" state, which is reserved for a loaded-but-empty set). */
+        var fn = $("mpMonthNote"); if (fn) fn.textContent = t.mp_stats_unavailable;
         return;
       }
-      var m = mpStats.months[0];
-      var note = $("mpMonthNote");
-      if (note) note.textContent = fill(t.mp_data_for, { month: mpMonthLabel(m.month) });
+      var months = mpMonths();
+      if (!months.length) {
+        box.innerHTML = '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
+        var sc0 = $("mpSources"); if (sc0) sc0.innerHTML = "";
+        var cg0 = $("mpChartGvr"); if (cg0) cg0.innerHTML = "";
+        var cf0 = $("mpChartFvreb"); if (cf0) cf0.innerHTML = "";
+        var fg0 = $("mpFigGvr"); if (fg0) fg0.innerHTML = "";
+        var ff0 = $("mpFigFvreb"); if (ff0) ff0.innerHTML = "";
+        var nn = $("mpMonthNote"); if (nn) nn.textContent = t.mp_no_data;
+        return;
+      }
+      /* Pack J (MP-02 M1): every tile reads the newest month that carries
+         its own block; each tile's source line names that month, and the
+         heading note claims a single month only when all tiles share it. */
+      var bcM = mpLatestWith("bc"), gvM = mpLatestWith("gvr"), fvM = mpLatestWith("fvreb"), caM = mpLatestWith("canada");
+      var usedMonths = {};
+      function use(mo){ if (mo && mo.month) usedMonths[mo.month] = 1; }
       var tiles = "";
-      if (m.bc && m.bc.sales != null) tiles += mpTile("mp_kpi_bc_sales", Number(m.bc.sales).toLocaleString("en-US"), mpDeltaHtml(m.bc.salesYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.bc, m.month));
-      if (m.gvr && m.gvr.benchmark != null) tiles += mpTile("mp_kpi_gvr_bench", mpMoney(m.gvr.benchmark), mpDeltaHtml(m.gvr.benchmarkYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.gvr, m.month));
-      if (m.fvreb && m.fvreb.benchmark != null) tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(m.fvreb.benchmark), mpDeltaHtml(m.fvreb.benchmarkYoyPct) + " " + esc(t.mp_yoy), mpSrcLine(m.fvreb, m.month));
-      if (m.gvr && m.gvr.salesToActivePct != null) tiles += mpTile("mp_kpi_salr", mpPct(m.gvr.salesToActivePct, 1), esc(t.mp_salr_sub), mpSrcLine(m.gvr, m.month));
-      if (m.canada && m.canada.monthsInventory != null) tiles += mpTile("mp_kpi_moi", String(m.canada.monthsInventory), esc(t.mp_moi_sub), mpSrcLine(m.canada, m.month));
-      box.innerHTML = tiles;
-      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), mpStats.months, "gvr");
-      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), mpStats.months, "fvreb");
+      if (bcM && !mpMissing(bcM.bc.sales) && isFinite(Number(bcM.bc.sales))) { use(bcM); tiles += mpTile("mp_kpi_bc_sales", Number(bcM.bc.sales).toLocaleString("en-US"), mpDeltaSub(bcM.bc.salesYoyPct), mpSrcLine(bcM.bc, bcM.month)); }
+      if (gvM && !mpMissing(gvM.gvr.benchmark)) { use(gvM); tiles += mpTile("mp_kpi_gvr_bench", mpMoney(gvM.gvr.benchmark), mpDeltaSub(gvM.gvr.benchmarkYoyPct), mpSrcLine(gvM.gvr, gvM.month)); }
+      if (fvM && !mpMissing(fvM.fvreb.benchmark)) { use(fvM); tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(fvM.fvreb.benchmark), mpDeltaSub(fvM.fvreb.benchmarkYoyPct), mpSrcLine(fvM.fvreb, fvM.month)); }
+      if (gvM && !mpMissing(gvM.gvr.salesToActivePct)) { use(gvM); tiles += mpTile("mp_kpi_salr", mpPct(gvM.gvr.salesToActivePct, 1), esc(t.mp_salr_sub), mpSrcLine(gvM.gvr, gvM.month)); }
+      if (caM && !mpMissing(caM.canada.monthsInventory) && isFinite(Number(caM.canada.monthsInventory))) { use(caM); tiles += mpTile("mp_kpi_moi", String(Number(caM.canada.monthsInventory)), esc(t.mp_moi_sub), mpSrcLine(caM.canada, caM.month)); }
+      box.innerHTML = tiles || '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
+      var mKeys = Object.keys(usedMonths);
+      var note = $("mpMonthNote");
+      if (note) note.textContent = mKeys.length === 1 ? fill(t.mp_data_for, { month: mpMonthLabel(mKeys[0]) }) : t.mp_data_latest;
+      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), months, "gvr");
+      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), months, "fvreb");
       var sc = $("mpSources");
       if (sc) {
-        var items = [];
-        ["canada", "bc", "gvr", "fvreb", "rates"].forEach(function (b) {
-          if (m[b] && m[b].source) items.push("<li>" + esc(m[b].source) + " — " + esc(m[b].sourceDate || "") + "</li>");
+        var seen = {}, items = [];
+        [["canada", caM], ["bc", bcM], ["gvr", gvM], ["fvreb", fvM], ["rates", mpLatestWith("rates")]].forEach(function (pair) {
+          var mo = pair[1]; if (!mo) return;
+          var b = mo[pair[0]];
+          if (b && b.source && !seen[b.source]) { seen[b.source] = 1; items.push("<li>" + esc(b.source) + " — " + esc(b.sourceDate || "") + "</li>"); }
         });
-        sc.innerHTML = "<ul>" + items.join("") + "</ul>";
+        sc.innerHTML = items.length ? "<ul>" + items.join("") + "</ul>" : "";
       }
     }
     function mpRateTile(labelKey, value, srcText){
@@ -1108,31 +1196,42 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     }
     function mpRenderRates(){
       var box = $("mpRatesTiles"); if (!box) return;
+      if (mpRates === undefined) return; /* Pack J (MP-02 H4): still loading — leave the section as-is */
       var t = T();
-      var snap = (mpStats && mpStats.months && mpStats.months.length) ? (mpStats.months[0].rates || null) : null;
+      /* Pack J (MP-02 M1): the snapshot is the newest month WITH a rates block. */
+      var snapM = mpLatestWith("rates");
+      var snap = snapM ? (snapM.rates || null) : null;
       var tiles = "", msg = "", warn = false;
+      /* Pack J (MP-02 H1): live tiles carry a per-tile stale marker when
+         the worker is serving cached rates. */
+      var staleTag = (mpRates && mpRates.stale) ? " · " + t.mp_stale_short : "";
       if (mpRates && mpRates.ok) {
-        tiles += mpRateTile("mp_policy", mpPct(mpRates.policy.value), "Bank of Canada · " + mpRates.policy.date);
+        if (mpRates.policy && !mpMissing(mpRates.policy.value)) tiles += mpRateTile("mp_policy", mpPct(mpRates.policy.value), "Bank of Canada · " + (mpRates.policy.date || "") + staleTag);
         /* Pack I (MP-01 M3): prime / bond5 may arrive null (their Valet
            series missing or older than its freshness cap — the worker
            reports them in mpRates.missing). Degrade per tile: prime
            falls back to the dated dataset snapshot (labelled as such,
            like the no-live-data path below); the bond has no snapshot
            counterpart, so its tile is omitted rather than faked. */
-        if (mpRates.prime) tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + mpRates.prime.date);
-        else if (snap && snap.prime != null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
-        if (mpRates.bond5) tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + mpRates.bond5.date);
+        if (mpRates.prime && !mpMissing(mpRates.prime.value)) tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + (mpRates.prime.date || "") + staleTag);
+        else if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
+        if (mpRates.bond5 && !mpMissing(mpRates.bond5.value)) tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + (mpRates.bond5.date || "") + staleTag);
         mpDrawPolicy(mpRates.policySeries);
-        if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) }); warn = true; }
-        else msg = fill(t.mp_live_note, { date: String(mpRates.fetchedAt || "").slice(0, 10) });
+        /* Pack J (MP-02 L1): the retrieval date is Pacific, not UTC. */
+        if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: mpVanDate(mpRates.fetchedAt) }); warn = true; }
+        else msg = fill(t.mp_live_note, { date: mpVanDate(mpRates.fetchedAt) });
       } else {
-        if (snap && snap.policyRate != null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), t.mp_snapshot + " · " + (snap.policyDate || snap.sourceDate || ""));
-        if (snap && snap.prime != null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
-        var pc = $("mpChartPolicy"); if (pc) pc.innerHTML = "";
+        if (snap && !mpMissing(snap.policyRate)) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), t.mp_snapshot + " · " + (snap.policyDate || snap.sourceDate || ""));
+        if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
+        mpDrawPolicy(null);
         msg = t.mp_unavailable_note; warn = true;
       }
-      if (snap && snap.bestFixed5 != null) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), (snap.bestSource || "nesto") + " · " + (snap.bestRatesDate || "") + " · " + t.mp_snapshot);
-      if (snap && snap.bestVariable5 != null) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), (snap.bestSource || "nesto") + " · " + (snap.bestRatesDate || "") + " · " + t.mp_snapshot);
+      /* Pack J (MP-02 M6): advertised-rate tiles render ONLY when the
+         snapshot names both a source and a date — no fallback attribution,
+         no dangling separators. */
+      var bestDate = snap ? (snap.bestRatesDate || snap.sourceDate || "") : "";
+      if (snap && !mpMissing(snap.bestFixed5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
+      if (snap && !mpMissing(snap.bestVariable5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
       box.innerHTML = tiles;
       var msgEl = $("mpRatesMsg");
       if (msgEl) { msgEl.textContent = msg || ""; msgEl.className = "mp-msg" + (warn ? " warn" : ""); }
@@ -1140,32 +1239,64 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     function mpRenderBandRate(){
       var tile = $("mpBandPolicy"); if (!tile) return; /* homepage band only; no-op on the hub page */
       var t = T();
-      var val = null, src = "";
-      if (mpRates && mpRates.ok && mpRates.policy && mpRates.policy.value != null) {
-        val = mpRates.policy.value; src = "Bank of Canada · " + esc(mpRates.policy.date || "");
+      var val = null, src = "", liveStale = false;
+      if (mpRates && mpRates.ok && mpRates.policy && !mpMissing(mpRates.policy.value)) {
+        val = mpRates.policy.value;
+        src = "Bank of Canada · " + esc(mpRates.policy.date || "") + (mpRates.stale ? " · " + esc(t.mp_stale_short) : "");
+        liveStale = !!mpRates.stale;
       } else {
-        var snap = (mpStats && mpStats.months && mpStats.months.length) ? (mpStats.months[0].rates || null) : null;
-        if (snap && snap.policyRate != null) { val = snap.policyRate; src = esc(t.mp_snapshot || "") + " · " + esc(snap.policyDate || snap.sourceDate || ""); }
+        var snapM = mpLatestWith("rates");
+        var snap = snapM ? (snapM.rates || null) : null;
+        if (snap && !mpMissing(snap.policyRate)) { val = snap.policyRate; src = esc(t.mp_snapshot || "") + " · " + esc(snap.policyDate || snap.sourceDate || ""); }
       }
       if (val == null) return; /* no data: keep the baked tile */
-      tile.innerHTML = "<h3>" + esc(t.mp_policy || "mp_policy") + '</h3><p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(mpPct(val)) + '</p><p class="mp-src">' + src + "</p>";
+      /* Pack J (MP-02 H1): the band carries the same stale warning as the
+         hub, with the retrieval date in Pacific time. */
+      var staleHtml = liveStale ? '<p class="mp-msg warn">' + esc(fill(t.mp_stale_note, { date: mpVanDate(mpRates.fetchedAt) })) + "</p>" : "";
+      tile.innerHTML = "<h3>" + esc(t.mp_policy || "mp_policy") + '</h3><p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(mpPct(val)) + '</p><p class="mp-src">' + src + "</p>" + staleHtml;
     }
+    function mpRenderAll(){ mpSafe(mpRenderStats); mpSafe(mpRenderRates); mpSafe(mpRenderBandRate); }
+    /* Pack J (MP-02 H4): the two endpoints load and render INDEPENDENTLY —
+       a hung or failed rates request never blocks the statistics, and a
+       failed part retries (after a 30s backoff) on the next entry: a
+       language switch (applyLang calls renderMarketPulse) or tab focus. */
     function renderMarketPulse(){
       if (!$("mpKpis")) return;
-      if (mpStats !== undefined && mpRates !== undefined) { mpRenderStats(); mpRenderRates(); mpRenderBandRate(); return; }
+      if (mpStats !== undefined && mpRates !== undefined && !mpStatsFailed && !mpRatesFailed) { mpRenderAll(); return; }
+      if (mpLoading) { mpRenderAll(); return; }
+      if ((mpStatsFailed || mpRatesFailed) && Date.now() < mpRetryAt) { mpRenderAll(); return; }
+      mpLoading = true;
       var note = $("mpMonthNote");
       if (note && mpStats === undefined) note.textContent = T().mp_loading;
-      if (mpLoadStarted) return;
-      mpLoadStarted = true;
-      var done = 0;
-      function fin() { if (++done === 2) { mpRenderStats(); mpRenderRates(); mpRenderBandRate(); } }
-      fetch(MP_API + "/api/market/stats").then(function (r) { return r.json(); })
-        .then(function (j) { mpStats = (j && j.ok) ? j : { months: [] }; })
-        .catch(function () { mpStats = { months: [] }; }).then(fin);
-      fetch(MP_API + "/api/market/rates").then(function (r) { return r.json(); })
-        .then(function (j) { mpRates = j || { ok: false }; })
-        .catch(function () { mpRates = { ok: false }; }).then(fin);
+      var pending = 0;
+      function done(){ pending--; if (pending <= 0) mpLoading = false; }
+      if (mpStats === undefined || mpStatsFailed) {
+        pending++;
+        mpGet("/api/market/stats").then(function (j) {
+          if (j && j.ok && Array.isArray(j.months)) { mpStats = j; mpStatsFailed = false; }
+          else { mpStatsFailed = true; mpRetryAt = Date.now() + 30000; if (mpStats === undefined) mpStats = { failed: true }; }
+          mpSafe(mpRenderStats); mpSafe(mpRenderBandRate); done();
+        });
+      }
+      if (mpRates === undefined || mpRatesFailed) {
+        pending++;
+        mpGet("/api/market/rates").then(function (j) {
+          if (j) { mpRates = j; mpRatesFailed = false; }
+          else { mpRatesFailed = true; mpRetryAt = Date.now() + 30000; if (mpRates === undefined) mpRates = { ok: false }; }
+          mpSafe(mpRenderRates); mpSafe(mpRenderBandRate); done();
+        });
+      }
+      if (!pending) { mpLoading = false; mpRenderAll(); }
     }
+    window.addEventListener("focus", function () { if (mpStatsFailed || mpRatesFailed) renderMarketPulse(); });
+    /* Pack J (MP-02 M3): charts re-render at the new container width on
+       resize (debounced; data is already in memory, so this is cheap). */
+    var mpResizeTm = null;
+    window.addEventListener("resize", function () {
+      if (mpStats === undefined || mpStats.failed) return;
+      clearTimeout(mpResizeTm);
+      mpResizeTm = setTimeout(function () { mpSafe(mpRenderStats); mpSafe(mpRenderRates); }, 200);
+    });
     /* ---------- home featured listings (build-generated shim) ---------- */
     window.openListing = function(){ window.location.href = "listings.html"; };
     function renderFeatured(){

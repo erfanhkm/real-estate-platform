@@ -118,16 +118,18 @@
        points the visitor to this site's own monthly market report (all 5 languages) ---------- */
     var I18N13 = {
     en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
-      ai_nl_btn:"Get the free monthly report"},
+      ai_nl_btn:"Get the free monthly report",close:"Close",m_city:"Preferred city"},
     fa:{ai_nl_pitch:"راستی — ما هر ماه یک گزارش رایگان از بازار مسکن BC و کانادا منتشر می‌کنیم: روند قیمت‌ها، حجم معاملات، تغییرات نرخ بهره و اینکه همه‌ی این‌ها برای خریدار و فروشنده چه معنایی دارد — به زبان خودتان. دوست دارید هر ماه در ایمیل‌تان باشد؟ عضویت فقط حدود ۲۰ ثانیه طول می‌کشد: کافی است فرم کوتاه اشتراک را پر کنید.",
-      ai_nl_btn:"دریافت گزارش ماهانه‌ی رایگان"},
+      ai_nl_btn:"دریافت گزارش ماهانه‌ی رایگان",close:"بستن",m_city:"شهر ترجیحی"},
     hi:{ai_nl_pitch:"वैसे — हम हर महीने BC और कनाडा के लिए एक मुफ़्त आवास बाज़ार रिपोर्ट प्रकाशित करते हैं: कीमतों के रुझान, बिक्री गतिविधि, ब्याज दरों में बदलाव, और ख़रीदारों व विक्रेताओं के लिए इनका मतलब — आपकी भाषा में। क्या आप इसे हर महीने अपने इनबॉक्स में चाहते हैं? जुड़ने में बस 20 सेकंड लगते हैं: छोटा सा फ़ॉर्म भर दें।",
-      ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं"},
+      ai_nl_btn:"मुफ़्त मासिक रिपोर्ट पाएं",close:"बंद करें",m_city:"पसंदीदा शहर"},
     zh:{ai_nl_pitch:"顺便提一下——我们每月发布一份免费的 BC 与加拿大住房市场报告：价格走势、成交动态、利率变化，以及这些对买卖双方意味着什么——并以您的语言发送。想每月在邮箱中收到吗？加入只需约 20 秒：填写简短的订阅表单即可。",
-      ai_nl_btn:"获取免费月度报告"},
+      ai_nl_btn:"获取免费月度报告",close:"关闭",m_city:"首选城市"},
     es:{
      "ai_nl_pitch": "Por cierto — publicamos un informe mensual gratuito del mercado de vivienda para BC y Canadá: tendencias de precios, actividad de ventas, movimientos de las tasas de interés y lo que significan para compradores y vendedores — en tu idioma. ¿Lo quieres en tu buzón cada mes? Unirte toma unos 20 segundos: solo completa el formulario corto.",
-     "ai_nl_btn": "Obtener el informe mensual gratuito"
+     "ai_nl_btn": "Obtener el informe mensual gratuito",
+     "close": "Cerrar",
+     "m_city": "Ciudad preferida"
     }
     };
     for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }

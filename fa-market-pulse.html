@@ -176,8 +176,8 @@ html[lang="fa"] .out .row.hero-row b,html[lang="hi"] .out .row.hero-row b,html[l
 .chat-cta:hover{filter:brightness(1.12)}
 .chat-cta:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tdot{animation:none;opacity:.6}}
-.ai-widget{position:fixed;left:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
-.ai-fab{height:56px;border-radius:999px;background:var(--spruce);color:#fff;border:2px solid var(--brass);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 18px;font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.06em}
+.ai-widget{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:200;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.ai-fab{height:56px;border-radius:999px;background:var(--spruce);color:#fff;border:2px solid var(--brass);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 18px;font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.06em;white-space:nowrap}
 .ai-fab svg{flex:none}
 .ai-fab:hover{filter:brightness(1.1)}
 .ai-fab:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -193,8 +193,11 @@ html[lang="fa"] .out .row.hero-row b,html[lang="hi"] .out .row.hero-row b,html[l
 .ai-panel .chat-form{padding:0 14px;flex:none}
 .ai-note{padding:0 14px 12px;margin-top:10px;font-size:12.5px;flex:none}
 @media (max-width:640px){
-.ai-widget{left:12px;bottom:12px}
+.ai-widget{left:12px;bottom:calc(12px + env(safe-area-inset-bottom))}
 .ai-panel{width:calc(100vw - 24px);height:min(545px,calc(100dvh - 88px))}
+}
+@media (max-width:480px){
+.ai-fab{height:48px;padding:0 14px;font-size:13.5px}
 }
 .lead-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .lead-grid .wide{grid-column:1/-1}
@@ -222,7 +225,7 @@ tr:last-child td{border-bottom:0}
 .cf-turnstile{min-height:65px}
 @media (max-width:640px){.nl-band{padding:22px 18px}}
 footer{margin-top:64px;border-top:1px solid var(--line);background:var(--surface2)}
-footer .wrap{padding-top:30px;padding-bottom:36px;display:grid;gap:10px}
+footer .wrap{padding-top:30px;padding-bottom:calc(80px + env(safe-area-inset-bottom));display:grid;gap:10px}
 footer p{margin:0;color:var(--muted);font-size:14.5px;max-width:85ch}
 footer .mail{font-size:18px;font-weight:700}
 footer .licence-line{font-weight:700;color:var(--ink);font-size:15px}
@@ -264,7 +267,7 @@ html[lang="zh-CN"] .kc-card h4{font-family:"Noto Serif SC",serif}
 .mp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:22px}
 .mp-kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 2px 8px rgba(21,19,14,.05)}
 .mp-kpi h3{font-size:13.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 6px;font-weight:700}
-.mp-val{font-family:"Source Serif 4",serif;font-size:29px;font-weight:700;color:var(--spruce);margin:0;line-height:1.15}
+.mp-val{font-family:"Source Serif 4",serif;font-size:clamp(22px,2.4vw,29px);font-weight:700;color:var(--spruce);margin:0;line-height:1.15}
 html[lang="fa"] .mp-val,html[lang="hi"] .mp-val,html[lang="zh-CN"] .mp-val{font-family:inherit;font-weight:800}
 .mp-sub{margin:4px 0 0;font-size:14px;color:var(--ink)}
 .mp-src{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
@@ -273,7 +276,7 @@ html[lang="fa"] .mp-val,html[lang="hi"] .mp-val,html[lang="zh-CN"] .mp-val{font-
 .mp-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:0 2px 8px rgba(21,19,14,.05)}
 .mp-panel h3{font-size:19px;margin:0 0 4px}
 .mp-chart{margin-top:12px}
-.mp-chart svg{width:100%;height:auto;display:block}
+.mp-chart svg{width:100%;height:auto;display:block;direction:ltr}
 .mp-figs{list-style:none;margin:12px 0 0;padding:0}
 .mp-figs li{display:flex;justify-content:space-between;gap:12px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:15px}
 .mp-figs li:last-child{border-bottom:none}
@@ -282,6 +285,7 @@ html[lang="fa"] .mp-val,html[lang="hi"] .mp-val,html[lang="zh-CN"] .mp-val{font-
 .mp-rates{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-top:16px}
 .mp-msg{margin-top:10px;font-size:14px;color:var(--muted)}
 .mp-msg.warn{color:#b3261e;font-weight:600}
+.mp-kpis>.mp-nodata{grid-column:1/-1}
 .cmp-banner{margin-top:24px}
 .cmp-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .cmp-pick{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
@@ -429,7 +433,7 @@ body.print-chk #chkReport{display:block !important}
 <article class="mp-kpi"><h3 data-i18n="mp_kpi_gvr_bench">قیمت معیار ونکوور بزرگ</h3><p class="mp-val">$1,075,900</p><p class="mp-sub"><span class="mp-down">−5.5%</span> year over year</p><p class="mp-src">Greater Vancouver REALTORS® (GVR) · September 2026</p></article>
 <article class="mp-kpi"><h3 data-i18n="mp_kpi_fvreb_bench">قیمت معیار فریزر ولی</h3><p class="mp-val">$861,300</p><p class="mp-sub"><span class="mp-down">−7.0%</span> year over year</p><p class="mp-src">Fraser Valley Real Estate Board (FVREB) · September 2026</p></article>
 <article class="mp-kpi"><h3 data-i18n="mp_kpi_salr">نسبت فروش به آگهی‌های فعال (ونکوور)</h3><p class="mp-val">10.9%</p><p class="mp-sub">of listed homes sold during the month</p><p class="mp-src">Greater Vancouver REALTORS® (GVR) · September 2026</p></article>
-<article class="mp-kpi"><h3 data-i18n="mp_kpi_moi">موجودی بازار کانادا (ماه)</h3><p class="mp-val">4.9</p><p class="mp-sub">just over 200,000 homes listed across Canada</p><p class="mp-src">CREA · September 2026</p></article>
+<article class="mp-kpi"><h3 data-i18n="mp_kpi_moi">موجودی بازار کانادا (ماه)</h3><p class="mp-val">4.9</p><p class="mp-sub">homes listed for sale across Canada</p><p class="mp-src">CREA · September 2026</p></article>
 </div>
 <div class="mp-panels">
 <div class="mp-panel">
@@ -523,7 +527,7 @@ body.print-chk #chkReport{display:block !important}
 </div>
 <script>try{localStorage.setItem("erfan-re-lang","fa")}catch(e){}</script>
 <script>window.PAGE_OF = {"listings":"fa-listings.html","calculator":"fa-mortgage-calculator.html","buyvsrent":"fa-buy-vs-rent.html","afford":"fa-affordability.html","invest":"fa-investor-analysis.html","match":"fa-ai-assistant.html#match","assistant":"fa-ai-assistant.html#assistant","seller-tools":"fa-seller-tools.html","market-pulse":"#market-pulse","guide":"fa-first-time-buyers.html","fhsa":"fa-first-time-buyers.html#fhsa","knowledge":"fa-knowledge-centre.html","newsletter":"fa-index.html#newsletter","contact":"fa-contact.html"};</script>
-<script src="bundle-shared.js?v=76a91f28"></script>
-<script src="bundle-page-market-pulse.js?v=7cfe65d0"></script>
+<script src="bundle-shared.js?v=1b8f4b26"></script>
+<script src="bundle-page-market-pulse.js?v=065d12fe"></script>
 </body>
 </html>
