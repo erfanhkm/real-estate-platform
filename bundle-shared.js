@@ -825,25 +825,25 @@
       as_sub:"Ask about buying a home in BC — the steps, down payments, taxes, the stress test, strata and more. Answers are matched from this page's own guide and calculators.",
       as_welcome:"Hi! I'm this site's on-page real estate assistant — I search the listings, guides and tools on this page and answer common questions about buying a home in BC: the buying steps, minimum down payments, property transfer tax and annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, neighbourhoods and typical rents. Pick a suggestion below or type your own question.",
       as_input_ph:"Type your question…",as_send:"Send",
-      as_disclaimer:"General information only — not professional, financial or legal advice. Tax rules and thresholds change; verify details at gov.bc.ca or with a licensed professional."},
+      as_disclaimer:"General information only — not professional, financial or legal advice. Tax rules and thresholds change; verify details at gov.bc.ca or with a licensed professional.",ai_note:"General information only — not professional, financial or legal advice."},
     fa:{nav_assistant:"دستیار خرید خانه",
       as_title:"دستیار خرید خانه",
       as_sub:"درباره‌ی خرید خانه در BC بپرسید — مراحل، پیش‌پرداخت، مالیات، تست استرس، شارژ ساختمان و بیشتر. پاسخ‌ها از راهنما و ماشین‌حساب‌های همین صفحه تطبیق داده می‌شوند.",
       as_welcome:"سلام! من دستیار هوشمند املاک همین سایت هستم — فایل‌ها، راهنماها و ابزارهای این صفحه را جست‌وجو می‌کنم و به پرسش‌های رایج درباره‌ی خرید خانه در BC پاسخ می‌دهم: مراحل خرید، حداقل پیش‌پرداخت، مالیات انتقال ملک و مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، محله‌ها و اجاره‌های معمول. یکی از پیشنهادهای زیر را انتخاب کنید یا سؤال‌تان را بنویسید.",
       as_input_ph:"سؤال‌تان را بنویسید…",as_send:"ارسال",
-      as_disclaimer:"این پاسخ‌ها فقط اطلاعات عمومی‌اند و مشاوره‌ی حرفه‌ای، مالی یا حقوقی نیستند. قواعد و آستانه‌های مالیاتی تغییر می‌کنند؛ جزئیات را در gov.bc.ca یا نزد یک متخصص دارای مجوز بررسی کنید."},
+      as_disclaimer:"این پاسخ‌ها فقط اطلاعات عمومی‌اند و مشاوره‌ی حرفه‌ای، مالی یا حقوقی نیستند. قواعد و آستانه‌های مالیاتی تغییر می‌کنند؛ جزئیات را در gov.bc.ca یا نزد یک متخصص دارای مجوز بررسی کنید.",ai_note:"این پاسخ‌ها فقط اطلاعات عمومی‌اند و مشاوره‌ی حرفه‌ای، مالی یا حقوقی نیستند."},
     hi:{nav_assistant:"घर ख़रीद सहायक",
       as_title:"घर ख़रीद सहायक",
       as_sub:"BC में घर खरीदने के बारे में पूछें — चरण, डाउन पेमेंट, कर, स्ट्रेस टेस्ट, स्ट्राटा और बहुत कुछ। उत्तर इस पेज की मार्गदर्शिका और कैलकुलेटरों से मिलाए जाते हैं।",
       as_welcome:"नमस्ते! मैं इस साइट का ऑन-पेज रियल एस्टेट सहायक हूँ — मैं इस पेज की लिस्टिंग, मार्गदर्शिकाएँ और टूल खोजता हूँ और BC में घर खरीदने के आम प्रश्नों के उत्तर देता हूँ: खरीद के चरण, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और वार्षिक संपत्ति कर, समापन लागतें, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तें, स्ट्राटा शुल्क, इलाके और सामान्य किराए। नीचे दिए सुझावों में से चुनें या अपना प्रश्न लिखें।",
       as_input_ph:"अपना प्रश्न लिखें…",as_send:"भेजें",
-      as_disclaimer:"यह केवल सामान्य जानकारी है — पेशेवर, वित्तीय या कानूनी सलाह नहीं। कर नियम और सीमाएँ बदलती रहती हैं; gov.bc.ca पर या लाइसेंस प्राप्त पेशेवर से विवरण सत्यापित करें।"},
+      as_disclaimer:"यह केवल सामान्य जानकारी है — पेशेवर, वित्तीय या कानूनी सलाह नहीं। कर नियम और सीमाएँ बदलती रहती हैं; gov.bc.ca पर या लाइसेंस प्राप्त पेशेवर से विवरण सत्यापित करें।",ai_note:"यह केवल सामान्य जानकारी है — पेशेवर, वित्तीय या कानूनी सलाह नहीं।"},
     zh:{nav_assistant:"购房助手",
       as_title:"购房助手",
       as_sub:"咨询在 BC 买房的问题——步骤、首付、税费、压力测试、物业管理等。答案均来自本页的指南和计算器。",
       as_welcome:"您好！我是本网站的页面房产助手——我会搜索本页的房源、指南和工具，并回答在 BC 买房的常见问题：购房步骤、最低首付、房产转让税和年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、社区和典型租金。请选择下方的建议问题，或直接输入您的问题。",
       as_input_ph:"输入您的问题…",as_send:"发送",
-      as_disclaimer:"本助手仅提供一般信息,不构成专业、财务或法律建议。税费规则和门槛会变化;请到 gov.bc.ca 或向持牌专业人士核实详情。"},
+      as_disclaimer:"本助手仅提供一般信息,不构成专业、财务或法律建议。税费规则和门槛会变化;请到 gov.bc.ca 或向持牌专业人士核实详情。",ai_note:"本助手仅提供一般信息,不构成专业、财务或法律建议。"},
     es:{
      "nav_assistant": "Asistente de compra de vivienda",
      "as_title": "Asistente de compra de vivienda",
@@ -851,7 +851,7 @@
      "as_welcome": "¡Hola! Soy el asistente inmobiliario en esta página — busco en las propiedades, guías y herramientas de esta página y respondo preguntas comunes sobre comprar una casa en BC: los pasos de compra, las cuotas iniciales mínimas, el impuesto de transferencia de propiedad y los impuestos prediales anuales, los costos de cierre, la FHSA, la prueba de estrés, los ratios GDS/TDS, el seguro de CMHC, las condiciones de la oferta, las cuotas de mantenimiento, los vecindarios y las rentas típicas. Elija una sugerencia a continuación o escriba su propia pregunta.",
      "as_input_ph": "Escriba su pregunta…",
      "as_send": "Enviar",
-     "as_disclaimer": "Información general solamente — no es asesoría profesional, financiera ni legal. Las normas fiscales y los umbrales cambian; verifique los detalles en gov.bc.ca o con un profesional con licencia."
+     "as_disclaimer": "Información general solamente — no es asesoría profesional, financiera ni legal. Las normas fiscales y los umbrales cambian; verifique los detalles en gov.bc.ca o con un profesional con licencia.",ai_note:"Información general solamente — no es asesoría profesional, financiera ni legal."
     }
     };
     for (var L4 in I18N4) { if (I18N[L4]) { for (var k4 in I18N4[L4]) I18N[L4][k4] = I18N4[L4][k4]; } }
