@@ -1,49 +1,99 @@
-/* Portal service worker — portal upgrade system 8 (2026-11-01).
-   Registered by the portal page only, at root scope, but the fetch
-   handler ONLY touches: the portal document itself, the PWA assets,
-   and the advisor-api admin GET endpoints the portal calls. Every
-   other request falls through to the network untouched, so the public
-   site is unaffected.
-   IMPORTANT (December launch): the site-wide PWA must MERGE into this
-   worker — one registration at root scope — never register a second
-   service worker alongside it.
-   Strategy: network-first. Successful portal-document and admin-GET
-   responses are cached with an x-pu-cached-at stamp; when the network
-   fails, the cached copy is served and the portal shows its
-   "offline — showing saved data from HH:MM" chip. */
+/* Portal + site service worker — portal upgrade system 8 (2026-11-01),
+   extended with the site PWA (APP stage 1, 2026-11-02).
+   Registered at root scope. There can only be ONE service worker at
+   root scope, so the site-wide PWA MERGED into this worker (December
+   checklist item) instead of registering a second one.
+   PORTAL branch (unchanged behaviour): the fetch handler ONLY touches
+   the portal document itself, the portal PWA assets, and the
+   advisor-api admin GET endpoints the portal calls — network-first,
+   successful responses cached with an x-pu-cached-at stamp; when the
+   network fails, the cached copy is served and the portal shows its
+   "offline — showing saved data from HH:MM" chip.
+   SITE branch (public pages): same-origin GETs only. Static assets
+   (css/js/images/fonts/manifest) are cache-first; HTML pages are
+   network-first with a cache fallback. Cross-origin requests — every
+   advisor-api response included — are NEVER intercepted or cached,
+   and /api/ paths are never cached. */
 var PU_CACHE = 'portal-v1';
+var SITE_CACHE = 'site-v1'; // bump on every site-strategy change; stale site-* caches are deleted on activate
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
-self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener('activate', function (e) {
+  e.waitUntil((async function () {
+    try {
+      var keys = await caches.keys();
+      await Promise.all(keys.map(function (k) {
+        if (k.indexOf('site-') === 0 && k !== SITE_CACHE) return caches.delete(k);
+      }));
+    } catch (err) {}
+    await self.clients.claim();
+  })());
+});
 
 self.addEventListener('fetch', function (e) {
   var url;
   try { url = new URL(e.request.url); } catch (err) { return; }
+  if (e.request.method !== 'GET') return; // network default
   var isPortalDoc = url.pathname === PORTAL_PATH;
   var isAsset = url.pathname === '/portal-manifest.webmanifest' || url.pathname.indexOf('/portal-icon-') === 0;
-  var isAdminGet = e.request.method === 'GET' && url.pathname.indexOf('/api/admin/') === 0;
-  if (e.request.method !== 'GET' || (!isPortalDoc && !isAsset && !isAdminGet)) return; // network default
-  e.respondWith((async function () {
-    try {
-      var res = await fetch(e.request);
-      if (res && res.ok && (isPortalDoc || isAdminGet)) {
-        try {
-          var cache = await caches.open(PU_CACHE);
-          var h = new Headers(res.headers);
-          h.set('x-pu-cached-at', String(Date.now()));
-          var stamped = new Response(await res.clone().blob(), { status: res.status, statusText: res.statusText, headers: h });
-          cache.put(e.request, stamped);
-        } catch (err) {}
+  var isAdminGet = url.pathname.indexOf('/api/admin/') === 0;
+  if (isPortalDoc || isAsset || isAdminGet) {
+    e.respondWith((async function () {
+      try {
+        var res = await fetch(e.request);
+        if (res && res.ok && (isPortalDoc || isAdminGet)) {
+          try {
+            var cache = await caches.open(PU_CACHE);
+            var h = new Headers(res.headers);
+            h.set('x-pu-cached-at', String(Date.now()));
+            var stamped = new Response(await res.clone().blob(), { status: res.status, statusText: res.statusText, headers: h });
+            cache.put(e.request, stamped);
+          } catch (err) {}
+        }
+        return res;
+      } catch (err) {
+        var cache2 = await caches.open(PU_CACHE);
+        var hit = await cache2.match(e.request);
+        if (hit) return hit;
+        throw err;
       }
-      return res;
-    } catch (err) {
-      var cache2 = await caches.open(PU_CACHE);
-      var hit = await cache2.match(e.request);
-      if (hit) return hit;
-      throw err;
-    }
-  })());
+    })());
+    return;
+  }
+  // ---- site branch (public pages) ----
+  if (url.origin !== self.location.origin) return; // cross-origin (advisor APIs, Turnstile): never intercepted
+  if (url.pathname.indexOf('/api/') === 0) return; // API responses are never cached
+  var isStatic = /\.(?:css|js|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|webmanifest)$/i.test(url.pathname);
+  var isPage = e.request.mode === 'navigate' || url.pathname === '/' || /\.html$/i.test(url.pathname);
+  if (isStatic) {
+    e.respondWith((async function () {
+      var scache = await caches.open(SITE_CACHE);
+      var sHit = await scache.match(e.request);
+      if (sHit) return sHit;
+      var sres = await fetch(e.request);
+      if (sres && sres.ok) { try { scache.put(e.request, sres.clone()); } catch (err) {} }
+      return sres;
+    })());
+    return;
+  }
+  if (isPage) {
+    e.respondWith((async function () {
+      var pcache = await caches.open(SITE_CACHE);
+      try {
+        var pres = await fetch(e.request);
+        if (pres && pres.ok) { try { pcache.put(e.request, pres.clone()); } catch (err) {} }
+        return pres;
+      } catch (err) {
+        var phit = await pcache.match(e.request);
+        if (phit) return phit;
+        var home = await pcache.match('/');
+        if (home) return home;
+        throw err;
+      }
+    })());
+    return;
+  }
 });
 
 self.addEventListener('push', function (e) {

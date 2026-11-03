@@ -1647,3 +1647,43 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();
+    /* ---------- site PWA: service worker + install UX (APP stage 1, build-generated) ---------- */
+    (function(){
+      var inApp = !!window.Capacitor;
+      if (!inApp && "serviceWorker" in navigator) {
+        try { navigator.serviceWorker.register("/portal-sw.js").catch(function(){}); } catch(e){}
+      }
+      var band = document.getElementById("pwaBand");
+      if (!band || inApp) return;
+      var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+      if (standalone) return;
+      var dismissedAt = 0;
+      try { dismissedAt = +localStorage.getItem("erfan-pwa-dismiss") || 0; } catch(e){}
+      if (Date.now() - dismissedAt < 30 * 864e5) return;
+      var btn = document.getElementById("pwaInstallBtn");
+      var dis = document.getElementById("pwaDismiss");
+      var iosHint = band.querySelector(".pwa-ios-hint");
+      var deferred = null;
+      window.addEventListener("beforeinstallprompt", function(e){
+        e.preventDefault(); deferred = e;
+        if (btn) btn.hidden = false;
+        band.hidden = false;
+      });
+      window.addEventListener("appinstalled", function(){
+        band.hidden = true;
+        try { localStorage.removeItem("erfan-pwa-dismiss"); } catch(e){}
+      });
+      if (btn) btn.addEventListener("click", function(){
+        if (!deferred) return;
+        var p = deferred; deferred = null;
+        try { p.prompt(); } catch(e){}
+        if (p.userChoice && p.userChoice.then) p.userChoice.then(function(){ band.hidden = true; });
+      });
+      if (dis) dis.addEventListener("click", function(){
+        band.hidden = true;
+        try { localStorage.setItem("erfan-pwa-dismiss", String(Date.now())); } catch(e){}
+      });
+      var ua = navigator.userAgent || "";
+      var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (isIOS) { if (iosHint) iosHint.hidden = false; band.hidden = false; }
+    })();
