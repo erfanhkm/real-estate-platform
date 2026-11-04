@@ -1000,10 +1000,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var lg = lang === "zh" ? "zh" : lang;
       var apS = window.__appliedSite || (window.__appliedSite = {});
       if (s.email){ if (!apS.email) replaceSiteText("erfanbcrealestate@gmail.com", s.email); else if (apS.email !== s.email) replaceSiteText(apS.email, s.email); apS.email = s.email; }
-      if (s.brand){ apS.brandPrev = apS.brand || ""; if (!apS.brand) replaceSiteText("Erfan BC Real Estate", s.brand); else if (apS.brand !== s.brand) replaceSiteText(apS.brand, s.brand); apS.brand = s.brand; }
+      if (s.brand){ apS.brandPrev = apS.brand || ""; if (!apS.brand) replaceSiteText("EH REALTY", s.brand); else if (apS.brand !== s.brand) replaceSiteText(apS.brand, s.brand); apS.brand = s.brand; }
       if (s.rate) replaceRateText(String(s.rate));
       if (s.email) document.querySelectorAll('a[href^="mailto:"]').forEach(function(a){ a.setAttribute("href", "mailto:" + s.email); });
-      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split(apS.brandPrev || "Erfan BC Real Estate").join(s.brand)); }
+      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split(apS.brandPrev || "EH REALTY").join(s.brand)); }
       var hero = s.hero || {}, title = (hero.title || {})[lg], sub = (hero.sub || {})[lg];
       var h1 = document.querySelector(".hero h1"), hp = document.querySelector(".hero .inner p");
       if (h1 && title) h1.textContent = title;

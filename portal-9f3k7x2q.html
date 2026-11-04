@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Site Admin">
 <link rel="apple-touch-icon" href="/portal-icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/portal-icon-192.png">
-<title>Site Admin — Erfan BC Real Estate</title>
+<title>Site Admin — EH REALTY</title>
 <style>
   :root { color-scheme: dark; --bg:#0B0B0B; --panel:#161513; --panel2:#201D18; --line:#2E2A23; --txt:#F5F1E8; --mut:#A79E8C; --acc:#C9A24B; --acc2:#E6CB7E; --good:#22c55e; --warn:#eab308; --bad:#ef4444; }
   * { box-sizing: border-box; }
@@ -166,9 +166,9 @@
 
 <div id="loginView">
   <div class="brand">
-    <div class="logo">🏠</div>
+    <img src="logo-mark.png" alt="EH REALTY" style="width:78px;height:78px;border-radius:16px;object-fit:contain;background:#0b0b0b" />
     <h1>Site Admin</h1>
-    <div class="mut" style="margin-top:6px">Erfan BC Real Estate — owner access only</div>
+    <div class="mut" style="margin-top:6px">EH REALTY — owner access only</div>
   </div>
   <div class="card">
     <input type="password" id="pw" placeholder="Admin password" autocomplete="current-password">
@@ -180,7 +180,7 @@
 
 <div id="appView" hidden>
   <aside id="side">
-    <div class="brand2"><b>🏠 Site Admin</b><span class="mut">Erfan BC Real Estate</span></div>
+    <div class="brand2"><img src="logo-mark.png" alt="" style="width:34px;height:34px;border-radius:9px;object-fit:contain;background:#0b0b0b;display:block;margin-bottom:6px" /><b>Site Admin</b><span class="mut">EH REALTY</span></div>
     <button class="navbtn on" data-nav="today"><span class="ic">🌅</span>Today</button>
     <button class="navbtn" data-nav="brain"><span class="ic">🧠</span>Assistant</button>
     <button class="navbtn" data-nav="overview"><span class="ic">📊</span>Overview</button>
@@ -584,7 +584,7 @@
       <div class="card">
         <h2 style="margin-top:0">Brand &amp; contact</h2>
         <div class="lfgrid">
-          <label class="lf"><span>Business name shown on the site</span><input id="st_brand" placeholder="Erfan BC Real Estate"></label>
+          <label class="lf"><span>Business name shown on the site</span><input id="st_brand" placeholder="EH REALTY"></label>
           <label class="lf"><span>Public contact email</span><input id="st_email" placeholder="erfanbcrealestate@gmail.com"></label>
           <label class="lf"><span>Public phone (optional)</span><input id="st_phone" placeholder="604-…"></label>
           <label class="lf"><span>Default mortgage rate (%) for calculators</span><input id="st_rate" type="number" min="0.5" max="15" step="0.01" placeholder="4.79"></label>
@@ -2298,7 +2298,7 @@
           (rowsH ? '<h2>Saved homes</h2><table>' + rowsH + '</table>' : "") +
           (compH ? '<h2>Also worth showing them</h2><table>' + compH + '</table>' : "") +
           (tpH ? '<h2>Talking points</h2><ul>' + tpH + '</ul>' : "") +
-          '<p class="mut" style="margin-top:26px">Prepared by the Erfan BC Real Estate CRM · ' + new Date().toLocaleDateString("en-CA") + '</p></body></html>';
+          '<p class="mut" style="margin-top:26px">Prepared by the EH REALTY CRM · ' + new Date().toLocaleDateString("en-CA") + '</p></body></html>';
         w.document.write(html); w.document.close();
       }).catch(function(){ actB.disabled = false; actB.textContent = "📋 Meeting brief"; try { w.close(); } catch (e) {} toast("Could not build the meeting brief", true); });
       return;
@@ -3731,7 +3731,7 @@
     var D = puDocT(lang);
     var w = window.open("", "_blank");
     if (!w) { toast("Popup blocked — allow popups for the portal"); return; }
-    var name = (brand && brand.name) || "Erfan BC Real Estate"; // BRAND HEADER SLOT — name/contact come from site settings; the real brand swaps in by settings only
+    var name = (brand && brand.name) || "EH REALTY"; // BRAND HEADER SLOT — name/contact come from site settings; the real brand swaps in by settings only
     var contact = [brand && brand.email, brand && brand.phone].filter(Boolean).join(" · ");
     var rtl = lang === "fa";
     var css = '@page { size: A4; margin: 14mm; } * { box-sizing: border-box; } body { font-family: Georgia, "Times New Roman", serif; color: #15130E; background: #FAFAF8; margin: 0; line-height: 1.55; }' +

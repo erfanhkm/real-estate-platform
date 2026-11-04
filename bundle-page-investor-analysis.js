@@ -114,7 +114,7 @@
       var t = T(), d = reportData();
       var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
       return '<div class="rp-wrap">'
-        + '<div class="rp-brand">Erfan BC Real Estate</div>'
+        + '<div class="rp-brand">EH REALTY</div>'
         + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
         + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
         + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
@@ -134,7 +134,7 @@
       var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
       var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
         + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
-        + "<title>" + esc(T().rp_title) + " — Erfan BC Real Estate</title>"
+        + "<title>" + esc(T().rp_title) + " — EH REALTY</title>"
         + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
       var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
       var url = URL.createObjectURL(blob);
@@ -1125,10 +1125,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var lg = lang === "zh" ? "zh" : lang;
       var apS = window.__appliedSite || (window.__appliedSite = {});
       if (s.email){ if (!apS.email) replaceSiteText("erfanbcrealestate@gmail.com", s.email); else if (apS.email !== s.email) replaceSiteText(apS.email, s.email); apS.email = s.email; }
-      if (s.brand){ apS.brandPrev = apS.brand || ""; if (!apS.brand) replaceSiteText("Erfan BC Real Estate", s.brand); else if (apS.brand !== s.brand) replaceSiteText(apS.brand, s.brand); apS.brand = s.brand; }
+      if (s.brand){ apS.brandPrev = apS.brand || ""; if (!apS.brand) replaceSiteText("EH REALTY", s.brand); else if (apS.brand !== s.brand) replaceSiteText(apS.brand, s.brand); apS.brand = s.brand; }
       if (s.rate) replaceRateText(String(s.rate));
       if (s.email) document.querySelectorAll('a[href^="mailto:"]').forEach(function(a){ a.setAttribute("href", "mailto:" + s.email); });
-      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split(apS.brandPrev || "Erfan BC Real Estate").join(s.brand)); }
+      if (s.brand) { var og = document.querySelector('meta[property="og:title"]'); if (og) og.setAttribute("content", (og.getAttribute("content") || "").split(apS.brandPrev || "EH REALTY").join(s.brand)); }
       var hero = s.hero || {}, title = (hero.title || {})[lg], sub = (hero.sub || {})[lg];
       var h1 = document.querySelector(".hero h1"), hp = document.querySelector(".hero .inner p");
       if (h1 && title) h1.textContent = title;

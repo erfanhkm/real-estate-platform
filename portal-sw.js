@@ -14,8 +14,8 @@
    network-first with a cache fallback. Cross-origin requests — every
    advisor-api response included — are NEVER intercepted or cached,
    and /api/ paths are never cached. */
-var PU_CACHE = 'portal-v2';
-var SITE_CACHE = 'site-v2'; // bump on every site-strategy change; stale site-* caches are deleted on activate
+var PU_CACHE = 'portal-v3';
+var SITE_CACHE = 'site-v3'; // bump on every site-strategy change; stale site-* caches are deleted on activate
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
