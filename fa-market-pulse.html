@@ -386,6 +386,44 @@
         .rp-table td::before{content:none}
       }
       @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+    
+      /* ===== Concept B header/footer (2026-11-04) ===== */
+      header.hdr-b{position:static;background:#0B0B0B;border-bottom:0;backdrop-filter:none;color:#EDEAE2}
+      .hb-util{display:flex;align-items:center;justify-content:space-between;padding-top:12px}
+      .hb-phone{color:#B9B4A6;text-decoration:none;font-size:12.5px;letter-spacing:.14em}
+      .hb-phone b{color:#E6CB7E;font-weight:600}
+      header.hdr-b .langbox{background:rgba(201,162,75,.07);border:1.5px solid rgba(201,162,75,.55);border-radius:999px;padding:5px 12px}
+      header.hdr-b .langbox select{color:#E6CB7E}
+      .hb-crest{text-align:center;padding:20px 20px 4px}
+      .hb-brand{text-decoration:none;display:inline-block}
+      .hb-mark{width:88px;height:56px;object-fit:contain;background:#000;border-radius:10px;display:block;margin:0 auto}
+      .hb-name{display:block;font-family:"Playfair Display","Source Serif 4",serif;font-size:27px;font-weight:600;letter-spacing:.22em;color:#fff;margin-top:8px}
+      .hb-sub{display:block;font-size:9.5px;letter-spacing:.42em;color:#E6CB7E;margin-top:4px}
+      .hb-rule{height:1px;background:linear-gradient(90deg,transparent,#C9A24B,transparent);max-width:1060px;margin:16px auto 0}
+      .hb-rule2{height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent);max-width:1060px;margin:3px auto 0}
+      header.hdr-b nav.hb-nav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:0 auto;padding:12px 20px 18px;max-width:1180px}
+      header.hdr-b nav.hb-nav>a,header.hdr-b nav.hb-nav .navbtn{color:#EDEAE2;text-transform:uppercase;letter-spacing:.13em;font-size:13px;font-weight:600;padding:8px 12px;border-radius:9px}
+      header.hdr-b nav.hb-nav>a:hover,header.hdr-b nav.hb-nav .navbtn:hover{background:rgba(201,162,75,.12);color:#E6CB7E}
+      header.hdr-b nav.hb-nav .navbtn .caret{color:#E6CB7E}
+      header.hdr-b .menu a{color:var(--ink);text-transform:none;letter-spacing:0;font-size:15px;font-weight:600}
+      @media (max-width:960px){header.hdr-b nav.hb-nav{order:0;width:auto}}
+      footer.ftr-b{background:#0B0B0B;border-top:1px solid rgba(201,162,75,.5);color:#D9D5C9}
+      footer.ftr-b .wrap{display:block;padding-top:6px}
+      .fb-giant{font-family:"Playfair Display","Source Serif 4",serif;font-weight:700;text-align:center;font-size:clamp(52px,11vw,148px);letter-spacing:.05em;line-height:1.05;padding:38px 0 2px;background:linear-gradient(180deg,#F3E2AC 15%,#C9A24B 55%,#8A6D2F);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;white-space:nowrap}
+      .fb-gsub{text-align:center;font-size:11px;letter-spacing:.5em;color:#9A927C}
+      .fb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;padding:38px 0 34px;border-top:1px solid #26231D;margin-top:26px}
+      footer.ftr-b .fb-grid h2,footer.ftr-b .fb-grid h3{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#E6CB7E;margin:0 0 14px;font-weight:700}
+      .fb-grid ul{list-style:none;margin:0;padding:0}
+      .fb-grid li{margin:9px 0}
+      .fb-grid li a{color:#D9D5C9;text-decoration:none;font-size:14px}
+      .fb-grid li a:hover{color:#E6CB7E}
+      footer.ftr-b .fb-grid p{color:#A49E8E;font-size:13.5px;max-width:none}
+      footer.ftr-b .fb-grid .mail{color:#fff;font-size:15px}
+      .fb-phone a{color:#E6CB7E;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:.06em}
+      .fb-bot{border-top:1px solid #26231D;padding:18px 0 6px;display:flex;gap:20px;flex-wrap:wrap;align-items:baseline}
+      footer.ftr-b .licence-line{color:#8B8676;font-weight:400;font-size:12.5px;max-width:none;flex:1;min-width:260px;margin:0}
+      footer.ftr-b .fb-bot p{ color:#8B8676;font-size:12.5px;margin:0}
+      @media (max-width:860px){.fb-grid{grid-template-columns:1fr 1fr}.hb-name{font-size:22px}}
     </style>
     <script>
     /* Portal-managed live data: listings + site settings are managed from
@@ -419,13 +457,29 @@
     </style>
   </head>
   <body>
-    <header>
-      <div class="wrap bar">
-        <a class="brand" href="fa-index.html">
-          <img class="mark" src="logo-mark.png" alt="EH REALTY" />
-          <span><b>EH REALTY</b><span data-i18n="brand_sub">BY ERFAN HAKIMIAN</span></span>
+    <header class="hdr-b">
+      <div class="wrap hb-util">
+        <a class="hb-phone" href="tel:+11112223333">CALL <b>111 222 3333</b></a>
+        <div class="langbox" role="group" aria-label="Language">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
+            <option value="en">English</option>
+            <option value="fa">فارسی</option>
+            <option value="hi">हिन्दी</option>
+            <option value="zh">中文（简体）</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+      </div>
+      <div class="hb-crest">
+        <a class="hb-brand" href="index.html">
+          <img class="hb-mark" src="logo-mark.png" alt="EH REALTY" />
+          <span class="hb-name">EH REALTY</span>
+          <span class="hb-sub" data-i18n="brand_sub">BY ERFAN HAKIMIAN</span>
         </a>
-        <nav>
+      </div>
+      <div class="hb-rule"></div><div class="hb-rule2"></div>
+      <nav class="hb-nav">
           <a href="fa-listings.html" data-i18n="nav_listings">فایل‌ها</a>
           <div class="navtools" id="toolsMenu">
             <button type="button" class="navbtn" id="toolsBtn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_tools">ابزارهای هوشمند</span><span class="caret" aria-hidden="true">▾</span></button>
@@ -444,17 +498,6 @@
           <a href="fa-market-pulse.html" data-i18n="mp_title">نبض بازار</a>
           <a href="fa-contact.html" data-i18n="nav_contact">تماس</a>
         </nav>
-        <div class="langbox" role="group" aria-label="Language">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          <select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
-            <option value="en">English</option>
-            <option value="fa">فارسی</option>
-            <option value="hi">हिन्दी</option>
-            <option value="zh">中文（简体）</option>
-            <option value="es">Español</option>
-          </select>
-        </div>
-      </div>
     </header>
 
     
@@ -538,14 +581,19 @@
       </div>
     </div>
 
-    <footer id="footer">
+    <footer id="footer" class="ftr-b">
       <div class="wrap">
-        <img src="logo-full.png" alt="EH REALTY — by Erfan Hakimian" style="width:min(400px,100%);border-radius:14px;display:block" />
-        <h2 style="font-size:21px" data-i18n="contact_title">تماس</h2>
+        <div class="fb-giant">EH REALTY</div>
+        <div class="fb-gsub" data-i18n="brand_sub">BY ERFAN HAKIMIAN</div>
+        <div class="fb-grid">
+          <div><h3 data-i18n="foot_explore">Explore</h3><ul><li><a href="listings.html" data-i18n="nav_listings">Listings</a></li><li><a href="first-time-buyers.html" data-i18n="nav_guide">First-Time Buyers</a></li><li><a href="seller-tools.html" data-i18n="nav_seller">Seller Tools</a></li><li><a href="contact.html" data-i18n="nav_contact">Contact</a></li></ul></div>
+          <div><h3 data-i18n="nav_tools">AI Tools</h3><ul><li><a href="mortgage-calculator.html" data-i18n="nav_calculator">Mortgage Calculator</a></li><li><a href="affordability.html" data-i18n="nav_afford">Affordability Estimator</a></li><li><a href="buy-vs-rent.html" data-i18n="nav_bvr">Buy vs Rent</a></li><li><a href="investor-analysis.html" data-i18n="nav_invest">Investor Analysis</a></li><li><a href="ai-assistant.html#match" data-i18n="nav_match">Match Assistant</a></li></ul></div>
+          <div><h3 data-i18n="foot_learn">Learn</h3><ul><li><a href="knowledge-centre.html" data-i18n="kc_title">Knowledge Center</a></li><li><a href="market-pulse.html" data-i18n="mp_title">Market Pulse</a></li><li><a href="ai-assistant.html#assistant" data-i18n="nav_assistant">Home Buying Assistant</a></li></ul></div>
+          <div><h2 style="font-size:21px" data-i18n="contact_title">تماس</h2>
         <p><span data-i18n="contact_text">برای پرسش‌های عمومی درباره‌ی ابزارها، راهنماها و فایل‌های این سایت، ایمیل بزنید:</span><br />
-        <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p>
-        <p class="licence-line" data-i18n="footer_licence">«EH REALTY» دفتر املاک عرفان حکیمیان است، مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا، وابسته به [BROKERAGE].</p>
-        <p data-i18n="rights">© 2026 EH REALTY — بریتیش‌کلمبیا، کانادا</p>
+        <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p><p class="fb-phone"><a href="tel:+11112223333">111 222 3333</a></p></div>
+        </div>
+        <div class="fb-bot"><p class="licence-line" data-i18n="footer_licence">«EH REALTY» دفتر املاک عرفان حکیمیان است، مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا، وابسته به [BROKERAGE].</p><p data-i18n="rights">© 2026 EH REALTY — بریتیش‌کلمبیا، کانادا</p></div>
       </div>
     </footer>
 

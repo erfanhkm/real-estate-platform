@@ -1302,20 +1302,20 @@
     /* ---------- Pre-licence disclosure (BCFSA advertising compliance) ---------- */
     var I18N9b = {
     en:{licence_notice:"Please note: Erfan is not currently a licensed real estate professional. He is preparing for the BC real estate licensing exam and is not affiliated with any brokerage. This site provides educational tools and general information only — it does not offer real estate trading services, representation, or professional advice. For help with an actual purchase or sale, please contact a licensed real estate professional.",
-      footer_licence:"EH REALTY is the real estate practice of Erfan Hakimian, a licensed REALTOR® in British Columbia affiliated with [BROKERAGE].",
+      footer_licence:"EH REALTY is the real estate practice of Erfan Hakimian, a licensed REALTOR® in British Columbia affiliated with [BROKERAGE].","foot_explore":"Explore","foot_learn":"Learn",
       licence_short:"Erfan Hakimian is a licensed REALTOR® in British Columbia, affiliated with [BROKERAGE] — send an inquiry and he will get back to you."},
     fa:{licence_notice:"توجه: عرفان در حال حاضر مشاور املاک دارای مجوز نیست. او در حال آماده‌شدن برای آزمون لایسنس املاک بریتیش‌کلمبیاست و با هیچ دفتر املاکی (بروکراژ) وابستگی ندارد. این سایت فقط ابزارهای آموزشی و اطلاعات عمومی ارائه می‌دهد — خدمات معاملات املاک، نمایندگی یا مشاوره‌ی حرفه‌ای ارائه نمی‌کند. برای کمک در خرید یا فروش واقعی، لطفاً با یک مشاور املاک دارای مجوز تماس بگیرید.",
-      footer_licence:"«EH REALTY» دفتر املاک عرفان حکیمیان است، مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا، وابسته به [BROKERAGE].",
+      footer_licence:"«EH REALTY» دفتر املاک عرفان حکیمیان است، مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا، وابسته به [BROKERAGE].","foot_explore":"کاوش","foot_learn":"یادگیری",
       licence_short:"عرفان حکیمیان مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا و وابسته به [BROKERAGE] است — درخواست بفرستید تا با شما تماس بگیرد."},
     hi:{licence_notice:"कृपया ध्यान दें: एरफ़ान वर्तमान में लाइसेंस प्राप्त रियल एस्टेट पेशेवर नहीं हैं। वे BC रियल एस्टेट लाइसेंस परीक्षा की तैयारी कर रहे हैं और किसी ब्रोकरेज से संबद्ध नहीं हैं। यह साइट केवल शैक्षिक उपकरण और सामान्य जानकारी देती है — यह रियल एस्टेट ट्रेडिंग सेवाएँ, प्रतिनिधित्व या पेशेवर सलाह प्रदान नहीं करती। किसी वास्तविक खरीद या बिक्री में मदद के लिए कृपया किसी लाइसेंस प्राप्त रियल एस्टेट पेशेवर से संपर्क करें।",
-      footer_licence:"EH REALTY, एरफ़ान हकीमियन का रियल एस्टेट व्यवसाय है — ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR®, [BROKERAGE] से संबद्ध।",
+      footer_licence:"EH REALTY, एरफ़ान हकीमियन का रियल एस्टेट व्यवसाय है — ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR®, [BROKERAGE] से संबद्ध।","foot_explore":"देखें","foot_learn":"सीखें",
       licence_short:"एरफ़ान हकीमियन ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR® हैं, [BROKERAGE] से संबद्ध — पूछताछ भेजें, वे आपसे संपर्क करेंगे।"},
     zh:{licence_notice:"请注意:Erfan 目前并非持牌房地产专业人士。他正在备考 BC 房地产牌照考试,且不隶属于任何房地产经纪公司。本网站仅提供教育工具和一般信息——不提供房地产交易服务、代理服务或专业建议。如需在实际购房或售房方面获得帮助,请联系持牌房地产专业人士。",
-      footer_licence:"EH REALTY 是 Erfan Hakimian 的房地产业务——他是 BC 省持牌 REALTOR®,隶属于 [BROKERAGE]。",
+      footer_licence:"EH REALTY 是 Erfan Hakimian 的房地产业务——他是 BC 省持牌 REALTOR®,隶属于 [BROKERAGE]。","foot_explore":"探索","foot_learn":"学习",
       licence_short:"Erfan Hakimian 是 BC 省持牌 REALTOR®,隶属于 [BROKERAGE]——欢迎咨询,他会尽快回复您。"},
     es:{
      "licence_notice": "Ten en cuenta: Erfan no es actualmente un profesional inmobiliario autorizado. Se está preparando para el examen de licencia inmobiliaria de BC y no está afiliado a ninguna agencia. Este sitio proporciona solo herramientas educativas e información general — no ofrece servicios de comercio inmobiliario, representación ni asesoría profesional. Para ayuda con una compra o venta real, comunícate con un profesional inmobiliario autorizado.",
-     "footer_licence": "EH REALTY es la práctica inmobiliaria de Erfan Hakimian, REALTOR® autorizado en Columbia Británica, afiliado a [BROKERAGE].",
+     "footer_licence": "EH REALTY es la práctica inmobiliaria de Erfan Hakimian, REALTOR® autorizado en Columbia Británica, afiliado a [BROKERAGE].","foot_explore":"Explorar","foot_learn":"Aprende",
      "licence_short": "Erfan Hakimian es un REALTOR® autorizado en Columbia Británica, afiliado a [BROKERAGE] — envíe su consulta y le responderá."
     }
     };
