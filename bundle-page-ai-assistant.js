@@ -79,28 +79,28 @@
       ai_thinking:"Thinking…",ai_sources:"Sources",
       ai_greet:"Hello! Great to meet you. Ask me anything about buying a home in BC — the steps, down payments, taxes, strata — or about the housing market; if the answer isn't on this site, I'll look it up on the web and reply briefly, with sources.",
       ai_thanks:"You're welcome! If anything else comes up about buying a home in BC, just ask.",
-      ai_err:"I couldn't reach the live web search just now, so for the moment I can only answer from this site's own content. Try again in a little while — or ask me about the buying steps, down payments, taxes, the stress test, strata fees, or the sample listings here."},
+      ai_err:"I couldn't reach the live web search just now, so for the moment I can only answer from this site's own content. Try again in a little while — or ask me about the buying steps, down payments, taxes, the stress test, strata fees, or the listings here."},
     fa:{ai_sub:"اول پاسخ از همین سایت — برای پرسش‌های روز بازار، جست‌وجو در وب",
       as_sub:"درباره‌ی خرید خانه در BC بپرسید — مراحل، پیش‌پرداخت، مالیات، تست استرس، شارژ ساختمان و بیشتر. پاسخ‌ها از راهنما و ماشین‌حساب‌های همین صفحه می‌آیند؛ برای پرسش‌های روز بازار که این سایت پوشش نمی‌دهد، دستیار در وب جست‌وجو می‌کند و کوتاه و با ذکر منبع پاسخ می‌دهد.",
       as_welcome:"سلام! می‌تونم درباره‌ی خرید خانه در BC گپ بزنم — مراحل خرید، حداقل پیش‌پرداخت، مالیات انتقال ملک و مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، محله‌ها و اجاره‌های معمول. برای پرسش‌هایی که این سایت پوشش نمی‌ده — مثل مقایسه‌ی بازار انتاریو و BC یا تازه‌ترین آمار ماهانه — در وب جست‌وجو می‌کنم و کوتاه و با ذکر منبع جواب می‌دم. یکی از پیشنهادهای زیر رو انتخاب کن یا سؤال‌تو بنویس.",
       ai_thinking:"در حال فکر کردن…",ai_sources:"منابع",
       ai_greet:"سلام! خوش اومدی. هر سؤالی درباره‌ی خرید خانه در BC داری بپرس — مراحل، پیش‌پرداخت، مالیات، شارژ ساختمان — یا درباره‌ی بازار مسکن؛ اگه جوابش توی این سایت نباشه، توی وب جست‌وجوش می‌کنم و کوتاه و با ذکر منبع جواب می‌دم.",
       ai_thanks:"خواهش می‌کنم! اگه سؤال دیگه‌ای درباره‌ی خرید خانه در BC داشتی، در خدمتم.",
-      ai_err:"الان نتونستم به جست‌وجوی زنده‌ی وب وصل بشم، پس فعلاً فقط می‌تونم از محتوای همین سایت جواب بدم. چند لحظه‌ی دیگه دوباره امتحان کن — یا درباره‌ی مراحل خرید، پیش‌پرداخت، مالیات، تست استرس، شارژ ساختمان یا فایل‌های نمونه‌ی همین‌جا بپرس."},
+      ai_err:"الان نتونستم به جست‌وجوی زنده‌ی وب وصل بشم، پس فعلاً فقط می‌تونم از محتوای همین سایت جواب بدم. چند لحظه‌ی دیگه دوباره امتحان کن — یا درباره‌ی مراحل خرید، پیش‌پرداخت، مالیات، تست استرس، شارژ ساختمان یا فایل‌های همین‌جا بپرس."},
     hi:{ai_sub:"पहले इस साइट से उत्तर — ताज़ा बाज़ार सवालों के लिए वेब खोज",
       as_sub:"BC में घर खरीदने के बारे में पूछें — चरण, डाउन पेमेंट, कर, स्ट्रेस टेस्ट, स्ट्राटा और बहुत कुछ। उत्तर इस पेज की मार्गदर्शिका और कैलकुलेटरों से आते हैं; ताज़ा बाज़ार सवालों के लिए, जो यह साइट कवर नहीं करती, सहायक वेब पर खोजकर स्रोतों के साथ संक्षिप्त उत्तर देता है।",
       as_welcome:"नमस्ते! मैं BC में घर खरीदने पर बातचीत कर सकता हूँ — खरीद के चरण, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और वार्षिक संपत्ति कर, समापन लागतें, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तें, स्ट्राटा शुल्क, इलाके और सामान्य किराए। जिन सवालों का जवाब इस साइट पर नहीं है — जैसे ओंटारियो और BC के बाज़ारों की तुलना या ताज़ा मासिक आंकड़े — उनके लिए मैं वेब पर खोजकर स्रोतों के साथ संक्षिप्त उत्तर देता हूँ। नीचे दिए सुझावों में से चुनें या अपना प्रश्न लिखें।",
       ai_thinking:"सोच रहा हूँ…",ai_sources:"स्रोत",
       ai_greet:"नमस्ते! आपसे मिलकर खुशी हुई। BC में घर खरीदने के बारे में कुछ भी पूछें — चरण, डाउन पेमेंट, कर, स्ट्राटा — या आवास बाज़ार के बारे में; अगर जवाब इस साइट पर न हो, तो मैं वेब पर खोजकर स्रोतों के साथ संक्षिप्त उत्तर दूँगा।",
       ai_thanks:"आपका स्वागत है! BC में घर खरीदने के बारे में कोई और सवाल हो तो बेझिझक पूछें।",
-      ai_err:"मैं अभी लाइव वेब खोज तक नहीं पहुँच पाया, इसलिए फ़िलहाल केवल इस साइट की सामग्री से उत्तर दे सकता हूँ। थोड़ी देर बाद फिर कोशिश करें — या खरीद के चरणों, डाउन पेमेंट, करों, स्ट्रेस टेस्ट, स्ट्राटा शुल्क या यहाँ की नमूना लिस्टिंग के बारे में पूछें।"},
+      ai_err:"मैं अभी लाइव वेब खोज तक नहीं पहुँच पाया, इसलिए फ़िलहाल केवल इस साइट की सामग्री से उत्तर दे सकता हूँ। थोड़ी देर बाद फिर कोशिश करें — या खरीद के चरणों, डाउन पेमेंट, करों, स्ट्रेस टेस्ट, स्ट्राटा शुल्क या यहाँ की लिस्टिंग के बारे में पूछें।"},
     zh:{ai_sub:"先查本站——最新市场问题联网搜索",
       as_sub:"咨询在 BC 买房的问题——步骤、首付、税费、压力测试、物业管理等。答案来自本页的指南和计算器；对于本站未覆盖的最新市场问题，助手会联网搜索并简要作答、附上来源。",
       as_welcome:"您好！我可以和您聊在 BC 买房——购房步骤、最低首付、房产转让税和年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、社区和典型租金。对于本站没有覆盖的问题——比如比较安大略省与 BC 的市场，或最新月度数据——我会联网搜索并简明作答、附上来源。请选择下方的建议问题，或直接输入您的问题。",
       ai_thinking:"思考中…",ai_sources:"来源",
       ai_greet:"您好！很高兴见到您。关于在 BC 买房的任何问题都可以问我——步骤、首付、税费、物业管理费——或者市场行情；如果本站没有，我会联网搜索并简要回答、附上来源。",
       ai_thanks:"不客气！如果还有关于在 BC 买房的问题，随时问我。",
-      ai_err:"我现在连不上实时网络搜索，所以暂时只能根据本站内容回答。请过一会儿再试——也可以问我购房步骤、首付、税费、压力测试、物业管理费，或这里的示例房源。"},
+      ai_err:"我现在连不上实时网络搜索，所以暂时只能根据本站内容回答。请过一会儿再试——也可以问我购房步骤、首付、税费、压力测试、物业管理费，或这里的房源。"},
     es:{
      "ai_sub": "Busca en los anuncios, guías y herramientas de este sitio",
      "as_sub": "Pregunte sobre comprar una casa en BC — los pasos, las cuotas iniciales, los impuestos, la prueba de estrés, la strata y más. Las respuestas se buscan en la guía y las calculadoras de esta misma página.",
@@ -109,7 +109,7 @@
      "ai_sources": "Fuentes",
      "ai_greet": "¡Hola! Encantado de saludarte. Pregúntame lo que quieras sobre comprar una casa en BC — los pasos, la cuota inicial, los impuestos, la strata — o sobre el mercado de vivienda; si la respuesta no está en este sitio, la buscaré en la web y te responderé brevemente, con fuentes.",
      "ai_thanks": "¡Con gusto! Si te surge cualquier otra pregunta sobre comprar una casa en BC, solo pregunta.",
-     "ai_err": "No pude acceder a la búsqueda web en vivo en este momento, así que por ahora solo puedo responder con el contenido de este sitio. Inténtalo de nuevo en un rato — o pregúntame sobre los pasos de compra, la cuota inicial, los impuestos, la prueba de resistencia, las cuotas de mantenimiento o las propiedades de muestra de aquí."
+     "ai_err": "No pude acceder a la búsqueda web en vivo en este momento, así que por ahora solo puedo responder con el contenido de este sitio. Inténtalo de nuevo en un rato — o pregúntame sobre los pasos de compra, la cuota inicial, los impuestos, la prueba de resistencia, las cuotas de mantenimiento o las propiedades de aquí."
     }
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
@@ -255,10 +255,10 @@
             fa:["فایل","آگهی","لیستینگ","خانه برای فروش"],
             hi:["लिस्टिंग","प्रॉपर्टी","बिक्री के लिए घर","mls"],
             zh:["房源","在售","房产","mls"]},
-        ans:{en:"The only properties I know are the sample listings on this page (sample data — for design preview): {list} Live MLS® data connects after licensing, so I can't look up any other property — but the Match Assistant above can filter these samples by budget, bedrooms, city and type. <a href='#listings'>Browse the sample listings</a>",
-             fa:"تنها ملک‌هایی که می‌شناسم همان فایل‌های نمونه‌ی همین صفحه‌اند (داده‌ی نمونه — برای پیش‌نمایش طراحی): {list} داده‌ی زنده‌ی MLS® پس از دریافت لایسنس وصل می‌شود، پس نمی‌توانم ملک دیگری را جست‌وجو کنم — اما دستیار تطبیق در بالا می‌تواند همین نمونه‌ها را بر اساس بودجه، تعداد خواب، شهر و نوع ملک پالایه کند. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
-             hi:"मैं केवल इस पेज की नमूना लिस्टिंग जानता हूँ (नमूना डेटा — डिज़ाइन पूर्वावलोकन के लिए): {list} लाइव MLS® डेटा लाइसेंस के बाद जुड़ेगा, इसलिए मैं कोई अन्य प्रॉपर्टी नहीं खोज सकता — लेकिन ऊपर का मैच सहायक इन नमूनों को बजट, बेडरूम, शहर और प्रकार से फ़िल्टर कर सकता है। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
-             zh:"我只了解本页的示例房源(示例数据——仅供设计预览):{list}实时 MLS® 数据将在取得牌照后接入,因此我无法查询其他房产——不过上方的匹配助手可以按预算、卧室数、城市和类型筛选这些示例房源。<a href='#listings'>查看示例房源</a>"}},
+        ans:{en:"The properties I can look up are the listings on this page, provided through the MLS® data feed: {list} I can't search beyond this page's listings — but the Match Assistant above can filter the listings by budget, bedrooms, city and type. <a href='#listings'>Browse the listings</a>",
+             fa:"تنها ملک‌هایی که می‌شناسم همان فایل‌های همین صفحه‌اند که از فید داده‌ی MLS® می‌آیند: {list} نمی‌توانم ملکی فراتر از این صفحه را جست‌وجو کنم — اما دستیار تطبیق در بالا می‌تواند همین فایل‌ها را بر اساس بودجه، تعداد خواب، شهر و نوع ملک پالایه کند. <a href='#listings'>مشاهده‌ی فایل‌ها</a>",
+             hi:"मैं केवल इस पेज की लिस्टिंग जानता हूँ, जो MLS® डेटा फ़ीड से आती हैं: {list} मैं इस पेज से बाहर की कोई प्रॉपर्टी नहीं खोज सकता — लेकिन ऊपर का मैच सहायक इन लिस्टिंग को बजट, बेडरूम, शहर और प्रकार से फ़िल्टर कर सकता है। <a href='#listings'>लिस्टिंग देखें</a>",
+             zh:"我只了解本页的房源,它们来自 MLS® 数据馈送:{list}我无法查询本页之外的房产——不过上方的匹配助手可以按预算、卧室数、城市和类型筛选这些房源。<a href='#listings'>查看房源</a>"}},
       { id:"proptax",
         kw:{en:["property tax","municipal tax","mill rate","annual tax","taxes on a home","home owner grant"],
             fa:["مالیات ملک","مالیات سالانه","مالیات شهرداری","مالیات خانه","مالیات املاک"],
@@ -291,10 +291,10 @@
             fa:["بازار مسکن","بازار املاک","قیمت خانه‌ها","قیمت مسکن","بازار ملک"],
             hi:["आवास बाज़ार","रियल एस्टेट बाज़ार","घरों की कीमतें","प्रॉपर्टी की कीमतें"],
             zh:["房地产市场","房价","楼市","房产价格"]},
-        ans:{en:"Metro Vancouver is one of Canada's most expensive housing markets. As a very rough orientation (2026): condos commonly range from about $450,000 in outlying areas to $800,000 or more closer to downtown Vancouver; townhouses roughly $750,000–$1,300,000; and detached houses from about $1,200,000 in Surrey and Coquitlam to $2,000,000 or more in Vancouver. This page's sample listings reflect that spread. Prices move with interest rates, supply and the broader economy, and change month to month — treat these ranges as educational orientation only and check current statistics from BCREA or your local real estate board before relying on them. <a href='#listings'>Browse the sample listings</a>",
-             fa:"مترو ونکوور یکی از گران‌ترین بازارهای مسکن کاناداست. برای یک تصور بسیار کلی (۲۰۲۶): آپارتمان‌ها معمولاً از حدود ۴۵۰ هزار دلار در مناطق بیرونی تا ۸۰۰ هزار دلار و بیشتر نزدیک مرکز شهر ونکوور هستند؛ تاون‌هاوس‌ها تقریباً ۷۵۰ هزار تا ۱٫۳ میلیون دلار؛ و خانه‌های مستقل از حدود ۱٫۲ میلیون دلار در ساری و کوکیتلام تا ۲ میلیون دلار و بیشتر در ونکوور. فایل‌های نمونه‌ی همین صفحه همین گستره را نشان می‌دهند. قیمت‌ها با نرخ بهره، عرضه و وضعیت کلی اقتصاد حرکت می‌کنند و ماه‌به‌ماه تغییر می‌کنند — این بازه‌ها را فقط جهت‌یابی آموزشی بدانید و پیش از اتکا، آمار جاری BCREA یا بورد املاک محلی‌تان را بررسی کنید. <a href='#listings'>مشاهده‌ی فایل‌های نمونه</a>",
-             hi:"मेट्रो वैंकूवर कनाडा के सबसे महंगे आवास बाज़ारों में से एक है। बहुत मोटे अनुमान के तौर पर (2026): कॉन्डो आमतौर पर बाहरी इलाकों में लगभग $450,000 से लेकर डाउनटाउन वैंकूवर के पास $800,000 या अधिक तक होते हैं; टाउनहाउस लगभग $750,000–$1,300,000; और अलग मकान सरी व कोक्विटलम में लगभग $1,200,000 से लेकर वैंकूवर में $2,000,000 या अधिक तक। इस पेज की नमूना लिस्टिंग इसी फैलाव को दर्शाती हैं। कीमतें ब्याज दरों, आपूर्ति और व्यापक अर्थव्यवस्था के साथ बदलती हैं और महीने-दर-महीने बदलती रहती हैं — इन सीमाओं को केवल शैक्षिक दिशा-निर्देश मानें और भरोसा करने से पहले BCREA या अपने स्थानीय रियल एस्टेट बोर्ड के वर्तमान आंकड़े जाँचें। <a href='#listings'>नमूना लिस्टिंग देखें</a>",
-             zh:"温哥华都会区是加拿大房价最高的市场之一。作为非常粗略的参考（2026 年）：公寓价格通常从外围地区约 $450,000 到温哥华市中心附近 $800,000 或更高；联排别墅约 $750,000–$1,300,000；独立屋从素里和高贵林约 $1,200,000 到温哥华 $2,000,000 或更高。本页的示例房源正反映了这一价格跨度。房价随利率、供应和整体经济而波动，逐月变化——请将这些范围仅作教育性参考，依赖之前请查看 BCREA 或当地房地产局的最新统计数据。<a href='#listings'>查看示例房源</a>"}}
+        ans:{en:"Metro Vancouver is one of Canada's most expensive housing markets. As a very rough orientation (2026): condos commonly range from about $450,000 in outlying areas to $800,000 or more closer to downtown Vancouver; townhouses roughly $750,000–$1,300,000; and detached houses from about $1,200,000 in Surrey and Coquitlam to $2,000,000 or more in Vancouver. This page's listings reflect that spread. Prices move with interest rates, supply and the broader economy, and change month to month — treat these ranges as educational orientation only and check current statistics from BCREA or your local real estate board before relying on them. <a href='#listings'>Browse the listings</a>",
+             fa:"مترو ونکوور یکی از گران‌ترین بازارهای مسکن کاناداست. برای یک تصور بسیار کلی (۲۰۲۶): آپارتمان‌ها معمولاً از حدود ۴۵۰ هزار دلار در مناطق بیرونی تا ۸۰۰ هزار دلار و بیشتر نزدیک مرکز شهر ونکوور هستند؛ تاون‌هاوس‌ها تقریباً ۷۵۰ هزار تا ۱٫۳ میلیون دلار؛ و خانه‌های مستقل از حدود ۱٫۲ میلیون دلار در ساری و کوکیتلام تا ۲ میلیون دلار و بیشتر در ونکوور. فایل‌های همین صفحه همین گستره را نشان می‌دهند. قیمت‌ها با نرخ بهره، عرضه و وضعیت کلی اقتصاد حرکت می‌کنند و ماه‌به‌ماه تغییر می‌کنند — این بازه‌ها را فقط جهت‌یابی آموزشی بدانید و پیش از اتکا، آمار جاری BCREA یا بورد املاک محلی‌تان را بررسی کنید. <a href='#listings'>مشاهده‌ی فایل‌ها</a>",
+             hi:"मेट्रो वैंकूवर कनाडा के सबसे महंगे आवास बाज़ारों में से एक है। बहुत मोटे अनुमान के तौर पर (2026): कॉन्डो आमतौर पर बाहरी इलाकों में लगभग $450,000 से लेकर डाउनटाउन वैंकूवर के पास $800,000 या अधिक तक होते हैं; टाउनहाउस लगभग $750,000–$1,300,000; और अलग मकान सरी व कोक्विटलम में लगभग $1,200,000 से लेकर वैंकूवर में $2,000,000 या अधिक तक। इस पेज की लिस्टिंग इसी फैलाव को दर्शाती हैं। कीमतें ब्याज दरों, आपूर्ति और व्यापक अर्थव्यवस्था के साथ बदलती हैं और महीने-दर-महीने बदलती रहती हैं — इन सीमाओं को केवल शैक्षिक दिशा-निर्देश मानें और भरोसा करने से पहले BCREA या अपने स्थानीय रियल एस्टेट बोर्ड के वर्तमान आंकड़े जाँचें। <a href='#listings'>लिस्टिंग देखें</a>",
+             zh:"温哥华都会区是加拿大房价最高的市场之一。作为非常粗略的参考（2026 年）：公寓价格通常从外围地区约 $450,000 到温哥华市中心附近 $800,000 或更高；联排别墅约 $750,000–$1,300,000；独立屋从素里和高贵林约 $1,200,000 到温哥华 $2,000,000 或更高。本页的房源正反映了这一价格跨度。房价随利率、供应和整体经济而波动，逐月变化——请将这些范围仅作教育性参考，依赖之前请查看 BCREA 或当地房地产局的最新统计数据。<a href='#listings'>查看房源</a>"}}
     ]
     var KB_ES = {
      "fthb": {
@@ -419,7 +419,7 @@
        "casas en venta",
        "propiedades"
       ],
-      "ans": "Las únicas propiedades que conozco son los anuncios de muestra en esta página (datos de muestra — para vista previa de diseño): {list} Los datos en vivo de MLS® se conectan después de la licencia, por lo que no puedo buscar ninguna otra propiedad — pero el Asistente de Coincidencias arriba puede filtrar estas muestras por presupuesto, recámaras, ciudad y tipo. <a href='#listings'>Explorar los anuncios de muestra</a>"
+      "ans": "Las propiedades que puedo consultar son los anuncios de esta página, proporcionados a través del feed de datos MLS®: {list} No puedo buscar propiedades más allá de esta página — pero el Asistente de Coincidencias arriba puede filtrar los anuncios por presupuesto, recámaras, ciudad y tipo. <a href='#listings'>Explorar los anuncios</a>"
      },
      "proptax": {
       "kw": [
@@ -469,7 +469,7 @@
        "cómo está el mercado",
        "precios de propiedades"
       ],
-      "ans": "Metro Vancouver es uno de los mercados de vivienda más caros de Canadá. Como orientación muy aproximada (2026): los condominios suelen oscilar entre unos $450,000 en zonas periféricas y $800,000 o más cerca del centro de Vancouver; las casas adosadas, aproximadamente $750,000–$1,300,000; y las casas unifamiliares, desde unos $1,200,000 en Surrey y Coquitlam hasta $2,000,000 o más en Vancouver. Los anuncios de muestra de esta página reflejan esa dispersión. Los precios se mueven con las tasas de interés, la oferta y la economía en general, y cambian mes a mes — trata estos rangos solo como orientación educativa y consulta las estadísticas actuales de BCREA o de tu junta inmobiliaria local antes de basarte en ellos. <a href='#listings'>Explorar los anuncios de muestra</a>"
+      "ans": "Metro Vancouver es uno de los mercados de vivienda más caros de Canadá. Como orientación muy aproximada (2026): los condominios suelen oscilar entre unos $450,000 en zonas periféricas y $800,000 o más cerca del centro de Vancouver; las casas adosadas, aproximadamente $750,000–$1,300,000; y las casas unifamiliares, desde unos $1,200,000 en Surrey y Coquitlam hasta $2,000,000 o más en Vancouver. Los anuncios de esta página reflejan esa dispersión. Los precios se mueven con las tasas de interés, la oferta y la economía en general, y cambian mes a mes — trata estos rangos solo como orientación educativa y consulta las estadísticas actuales de BCREA o de tu junta inmobiliaria local antes de basarte en ellos. <a href='#listings'>Explorar los anuncios</a>"
      }
     };
     KB.forEach(function(e){ var t = KB_ES[e.id]; if (t) { e.kw.es = t.kw; e.ans.es = t.ans; } });;
