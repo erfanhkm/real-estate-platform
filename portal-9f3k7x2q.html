@@ -1415,13 +1415,30 @@
     }).catch(function(){ if (!mleads.length) toast("Could not load the radar list", true); renderRadar(); });
   }
   var RADAR_RANK = { ok: 0, "deep-overdue": 1, unverifiable: 2, stale: 3, never: 4, debt: 5 };
+  // Pack PF (PF-04 iii): internal reason codes render as labels,
+  // never raw — unknown_source / basis_downgraded / basis_mismatch
+  // are the loud flags, overclaim the quiet one.
+  var DEBT_REASON_LABEL = { reported_failed: "scan reported failed", counts_missing: "counts missing", errors_reported: "errors reported", errors_field_missing: "errors field missing", short_fetch: "fetched fewer than reported", short_stored: "stored fewer than fetched", unknown_source: "unknown source", basis_mismatch: "basis mismatch", basis_downgraded: "basis downgraded" };
+  var BASIS_MISMATCH_LABEL = { unknown_source: "unknown source", basis_mismatch: "basis mismatch", basis_downgraded: "basis downgraded (flag only)", overclaim: "basis overclaim (flag only)" };
+  var MOT_CODE_LABEL = { must_sell: "must sell", relocating: "relocating", divorce: "divorce", foreclosure: "foreclosure", power_of_sale: "power of sale", leaving_country: "leaving the country", obo: "OBO", bring_offers: "bring offers" };
+  function daysAgoTxt(iso){ var ms = iso ? Date.parse(iso) : NaN; if (!isFinite(ms)) return ""; var dd = Math.floor((Date.now() - ms) / 86400000); return dd <= 0 ? "today" : dd + "d ago"; }
   function radarCellState(c, nowMs){
+    // Pack PF (PF-04 MF3): the WORKER owns the threshold set (6h
+    // delta / 26h deep) — when its flags ride along, consume them;
+    // the local computation below remains only as a fallback for
+    // older payloads.
+    if (c.debt || c.verdict === "debt" || c.verdict === "short") return "debt";
+    if (typeof c.stale === "boolean" || typeof c.deepStale === "boolean" || typeof c.unverifiable === "boolean") {
+      if (c.unverifiable) return c.stale ? "stale" : "unverifiable";
+      if (c.stale) return (c.ageHours === null || c.ageHours === undefined) ? "never" : "stale";
+      if (c.deepStale) return "deep-overdue";
+      return "ok";
+    }
     // Pack F (RDR-02 H1/H4): judge EVERY cell on its own state — the
     // worker's verdict leads; staleness is per cell (delta passes run
     // every 3h), never per group and never from the last-reported
     // tier (M2). A 'none'-basis cell is "unverifiable": it is scanned
     // (lastScanAt) but can never be called covered.
-    if (c.debt || c.verdict === "debt" || c.verdict === "short") return "debt";
     if (c.verdict === "unverifiable") {
       var sH = c.lastScanAt ? (nowMs - Date.parse(c.lastScanAt)) / 3600000 : null;
       if (sH === null || !isFinite(sH)) return "never";
@@ -1443,7 +1460,10 @@
     if (st === "deep-overdue") return '<span class="chip" style="background:#451a03;color:#fcd34d;font-weight:700">⚠ deep pass overdue</span>';
     return '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">✓ covered</span>';
   }
+  var _covInFlight = false;
   function loadRadarCoverage(){
+    if (_covInFlight) return; // Pack PF (PF-04): loadRadar + loadRadarSettings both call this on load — one fetch in flight is enough (the render itself is idempotent)
+    _covInFlight = true;
     api(API_URL, "/api/admin/radar-coverage").then(function(d){
       var box = $("radarCoverage");
       if (!d || !d.ok) { box.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; return; }
@@ -1451,7 +1471,11 @@
       if (!cells.length) {
         // RDR-02 L1: an empty ledger while the switch is ON is an
         // alarm, not a calm state.
-        box.innerHTML = window._radarOn ? '<div style="color:#f87171;font-weight:600">⚠ The radar is ON but no coverage has been reported yet — the scan may not be running.</div>' : '<div class="mut">No coverage data yet — the ledger fills in once the radar runs under the v4 protocol.</div>';
+        // Pack PF (PF-04): the alarm is graced from radar enabledAt —
+        // ON for under ~3h with no cells yet is a pending first scan,
+        // not a dead runner.
+        var graced = d.enabledAt && (Date.now() - Date.parse(d.enabledAt)) < 3 * 3600000;
+        box.innerHTML = window._radarOn ? (graced ? '<div class="mut">Radar just turned on — the first scan has not reported yet.</div>' : '<div style="color:#f87171;font-weight:600">⚠ The radar is ON but no coverage has been reported yet — the scan may not be running.</div>') : '<div class="mut">No coverage data yet — the ledger fills in once the radar runs under the v4 protocol.</div>';
         return;
       }
       // One row per source × region, judged by its WORST cell (H1):
@@ -1460,22 +1484,27 @@
       var nowMs = Date.now(), groups = {}, order = [], staleCells = 0;
       cells.forEach(function(c){
         var gk = c.source + "|" + c.region;
-        if (!groups[gk]) { groups[gk] = { source: c.source, region: c.region, worst: "ok", bad: [], shortBy: 0, lastOkAt: null }; order.push(gk); }
+        if (!groups[gk]) { groups[gk] = { source: c.source, region: c.region, worst: "ok", bad: [], shortBy: 0, lastOkAt: null, lastScanAt: null, unvOnly: true }; order.push(gk); }
         var g = groups[gk];
         var st = radarCellState(c, nowMs);
         if (st === "stale") staleCells++; // L1: stale counted per CELL, not per group
         if (RADAR_RANK[st] > RADAR_RANK[g.worst]) g.worst = st;
-        if (st !== "ok") g.bad.push(esc(c.category || "?") + ": " + st);
+        if (!c.unverifiable) g.unvOnly = false;
+        if (st !== "ok") { var bl = esc(c.category || "?") + ": " + st; if (st === "debt" && c.debtReason) bl += " (" + esc(DEBT_REASON_LABEL[c.debtReason] || c.debtReason) + ")"; if (st === "debt" && (c.failStreak || 0) >= 3) bl += " · chronic"; if (c.basisMismatch) bl += " · basis: " + esc(BASIS_MISMATCH_LABEL[c.basisMismatch] || c.basisMismatch); g.bad.push(bl); } // Pack PF (PF-04): reason labels + chronic chip (failStreak >= 3) + basis-mismatch flag ride the bad list
         if (typeof c.reported === "number" && typeof c.fetched === "number") g.shortBy += Math.max(0, c.reported - c.fetched); // M1: shortfalls summed per cell — an over-fetch can no longer mask a short one
-        if (c.lastOkAt && (!g.lastOkAt || c.lastOkAt > g.lastOkAt)) g.lastOkAt = c.lastOkAt;
+        if (typeof c.fetched === "number" && typeof c.stored === "number") g.shortBy += Math.max(0, c.fetched - c.stored); // Pack PF (PF-04): the fetched->stored leg counts too
+        if (c.lastOkAt && (!g.lastOkAt || c.lastOkAt < g.lastOkAt)) g.lastOkAt = c.lastOkAt; // Pack PF (PF-04): "last complete pass" = the WORST (oldest) ok-cell age, not the newest
+        if (c.lastScanAt && (!g.lastScanAt || c.lastScanAt > g.lastScanAt)) g.lastScanAt = c.lastScanAt;
       });
+      var ageFmt = function(iso){ var h = iso ? (nowMs - Date.parse(iso)) / 3600000 : null; return (h === null || !isFinite(h)) ? "never" : h < 0 ? "just now" : h < 1 ? Math.max(1, Math.round(h * 60)) + "m ago" : (Math.round(h * 10) / 10) + "h ago"; }; // L1: NaN can no longer print "NaNh ago"
       var rows = order.map(function(gk){ return groups[gk]; }).sort(function(a, b){ return (RADAR_RANK[b.worst] - RADAR_RANK[a.worst]) || String(a.source).localeCompare(String(b.source)) || String(a.region).localeCompare(String(b.region)); }).map(function(g){
-        var ageH = g.lastOkAt ? (nowMs - Date.parse(g.lastOkAt)) / 3600000 : null;
-        var ageTxt = (ageH === null || !isFinite(ageH)) ? "never completed" : ageH < 0 ? "just now" : ageH < 1 ? Math.max(1, Math.round(ageH * 60)) + "m ago" : (Math.round(ageH * 10) / 10) + "h ago"; // L1: NaN can no longer print "NaNh ago"
-        return '<div class="tourrow"><div>' + radarBadge(g.worst) + ' <b>' + esc(g.source) + '</b> <span class="mut">· ' + esc(g.region) + '</span>' + (g.bad.length ? '<div class="mut" style="font-size:12px;margin-top:2px">' + g.bad.join(" · ") + '</div>' : '') + '</div><span class="mut">last complete pass ' + esc(ageTxt) + (g.shortBy > 0 ? ' · short by ' + g.shortBy : '') + '</span></div>';
+        // Pack PF (PF-04 ruling i): an all-unverifiable group has no
+        // "complete pass" to age — its line ages the last SCAN.
+        var rightTxt = g.unvOnly ? 'scanned ' + ageFmt(g.lastScanAt) + ' · no platform total' : 'last complete pass ' + ageFmt(g.lastOkAt);
+        return '<div class="tourrow"><div>' + radarBadge(g.worst) + ' <b>' + esc(g.source) + '</b> <span class="mut">· ' + esc(g.region) + '</span>' + (g.bad.length ? '<div class="mut" style="font-size:12px;margin-top:2px">' + g.bad.join(" · ") + '</div>' : '') + '</div><span class="mut">' + esc(rightTxt) + (g.shortBy > 0 ? ' · short by ' + g.shortBy : '') + '</span></div>';
       });
-      box.innerHTML = '<div class="mut" style="margin-bottom:6px">' + cells.length + ' cells · <b>' + (d.debtCount || 0) + '</b> in debt · <b>' + staleCells + '</b> stale cells · candidate pool: <b>' + (d.poolCount || 0) + '</b>' + (d.updatedAt ? ' · ledger updated ' + esc(fmtDate(d.updatedAt)) : '') + '</div>' + rows.join("");
-    }).catch(function(){ var b = $("radarCoverage"); if (b) b.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; });
+      box.innerHTML = '<div class="mut" style="margin-bottom:6px">' + num(cells.length) + ' cells · <b>' + num(d.debtCount || 0) + '</b> in debt · <b>' + num(staleCells) + '</b> stale cells' + ((d.unverifiableCount || 0) ? ' · <b>' + num(d.unverifiableCount) + '</b> unverifiable' : '') + ' · candidate pool: <b>' + num(d.poolCount || 0) + '</b>' + (d.updatedAt ? ' · ledger updated ' + esc(fmtDate(d.updatedAt)) : '') + '</div>' + rows.join("");
+    }).catch(function(){ var b = $("radarCoverage"); if (b) b.innerHTML = '<div class="mut">Coverage unavailable right now.</div>'; }).then(function(){ _covInFlight = false; });
   }
   function loadRadarSettings(){
     api(API_URL, "/api/radar-settings").then(function(d){
@@ -1494,7 +1523,7 @@
     var on = $("radarToggle").checked;
     api(API_URL, "/api/radar-settings", { method: "PUT", body: JSON.stringify({ enabled: on }) })
       .then(function(d){
-        if (d && d.ok){ syncRadarState(d.enabled); toast(d.enabled ? "Market scan ON — deep scan every 3 hours ✓" : "Market scan OFF"); }
+        if (d && d.ok){ syncRadarState(d.enabled); loadRadarCoverage(); toast(d.enabled ? "Market scan ON — deep scan every 3 hours ✓" : "Market scan OFF"); } // Pack PF (PF-04): coverage re-renders on the flip — the empty-ledger grace depends on it
         else { $("radarToggle").checked = !on; toast("Could not save the switch", true); }
       })
       .catch(function(){ $("radarToggle").checked = !on; toast("Could not save the switch", true); });
@@ -1507,7 +1536,12 @@
     // (Pack F, RDR-02 M4): only a NEW pair with strictly numeric
     // scores pins/badges; a dismissed hot pair no longer buries new
     // ones, and a string score can't pin without badging.
-    return l.status === "new" && typeof l.matchScore === "number" && l.matchScore >= 80 && typeof l.motivation === "number" && l.motivation >= 60;
+    // Pack PF (PF-04 MF1): computed-only — kind 'pair' AND
+    // motivationSource 'computed' join the rule, the SAME predicate
+    // the worker's status segment counts with, so the counter and
+    // the badges can never disagree. (Pack F M4's numeric checks
+    // stay: a string score can't pin without badging.)
+    return l.kind === "pair" && l.status === "new" && typeof l.matchScore === "number" && l.matchScore >= 80 && typeof l.motivation === "number" && l.motivation >= 60 && l.motivationSource === "computed";
   }
   function fillRadarSelect(id, values, allLabel){
     var sel = $(id); if (!sel) return;
@@ -1561,8 +1595,8 @@
         '<span class="chip">' + kindLabel(l.kind) + '</span>' +
         '<span class="chip" style="background:' + confColor + ';color:#0B0B0B;font-weight:700">Confidence ' + conf + '</span>' +
         (ms ? '<span class="chip" style="background:' + msColor + ';color:#0B0B0B;font-weight:700">🎯 Match ' + ms + '</span>' : '') +
-        (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot pair</span>' : '') +
-        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + ' (worker-computed)</span>' : '') +
+        (hot ? '<span class="chip" style="background:#7c2d12;color:#fdba74;font-weight:700">🔥 Hot candidate</span>' : '') +
+        (mot !== null ? '<span class="chip">💪 Motivation ' + mot + (l.motivationSource === 'computed' ? ' (worker-computed' + (l.motivationAsOf ? ', as of ' + esc(daysAgoTxt(l.motivationAsOf)) : '') + ')' : l.motivationSource === 'claimed' ? ' (agent-claimed)' : '') + '</span>' : '') +
         ((l.belowMarketPct || 0) >= 5 ? '<span class="chip" style="background:#0e3a2a;color:#4ade80;font-weight:700">💎 ' + (Number(l.belowMarketPct) || 0) + '% below market</span>' : '') +
         (l.propertyClass === 'commercial' ? '<span class="chip">🏢 Commercial</span>' : '') +
         (l.status !== "new" ? '<span class="chip">' + esc(l.status) + '</span>' : '<span class="chip live">● New</span>') +
@@ -1572,11 +1606,16 @@
       if (meta) html += '<div class="mut" style="margin-bottom:6px">' + esc(meta) + '</div>';
       if (l.summary) html += '<div style="font-size:14px;line-height:1.55">' + esc(l.summary) + '</div>';
       if (Array.isArray(l.motivationSignals) && l.motivationSignals.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💪 ' + l.motivationSignals.map(function(s){ return esc(s); }).join(' · ') + '</div>'; // Pack F (RDR-02 L2): Array.isArray — a string value used to throw and break the whole list render
+      // Pack PF (PF-03 MF1 + PF-04 ruling v): the FACTS behind a
+      // computed snapshot render separately from the live group,
+      // codes via the label map — never raw codes.
+      if (l.motivationFacts && typeof l.motivationFacts === "object") { var mf = l.motivationFacts, fbits = []; if (typeof mf.days === "number") fbits.push(mf.days + " days " + (mf.daysBasis === "pooled" ? "in pool" : "listed")); if (mf.priceCuts) fbits.push(mf.priceCuts + " price cut(s)"); if (mf.relistCount) fbits.push("relisted ×" + mf.relistCount); (Array.isArray(mf.codes) ? mf.codes : []).forEach(function(cd){ fbits.push("'" + (MOT_CODE_LABEL[cd] || cd) + "' in post"); }); if (fbits.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">🧾 Motivation facts (snapshot): ' + fbits.map(function(x){ return esc(x); }).join(' · ') + '</div>'; }
       // Pack E (RDR-01 M7): server-derived pool counters, shown
       // separately from the motivation score above. Pack F (RDR-02
       // L4): the pair's motivation is a snapshot — show how long ago
       // the pool record was last confirmed live.
-      if (l.poolCounters) { var lsMs = l.poolCounters.lastSeen ? Date.parse(l.poolCounters.lastSeen) : NaN; var lsTxt = isFinite(lsMs) ? (Math.floor((Date.now() - lsMs) / 86400000) <= 0 ? 'today' : Math.floor((Date.now() - lsMs) / 86400000) + 'd ago') : ''; html += '<div class="mut" style="font-size:12.5px;margin-top:2px">📊 Server counters: ' + num(l.poolCounters.priceCuts || 0) + ' price cut(s) · relisted ×' + num(l.poolCounters.relistCount || 0) + ' · seen ' + num(l.poolCounters.seenDays || 0) + ' day(s)' + (lsTxt ? ' · last confirmed live ' + lsTxt : '') + '</div>'; }
+      if (l.poolCounters) { var lsTxt = daysAgoTxt(l.poolCounters.lastSeen); html += '<div class="mut" style="font-size:12.5px;margin-top:2px">📊 Live (supply record): ' + num(l.poolCounters.priceCuts || 0) + ' price cut(s) · relisted ×' + num(l.poolCounters.relistCount || 0) + ' · seen ' + num(l.poolCounters.seenDays || 0) + ' day(s)' + (lsTxt ? ' · record last seen ' + lsTxt : '') + (l.poolCounters.phoneConflict ? ' · <span style="color:#f87171;font-weight:700">⚠️ phone conflict — second number' + (l.poolCounters.phoneAlt ? ' ' + esc(l.poolCounters.phoneAlt) : '') + ' on another source</span>' : '') + '</div>'; var pbsP = l.poolCounters.priceBySource; if (pbsP && typeof pbsP === "object") { var pbits = Object.keys(pbsP).map(function(k){ var e = pbsP[k]; var pv2 = (e && typeof e.p === "number") ? e.p : (typeof e === "number" ? e : null); return pv2 !== null ? esc(k) + " $" + pv2.toLocaleString("en-US") : ""; }).filter(Boolean); if (pbits.length) html += '<div class="mut" style="font-size:12.5px;margin-top:2px">💲 Per-source prices: ' + pbits.join(' · ') + '</div>'; } }
+      else if (l.kind === "pair") { html += '<div class="mut" style="font-size:12.5px;margin-top:2px;color:#fbbf24">📊 Pool record no longer live — the snapshot above may be stale.</div>'; } // Pack PF (PF-04 MF5): a pair whose pool join missed must SAY its counters are gone, not silently show the frozen snapshot
       if (l.presale && typeof l.presale === "object"){
         var pp = l.presale, pbits = [];
         if (pp.project) pbits.push('🏗️ ' + esc(pp.project));
@@ -3499,7 +3538,7 @@
       $("puTRadar").innerHTML = puSrcChip(S.radar) +
         '<div class="pu-row"><span>Switch</span><b>' + (R.enabled ? "🟢 ON" : "⚪ OFF") + '</b></div>' +
         '<div class="pu-row"><span>Candidate pairs</span><b>' + R.pairs + '</b></div>' +
-        '<div class="pu-row"><span>Hot pairs (fit ≥80 + motivation ≥60)</span><b>' + R.hotPairs + "</b></div>" +
+        '<div class="pu-row"><span>Candidate hot pairs (fit ≥80 + computed motivation ≥60)</span><b>' + R.hotPairs + "</b></div>" +
         (R.enabled ? "" : '<div class="pu-mini" style="margin-top:6px">The radar stays off until you flip it (expected after licensing).</div>') +
         '<div style="margin-top:8px"><button class="ghost small" id="puRadarBtn">' + (R.enabled ? "⏸ Turn radar OFF" : "▶️ Turn radar ON") + "</button></div>";
       var rb = $("puRadarBtn");
