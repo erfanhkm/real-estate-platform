@@ -1541,7 +1541,7 @@
     // the worker's status segment counts with, so the counter and
     // the badges can never disagree. (Pack F M4's numeric checks
     // stay: a string score can't pin without badging.)
-    return l.kind === "pair" && l.status === "new" && typeof l.matchScore === "number" && l.matchScore >= 80 && typeof l.motivation === "number" && l.motivation >= 60 && l.motivationSource === "computed";
+    return l.kind === "pair" && l.status === "new" && typeof l.matchScore === "number" && l.matchScore >= 80 && typeof l.motivation === "number" && l.motivation >= 60 && l.motivationSource === "computed" && l.created_at && (Date.now() - Date.parse(l.created_at) < 14 * 86400000); // Pack PF2 (PF spot-check MF4): 14-day liveness bound — the snapshot freezes the motivation score, never liveness; a stale "new" pair stops badging/counting hot (the worker counter uses the identical bound)
   }
   function fillRadarSelect(id, values, allLabel){
     var sel = $(id); if (!sel) return;
