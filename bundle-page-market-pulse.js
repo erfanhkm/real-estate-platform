@@ -961,11 +961,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       });
     }
     function mpSrcLine(block, ym){ return block ? esc(block.source || "") + " · " + esc(mpMonthLabel(ym)) : ""; }
-    function mpTile(labelKey, value, subHtml, srcLine){
+    function mpTile(labelKey, value, subHtml, srcHtml){
       return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
         '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
         (subHtml ? '<p class="mp-sub">' + subHtml + "</p>" : "") +
-        (srcLine ? '<p class="mp-src">' + srcLine + "</p>" : "") + "</article>";
+        (srcHtml ? '<p class="mp-src">' + srcHtml + "</p>" : "") + "</article>";
     }
     function mpDrawBars(mount, figList, monthsDesc, board){
       if (!mount) return;
