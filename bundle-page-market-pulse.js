@@ -981,7 +981,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
          it a day EARLY for viewers east of about UTC+4 — the HI/ZH
          audiences that fix was for.) An invalid calendar date is no
          date at all (""). Full timestamps still render in Pacific. */
-      var s = String(iso || "");
+      var s = String(iso || "").trim(); /* Pack PJ2b: trim before the date-only test, so a padded " 2026-10-30 " still takes the calendar path */
       var dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
       if (dm) {
         var uy = +dm[1], umo = +dm[2], ud = +dm[3];
@@ -1094,6 +1094,25 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         else if (months.length > 1) suffix = (!small && (typeName + " · " + mpMonthLabel(r.month, false)).length > 18) ? mpMonthLabel(r.month, true) : mpMonthLabel(r.month, small);
         r.lbl = typeName + (suffix ? " · " + suffix : "");
       });
+      /* Pack PJ2b (PJ close H1): shorten instead of clamp. The cap
+         is computed FIRST; when the latest group's full-month label
+         (est. chars x 6.4) cannot fit the text space the cap leaves
+         (capW - 8), the latest labels fall back to the SHORT month
+         like the other groups — the full month stays in the figure
+         source line below and in the chart's aria-label. labelW is
+         then sized from the labels actually drawn, so it never has
+         to choose between clipping a label and starving the bars. */
+      var capW = Math.floor(W * 0.46), baseW = small ? 132 : 168;
+      var latestEst = 0;
+      rows.forEach(function (r) { if (r.latest && r.lbl.length * 6.4 > latestEst) latestEst = r.lbl.length * 6.4; });
+      if (latestEst > capW - 8) {
+        rows.forEach(function (r) {
+          if (!r.latest) return;
+          var typeName = t["mp_" + r.tk] || r.tk;
+          var sfx = mpMonthLabel(r.month, true);
+          r.lbl = typeName + (sfx ? " · " + sfx : "");
+        });
+      }
       var longestLbl = 0;
       rows.forEach(function (r) { if (r.lbl.length > longestLbl) longestLbl = r.lbl.length; });
       /* Pack PJ2 (PJ-verify H1): labelW is sized from the LONGEST
@@ -1101,8 +1120,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
          the old fixed widths and capped at 46% of the chart so the
          bars keep room — the latest bar's full-month label is the
          longest and used to clip at the left edge on phones (the
-         PJ-02 M6 problem returning through the PJ-02 H1 fix). */
-      var labelW = Math.round(Math.min(Math.max(small ? 132 : 168, longestLbl * 6.4 + 16), Math.floor(W * 0.46))), valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
+         PJ-02 M6 problem returning through the PJ-02 H1 fix).
+         Pack PJ2b: the longest is measured after the shorten pass
+         above, on the labels actually drawn. */
+      var labelW = Math.round(Math.min(Math.max(baseW, longestLbl * 6.4 + 16), capW)), valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
       var height = 8, y = 8, parts = [];
       rows.forEach(function (r, i) { if (i && rows[i - 1].tk !== r.tk) height += groupGap; height += barH + gap; });
       var x0 = labelW, x1 = W - valW;
@@ -1114,7 +1135,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         parts.push('<text x="' + (x0 + w + 8) + '" y="' + (y + barH - 6) + '" font-size="13" font-weight="700" fill="var(--ink)">' + esc(mpMoney(r.price)) + "</text>");
         y += barH + gap;
       });
-      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" style="direction:ltr" aria-label="' + esc(board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + '">' + parts.join("") + "</svg>";
+      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" style="direction:ltr" aria-label="' + esc((board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + (latestMonth ? " · " + mpMonthLabel(latestMonth.month, false) : "")) + '">' /* Pack PJ2b: the aria-label always names the full latest month, even when the drawn latest labels were shortened */ + parts.join("") + "</svg>";
       if (figList) {
         var latest = (latestMonth && latestMonth[board]) || {};
         figList.innerHTML = typeKeys.map(function (tk) {
