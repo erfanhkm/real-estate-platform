@@ -1369,7 +1369,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           } else {
             html += '<p class="note">' + esc(t.pr_prop_unavailable) + "</p>";
           }
-          if (cd.yearBuilt) html += prRow(t.pr_card_built, prNum(cd.yearBuilt));
+          if (cd.yearBuilt) html += prRow(t.pr_card_built, String(cd.yearBuilt));
           if (cd.zoning) html += prRow(t.pr_card_zoning, cd.zoning);
           html += '</div><p class="note" style="margin-top:8px">' + esc(t.pr_card_note) + '</p><p class="note">' + esc(t.pr_card_src) + "</p>";
           html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_permits_title) + "</h4>";
@@ -1420,8 +1420,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         tb.disabled = true;
         var gen = prTitleGen;
         prFetch(PR_API + "/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(function(r){
+          if (gen !== prTitleGen) return; /* a newer report superseded this request (PH-01 L3) — a stale response must not clear the newer request's busy flag (PH-verify L1) */
           prTitleBusy = false;
-          if (gen !== prTitleGen) return; /* a newer report superseded this request (PH-01 L3) */
           var d = r.d || {};
           /* every branch is explicit and the chain ends in an error
              (PH-01 M1): success wording exists only for placed ===
@@ -1431,7 +1431,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           if (r.status === 429) key = "pr_err_rate";
           else if (!d.ok) key = "pr_title_err";
           else if (d.placed === true) key = "pr_title_placed";
-          else if (d.gated === true) key = "pr_title_gated";
+          else if (d.gated === true) key = "pr_title_sent"; /* the gated click placed nothing — the honest no-order line (PH-verify H1); the card explainer carries pr_title_gated */
           else if (d.gated === false && d.state === "not_configured") key = "pr_title_unavailable";
           else key = "pr_title_err";
           prTitleKey = key;
@@ -1501,8 +1501,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       }).catch(function(err){ console.error(err); prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn; prErrKey = "pr_err"; prLast = null; try { paintReport(); } catch (e) { console.error(e); } });
     });
     /* language switches repaint the last report in the new language;
-       applyLang calls this hook too, so a programmatic switch (no
-       change event) repaints as well (PR-02 L4) */
+       the langSel change listener below calls this hook (PR-02 L4) */
     window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) { console.error(e); var o = $("prOut"); if (o) o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } } };
     var prLangSel = $("langSel");
     if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ if (window.__prRepaint) window.__prRepaint(); }, 0); });
