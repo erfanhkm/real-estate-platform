@@ -1080,18 +1080,25 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
          (short month suffix + smaller label font on narrow containers) so
          "Type · Month Year" labels no longer clip at the left edge. */
       var W = mpChartWidth(mount), small = W < 520;
-      /* Pack PJ (PJ-02 H1 + M6): the latest month's bars always carry
-         the FULL month label (it used to drop entirely when only one
-         month was charted); in the wide layout a full label longer
-         than 18 chars falls back to the short month suffix so it
-         cannot clip at the left edge. Pack PJ2: the labels are
+      /* Pack PJ (PJ-02 H1 + M6): in the WIDE layout the latest
+         month's bars always carry the FULL month label (it used to
+         drop entirely when only one month was charted); a full label
+         longer than 18 chars falls back to the short month suffix so
+         it cannot clip at the left edge. Pack PJ2: the labels are
          computed BEFORE the geometry so labelW can be sized from the
-         longest of them (PJ-verify H1). */
+         longest of them (PJ-verify H1). Pack PJ2c: in the SMALL
+         layout the bar labels are the TYPE NAME ONLY — no month
+         suffix on any group (see the PJ2c note at the shorten pass
+         below); the month is named by the heading note above the
+         charts, the per-board figure source lines and the chart's
+         aria-label. */
       rows.forEach(function (r) {
         var typeName = t["mp_" + r.tk] || r.tk;
         var suffix = "";
-        if (r.latest) suffix = mpMonthLabel(r.month, false);
-        else if (months.length > 1) suffix = (!small && (typeName + " · " + mpMonthLabel(r.month, false)).length > 18) ? mpMonthLabel(r.month, true) : mpMonthLabel(r.month, small);
+        if (!small) {
+          if (r.latest) suffix = mpMonthLabel(r.month, false);
+          else if (months.length > 1) suffix = ((typeName + " · " + mpMonthLabel(r.month, false)).length > 18) ? mpMonthLabel(r.month, true) : mpMonthLabel(r.month, false);
+        }
         r.lbl = typeName + (suffix ? " · " + suffix : "");
       });
       /* Pack PJ2b (PJ close H1): shorten instead of clamp. The cap
@@ -1101,7 +1108,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
          like the other groups — the full month stays in the figure
          source line below and in the chart's aria-label. labelW is
          then sized from the labels actually drawn, so it never has
-         to choose between clipping a label and starving the bars. */
+         to choose between clipping a label and starving the bars.
+         Pack PJ2c: a real-browser measurement (headless Chromium,
+         production payloads) showed the ES short-month labels STILL
+         clipped at 320/360/390px — real glyph widths exceed the
+         chars x 6.4 estimate — so the small layout no longer puts
+         any month on the bars at all (type name only, above), and
+         this shorten pass now only guards the wide layout. */
       var capW = Math.floor(W * 0.46), baseW = small ? 132 : 168;
       var latestEst = 0;
       rows.forEach(function (r) { if (r.latest && r.lbl.length * 6.4 > latestEst) latestEst = r.lbl.length * 6.4; });
