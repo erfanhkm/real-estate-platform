@@ -913,6 +913,26 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       return null;
     }
     /* Pack J (MP-02 H1/L1): retrieval dates are shown in Pacific time. */
+    /* Pack PI (PI-04 M2): the snapshot is a fallback, not a time
+       machine — a rates block older than ~2 months is omitted rather
+       than shown beside live tiles with no age warning, and snapshot
+       values must be real numbers (a stored string or NaN is absent,
+       not a tile). */
+    function mpSnapRates(){
+      var m = mpLatestWith("rates");
+      if (!m) return null;
+      var now = new Date();
+      var cur = now.getFullYear() * 12 + now.getMonth();
+      var parts = String(m.month || "").split("-");
+      var sm = (+parts[0]) * 12 + ((+parts[1] || 1) - 1);
+      if (!isFinite(sm) || cur - sm > 2) return null;
+      return m.rates || null;
+    }
+    function mpSnapNum(v){ return (typeof v === "number" && isFinite(v)) ? v : null; }
+    function mpSnapSrc(snap, dateVal){
+      var s = T().mp_snapshot || "Snapshot";
+      return dateVal ? s + " · " + dateVal : s;
+    }
     function mpVanDate(iso){
       var d = new Date(iso || "");
       if (isNaN(d.getTime())) return String(iso || "").slice(0, 10);
@@ -1082,9 +1102,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var box = $("mpRatesTiles"); if (!box) return;
       if (mpRates === undefined) return; /* Pack J (MP-02 H4): still loading — leave the section as-is */
       var t = T();
-      /* Pack J (MP-02 M1): the snapshot is the newest month WITH a rates block. */
-      var snapM = mpLatestWith("rates");
-      var snap = snapM ? (snapM.rates || null) : null;
+      /* Pack J (MP-02 M1) + Pack PI (PI-04 M2): the snapshot is the
+         newest month WITH a rates block, inside the age window. */
+      var snap = mpSnapRates();
       var tiles = "", msg = "", warn = false;
       /* Pack J (MP-02 H1): live tiles carry a per-tile stale marker when
          the worker is serving cached rates. */
@@ -1098,24 +1118,34 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
            like the no-live-data path below); the bond has no snapshot
            counterpart, so its tile is omitted rather than faked. */
         if (mpRates.prime && !mpMissing(mpRates.prime.value)) tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + (mpRates.prime.date || "") + staleTag);
-        else if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
+        else if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap, snap.primeDate || snap.sourceDate || ""));
         if (mpRates.bond5 && !mpMissing(mpRates.bond5.value)) tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + (mpRates.bond5.date || "") + staleTag);
-        mpDrawPolicy(mpRates.policySeries);
+        /* Pack PI (PI-04 M4): a malformed chart payload must not
+           take the tiles down with it. */
+        try { mpDrawPolicy(mpRates.policySeries); } catch (e) {}
         /* Pack J (MP-02 L1): the retrieval date is Pacific, not UTC. */
         if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: mpVanDate(mpRates.fetchedAt) }); warn = true; }
         else msg = fill(t.mp_live_note, { date: mpVanDate(mpRates.fetchedAt) });
+        /* Pack PI (PI-04 M3): a series the worker reported missing
+           and no snapshot filled is named, not silently absent. */
+        if (Array.isArray(mpRates.missing) && mpRates.missing.length) {
+          var missNames = [];
+          if (mpRates.missing.indexOf("prime") !== -1 && !(snap && mpSnapNum(snap.prime) !== null)) missNames.push(t.mp_prime || "Prime rate");
+          if (mpRates.missing.indexOf("bond5") !== -1) missNames.push(t.mp_bond5 || "5-year bond");
+          if (missNames.length) { msg = (msg ? msg + " " : "") + fill(t.mp_rates_missing || "Not currently available: {names}.", { names: missNames.join(", ") }); warn = true; }
+        }
       } else {
-        if (snap && !mpMissing(snap.policyRate)) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), t.mp_snapshot + " · " + (snap.policyDate || snap.sourceDate || ""));
-        if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
-        mpDrawPolicy(null);
+        if (snap && mpSnapNum(snap.policyRate) !== null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), mpSnapSrc(snap, snap.policyDate || snap.sourceDate || ""));
+        if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap, snap.primeDate || snap.sourceDate || ""));
+        try { mpDrawPolicy(null); } catch (e) {}
         msg = t.mp_unavailable_note; warn = true;
       }
       /* Pack J (MP-02 M6): advertised-rate tiles render ONLY when the
          snapshot names both a source and a date — no fallback attribution,
          no dangling separators. */
       var bestDate = snap ? (snap.bestRatesDate || snap.sourceDate || "") : "";
-      if (snap && !mpMissing(snap.bestFixed5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
-      if (snap && !mpMissing(snap.bestVariable5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
+      if (snap && mpSnapNum(snap.bestFixed5) !== null && snap.bestSource && bestDate) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
+      if (snap && mpSnapNum(snap.bestVariable5) !== null && snap.bestSource && bestDate) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
       box.innerHTML = tiles;
       var msgEl = $("mpRatesMsg");
       if (msgEl) { msgEl.textContent = msg || ""; msgEl.className = "mp-msg" + (warn ? " warn" : ""); }
@@ -1129,9 +1159,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         src = "Bank of Canada · " + esc(mpRates.policy.date || "") + (mpRates.stale ? " · " + esc(t.mp_stale_short) : "");
         liveStale = !!mpRates.stale;
       } else {
-        var snapM = mpLatestWith("rates");
-        var snap = snapM ? (snapM.rates || null) : null;
-        if (snap && !mpMissing(snap.policyRate)) { val = snap.policyRate; src = esc(t.mp_snapshot || "") + " · " + esc(snap.policyDate || snap.sourceDate || ""); }
+        var snap = mpSnapRates();
+        if (snap && mpSnapNum(snap.policyRate) !== null) { val = snap.policyRate; var sd = snap.policyDate || snap.sourceDate || ""; src = esc(t.mp_snapshot || "") + (sd ? " · " + esc(sd) : ""); }
       }
       if (val == null) return; /* no data: keep the baked tile */
       /* Pack J (MP-02 H1): the band carries the same stale warning as the
