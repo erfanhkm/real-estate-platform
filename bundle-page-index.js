@@ -996,14 +996,38 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     var MP_API = "https://advisor-api.erfanbillion.workers.dev";
     var mpStats = undefined, mpRates = undefined;
     /* Pack J (MP-02 H4): per-part transport-failure state. A failed part
-       keeps its last good (or baked) render and may retry after a backoff;
-       mpStats === { failed: true } means "never loaded, fetch failed". */
-    var mpStatsFailed = false, mpRatesFailed = false, mpLoading = false, mpRetryAt = 0;
+       stores a failure sentinel (MP_STATS_FAILED for stats,
+       { ok: false } for rates) so its renderers show the baked tiles /
+       unavailable state, and retries after a 30s backoff — per part
+       since Pack PJ (PJ-01 L1): mpRetryAtStats / mpRetryAtRates.
+       Pack PJ2 (PJ-verify M2): the stats sentinel is a module-private
+       object compared BY IDENTITY — a real payload carrying its own
+       failed: true field is data now, never the sentinel. */
+    var MP_STATS_FAILED = { failed: true };
+    var mpStatsFailed = false, mpRatesFailed = false, mpLoading = false, mpRetryAtStats = 0, mpRetryAtRates = 0;
+    /* Pack PJ2: charts-only redraw state — whether the stats tiles
+       rendered (the chart stage follows the tiles) and the last
+       content width each chart mount was drawn at. */
+    var mpStatsHasTiles = false, mpChartSeenW = {};
+    function mpWidthChanged(mount){ if (!mount || !mount.id) return false; var w = mount.clientWidth || 0; if (mpChartSeenW[mount.id] === w) return false; mpChartSeenW[mount.id] = w; return true; }
     function mpSafe(fn){ try { fn(); } catch (e) {} }
-    /* Pack J (MP-02 M5): missing means null/undefined/empty — a real 0 is data. */
-    function mpMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
-    function mpMoney(n){ if (mpMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? "$" + Math.round(v).toLocaleString("en-US") : "—"; }
-    function mpPct(v, dec){ if (mpMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? x.toFixed(dec == null ? 2 : dec) + "%" : "—"; }
+    /* Pack J (MP-02 M5): missing means null/undefined/empty — a real 0 is data.
+       Pack PJ (PJ-01 L3): whitespace-only strings and arrays are missing too. */
+    function mpMissing(v){ return v === null || v === undefined || typeof v === "boolean" || Array.isArray(v) || (typeof v === "string" && v.trim() === ""); }
+    /* Pack PJ (PJ-01 L2): negatives render "-$1,234" (never "$-1,234")
+       and a rounded -0 renders "$0" / "0.00%" (never "-0.00%"). */
+    function mpMoney(n){ if (mpMissing(n)) return "—"; var v = Number(n); if (!isFinite(v)) return "—"; var r = Math.round(v); return r === 0 ? "$0" : (r < 0 ? "-$" : "$") + Math.abs(r).toLocaleString("en-US"); }
+    function mpPct(v, dec){ if (mpMissing(v)) return "—"; var x = Number(v); if (!isFinite(x)) return "—"; var d = dec == null ? 2 : dec; var n = Number(x.toFixed(d)); return (n === 0 ? 0 : n).toFixed(d) + "%"; }
+    /* Pack PJ (PJ-02 M3): the one numeric gate for stored/live figures —
+       null/undefined/boolean/array/whitespace-string are absent; any
+       other value is coerced with Number() and must be finite. Callers
+       render the COERCED number, never the raw stored value. */
+    function mpNum(v){
+      if (v === null || v === undefined || typeof v === "boolean" || Array.isArray(v)) return null;
+      if (typeof v === "string" && v.trim() === "") return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
     function mpDeltaHtml(v){
       if (mpMissing(v)) return "";
       var x = Number(v); if (!isFinite(x)) return "";
@@ -1011,27 +1035,77 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var cls = r < 0 ? "mp-down" : (r > 0 ? "mp-up" : "");
       return '<span class="' + cls + '" dir="ltr" style="unicode-bidi:isolate">' + (r > 0 ? "+" : (r < 0 ? "−" : "")) + Math.abs(r).toFixed(1) + "%</span>";
     }
-    function mpDeltaSub(v){ var d = mpDeltaHtml(v); return d ? d + " " + esc(T().mp_yoy) : ""; }
+    function mpDeltaSub(v){ var d = mpDeltaHtml(v); return d ? d + " " + esc(T().mp_yoy || "YoY") : ""; }
     function mpMonthLabel(ym, short){
       var parts = String(ym || "").split("-");
       var names = String(T().mp_months || "").split("|");
       var m = names[parseInt(parts[1], 10) - 1] || parts[1] || "";
       return short ? m : (m + " " + (parts[0] || "")).trim();
     }
-    /* Pack J (MP-02 M1/M4): the dataset's month objects, null-safe, newest first. */
+    /* Pack J (MP-02 M1/M4): the dataset's month objects, null-safe, newest first.
+       Pack PJ (PJ-01 M5 + PJ-02 M5): newest-first is now ENFORCED here —
+       invalid month strings are dropped, duplicates by month removed
+       (first wins), and the rest sorted DESC; every consumer inherits. */
     function mpMonths(){
       if (!mpStats || !Array.isArray(mpStats.months)) return [];
-      return mpStats.months.filter(function (m) { return m && typeof m === "object"; });
+      var seen = {}, out = [];
+      mpStats.months.forEach(function (m) {
+        if (!m || typeof m !== "object") return;
+        if (typeof m.month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(m.month)) return;
+        if (seen[m.month]) return;
+        seen[m.month] = 1;
+        out.push(m);
+      });
+      out.sort(function (a, b) { return a.month < b.month ? 1 : (a.month > b.month ? -1 : 0); });
+      return out;
     }
     function mpLatestWith(block){
       var ms = mpMonths();
       for (var i = 0; i < ms.length; i++) { if (ms[i][block]) return ms[i]; }
       return null;
     }
+    /* Pack PI (PI-04 M2): the snapshot is a fallback, not a time
+       machine — a rates block older than ~2 months is omitted rather
+       than shown beside live tiles with no age warning, and snapshot
+       values must be real numbers (a stored string or NaN is absent,
+       not a tile). Pack PJ (PJ-01 M6): a FUTURE month is rejected
+       too — the client twin of the worker-side future bound. */
+    function mpSnapRates(){
+      var m = mpLatestWith("rates");
+      if (!m) return null;
+      var now = new Date();
+      var cur = now.getFullYear() * 12 + now.getMonth();
+      var parts = String(m.month || "").split("-");
+      var sm = (+parts[0]) * 12 + ((+parts[1] || 1) - 1);
+      if (!isFinite(sm) || sm > cur || cur - sm > 2) return null;
+      return m.rates || null;
+    }
+    function mpSnapNum(v){ return (typeof v === "number" && isFinite(v)) ? v : null; }
+    /* Pack PJ (PJ-03 leftover): plain text by contract — its only
+       consumer is mpRateTile, which escapes its srcText. Do NOT escape
+       here; that would double-escape. */
+    function mpSnapSrc(dateVal){
+      var s = T().mp_snapshot || "Snapshot";
+      return dateVal ? s + " · " + dateVal : s;
+    }
     /* Pack J (MP-02 H1/L1): retrieval dates are shown in Pacific time. */
     function mpVanDate(iso){
-      var d = new Date(iso || "");
-      if (isNaN(d.getTime())) return String(iso || "").slice(0, 10);
+      /* Pack PJ2 (PJ-verify M1): a date-only string is a calendar
+         date, not an instant — validate it with a Date.UTC round
+         trip and return it AS-IS. (Pack PJ parsed it as the viewer's
+         local noon and re-rendered it in Pacific time, which shifted
+         it a day EARLY for viewers east of about UTC+4 — the HI/ZH
+         audiences that fix was for.) An invalid calendar date is no
+         date at all (""). Full timestamps still render in Pacific. */
+      var s = String(iso || "");
+      var dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+      if (dm) {
+        var uy = +dm[1], umo = +dm[2], ud = +dm[3];
+        var u = new Date(Date.UTC(uy, umo - 1, ud));
+        return (u.getUTCFullYear() === uy && u.getUTCMonth() === umo - 1 && u.getUTCDate() === ud) ? s : "";
+      }
+      var d = new Date(s);
+      if (isNaN(d.getTime())) return s.slice(0, 10);
       try { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); }
       catch (e) { return d.toISOString().slice(0, 10); }
     }
@@ -1039,6 +1113,18 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
        text renders at true size on phones instead of being scaled down. */
     function mpChartWidth(mount){
       var w = mount && mount.clientWidth ? mount.clientWidth : 0;
+      /* Pack PJ (PJ-02 L1): clientWidth includes horizontal padding —
+         the SVG draws in the CONTENT box, so subtract it when the
+         computed style is available. (PJ-01 M3: a chart first rendered
+         while hidden keeps the 640 fallback until a resize or a
+         tab-return re-render — see mpRenderCharts.) */
+      if (w && typeof getComputedStyle === "function") {
+        try {
+          var cs = getComputedStyle(mount);
+          var pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0;
+          if (pl + pr > 0 && w - pl - pr > 0) w = w - pl - pr;
+        } catch (e) {}
+      }
       if (!w) w = 640;
       return Math.max(300, Math.min(640, w));
     }
@@ -1048,51 +1134,98 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       return new Promise(function (resolve) {
         var settled = false;
         function fin(j){ if (!settled) { settled = true; resolve(j); } }
-        var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
-        var tm = setTimeout(function () { if (ac) { try { ac.abort(); } catch (e) {} } fin(null); }, 10000);
-        fetch(MP_API + path, ac ? { signal: ac.signal } : undefined)
-          .then(function (r) { return r.json(); })
-          .then(function (j) { clearTimeout(tm); fin(j || null); })
-          .catch(function () { clearTimeout(tm); fin(null); });
+        /* Pack PJ (PJ-01 M1): the executor body is guarded — a
+           synchronous throw (a missing fetch, a hostile stub) resolves
+           null like any other transport failure, so the caller's
+           completion callback always runs and mpLoading never sticks. */
+        try {
+          var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+          var tm = setTimeout(function () { if (ac) { try { ac.abort(); } catch (e) {} } fin(null); }, 10000);
+          fetch(MP_API + path, ac ? { signal: ac.signal } : undefined)
+            .then(function (r) { return r.json(); })
+            .then(function (j) { clearTimeout(tm); fin(j || null); })
+            .catch(function () { clearTimeout(tm); fin(null); });
+        } catch (e) { fin(null); }
       });
     }
-    function mpSrcLine(block, ym){ return block ? esc(block.source || "") + " · " + esc(mpMonthLabel(ym)) : ""; }
-    function mpTile(labelKey, value, subHtml, srcLine){
+    /* Pack PJ2 (PJ-verify L5): a source-less block yields just the
+       month label — no leading " · " separator. */
+    function mpSrcLine(block, ym){ if (!block) return ""; var lbl = esc(mpMonthLabel(ym)); var src = block.source ? esc(block.source) : ""; return src ? src + " · " + lbl : lbl; }
+    function mpTile(labelKey, value, subHtml, srcHtml){
       return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
         '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
         (subHtml ? '<p class="mp-sub">' + subHtml + "</p>" : "") +
-        (srcLine ? '<p class="mp-src">' + srcLine + "</p>" : "") + "</article>";
+        (srcHtml ? '<p class="mp-src">' + srcHtml + "</p>" : "") + "</article>";
     }
     function mpDrawBars(mount, figList, monthsDesc, board){
       if (!mount) return;
+      if (mount.id) mpChartSeenW[mount.id] = mount.clientWidth || 0; /* Pack PJ2: the charts-only redraw keys off this */
       var t = T();
       /* Pack J (MP-02 M1/M2): only months carrying this board's type data
          count; the series is capped to the last 6 of them per board, and
          the figure list below reads the newest of those months. */
       var withBoard = (monthsDesc || []).filter(function (m) { return m && typeof m === "object" && m[board] && m[board].types; });
-      var months = withBoard.slice(0, 6).slice().reverse(); // oldest first; bars read as a series when more months arrive
+      var months = withBoard.slice(0, 6).reverse(); // oldest first; bars read as a series when more months arrive
+      /* Pack PJ (PI close L5a): the boards' stored type sets are
+         detached / townhouse / apartment. A condo type is validated
+         and stored server-side but intentionally not charted here. */
       var typeKeys = ["detached", "townhouse", "apartment"];
-      var rows = [], max = 0, latestMonth = months[months.length - 1];
+      var rawRows = [], max = 0;
+      /* Pack PJ (PJ-02 M1 + L4): chart rows pass the mpNum gate — the
+         coerced number drives the max, the bar width and the label; a
+         non-numeric or non-positive price is skipped, never compared
+         as a string (numeric strings used to overflow lexically). */
       typeKeys.forEach(function (tk) {
         months.forEach(function (m) {
           var blk = m[board], tb = blk && blk.types && blk.types[tk];
-          if (tb && tb.price > 0) { rows.push({ tk: tk, month: m.month, price: tb.price, latest: m === latestMonth }); if (tb.price > max) max = tb.price; }
+          var price = tb ? mpNum(tb.price) : null;
+          if (price !== null && price > 0) { rawRows.push({ tk: tk, month: m.month, price: price }); if (price > max) max = price; }
         });
       });
-      if (!rows.length) { mount.innerHTML = ""; if (figList) figList.innerHTML = ""; return; }
+      /* Pack PJ (PJ-02 L12): no rows leaves a short per-board empty
+         note in the mount instead of a silent clear. */
+      if (!rawRows.length) { mount.innerHTML = '<p class="mp-src">' + esc(t.mp_no_data) + "</p>"; if (figList) figList.innerHTML = ""; return; }
+      /* Pack PJ2 (PJ-verify L6): "latest" is the newest month with at
+         least one VALID row — a newest month whose prices are all junk
+         used to highlight nothing and leave the figure list carrying
+         only its month line. */
+      var latestMonth = null;
+      for (var li = months.length - 1; li >= 0; li--) { if (rawRows.some(function (r) { return r.month === months[li].month; })) { latestMonth = months[li]; break; } }
+      var rows = rawRows.map(function (r) { return { tk: r.tk, month: r.month, price: r.price, latest: !!latestMonth && r.month === latestMonth.month }; });
       /* Pack J (MP-02 M2/M3): container-sized viewBox; wider label column
          (short month suffix + smaller label font on narrow containers) so
          "Type · Month Year" labels no longer clip at the left edge. */
       var W = mpChartWidth(mount), small = W < 520;
-      var labelW = small ? 132 : 168, valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
+      /* Pack PJ (PJ-02 H1 + M6): the latest month's bars always carry
+         the FULL month label (it used to drop entirely when only one
+         month was charted); in the wide layout a full label longer
+         than 18 chars falls back to the short month suffix so it
+         cannot clip at the left edge. Pack PJ2: the labels are
+         computed BEFORE the geometry so labelW can be sized from the
+         longest of them (PJ-verify H1). */
+      rows.forEach(function (r) {
+        var typeName = t["mp_" + r.tk] || r.tk;
+        var suffix = "";
+        if (r.latest) suffix = mpMonthLabel(r.month, false);
+        else if (months.length > 1) suffix = (!small && (typeName + " · " + mpMonthLabel(r.month, false)).length > 18) ? mpMonthLabel(r.month, true) : mpMonthLabel(r.month, small);
+        r.lbl = typeName + (suffix ? " · " + suffix : "");
+      });
+      var longestLbl = 0;
+      rows.forEach(function (r) { if (r.lbl.length > longestLbl) longestLbl = r.lbl.length; });
+      /* Pack PJ2 (PJ-verify H1): labelW is sized from the LONGEST
+         rendered label (est. 6.4px per char + padding), floored at
+         the old fixed widths and capped at 46% of the chart so the
+         bars keep room — the latest bar's full-month label is the
+         longest and used to clip at the left edge on phones (the
+         PJ-02 M6 problem returning through the PJ-02 H1 fix). */
+      var labelW = Math.round(Math.min(Math.max(small ? 132 : 168, longestLbl * 6.4 + 16), Math.floor(W * 0.46))), valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
       var height = 8, y = 8, parts = [];
       rows.forEach(function (r, i) { if (i && rows[i - 1].tk !== r.tk) height += groupGap; height += barH + gap; });
       var x0 = labelW, x1 = W - valW;
       rows.forEach(function (r, i) {
         if (i && rows[i - 1].tk !== r.tk) y += groupGap;
         var w = Math.max(2, (x1 - x0) * r.price / max);
-        var lbl = (t["mp_" + r.tk] || r.tk) + (months.length > 1 ? " · " + mpMonthLabel(r.month, small) : "");
-        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="' + (small ? "11.5" : "12.5") + '" fill="var(--muted)">' + esc(lbl) + "</text>");
+        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="' + (small ? "11.5" : "12.5") + '" fill="var(--muted)">' + esc(r.lbl) + "</text>");
         parts.push('<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + barH + '" rx="4" fill="' + (r.latest ? "var(--spruce)" : "var(--brass)") + '"></rect>');
         parts.push('<text x="' + (x0 + w + 8) + '" y="' + (y + barH - 6) + '" font-size="13" font-weight="700" fill="var(--ink)">' + esc(mpMoney(r.price)) + "</text>");
         y += barH + gap;
@@ -1102,16 +1235,28 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         var latest = (latestMonth && latestMonth[board]) || {};
         figList.innerHTML = typeKeys.map(function (tk) {
           var tb = latest.types && latest.types[tk]; if (!tb) return "";
-          return "<li><span>" + esc(t["mp_" + tk] || tk) + "</span><b>" + esc(mpMoney(tb.price)) + (tb.yoyPct != null ? " " + mpDeltaHtml(tb.yoyPct) : "") + "</b></li>";
+          var price = mpNum(tb.price); if (price === null || price <= 0) return "";
+          return "<li><span>" + esc(t["mp_" + tk] || tk) + "</span><b>" + esc(mpMoney(price)) + (tb.yoyPct != null ? " " + mpDeltaHtml(tb.yoyPct) : "") + "</b></li>";
         }).join("");
+        /* Pack PJ (PJ-02 H1): the figure list names its own month —
+           the newest month carrying this board's types — so the
+           figures never silently predate the heading note. */
+        if (latestMonth && latestMonth[board]) figList.innerHTML += '<li class="mp-figsrc">' + mpSrcLine(latestMonth[board], latestMonth.month) + "</li>";
       }
     }
     function mpDrawPolicy(series){
       var mount = $("mpChartPolicy"); if (!mount) return;
+      if (mount.id) mpChartSeenW[mount.id] = mount.clientWidth || 0; /* Pack PJ2: the charts-only redraw keys off this */
       var t = T();
-      if (!series || series.length < 2) { mount.innerHTML = ""; return; }
-      /* Pack J (MP-02 M4): drop malformed points instead of poisoning the scale. */
-      var ptsIn = series.filter(function (p) { return p && !mpMissing(p[1]) && isFinite(Number(p[1])); });
+      /* Pack PJ (PJ-03 L1): a non-array series is invalid input —
+         clear the mount rather than throw and leave a stale chart. */
+      if (!Array.isArray(series) || series.length < 2) { mount.innerHTML = ""; return; }
+      /* Pack J (MP-02 M4): drop malformed points instead of poisoning the scale.
+         Pack PJ (PJ-03 M5): a point needs a real date, and the series
+         is plotted in ascending date order — a descending series used
+         to highlight the OLDEST point as current. */
+      var ptsIn = series.filter(function (p) { return p && typeof p[0] === "string" && /^\d{4}-\d{2}-\d{2}/.test(p[0]) && !mpMissing(p[1]) && isFinite(Number(p[1])); });
+      ptsIn.sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); });
       if (ptsIn.length < 2) { mount.innerHTML = ""; return; }
       /* Pack J (MP-02 L4/M3): container-sized viewBox, padT 26 so the
          endpoint value never clips, and the axis labels/gridlines show the
@@ -1124,25 +1269,51 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var iw = W - padL - padR, ih = H - padT - padB;
       function X(i) { return padL + iw * i / (ptsIn.length - 1); }
       function Y(v) { return padT + ih * (1 - (v - mn) / (mx - mn)); }
-      var pts = ptsIn.map(function (p, i) { return X(i).toFixed(1) + "," + Y(Number(p[1])).toFixed(1); }).join(" ");
+      /* Pack PJ2 (PJ-verify ruling 2): the policy rate is a step
+         function — the line steps AFTER each change point instead of
+         ramping diagonally between them (a ramp implies a gradual
+         move that never happened). X stays INDEX-spaced: the worker
+         sends rate-change dates only, and true date spacing would
+         compress long flat stretches illegibly — a conscious,
+         recorded deviation; the series IS date-sorted above. */
+      var step = "M " + X(0).toFixed(1) + "," + Y(Number(ptsIn[0][1])).toFixed(1);
+      for (var si = 1; si < ptsIn.length; si++) step += " H " + X(si).toFixed(1) + " V " + Y(Number(ptsIn[si][1])).toFixed(1);
       var last = ptsIn[ptsIn.length - 1], first = ptsIn[0];
       var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" style="direction:ltr" aria-label="' + esc(t.mp_policy_caption) + '">';
       s += '<line x1="' + padL + '" y1="' + Y(rawMx) + '" x2="' + (W - padR) + '" y2="' + Y(rawMx) + '" stroke="var(--line)"></line>';
       s += '<line x1="' + padL + '" y1="' + Y(rawMn) + '" x2="' + (W - padR) + '" y2="' + Y(rawMn) + '" stroke="var(--line)"></line>';
       s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMx) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMx.toFixed(2) + "%</text>";
       s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMn) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMn.toFixed(2) + "%</text>";
-      s += '<polyline fill="none" stroke="var(--brass)" stroke-width="2.5" points="' + pts + '"></polyline>';
+      s += '<path d="' + step + '" fill="none" stroke="var(--brass)" stroke-width="2.5"></path>';
       s += '<circle cx="' + X(ptsIn.length - 1) + '" cy="' + Y(Number(last[1])) + '" r="4" fill="var(--spruce)"></circle>';
       s += '<text x="' + X(ptsIn.length - 1) + '" y="' + (Y(Number(last[1])) - 10) + '" text-anchor="end" font-size="13" font-weight="700" fill="var(--ink)">' + Number(last[1]).toFixed(2) + "%</text>";
       s += '<text x="' + padL + '" y="' + (H - 6) + '" font-size="11.5" fill="var(--muted)">' + esc(first[0]) + "</text>";
       s += '<text x="' + (W - padR) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + esc(last[0]) + "</text>";
       mount.innerHTML = s + "</svg>" + '<p class="mp-src" style="margin-top:6px">' + esc(t.mp_policy_caption) + "</p>";
     }
+    /* Pack PJ2 (PJ-verify M2): the chart stage of mpRenderStats, split
+       out so the resize / tab-return / ResizeObserver path can redraw
+       ONLY the charts — it never rebuilds tiles, the note or the
+       sources (Pack PJ's mpRenderCharts claimed that but called the
+       full mpRenderStats). */
+    function mpDrawStatsCharts(months){
+      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), months, "gvr");
+      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), months, "fvreb");
+    }
+    function mpClearStatsCharts(){
+      ["mpChartGvr", "mpChartFvreb", "mpFigGvr", "mpFigFvreb"].forEach(function (id) { var el = $(id); if (el) el.innerHTML = ""; });
+    }
+    function mpRedrawStatsCharts(){
+      if (!mpStats || mpStats === MP_STATS_FAILED) return;
+      var months = mpMonths();
+      if (!months.length || !mpStatsHasTiles) { mpClearStatsCharts(); return; }
+      mpSafe(function () { mpDrawStatsCharts(months); });
+    }
     function mpRenderStats(){
       var box = $("mpKpis"); if (!box) return;
       var t = T();
       if (mpStats === undefined) return; /* Pack J (MP-02 H4): still loading — the baked tiles stay */
-      if (mpStats.failed) {
+      if (mpStats === MP_STATS_FAILED) {
         /* Pack J (MP-02 H4): transport failure — the baked tiles stay and
            the note says the figures could not be refreshed (never the
            "no data" state, which is reserved for a loaded-but-empty set). */
@@ -1153,41 +1324,103 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!months.length) {
         box.innerHTML = '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
         var sc0 = $("mpSources"); if (sc0) sc0.innerHTML = "";
-        var cg0 = $("mpChartGvr"); if (cg0) cg0.innerHTML = "";
-        var cf0 = $("mpChartFvreb"); if (cf0) cf0.innerHTML = "";
-        var fg0 = $("mpFigGvr"); if (fg0) fg0.innerHTML = "";
-        var ff0 = $("mpFigFvreb"); if (ff0) ff0.innerHTML = "";
+        mpClearStatsCharts();
         var nn = $("mpMonthNote"); if (nn) nn.textContent = t.mp_no_data;
         return;
       }
       /* Pack J (MP-02 M1): every tile reads the newest month that carries
          its own block; each tile's source line names that month, and the
-         heading note claims a single month only when all tiles share it. */
+         heading note claims a single month only when all tiles share it.
+         Pack PJ (PJ-02 M4): block-level selection is DELIBERATE — a tile
+         never falls back field-by-field, so a figure is never shown from
+         an older month than the newest month carrying its block. */
       var bcM = mpLatestWith("bc"), gvM = mpLatestWith("gvr"), fvM = mpLatestWith("fvreb"), caM = mpLatestWith("canada");
-      var usedMonths = {};
-      function use(mo){ if (mo && mo.month) usedMonths[mo.month] = 1; }
+      var usedMonths = {}, usedBlocks = [];
+      /* Pack PJ (PJ-02 L5): use() ignores a month object without a
+         valid month string (mpMonths already guarantees one). */
+      function use(mo, blk){
+        if (mo && typeof mo.month === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(mo.month)) usedMonths[mo.month] = 1;
+        if (blk) usedBlocks.push(blk);
+      }
       var tiles = "";
-      if (bcM && !mpMissing(bcM.bc.sales) && isFinite(Number(bcM.bc.sales))) { use(bcM); tiles += mpTile("mp_kpi_bc_sales", Number(bcM.bc.sales).toLocaleString("en-US"), mpDeltaSub(bcM.bc.salesYoyPct), mpSrcLine(bcM.bc, bcM.month)); }
-      if (gvM && !mpMissing(gvM.gvr.benchmark)) { use(gvM); tiles += mpTile("mp_kpi_gvr_bench", mpMoney(gvM.gvr.benchmark), mpDeltaSub(gvM.gvr.benchmarkYoyPct), mpSrcLine(gvM.gvr, gvM.month)); }
-      if (fvM && !mpMissing(fvM.fvreb.benchmark)) { use(fvM); tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(fvM.fvreb.benchmark), mpDeltaSub(fvM.fvreb.benchmarkYoyPct), mpSrcLine(fvM.fvreb, fvM.month)); }
-      if (gvM && !mpMissing(gvM.gvr.salesToActivePct)) { use(gvM); tiles += mpTile("mp_kpi_salr", mpPct(gvM.gvr.salesToActivePct, 1), esc(t.mp_salr_sub), mpSrcLine(gvM.gvr, gvM.month)); }
-      if (caM && !mpMissing(caM.canada.monthsInventory) && isFinite(Number(caM.canada.monthsInventory))) { use(caM); tiles += mpTile("mp_kpi_moi", String(Number(caM.canada.monthsInventory)), esc(t.mp_moi_sub), mpSrcLine(caM.canada, caM.month)); }
-      box.innerHTML = tiles || '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
-      var mKeys = Object.keys(usedMonths);
-      var note = $("mpMonthNote");
-      if (note) note.textContent = mKeys.length === 1 ? fill(t.mp_data_for, { month: mpMonthLabel(mKeys[0]) }) : t.mp_data_latest;
-      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), months, "gvr");
-      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), months, "fvreb");
-      var sc = $("mpSources");
-      if (sc) {
+      /* Pack PJ (PJ-02 L2): the three render stages (tiles+note /
+         charts / sources) run in separate mpSafe calls — a failure in
+         one never takes the others down. */
+      mpSafe(function () {
+        /* Pack PJ (PJ-02 M3 + L7): one mpNum gate for all five tiles —
+           the coerced number renders (sales rounded, months-of-
+           inventory at 1dp), and a gated-out tile does NOT call use():
+           it claims no month and lists no source. */
+        var bcSales = bcM ? mpNum(bcM.bc.sales) : null;
+        if (bcM && bcSales !== null) { use(bcM, bcM.bc); tiles += mpTile("mp_kpi_bc_sales", Math.round(bcSales).toLocaleString("en-US"), mpDeltaSub(bcM.bc.salesYoyPct), mpSrcLine(bcM.bc, bcM.month)); }
+        var gvBench = gvM ? mpNum(gvM.gvr.benchmark) : null;
+        if (gvM && gvBench !== null) { use(gvM, gvM.gvr); tiles += mpTile("mp_kpi_gvr_bench", mpMoney(gvBench), mpDeltaSub(gvM.gvr.benchmarkYoyPct), mpSrcLine(gvM.gvr, gvM.month)); }
+        var fvBench = fvM ? mpNum(fvM.fvreb.benchmark) : null;
+        if (fvM && fvBench !== null) { use(fvM, fvM.fvreb); tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(fvBench), mpDeltaSub(fvM.fvreb.benchmarkYoyPct), mpSrcLine(fvM.fvreb, fvM.month)); }
+        var gvSalr = gvM ? mpNum(gvM.gvr.salesToActivePct) : null;
+        if (gvM && gvSalr !== null) { use(gvM, gvM.gvr); tiles += mpTile("mp_kpi_salr", mpPct(gvSalr, 1), esc(t.mp_salr_sub), mpSrcLine(gvM.gvr, gvM.month)); }
+        var caInv = caM ? mpNum(caM.canada.monthsInventory) : null;
+        if (caM && caInv !== null) { use(caM, caM.canada); tiles += mpTile("mp_kpi_moi", caInv.toFixed(1), esc(t.mp_moi_sub), mpSrcLine(caM.canada, caM.month)); }
+        box.innerHTML = tiles || '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
+        /* Pack PJ (PJ-02 L3): no tiles -> the note says no data (never
+           the "latest data" claim) and the charts stage is skipped. */
+        var mKeys = Object.keys(usedMonths);
+        var note = $("mpMonthNote");
+        if (note) note.textContent = !tiles ? t.mp_no_data : (mKeys.length === 1 ? fill(t.mp_data_for, { month: mpMonthLabel(mKeys[0]) }) : t.mp_data_latest);
+      });
+      /* Pack PJ2 (PJ-verify M2 + L7): the tiles flag is recorded for
+         the charts-only redraw path, and an empty tiles state CLEARS
+         the charts — previously rendered charts used to persist over
+         the "no data" tiles. */
+      mpStatsHasTiles = !!tiles;
+      if (!tiles) mpClearStatsCharts();
+      if (tiles) mpSafe(function () {
+        mpDrawStatsCharts(months);
+        /* The charts/figures read the newest month carrying each
+           board's types — those blocks join the sources list below. */
+        ["gvr", "fvreb"].forEach(function (board) {
+          for (var i = 0; i < months.length; i++) { if (months[i][board] && months[i][board].types) { usedBlocks.push(months[i][board]); break; } }
+        });
+      });
+      mpSafe(function () {
+        var sc = $("mpSources");
+        if (!sc) return;
+        /* Pack PJ (PJ-02 M2): the sources list is built from what
+           actually rendered — the blocks behind the visible tiles and
+           the chart/figure board months, plus the rates block behind
+           whichever rates tiles are on the page (the dataset snapshot
+           when snapshot tiles show, else the live payload's own
+           source). Dedup key = source + sourceDate. */
+        var blocks = usedBlocks.slice();
+        var snapB = mpSnapRates();
+        var snapShown = false;
+        if (snapB) {
+          if (!(mpRates && mpRates.ok)) snapShown = mpSnapNum(snapB.policyRate) !== null || mpSnapNum(snapB.prime) !== null;
+          if (!snapShown) {
+            var bd = typeof snapB.bestRatesDate === "string" ? snapB.bestRatesDate : "";
+            snapShown = typeof snapB.bestSource === "string" && snapB.bestSource !== "" && bd !== "" && (mpSnapNum(snapB.bestFixed5) !== null || mpSnapNum(snapB.bestVariable5) !== null);
+          }
+          /* Pack PJ2 (PJ-verify L8): a snapshot FALLBACK tile beside
+             live tiles (the live policy/prime value unusable) also
+             puts the snapshot's source on the list. */
+          if (!snapShown && mpRates && mpRates.ok) {
+            var polBad = !mpRates.policy || mpNum(mpRates.policy.value) === null;
+            var priBad = !mpRates.prime || mpNum(mpRates.prime.value) === null;
+            if ((polBad && mpSnapNum(snapB.policyRate) !== null) || (priBad && mpSnapNum(snapB.prime) !== null)) snapShown = true;
+          }
+        }
+        if (snapShown) blocks.push(snapB);
+        else if (mpRates && mpRates.ok && mpRates.source) blocks.push({ source: mpRates.source, sourceDate: (mpRates.policy && mpRates.policy.date) || "" });
         var seen = {}, items = [];
-        [["canada", caM], ["bc", bcM], ["gvr", gvM], ["fvreb", fvM], ["rates", mpLatestWith("rates")]].forEach(function (pair) {
-          var mo = pair[1]; if (!mo) return;
-          var b = mo[pair[0]];
-          if (b && b.source && !seen[b.source]) { seen[b.source] = 1; items.push("<li>" + esc(b.source) + " — " + esc(b.sourceDate || "") + "</li>"); }
+        blocks.forEach(function (b) {
+          if (!b || !b.source) return;
+          var key = b.source + "|" + (b.sourceDate || "");
+          if (seen[key]) return;
+          seen[key] = 1;
+          items.push("<li>" + esc(b.source) + " — " + esc(b.sourceDate || "") + "</li>");
         });
         sc.innerHTML = items.length ? "<ul>" + items.join("") + "</ul>" : "";
-      }
+      });
     }
     function mpRateTile(labelKey, value, srcText){
       return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
@@ -1198,41 +1431,70 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var box = $("mpRatesTiles"); if (!box) return;
       if (mpRates === undefined) return; /* Pack J (MP-02 H4): still loading — leave the section as-is */
       var t = T();
-      /* Pack J (MP-02 M1): the snapshot is the newest month WITH a rates block. */
-      var snapM = mpLatestWith("rates");
-      var snap = snapM ? (snapM.rates || null) : null;
+      /* Pack J (MP-02 M1) + Pack PI (PI-04 M2): the snapshot is the
+         newest month WITH a rates block, inside the age window. */
+      var snap = mpSnapRates();
       var tiles = "", msg = "", warn = false;
       /* Pack J (MP-02 H1): live tiles carry a per-tile stale marker when
          the worker is serving cached rates. */
       var staleTag = (mpRates && mpRates.stale) ? " · " + t.mp_stale_short : "";
       if (mpRates && mpRates.ok) {
-        if (mpRates.policy && !mpMissing(mpRates.policy.value)) tiles += mpRateTile("mp_policy", mpPct(mpRates.policy.value), "Bank of Canada · " + (mpRates.policy.date || "") + staleTag);
+        /* Pack PJ (PJ-03 M1/M2): live values pass the mpNum gate, and
+           the policy tile takes the same snapshot fallback prime has
+           always had — hub and band no longer disagree when the live
+           policy value is unusable. */
+        var polN = mpRates.policy ? mpNum(mpRates.policy.value) : null;
+        if (polN !== null) tiles += mpRateTile("mp_policy", mpPct(polN), "Bank of Canada · " + (mpRates.policy.date || "") + staleTag);
+        else if (snap && mpSnapNum(snap.policyRate) !== null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), mpSnapSrc(snap.policyDate || snap.sourceDate || ""));
         /* Pack I (MP-01 M3): prime / bond5 may arrive null (their Valet
            series missing or older than its freshness cap — the worker
            reports them in mpRates.missing). Degrade per tile: prime
            falls back to the dated dataset snapshot (labelled as such,
            like the no-live-data path below); the bond has no snapshot
            counterpart, so its tile is omitted rather than faked. */
-        if (mpRates.prime && !mpMissing(mpRates.prime.value)) tiles += mpRateTile("mp_prime", mpPct(mpRates.prime.value), "Bank of Canada · " + (mpRates.prime.date || "") + staleTag);
-        else if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
-        if (mpRates.bond5 && !mpMissing(mpRates.bond5.value)) tiles += mpRateTile("mp_bond5", mpPct(mpRates.bond5.value), "Bank of Canada · " + (mpRates.bond5.date || "") + staleTag);
-        mpDrawPolicy(mpRates.policySeries);
+        var priN = mpRates.prime ? mpNum(mpRates.prime.value) : null;
+        if (priN !== null) tiles += mpRateTile("mp_prime", mpPct(priN), "Bank of Canada · " + (mpRates.prime.date || "") + staleTag);
+        else if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap.primeDate || snap.sourceDate || ""));
+        var bonN = mpRates.bond5 ? mpNum(mpRates.bond5.value) : null;
+        if (bonN !== null) tiles += mpRateTile("mp_bond5", mpPct(bonN), "Bank of Canada · " + (mpRates.bond5.date || "") + staleTag);
+        /* Pack PI (PI-04 M4): a malformed chart payload must not
+           take the tiles down with it. */
+        try { mpDrawPolicy(mpRates.policySeries); } catch (e) {}
         /* Pack J (MP-02 L1): the retrieval date is Pacific, not UTC. */
-        if (mpRates.stale) { msg = fill(t.mp_stale_note, { date: mpVanDate(mpRates.fetchedAt) }); warn = true; }
-        else msg = fill(t.mp_live_note, { date: mpVanDate(mpRates.fetchedAt) });
+        /* Pack PJ (PJ-03 L4): an empty retrieval date omits the date
+           clause entirely — the stale case falls back to the plain
+           unavailable note, the live case shows no note. */
+        var fetchedD = mpVanDate(mpRates.fetchedAt);
+        if (mpRates.stale) { msg = fetchedD ? fill(t.mp_stale_note, { date: fetchedD }) : t.mp_unavailable_note; warn = true; }
+        else if (fetchedD) msg = fill(t.mp_live_note, { date: fetchedD });
+        /* Pack PI (PI-04 M3): a series the worker reported missing
+           and no snapshot filled is named, not silently absent. */
+        if (Array.isArray(mpRates.missing) && mpRates.missing.length) {
+          var missNames = [];
+          if (mpRates.missing.indexOf("prime") !== -1 && !(snap && mpSnapNum(snap.prime) !== null)) missNames.push(t.mp_prime || "Prime rate");
+          if (mpRates.missing.indexOf("bond5") !== -1) missNames.push(t.mp_bond5 || "5-year bond");
+          if (missNames.length) { msg = (msg ? msg + " " : "") + fill(t.mp_rates_missing || "Not currently available: {names}.", { names: missNames.join(", ") }); warn = true; }
+        }
       } else {
-        if (snap && !mpMissing(snap.policyRate)) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), t.mp_snapshot + " · " + (snap.policyDate || snap.sourceDate || ""));
-        if (snap && !mpMissing(snap.prime)) tiles += mpRateTile("mp_prime", mpPct(snap.prime), t.mp_snapshot + " · " + (snap.primeDate || snap.sourceDate || ""));
-        mpDrawPolicy(null);
+        if (snap && mpSnapNum(snap.policyRate) !== null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), mpSnapSrc(snap.policyDate || snap.sourceDate || ""));
+        if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap.primeDate || snap.sourceDate || ""));
+        try { mpDrawPolicy(null); } catch (e) {}
         msg = t.mp_unavailable_note; warn = true;
       }
       /* Pack J (MP-02 M6): advertised-rate tiles render ONLY when the
          snapshot names both a source and a date — no fallback attribution,
          no dangling separators. */
-      var bestDate = snap ? (snap.bestRatesDate || snap.sourceDate || "") : "";
-      if (snap && !mpMissing(snap.bestFixed5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
-      if (snap && !mpMissing(snap.bestVariable5) && snap.bestSource && bestDate) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
-      box.innerHTML = tiles;
+      /* Pack PJ (PI close L2 + PJ-03 L3): the advertised-rate date is
+         the rates-specific bestRatesDate only (no sourceDate fallback),
+         and both the source and the date must be real strings. */
+      var bestDate = snap && typeof snap.bestRatesDate === "string" ? snap.bestRatesDate : "";
+      var bestOk = !!snap && typeof snap.bestSource === "string" && snap.bestSource !== "" && bestDate !== "";
+      if (snap && mpSnapNum(snap.bestFixed5) !== null && bestOk) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
+      if (snap && mpSnapNum(snap.bestVariable5) !== null && bestOk) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
+      /* Pack PJ (PJ-03 M3): overwrite only when something rendered —
+         a failure with no snapshot keeps the baked tiles (the note
+         below still updates). */
+      if (tiles) box.innerHTML = tiles;
       var msgEl = $("mpRatesMsg");
       if (msgEl) { msgEl.textContent = msg || ""; msgEl.className = "mp-msg" + (warn ? " warn" : ""); }
     }
@@ -1240,19 +1502,23 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var tile = $("mpBandPolicy"); if (!tile) return; /* homepage band only; no-op on the hub page */
       var t = T();
       var val = null, src = "", liveStale = false;
-      if (mpRates && mpRates.ok && mpRates.policy && !mpMissing(mpRates.policy.value)) {
-        val = mpRates.policy.value;
+      var bandPol = (mpRates && mpRates.ok && mpRates.policy) ? mpNum(mpRates.policy.value) : null;
+      if (bandPol !== null) {
+        val = bandPol;
         src = "Bank of Canada · " + esc(mpRates.policy.date || "") + (mpRates.stale ? " · " + esc(t.mp_stale_short) : "");
         liveStale = !!mpRates.stale;
       } else {
-        var snapM = mpLatestWith("rates");
-        var snap = snapM ? (snapM.rates || null) : null;
-        if (snap && !mpMissing(snap.policyRate)) { val = snap.policyRate; src = esc(t.mp_snapshot || "") + " · " + esc(snap.policyDate || snap.sourceDate || ""); }
+        var snap = mpSnapRates();
+        if (snap && mpSnapNum(snap.policyRate) !== null) { val = snap.policyRate; var sd = snap.policyDate || snap.sourceDate || ""; src = esc(t.mp_snapshot || "") + (sd ? " · " + esc(sd) : ""); }
       }
       if (val == null) return; /* no data: keep the baked tile */
       /* Pack J (MP-02 H1): the band carries the same stale warning as the
          hub, with the retrieval date in Pacific time. */
-      var staleHtml = liveStale ? '<p class="mp-msg warn">' + esc(fill(t.mp_stale_note, { date: mpVanDate(mpRates.fetchedAt) })) + "</p>" : "";
+      /* Pack PJ2 (PJ-verify L1/L2): an unusable retrieval date makes
+         the band dateless too (the plain unavailable note), like the
+         hub — never "as of " with an empty date. */
+      var bandDate = liveStale ? mpVanDate(mpRates.fetchedAt) : "";
+      var staleHtml = liveStale ? '<p class="mp-msg warn">' + esc(bandDate ? fill(t.mp_stale_note, { date: bandDate }) : t.mp_unavailable_note) + "</p>" : "";
       tile.innerHTML = "<h3>" + esc(t.mp_policy || "mp_policy") + '</h3><p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(mpPct(val)) + '</p><p class="mp-src">' + src + "</p>" + staleHtml;
     }
     function mpRenderAll(){ mpSafe(mpRenderStats); mpSafe(mpRenderRates); mpSafe(mpRenderBandRate); }
@@ -1264,40 +1530,97 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!$("mpKpis")) return;
       if (mpStats !== undefined && mpRates !== undefined && !mpStatsFailed && !mpRatesFailed) { mpRenderAll(); return; }
       if (mpLoading) { mpRenderAll(); return; }
-      if ((mpStatsFailed || mpRatesFailed) && Date.now() < mpRetryAt) { mpRenderAll(); return; }
+      /* Pack PJ (PJ-01 L1): the retry backoff is per part — one part's
+         backoff never blocks the other part's retry. */
+      var statsDue = mpStats === undefined || (mpStatsFailed && Date.now() >= mpRetryAtStats);
+      var ratesDue = mpRates === undefined || (mpRatesFailed && Date.now() >= mpRetryAtRates);
+      if (!statsDue && !ratesDue) { mpRenderAll(); return; }
       mpLoading = true;
       var note = $("mpMonthNote");
       if (note && mpStats === undefined) note.textContent = T().mp_loading;
       var pending = 0;
       function done(){ pending--; if (pending <= 0) mpLoading = false; }
-      if (mpStats === undefined || mpStatsFailed) {
+      if (statsDue) {
         pending++;
         mpGet("/api/market/stats").then(function (j) {
+          /* Pack PJ (PJ-01 M2): one success rule — a payload counts as
+             data only when ok is set AND months is an array; anything
+             else (including a 5xx JSON body) takes the failure path. */
           if (j && j.ok && Array.isArray(j.months)) { mpStats = j; mpStatsFailed = false; }
-          else { mpStatsFailed = true; mpRetryAt = Date.now() + 30000; if (mpStats === undefined) mpStats = { failed: true }; }
-          mpSafe(mpRenderStats); mpSafe(mpRenderBandRate); done();
+          else { mpStatsFailed = true; mpRetryAtStats = Date.now() + 30000; if (mpStats === undefined) mpStats = MP_STATS_FAILED; }
+          /* Pack PJ (PJ-03 H1): BOTH completion callbacks render
+             everything (the renderers are idempotent) — the snapshot
+             tiles need the stats payload, which may land after rates. */
+          mpRenderAll(); done();
         });
       }
-      if (mpRates === undefined || mpRatesFailed) {
+      if (ratesDue) {
         pending++;
         mpGet("/api/market/rates").then(function (j) {
-          if (j) { mpRates = j; mpRatesFailed = false; }
-          else { mpRatesFailed = true; mpRetryAt = Date.now() + 30000; if (mpRates === undefined) mpRates = { ok: false }; }
-          mpSafe(mpRenderRates); mpSafe(mpRenderBandRate); done();
+          /* Pack PJ (PJ-01 M2 + PJ-03 L13): rates success means
+             ok === true exactly. A worker 503 { ok: false } body is
+             still stored for rendering (the unavailable state plus
+             any snapshot) AND marked failed, so it retries after the
+             backoff instead of sticking as a permanent "success". */
+          if (j && j.ok === true) { mpRates = j; mpRatesFailed = false; }
+          else { mpRatesFailed = true; mpRetryAtRates = Date.now() + 30000; if (j) mpRates = j; else if (mpRates === undefined) mpRates = { ok: false }; }
+          mpRenderAll(); done();
         });
       }
-      if (!pending) { mpLoading = false; mpRenderAll(); }
     }
-    window.addEventListener("focus", function () { if (mpStatsFailed || mpRatesFailed) renderMarketPulse(); });
-    /* Pack J (MP-02 M3): charts re-render at the new container width on
-       resize (debounced; data is already in memory, so this is cheap). */
+    /* Pack PJ2 (PJ-verify L4): retries fire only when their backoff
+       has actually expired — a focus during the backoff used to run a
+       full no-op re-render. */
+    window.addEventListener("focus", function () { if ((mpStatsFailed && Date.now() >= mpRetryAtStats) || (mpRatesFailed && Date.now() >= mpRetryAtRates)) renderMarketPulse(); });
+    /* Pack PJ2 (PJ-verify M2): chart-only redraw, shared by resize,
+       tab-return and the ResizeObserver below. The stats side redraws
+       ONLY the charts (mpRedrawStatsCharts — tiles, note and sources
+       are never rebuilt here); the sentinel is identity-compared, so
+       a payload's own failed field can no longer gate it; the rates
+       side redraws ONLY the policy chart and only when its mount and
+       series exist. Each chart redraws only when its mount's content
+       width actually changed since it was last drawn. */
+    function mpRenderCharts(){
+      var cg = $("mpChartGvr"), cf = $("mpChartFvreb");
+      if ((cg && mpWidthChanged(cg)) || (cf && mpWidthChanged(cf))) mpRedrawStatsCharts();
+      var pm = $("mpChartPolicy");
+      if (mpRates !== undefined && pm && mpRates.policySeries && mpWidthChanged(pm)) { try { mpDrawPolicy(mpRates.policySeries); } catch (e) {} }
+    }
+    /* Pack J (MP-02 M3): charts re-render at the new container width
+       on resize (debounced). Pack PJ2: the mpLastInnerW guard is gone
+       — mpRenderCharts itself ignores mounts whose content width did
+       not change, so a height-only resize (mobile URL-bar scroll)
+       costs nothing and needs no window-width bookkeeping. */
     var mpResizeTm = null;
     window.addEventListener("resize", function () {
-      if (mpStats === undefined || mpStats.failed) return;
       clearTimeout(mpResizeTm);
-      mpResizeTm = setTimeout(function () { mpSafe(mpRenderStats); mpSafe(mpRenderRates); }, 200);
+      mpResizeTm = setTimeout(mpRenderCharts, 200);
     });
-    /* ---------- home featured listings (build-generated shim) ---------- */
+    /* Pack PJ2 (PJ-verify ruling 3): a ResizeObserver on the chart
+       mounts — a chart first drawn inside a hidden container
+       (clientWidth 0, fallback width) redraws when the container is
+       revealed, which neither the window resize nor visibilitychange
+       reliably signals. Feature-detected; the resize listener above
+       stays as the fallback. */
+    if (typeof ResizeObserver === "function") {
+      try {
+        var mpRO = new ResizeObserver(function () { clearTimeout(mpResizeTm); mpResizeTm = setTimeout(mpRenderCharts, 120); });
+        ["mpChartGvr", "mpChartFvreb", "mpChartPolicy"].forEach(function (id) { var el = $(id); if (el) mpRO.observe(el); });
+      } catch (e) {}
+    }
+    /* Pack PJ (PJ-01 L4): a mobile tab-return does not fire focus —
+       visibilitychange runs the same retry path as focus AND
+       re-renders the charts once (a chart first rendered while the
+       tab was hidden used the fallback width). Pack PJ2 (PJ-verify
+       L4): when a retry is due, renderMarketPulse already re-renders
+       everything, so the charts path runs only otherwise — no more
+       double render on tab-return. */
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) return;
+      var due = (mpStatsFailed && Date.now() >= mpRetryAtStats) || (mpRatesFailed && Date.now() >= mpRetryAtRates);
+      if (due) renderMarketPulse();
+      else mpRenderCharts();
+    });
     window.openListing = function(){ window.location.href = "listings.html"; };
     function renderFeatured(){
       $("featuredGrid").innerHTML = LISTINGS.map(function(l){ return cardHTML(l, null); }).join("");

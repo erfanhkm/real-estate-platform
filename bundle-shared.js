@@ -1468,8 +1468,8 @@
       mp_sources_title:"Sources",mp_disclaimer:"This page is general information only, not financial or real-estate advice.",
       mp_subscribe:"Get these figures every month as a professionally designed report in your inbox — in the language you choose.",mp_subscribe_btn:"Subscribe free",mp_home_cta:"See the full Market Pulse",
       mp_loading:"Loading the latest figures…",mp_no_data:"No board statistics have been published here yet.",
-      mp_stats_unavailable:"Couldn't load the latest statistics — showing the published figures above.",mp_data_latest:"Latest available market data",
-      mp_stale_short:"stale",mp_policy_caption:"Bank of Canada policy rate over the past year"},
+      mp_stats_unavailable:"Couldn't load the latest statistics — showing the published figures.",mp_data_latest:"Latest available market data",
+      mp_stale_short:"cached",mp_policy_caption:"Bank of Canada policy rate"},
     fa:{mp_title:"نبض بازار",
       mp_sub:"تازه‌ترین آمار منتشرشده‌ی بازار مسکن بریتیش‌کلمبیا و کانادا، به‌همراه نرخ‌های بهره‌ی زنده‌ی بانک کانادا — هر عدد با منبع و تاریخش.",
       mp_kpi_bc_sales:"فروش خانه در بریتیش‌کلمبیا",mp_kpi_gvr_bench:"قیمت معیار ونکوور بزرگ",mp_kpi_fvreb_bench:"قیمت معیار فریزر ولی",
@@ -1486,8 +1486,8 @@
       mp_sources_title:"منابع",mp_disclaimer:"این صفحه فقط اطلاعات عمومی است و مشاوره‌ی مالی یا ملکی محسوب نمی‌شود.",
       mp_subscribe:"همین ارقام را هر ماه به‌صورت یک گزارش حرفه‌ای و طراحی‌شده در ایمیلتان بگیرید — به زبان انتخابی خودتان.",mp_subscribe_btn:"اشتراک رایگان",mp_home_cta:"مشاهده‌ی کامل نبض بازار",
       mp_loading:"در حال بارگذاری تازه‌ترین ارقام…",mp_no_data:"هنوز آمار بوردها اینجا منتشر نشده است.",
-      mp_stats_unavailable:"بارگذاری تازه‌ترین آمار ممکن نشد — ارقام منتشرشده‌ی بالا نمایش داده می‌شود.",mp_data_latest:"آخرین داده‌های موجود بازار",
-      mp_stale_short:"قدیمی",mp_policy_caption:"نرخ سیاستی بانک کانادا در یک سال گذشته"},
+      mp_stats_unavailable:"بارگذاری تازه‌ترین آمار ممکن نشد — ارقام منتشرشده نمایش داده می‌شود.",mp_data_latest:"آخرین داده‌های موجود بازار",
+      mp_stale_short:"ذخیره‌شده",mp_policy_caption:"نرخ سیاستی بانک کانادا"},
     hi:{mp_title:"बाज़ार की नब्ज़",
       mp_sub:"ब्रिटिश कोलंबिया और कनाडा के नवीनतम प्रकाशित आवास आँकड़े, साथ ही बैंक ऑफ़ कनाडा की लाइव ब्याज दरें — हर आंकड़ा अपने स्रोत और तारीख के साथ।",
       mp_kpi_bc_sales:"BC में घरों की बिक्री",mp_kpi_gvr_bench:"ग्रेटर वैंकूवर बेंचमार्क कीमत",mp_kpi_fvreb_bench:"फ़्रेज़र वैली बेंचमार्क कीमत",
@@ -1504,8 +1504,8 @@
       mp_sources_title:"स्रोत",mp_disclaimer:"यह पृष्ठ केवल सामान्य जानकारी है, वित्तीय या रियल एस्टेट सलाह नहीं।",
       mp_subscribe:"यही आँकड़े हर महीने एक पेशेवर डिज़ाइन की गई रिपोर्ट के रूप में अपने ईमेल में पाएँ — अपनी चुनी भाषा में।",mp_subscribe_btn:"मुफ़्त सदस्यता लें",mp_home_cta:"पूरा मार्केट पल्स देखें",
       mp_loading:"नवीनतम आँकड़े लोड हो रहे हैं…",mp_no_data:"यहाँ अभी कोई बोर्ड आँकड़े प्रकाशित नहीं हुए हैं।",
-      mp_stats_unavailable:"नवीनतम आँकड़े लोड नहीं हो सके — ऊपर प्रकाशित आँकड़े दिखाए जा रहे हैं।",mp_data_latest:"नवीनतम उपलब्ध बाज़ार डेटा",
-      mp_stale_short:"पुराना",mp_policy_caption:"पिछले एक वर्ष में बैंक ऑफ़ कनाडा की नीति दर"},
+      mp_stats_unavailable:"नवीनतम आँकड़े लोड नहीं हो सके — प्रकाशित आँकड़े दिखाए जा रहे हैं।",mp_data_latest:"नवीनतम उपलब्ध बाज़ार डेटा",
+      mp_stale_short:"कैश",mp_policy_caption:"बैंक ऑफ़ कनाडा की नीति दर"},
     zh:{mp_title:"市场脉搏",
       mp_sub:"卑诗省与加拿大最新公布的住房统计数据，以及加拿大银行的实时利率——每个数字都注明来源和日期。",
       mp_kpi_bc_sales:"卑诗省房屋销量",mp_kpi_gvr_bench:"大温哥华基准价",mp_kpi_fvreb_bench:"菲沙河谷基准价",
@@ -1522,8 +1522,8 @@
       mp_sources_title:"来源",mp_disclaimer:"本页面仅提供一般信息，不构成财务或房地产建议。",
       mp_subscribe:"每月将这些数据以专业设计的报告形式发送到您的邮箱——以您选择的语言。",mp_subscribe_btn:"免费订阅",mp_home_cta:"查看完整的市场脉搏",
       mp_loading:"正在加载最新数据…",mp_no_data:"此处尚未发布任何局方统计数据。",
-      mp_stats_unavailable:"无法加载最新统计数据——正在显示上方已公布的数据。",mp_data_latest:"最新可用的市场数据",
-      mp_stale_short:"旧数据",mp_policy_caption:"加拿大央行过去一年的政策利率"},
+      mp_stats_unavailable:"无法加载最新统计数据——正在显示已公布的数据。",mp_data_latest:"最新可用的市场数据",
+      mp_stale_short:"缓存数据",mp_policy_caption:"加拿大央行政策利率"},
     es:{
      "mp_title": "Pulso del Mercado",
      "mp_sub": "Las estadísticas de vivienda publicadas más recientes para British Columbia y Canadá, además de las tasas de interés en vivo del Bank of Canada — cada cifra con su fuente y fecha.",
@@ -1560,10 +1560,10 @@
      "mp_home_cta": "Ver el Pulso del Mercado completo",
      "mp_loading": "Cargando las cifras más recientes…",
      "mp_no_data": "Aún no se han publicado estadísticas de juntas aquí.",
-     "mp_stats_unavailable": "No se pudieron cargar las estadísticas más recientes; se muestran las cifras publicadas arriba.",
+     "mp_stats_unavailable": "No se pudieron cargar las estadísticas más recientes; se muestran las cifras publicadas.",
      "mp_data_latest": "Datos de mercado más recientes disponibles",
-     "mp_stale_short": "desactualizado",
-     "mp_policy_caption": "Tasa de política del Banco de Canadá durante el último año"
+     "mp_stale_short": "en caché",
+     "mp_policy_caption": "Tasa de política del Banco de Canadá"
     }
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }

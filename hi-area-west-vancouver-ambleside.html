@@ -189,8 +189,8 @@
       .chat-cta:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
       @media (prefers-reduced-motion: reduce){.tdot{animation:none;opacity:.6}}
       /* floating real-estate AI assistant (all screens, bottom-left) */
-      .ai-widget{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:200;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
-      .ai-fab{height:56px;border-radius:999px;background:var(--spruce);color:#fff;border:2px solid var(--brass);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 18px;font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.06em;white-space:nowrap}
+      .ai-widget{position:fixed;left:16px;bottom:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:200;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+      .ai-fab{height:56px;border-radius:999px;background:var(--spruce);color:#fff;border:2px solid var(--brass);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:0 18px;font:inherit;font-weight:700;font-size:14.5px;letter-spacing:.06em;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}
       .ai-fab svg{flex:none}
       .ai-fab:hover{filter:brightness(1.1)}
       .ai-fab:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -296,7 +296,7 @@
       .mp-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:0 2px 8px rgba(21,19,14,.05)}
       .mp-panel h3{font-size:19px;margin:0 0 4px}
       .mp-chart{margin-top:12px}
-      .mp-chart svg{width:100%;height:auto;display:block;direction:ltr}
+      .mp-chart svg{width:100%;max-width:640px;height:auto;display:block;direction:ltr}
       .mp-figs{list-style:none;margin:12px 0 0;padding:0}
       .mp-figs li{display:flex;justify-content:space-between;gap:12px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:15px}
       .mp-figs li:last-child{border-bottom:none}
