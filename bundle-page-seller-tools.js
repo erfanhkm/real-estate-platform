@@ -1199,9 +1199,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
        copy, and digit-normalised postal input. */
     var PR_API = "https://advisor-api.erfanbillion.workers.dev";
     var PR_LINK_HOSTS = ["www.bcassessment.ca", "maps.ltsa.ca", "www.walkscore.com", "ltsa.ca"];
-    var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false;
+    var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false, prTitleBusy = false, prTitleGen = 0;
     function prMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
     function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
+    function prMoney(v){ if (prMissing(v)) return "—"; var n = Number(v); return isFinite(n) ? hvMoney(n) : "—"; }
     function prPct(v){ if (prMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? (Math.round(x * 10) / 10) + "%" : "—"; }
     /* scoped safe fill (PR-02 L2): single-pass, a missing key becomes ""
        instead of the shared fill()'s "," artefact; the site-wide fill()
@@ -1217,8 +1218,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     function prSafeUrl(u){
       var s = String(u || "");
       if (!/^https:\/\//i.test(s)) return "";
-      try { if (PR_LINK_HOSTS.indexOf(new URL(s).hostname.toLowerCase()) === -1) return ""; } catch (e) { return ""; }
-      return s;
+      try { var pu = new URL(s); if (PR_LINK_HOSTS.indexOf(pu.hostname.toLowerCase()) === -1) return ""; if (pu.username || pu.password || pu.port) return ""; return pu.href; } catch (e) { return ""; }
     }
     /* postal input normalisation (PR-02 M7): Persian / Arabic-Indic /
        Devanagari / full-width digits via hvNormDigits, full-width
@@ -1231,6 +1231,18 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(s)) return "";
       return s.slice(0, 3) + " " + s.slice(3);
     }
+    /* address digit normalisation (PH-01 L8): the same digit ranges
+       as hvNormDigits but WITHOUT its whitespace/comma strip, which
+       exists for valuation figures — a street address keeps its
+       spaces ("3742 W 10th Ave", never "3742W10thAve") */
+    function prNormAddrDigits(v){
+      return String(v == null ? "" : v)
+        .replace(/[\u06F0-\u06F9]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); })
+        .replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); })
+        .replace(/[\u0966-\u096F]/g, function(c){ return String(c.charCodeAt(0) - 0x966); })
+        .replace(/[\uFF10-\uFF19]/g, function(c){ return String(c.charCodeAt(0) - 0xFF10); })
+        .replace(/\u066B/g, ".");
+    }
     /* fetch with a 12s ceiling that NEVER rejects (PR-02 H2): callers
        branch on {status, d} per part, so one part's failure can neither
        discard the other part's data nor lock the form */
@@ -1240,7 +1252,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var o = {};
       if (opts) for (var k in opts) o[k] = opts[k];
       if (ac) o.signal = ac.signal;
-      return fetch(url, o).then(function(r){
+      var fp; try { fp = fetch(url, o); } catch (e) { fp = Promise.reject(e); }
+      return fp.then(function(r){
         return r.json().catch(function(){ return null; }).then(function(d){ return { status: r.status, d: d }; });
       }).catch(function(){ return { status: 0, d: null }; }).then(function(x){ if (tm) clearTimeout(tm); return x; });
     }
@@ -1257,7 +1270,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var pending = !!(prGates && prGates.gated === false);
       var soldTxt = pending ? t.pr_gated_pending : t.pr_sold_gated;
       var titleTxt = pending ? t.pr_gated_pending : t.pr_title_gated;
-      var tbOff = (prTitleKey && prTitleKey !== "pr_err" && prTitleKey !== "pr_err_rate") ? " disabled" : "";
+      var tbOff = (prTitleBusy || (prTitleKey && prTitleKey !== "pr_err" && prTitleKey !== "pr_err_rate" && prTitleKey !== "pr_title_err")) ? " disabled" : "";
       return '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_sold_title) + '</h4><p class="note" style="margin-top:6px">' + esc(soldTxt) + "</p>" +
         '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_title_title) + '</h4><p class="note" style="margin-top:6px">' + esc(titleTxt) + "</p>" +
         '<div style="margin-top:10px"><button class="btn btn-line" type="button" id="prTitleBtn"' + tbOff + '>' + esc(t.pr_title_btn) + '</button></div><p class="note" id="prTitleOut" style="margin-top:8px">' + (prTitleKey ? esc(t[prTitleKey] || "") : "") + "</p>";
@@ -1267,7 +1280,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       prGatesBusy = true;
       prFetch(PR_API + "/api/report/sold-history").then(function(r){
         prGatesBusy = false;
-        if (r.d && r.d.ok) { prGates = r.d; if (prLast) { try { paintReport(); } catch (e) {} } }
+        if (r.d && r.d.ok) { prGates = r.d; if (prLast) { try { paintReport(); } catch (e) { console.error(e); } } }
       });
     }
     function paintReport(){
@@ -1290,9 +1303,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           html += '<div style="margin-top:10px">';
           html += prRow(t.pr_pop, prNum(c.pop));
           if (c.dwellings != null) html += prRow(t.pr_dwell, prNum(c.dwellings));
-          if (c.medianHouseholdIncome != null) html += prRow(t.pr_income, hvMoney(c.medianHouseholdIncome));
-          if (c.avgHouseholdSize != null) html += prRow(t.pr_hhsize, String(c.avgHouseholdSize));
-          if (c.medianAge != null) html += prRow(t.pr_medage, String(c.medianAge));
+          if (c.medianHouseholdIncome != null) html += prRow(t.pr_income, prMoney(c.medianHouseholdIncome));
+          if (c.avgHouseholdSize != null) html += prRow(t.pr_hhsize, prNum(c.avgHouseholdSize));
+          if (c.medianAge != null) html += prRow(t.pr_medage, prNum(c.medianAge));
           if (c.pctUnder15 != null) html += prRow(t.pr_age_child, prPct(c.pctUnder15));
           if (c.pct65plus != null) html += prRow(t.pr_age_senior, prPct(c.pct65plus));
           if (c.pctOwner != null) html += prRow(t.pr_owner, prPct(c.pctOwner));
@@ -1312,13 +1325,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           h.schools.forEach(function(s){
             var lv = t["pr_school_" + String(s.level || "").toLowerCase()] || "";
             var kd = s.kind === "independent" ? t.pr_school_ind : (s.kind === "public" ? t.pr_school_pub : (s.kind === "other" ? t.pr_school_other : ""));
-            html += "<li><bdi>" + esc(s.name) + "</bdi>" + (s.city ? " (<bdi>" + esc(s.city) + "</bdi>)" : "") + ' — <b dir="ltr">' + esc(s.km) + " " + esc(t.pr_km) + "</b>" + (lv ? " · " + esc(lv) : "") + (kd ? " · " + esc(kd) : "") + "</li>";
+            html += "<li><bdi>" + esc(s.name) + "</bdi>" + (s.city ? " (<bdi>" + esc(s.city) + "</bdi>)" : "") + ' — <b dir="ltr">' + esc(prNum(s.km)) + "</b> " + esc(t.pr_km) + (lv ? " · " + esc(lv) : "") + (kd ? " · " + esc(kd) : "") + "</li>";
           });
           html += "</ul>";
         } else {
           html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_none) + "</p>";
         }
-        html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_src) + "</p>";
+        if (src.schools !== "unavailable") html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_src) + "</p>";
         html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_safety_title) + "</h4>";
         if (h.safety) {
           html += '<p class="note" style="margin-top:6px;color:var(--ink)">' + esc(prFill(t.pr_safety_body, { n: prNum(h.safety.incidents), area: h.safety.neighbourhood, year: h.safety.year, total: prNum(h.safety.cityTotal) })) + '</p><p class="note">' + esc(t.pr_safety_src) + "</p>";
@@ -1343,20 +1356,20 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
                  no subset range or median presented as complete */
               html += '<p class="note" style="color:var(--ink)">' + esc(t.pr_card_truncated) + "</p>";
             } else {
-              html += '<p class="note" style="color:var(--ink)">' + esc(prFill(t.pr_card_strata, { n: cd.units })) + "</p>";
-              html += prRow(t.pr_card_range, hvMoney(cd.rangeLow) + " – " + hvMoney(cd.rangeHigh));
-              html += prRow(prFill(t.pr_card_median, { year: cd.assessedYear }), hvMoney(cd.medianTotal));
+              html += '<p class="note" style="color:var(--ink)">' + esc(prFill(t.pr_card_strata, { n: prNum(cd.units) })) + "</p>";
+              html += prRow(t.pr_card_range, prMoney(cd.rangeLow) + " – " + prMoney(cd.rangeHigh));
+              html += prRow(prFill(t.pr_card_median, { year: cd.assessedYear }), prMoney(cd.medianTotal));
             }
           } else if (cd.kind === "single") {
-            html += prRow(t.pr_card_land, hvMoney(cd.land));
-            html += prRow(t.pr_card_building, hvMoney(cd.building));
-            html += prRow(prFill(t.pr_card_total, { year: cd.assessedYear }), hvMoney(cd.total));
-            if (cd.taxLevy != null) html += prRow(t.pr_card_levy, hvMoney(cd.taxLevy));
+            html += prRow(t.pr_card_land, prMoney(cd.land));
+            html += prRow(t.pr_card_building, prMoney(cd.building));
+            html += prRow(prFill(t.pr_card_total, { year: cd.assessedYear }), prMoney(cd.total));
+            if (cd.taxLevy != null) html += prRow(t.pr_card_levy, prMoney(cd.taxLevy));
             if (cd.pid) html += prRow(t.pr_card_pid, cd.pid);
           } else {
             html += '<p class="note">' + esc(t.pr_prop_unavailable) + "</p>";
           }
-          if (cd.yearBuilt) html += prRow(t.pr_card_built, String(cd.yearBuilt));
+          if (cd.yearBuilt) html += prRow(t.pr_card_built, prNum(cd.yearBuilt));
           if (cd.zoning) html += prRow(t.pr_card_zoning, cd.zoning);
           html += '</div><p class="note" style="margin-top:8px">' + esc(t.pr_card_note) + '</p><p class="note">' + esc(t.pr_card_src) + "</p>";
           html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_permits_title) + "</h4>";
@@ -1369,6 +1382,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           } else {
             html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_none) + "</p>";
           }
+        } else if (p.supported && p.found) {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_unavailable) + "</p>";
         } else if (p.supported) {
           var psrc = p.sources || {};
           html += '<p class="note" style="margin-top:6px">' + esc(psrc.parcels === "ambiguous" ? t.pr_prop_ambiguous : ((psrc.parcels === "unavailable" || psrc.geocode === "unavailable") ? t.pr_prop_unavailable : t.pr_prop_notfound)) + "</p>";
@@ -1400,22 +1415,30 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       }
       var tb = $("prTitleBtn");
       if (tb) tb.addEventListener("click", function(){
+        if (prTitleBusy) return;
+        prTitleBusy = true;
         tb.disabled = true;
+        var gen = prTitleGen;
         prFetch(PR_API + "/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(function(r){
+          prTitleBusy = false;
+          if (gen !== prTitleGen) return; /* a newer report superseded this request (PH-01 L3) */
           var d = r.d || {};
-          /* the answer follows the stub's REAL response (PR-02 M4):
-             success wording exists only for placed === true; a failure
-             is an error, never the gated text */
-          var key = "pr_title_sent";
+          /* every branch is explicit and the chain ends in an error
+             (PH-01 M1): success wording exists only for placed ===
+             true, the gated state shows the gated copy, and anything
+             unrecognised is pr_title_err — never a default success */
+          var key;
           if (r.status === 429) key = "pr_err_rate";
+          else if (!d.ok) key = "pr_title_err";
           else if (d.placed === true) key = "pr_title_placed";
+          else if (d.gated === true) key = "pr_title_gated";
           else if (d.gated === false && d.state === "not_configured") key = "pr_title_unavailable";
-          else if (!d.ok) key = "pr_err";
+          else key = "pr_title_err";
           prTitleKey = key;
           var o = $("prTitleOut");
           if (o) o.textContent = T()[key] || "";
           var b2 = $("prTitleBtn");
-          if (b2) b2.disabled = (key !== "pr_err" && key !== "pr_err_rate");
+          if (b2) b2.disabled = (key !== "pr_err" && key !== "pr_err_rate" && key !== "pr_title_err");
         });
       });
       var eb = $("prEstBtn");
@@ -1428,7 +1451,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         var ho = $("hvOut"); if (ho) ho.innerHTML = "";
         var ha = $("hvAddress");
         if (ha && prLast.address && !ha.value.trim()) ha.value = prLast.address; /* never overwrite what the visitor typed */
-        var cityGuess = ($("prCity") && $("prCity").value) || (prLast.hood && prLast.hood.cityName) || "";
+        var cityGuess = prLast.city || (prLast.hood && prLast.hood.cityName) || "";
         var hc = $("hvCity"), matched = false;
         if (hc && cityGuess) { for (var i = 0; i < hc.options.length; i++) if (hc.options[i].value === cityGuess) { hc.value = cityGuess; matched = true; break; } }
         if (hc && !matched) hc.value = ""; /* placeholder, not a stale city */
@@ -1443,11 +1466,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (prBusy) return;
       var t = T();
       var pc = prNormPostalInput($("prPostal").value);
-      var address = $("prAddress").value.trim().slice(0, 140);
+      var address = prNormAddrDigits($("prAddress").value);
+      address = (address.toWellFormed ? address.toWellFormed() : address).trim();
+      address = [...address].slice(0, 140).join("");
       var citySel = $("prCity").value;
       if (!pc) { prErrKey = "pr_err_postal"; prLast = null; paintReport(); return; }
       if (address && !citySel) { prErrKey = "pr_err_city"; prLast = null; paintReport(); return; }
-      prBusy = true; prErrKey = null; prLast = null; prTitleKey = null;
+      prBusy = true; prErrKey = null; prLast = null; prTitleKey = null; prTitleGen++; prTitleBusy = false;
       var btn = $("prBtn"); btn.disabled = true; btn.textContent = t.pr_loading;
       var out0 = $("prOut"); if (out0) { out0.setAttribute("aria-busy", "true"); out0.innerHTML = '<p class="note">' + esc(t.pr_loading) + "</p>"; }
       /* both requests fire together (PR-02 H2) and each part keeps its
@@ -1468,17 +1493,17 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           var r2 = rs[1];
           prop = (r2.status === 200 && r2.d && r2.d.ok) ? r2.d : { failed: r2.status === 429 ? "rate" : "err" };
         }
-        prLast = { hood: hood, prop: prop, address: address };
+        prLast = { hood: hood, prop: prop, address: address, city: citySel };
         prFocusPending = true;
         try { paintReport(); }
-        catch (err) { var o = $("prOut"); if (o) { o.setAttribute("aria-busy", "false"); o.innerHTML = '<p class="note">' + esc(T().pr_err) + "</p>"; } }
+        catch (err) { console.error(err); var o = $("prOut"); if (o) { o.setAttribute("aria-busy", "false"); o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } }
         prLoadGates();
-      });
+      }).catch(function(err){ console.error(err); prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn; prErrKey = "pr_err"; prLast = null; try { paintReport(); } catch (e) { console.error(e); } });
     });
     /* language switches repaint the last report in the new language;
        applyLang calls this hook too, so a programmatic switch (no
        change event) repaints as well (PR-02 L4) */
-    window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) {} } };
+    window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) { console.error(e); var o = $("prOut"); if (o) o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } } };
     var prLangSel = $("langSel");
     if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ if (window.__prRepaint) window.__prRepaint(); }, 0); });
     buildPrCity();
