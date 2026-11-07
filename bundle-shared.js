@@ -1567,6 +1567,15 @@
     }
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
+    /* ---------- Pack PL: Concept B header call label (hb_call) ---------- */
+    var I18N13 = {
+    en:{hb_call:"CALL"},
+    fa:{hb_call:"تماس"},
+    hi:{hb_call:"कॉल"},
+    zh:{hb_call:"致电"},
+    es:{hb_call:"LLAMA"}
+    };
+    for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
     var lang = "en";
     try { var saved = localStorage.getItem("erfan-re-lang"); if (saved && I18N[saved]) lang = saved; } catch(e){}
     var _Tmemo = {};

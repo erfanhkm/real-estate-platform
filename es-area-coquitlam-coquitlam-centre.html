@@ -387,6 +387,7 @@
       }
       @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
     
+      /* CONCEPT-B-CSS:BEGIN — owned by sync-concept-b.mjs (Pack PL): edit the canonical block there, never per-page */
       /* ===== Concept B header/footer (2026-11-04) ===== */
       header.hdr-b{position:static;background:#0B0B0B;border-bottom:0;backdrop-filter:none;color:#EDEAE2}
       .hb-util{display:flex;align-items:center;justify-content:space-between;padding-top:12px}
@@ -409,7 +410,7 @@
       @media (max-width:960px){header.hdr-b nav.hb-nav{order:0;width:auto}}
       footer.ftr-b{background:#0B0B0B;border-top:1px solid rgba(201,162,75,.5);color:#D9D5C9}
       footer.ftr-b .wrap{display:block;padding-top:6px}
-      .fb-giant{font-family:"Playfair Display","Source Serif 4",serif;font-weight:700;text-align:center;font-size:clamp(52px,11vw,148px);letter-spacing:.05em;line-height:1.05;padding:38px 0 2px;background:linear-gradient(180deg,#F3E2AC 15%,#C9A24B 55%,#8A6D2F);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;white-space:nowrap}
+      .fb-giant{font-family:"Playfair Display","Source Serif 4",serif;font-weight:700;text-align:center;font-size:clamp(36px,11vw,148px);letter-spacing:.05em;line-height:1.05;padding:38px 0 2px;background:linear-gradient(180deg,#F3E2AC 15%,#C9A24B 55%,#8A6D2F);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;white-space:nowrap}
       .fb-gsub{text-align:center;font-size:11px;letter-spacing:.5em;color:#9A927C}
       .fb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;padding:38px 0 34px;border-top:1px solid #26231D;margin-top:26px}
       footer.ftr-b .fb-grid h2,footer.ftr-b .fb-grid h3{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#E6CB7E;margin:0 0 14px;font-weight:700}
@@ -424,6 +425,23 @@
       footer.ftr-b .licence-line{color:#8B8676;font-weight:400;font-size:12.5px;max-width:none;flex:1;min-width:260px;margin:0}
       footer.ftr-b .fb-bot p{ color:#8B8676;font-size:12.5px;margin:0}
       @media (max-width:860px){.fb-grid{grid-template-columns:1fr 1fr}.hb-name{font-size:22px}}
+      /* Pack PL (PL-01 H3): letter-spacing disconnects Arabic-script
+         letters and distorts Devanagari conjuncts, so the tracked
+         header/footer copy renders un-tracked in fa and hi. */
+      html[lang="fa"] :is(header.hdr-b, footer.ftr-b) *, html[lang="hi"] :is(header.hdr-b, footer.ftr-b) *{letter-spacing:normal}
+      /* Pack PL (PL-01 M4): the footer email wraps instead of clipping. */
+      footer.ftr-b .fb-grid .mail{overflow-wrap:anywhere}
+      /* Pack PL (PL-01 M6): a visible keyboard focus ring on the dark
+         header/footer (hover states existed; focus had none). */
+      header.hdr-b :focus-visible, footer.ftr-b :focus-visible{outline:2px solid #E6CB7E;outline-offset:2px}
+      /* Pack PL (PL-01 M8): the gradient wordmark stays visible in
+         forced-colors mode (background-clip:text alone vanishes). */
+      @media (forced-colors:active){.fb-giant{background:none;color:CanvasText;-webkit-text-fill-color:currentColor}}
+      /* Pack PL (PL-01 M12): the tools-menu panel colour is stated in
+         this block, not left to cascade luck (the base .menu rule
+         already sets var(--surface); this pins it inside the block). */
+      header.hdr-b .menu{background:var(--surface)}
+      /* CONCEPT-B-CSS:END */
     </style>
     <script>
     /* Portal-managed live data: listings + site settings are managed from
@@ -457,9 +475,10 @@
     </style>
   </head>
   <body>
+    <!-- CONCEPT-B-HEADER:BEGIN — owned by sync-concept-b.mjs (Pack PL) -->
     <header class="hdr-b">
       <div class="wrap hb-util">
-        <a class="hb-phone" href="tel:+11112223333">CALL <b>111 222 3333</b></a>
+        <a class="hb-phone" href="tel:+11112223333"><span data-i18n="hb_call">CALL</span> <b><bdi>111 222 3333</bdi></b></a>
         <div class="langbox" role="group" aria-label="Language">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
@@ -473,7 +492,7 @@
       </div>
       <div class="hb-crest">
         <a class="hb-brand" href="index.html">
-          <img class="hb-mark" src="logo-mark.png" alt="EH REALTY" />
+          <img class="hb-mark" src="logo-mark.png" alt="" />
           <span class="hb-name">EH REALTY</span>
           <span class="hb-sub" data-i18n="brand_sub">BY ERFAN HAKIMIAN</span>
         </a>
@@ -499,6 +518,7 @@
           <a href="es-contact.html" data-i18n="nav_contact">Contacto</a>
         </nav>
     </header>
+    <!-- CONCEPT-B-HEADER:END -->
 
     
 
@@ -545,21 +565,23 @@
       </div>
     </div>
 
+    <!-- CONCEPT-B-FOOTER:BEGIN — owned by sync-concept-b.mjs (Pack PL) -->
     <footer id="footer" class="ftr-b">
       <div class="wrap">
-        <div class="fb-giant">EH REALTY</div>
-        <div class="fb-gsub" data-i18n="brand_sub">BY ERFAN HAKIMIAN</div>
+        <div class="fb-giant" aria-hidden="true">EH REALTY</div>
+        <div class="fb-gsub" data-i18n="brand_sub" aria-hidden="true">BY ERFAN HAKIMIAN</div>
         <div class="fb-grid">
           <div><h3 data-i18n="foot_explore">Explore</h3><ul><li><a href="listings.html" data-i18n="nav_listings">Listings</a></li><li><a href="first-time-buyers.html" data-i18n="nav_guide">First-Time Buyers</a></li><li><a href="seller-tools.html" data-i18n="nav_seller">Seller Tools</a></li><li><a href="contact.html" data-i18n="nav_contact">Contact</a></li></ul></div>
           <div><h3 data-i18n="nav_tools">AI Tools</h3><ul><li><a href="mortgage-calculator.html" data-i18n="nav_calculator">Mortgage Calculator</a></li><li><a href="affordability.html" data-i18n="nav_afford">Affordability Estimator</a></li><li><a href="buy-vs-rent.html" data-i18n="nav_bvr">Buy vs Rent</a></li><li><a href="investor-analysis.html" data-i18n="nav_invest">Investor Analysis</a></li><li><a href="ai-assistant.html#match" data-i18n="nav_match">Match Assistant</a></li></ul></div>
           <div><h3 data-i18n="foot_learn">Learn</h3><ul><li><a href="knowledge-centre.html" data-i18n="kc_title">Knowledge Center</a></li><li><a href="market-pulse.html" data-i18n="mp_title">Market Pulse</a></li><li><a href="ai-assistant.html#assistant" data-i18n="nav_assistant">Home Buying Assistant</a></li></ul></div>
-          <div><h2 style="font-size:21px" data-i18n="contact_title">Contacto</h2>
+          <div><h3 data-i18n="contact_title">Contacto</h3>
         <p><span data-i18n="contact_text">Para preguntas generales sobre las herramientas, guías y propiedades de este sitio, escriba a:</span><br />
-        <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p><p class="fb-phone"><a href="tel:+11112223333">111 222 3333</a></p></div>
+        <a class="mail" href="mailto:erfanbcrealestate@gmail.com">erfanbcrealestate@gmail.com</a></p><p class="fb-phone"><a href="tel:+11112223333"><bdi>111 222 3333</bdi></a></p></div>
         </div>
         <div class="fb-bot"><p class="licence-line" data-i18n="footer_licence">EH REALTY es la práctica inmobiliaria de Erfan Hakimian, REALTOR® autorizado en Columbia Británica, afiliado a [BROKERAGE].</p><p data-i18n="rights">© 2026 EH REALTY — British Columbia, Canadá</p></div>
       </div>
     </footer>
+    <!-- CONCEPT-B-FOOTER:END -->
 
     <div class="ai-widget" id="aiWidget">
       <div class="ai-panel" id="aiPanel" role="dialog" aria-labelledby="aiTitle">

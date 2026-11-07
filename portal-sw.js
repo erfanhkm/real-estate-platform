@@ -20,7 +20,7 @@
    go stale inside a cache version, so SITE_CACHE must be bumped in
    any deploy that changes an unversioned asset's bytes. */
 var PU_CACHE = 'portal-v3';
-var SITE_CACHE = 'site-v6'; // bump on every site-strategy change; stale site-* caches are deleted on activate (v6: Pack APP2 static-put waitUntil)
+var SITE_CACHE = 'site-v7'; // bump on every site-strategy change; stale site-* caches are deleted on activate (v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil)
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
