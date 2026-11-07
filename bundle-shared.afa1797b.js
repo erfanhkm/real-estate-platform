@@ -1567,13 +1567,14 @@
     }
     };
     for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
-    /* ---------- Pack PL: Concept B header call label (hb_call) ---------- */
+    /* ---------- Pack PL: Concept B header call label (hb_call) ----------
+       Pack PL2f: skip_main added (PL-01 Low: skip link). */
     var I18N13 = {
-    en:{hb_call:"CALL"},
-    fa:{hb_call:"تماس"},
-    hi:{hb_call:"कॉल"},
-    zh:{hb_call:"致电"},
-    es:{hb_call:"LLAMA"}
+    en:{hb_call:"CALL",skip_main:"Skip to main content"},
+    fa:{hb_call:"تماس",skip_main:"پرش به محتوای اصلی"},
+    hi:{hb_call:"कॉल",skip_main:"मुख्य सामग्री पर जाएँ"},
+    zh:{hb_call:"致电",skip_main:"跳到主要内容"},
+    es:{hb_call:"LLAMA",skip_main:"Saltar al contenido principal"}
     };
     for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
     var lang = "en";

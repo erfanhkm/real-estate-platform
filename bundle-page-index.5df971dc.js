@@ -1,3 +1,119 @@
+    function monthlyCost(l){
+      // Self-contained on purpose: paymentFor() lives in the calculator module,
+      // which is not present on every page this card/dialog code ships to.
+      var principal = l.price * 0.8;
+      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
+      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
+      var mort = principal * r / (1 - Math.pow(1 + r, -n));
+      var strata = l.strata || 0;
+      var tax = (l.tax || 0) / 12;
+      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
+      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
+    }
+    function cardHTML(l, why){
+      var t = T();
+      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
+        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
+        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
+      var preHTML = "";
+      if (l.pt === "presale"){
+        var pbits = [];
+        if (l.project) pbits.push(esc(l.project));
+        if (l.developer) pbits.push(esc(l.developer));
+        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
+        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
+          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
+      }
+      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
+      var cmpBtn = "";
+      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
+        var cOn = cmpSel.indexOf(l.mls) !== -1;
+        var cMax = !cOn && cmpSel.length >= 4;
+        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
+      }
+      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
+        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
+    }
+    /* ---------- newsletter signup ---------- */
+    var NL_URL = "https://newsletter-signup.erfanbillion.workers.dev";
+    function nlShowStatus(kind, text){
+      var st = $("nlStatus");
+      st.textContent = text;
+      st.className = "nl-status show " + kind;
+      st.scrollIntoView({behavior:"smooth", block:"nearest"});
+    }
+    function nlMarkInvalid(ids){
+      ids.forEach(function(id){ var el = $(id); if (el) el.classList.add("invalid"); });
+    }
+    function nlResetTurnstile(){ tsResetIn("#nlForm"); }
+    ["nlFirst","nlLast","nlEmail","nlLang"].forEach(function(id){
+      $(id).addEventListener("input", function(){ this.classList.remove("invalid"); });
+      $(id).addEventListener("change", function(){ this.classList.remove("invalid"); });
+    });
+    $("nlForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      var t = T();
+      var firstName = $("nlFirst").value.trim(), lastName = $("nlLast").value.trim(),
+          email = $("nlEmail").value.trim(), language = $("nlLang").value;
+      ["nlFirst","nlLast","nlEmail","nlLang"].forEach(function(id){ $(id).classList.remove("invalid"); });
+      var bad = [];
+      if (!firstName) bad.push("nlFirst");
+      if (!lastName) bad.push("nlLast");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) bad.push("nlEmail");
+      if (bad.length){ nlMarkInvalid(bad); nlShowStatus("err", t.nl_err_validation); return; }
+      var token = "";
+      var resp = document.querySelector('#nlForm input[name="cf-turnstile-response"]');
+      if (resp) token = resp.value || "";
+      if (!token && window.turnstile && turnstile.getResponse) { try { token = turnstile.getResponse() || ""; } catch(e){} }
+      if (!token){ nlShowStatus("err", t.nl_err_captcha); return; }
+      var btn = $("nlSubmit"), btnLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = t.nl_sending;
+      fetch(NL_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        body: JSON.stringify({firstName: firstName, lastName: lastName, email: email, language: language, turnstileToken: token})
+      }).then(function(res){
+        return res.json().catch(function(){ return null; });
+      }).then(function(data){
+        if (data && data.ok){
+          nlShowStatus("ok", t.nl_success);
+          /* mirror the subscriber into the admin portal list (fire-and-forget) */
+          try {
+            fetch("https://advisor-api.erfanbillion.workers.dev/api/newsletter/subscribe", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({name: (firstName + " " + lastName).trim(), email: email, lang: language})
+            }).catch(function(){});
+          } catch(e){}
+          $("nlForm").reset();
+          $("nlLang").value = lang;
+        } else if (data && data.error === "validation"){
+          var map = {firstName:"nlFirst", lastName:"nlLast", email:"nlEmail", language:"nlLang"}, ids = [];
+          if (data.fields && data.fields.length) data.fields.forEach(function(f){ if (map[f]) ids.push(map[f]); });
+          if (!ids.length){
+            if (!firstName) ids.push("nlFirst");
+            if (!lastName) ids.push("nlLast");
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ids.push("nlEmail");
+          }
+          if (!ids.length) ids = ["nlFirst","nlLast","nlEmail"];
+          nlMarkInvalid(ids);
+          nlShowStatus("err", t.nl_err_validation);
+        } else if (data && data.error === "captcha"){
+          nlShowStatus("err", t.nl_err_captcha);
+        } else {
+          nlShowStatus("err", t.nl_err_generic);
+        }
+      }).catch(function(){
+        nlShowStatus("err", t.nl_err_generic);
+      }).then(function(){
+        btn.disabled = false; btn.textContent = btnLabel;
+        nlResetTurnstile();
+      });
+    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -5,7 +121,7 @@
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
     toolsBtn.addEventListener("click", function(e){ e.stopPropagation(); var open = toolsList.classList.toggle("open"); toolsBtn.setAttribute("aria-expanded", open ? "true" : "false"); });
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
-    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTools(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
@@ -1539,6 +1655,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (due) renderMarketPulse();
       else mpRenderCharts();
     });
+    window.openListing = function(){ window.location.href = "listings.html"; };
+    function renderFeatured(){
+      $("featuredGrid").innerHTML = LISTINGS.map(function(l){ return cardHTML(l, null); }).join("");
+    }
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -1548,8 +1668,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
+      $("nlLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang(); renderMarketPulse();
+      renderAssistantLang(); renderFeatured(); renderMarketPulse();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });

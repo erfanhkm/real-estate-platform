@@ -35,55 +35,123 @@
     }
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    /* ---------- buy vs rent ---------- */
-    function bvrCalc(){
-      var t = T();
-      var price = Math.max(0, numVal("bvPrice", 800000)), downPct = Math.min(100, Math.max(0, numVal("bvDown", 20))), rate = Math.max(0, numVal("bvRate", 4.79)),
-          amort = Math.max(1, Math.round(numVal("bvAmort", 25))), taxYr = Math.max(0, numVal("bvTax", 4200)),
-          strataMo = Math.max(0, numVal("bvStrata", 350)), appr = numVal("bvAppr", 3), rentMo = Math.max(0, numVal("bvRent", 2600)),
-          rentInc = numVal("bvRentInc", 2), yrs = Math.min(30, Math.max(1, Math.round(numVal("bvYears", 10))));
+    /* ---------- investor analysis ---------- */
+    function investCalc(){
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
       var down = price * downPct / 100, L = Math.max(0, price - down);
       var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1;
-      function balAt(m){
-        if (L <= 0) return 0;
-        if (r <= 0) return Math.max(0, L - P * m);
-        return Math.max(0, L * Math.pow(1 + r, m) - P * ((Math.pow(1 + r, m) - 1) / r));
-      }
-      var rentCum = 0, spentCum = down, rows = "", lastEquity = Math.max(0, price - L);
-      for (var y = 1; y <= yrs; y++){
-        var bal = balAt(Math.min(y, amort) * 12);
-        var payYr = y <= amort ? P * 12 : 0;
-        rentCum += rentMo * 12 * Math.pow(1 + rentInc / 100, y - 1);
-        spentCum += payYr + taxYr + strataMo * 12;
-        var value = price * Math.pow(1 + appr / 100, y);
-        var equity = value - bal; lastEquity = equity;
-        rows += "<tr><td data-th=\"" + esc(t.bv_th_year) + "\">" + y + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_rent) + "\">" + fmt(rentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_spent) + "\">" + fmt(spentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_value) + "\">" + fmt(value) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_bal) + "\">" + fmt(bal) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_equity) + "\">" + fmt(equity) + "</td></tr>";
-      }
-      $("bvBody").innerHTML = rows;
-      var costBuy = spentCum - lastEquity, diff = rentCum - costBuy;
-      $("bvCostRentL").textContent = fill(t.bv_cost_rent, {n: yrs});
-      $("bvEquityL").textContent = fill(t.bv_equity, {n: yrs});
-      $("bvCostRent").textContent = fmt(rentCum);
-      $("bvSpent").textContent = fmt(spentCum);
-      $("bvEquity").textContent = fmt(lastEquity);
-      $("bvCostBuy").textContent = fmt(costBuy);
-      var vd = $("bvVerdict");
-      if (Math.abs(diff) < Math.max(rentCum, costBuy, 1) * 0.02){ vd.className = "verdict"; vd.textContent = fill(t.bv_tie, {n: yrs}); }
-      else if (diff > 0){ vd.className = "verdict"; vd.textContent = fill(t.bv_win_buy, {x: fmt(diff), n: yrs}); }
-      else { vd.className = "verdict rent"; vd.textContent = fill(t.bv_win_rent, {x: fmt(-diff), n: yrs}); }
+      var effRent = rent * (1 - vac / 100), opex = tax + strata + ins + maint;
+      var noiYr = (effRent - opex) * 12, cf = effRent - opex - P;
+      var cap = price > 0 ? noiYr / price * 100 : 0, coc = down > 0 ? cf * 12 / down * 100 : 0;
+      var cfEl = $("ivCf"); cfEl.textContent = fmt(cf); cfEl.className = cf < 0 ? "neg" : "";
+      $("ivNoi").textContent = fmt(noiYr);
+      $("ivCap").textContent = cap.toFixed(2) + "%";
+      var cocEl = $("ivCoc"); cocEl.textContent = coc.toFixed(2) + "%"; cocEl.className = coc < 0 ? "neg" : "";
+      $("ivCashIn").textContent = fmt(down);
     }
+    /* ---------- investor report export (print view + downloadable HTML) ---------- */
+    var RP_LOCALES = {en:"en-CA", fa:"fa-IR-u-ca-gregory", hi:"hi-IN", zh:"zh-CN", es:"es"};
+    var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#15130e;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
+      + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
+      + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
+      + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
+      + "h1,h2{font-family:Georgia,serif}"
+      + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
+      + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
+      + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
+      + ".rp-wrap{max-width:720px;margin:0 auto;color:#15130e}"
+      + ".rp-brand{font-size:20px;font-weight:800;color:#0b0b0b}"
+      + ".rp-brandsub{color:#6e685b;font-size:13.5px;margin-top:2px}"
+      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0b0b0b}"
+      + ".rp-meta{color:#6e685b;font-size:14px;margin:0 0 6px}"
+      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0b0b0b}"
+      + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
+      + ".rp-table th{text-align:start;font-weight:600;color:#3a362c;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#6e685b;border:1px solid #e4dfd3;border-radius:9px;padding:12px 14px}"
+      + ".rp-foot{margin-top:16px;font-size:14.5px}"
+      + ".rp-foot a{color:#0b0b0b;font-weight:700}";
+    function reportData(){
+      var t = T();
+      try { investCalc(); } catch(e){}
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
+      var down = price * downPct / 100, L = Math.max(0, price - down);
+      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0; /* same payment investCalc uses internally */
+      return {
+        inputs: [
+          [t.iv_price, fmt(price)],
+          [t.iv_down, downPct + "%"],
+          [t.iv_rate, rate + "%"],
+          [t.iv_amort, amort + " " + t.rp_years],
+          [t.iv_rent, fmt(rent)],
+          [t.iv_tax, fmt(tax)],
+          [t.iv_strata, fmt(strata)],
+          [t.iv_ins, fmt(ins)],
+          [t.iv_maint, fmt(maint)],
+          [t.iv_vac, vac + "%"]
+        ],
+        outputs: [
+          [t.rp_pay, fmt(P)],
+          [t.iv_cf, $("ivCf").textContent],
+          [t.iv_noi, $("ivNoi").textContent],
+          [t.iv_cap, $("ivCap").textContent],
+          [t.iv_coc, $("ivCoc").textContent],
+          [t.iv_cashin, $("ivCashIn").textContent]
+        ]
+      };
+    }
+    function rpTable(rows){
+      return '<table class="rp-table"><tbody>' + rows.map(function(r){
+        return '<tr><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+    }
+    function reportHTML(){
+      var t = T(), d = reportData();
+      var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
+      return '<div class="rp-wrap">'
+        + '<div class="rp-brand">EH REALTY</div>'
+        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
+        + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
+        + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
+        + '<h2 class="rp-h">' + esc(t.rp_inputs) + "</h2>" + rpTable(d.inputs)
+        + '<h2 class="rp-h">' + esc(t.rp_outputs) + "</h2>" + rpTable(d.outputs)
+        + '<p class="rp-disc">' + esc(t.rp_disclaimer) + "</p>"
+        + '<p class="rp-foot">' + esc(t.rp_contact) + ' <a href="mailto:' + EMAIL + '">' + EMAIL + "</a></p>"
+        + "</div>";
+    }
+    function buildReport(){
+      var root = $("ivReport");
+      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
+      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
+      root.innerHTML = reportHTML();
+    }
+    function downloadReport(){
+      var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
+      var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
+        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+        + "<title>" + esc(T().rp_title) + " — EH REALTY</title>"
+        + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
+      var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "investment-analysis-report-" + lang + ".html";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    }
+    $("ivPrintBtn").addEventListener("click", function(){ buildReport(); window.print(); });
+    $("ivDownloadBtn").addEventListener("click", downloadReport);
+    window.addEventListener("beforeprint", buildReport);
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
     toolsBtn.addEventListener("click", function(e){ e.stopPropagation(); var open = toolsList.classList.toggle("open"); toolsBtn.setAttribute("aria-expanded", open ? "true" : "false"); });
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
-    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTools(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
@@ -964,11 +1032,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      bvrCalc(); renderAssistantLang();
+      investCalc(); renderAssistantLang(); buildReport();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["bvPrice","bvDown","bvRate","bvAmort","bvTax","bvStrata","bvAppr","bvRent","bvRentInc","bvYears"].forEach(function(id){ $(id).addEventListener("input", bvrCalc); $(id).addEventListener("change", bvrCalc); });
+    ["ivPrice","ivDown","ivRate","ivAmort","ivRent","ivTax","ivStrata","ivIns","ivMaint","ivVac"].forEach(function(id){ $(id).addEventListener("input", investCalc); $(id).addEventListener("change", investCalc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;

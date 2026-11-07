@@ -397,10 +397,10 @@
       header.hdr-b .langbox select{color:#E6CB7E}
       .hb-crest{text-align:center;padding:20px 20px 4px}
       .hb-brand{text-decoration:none;display:inline-block}
-      .hb-mark{width:88px;height:56px;object-fit:contain;background:#000;border-radius:10px;display:block;margin:0 auto}
+      .hb-mark{width:88px;height:56px;object-fit:contain;background:#0B0B0B;border-radius:10px;display:block;margin:0 auto}
       .hb-name{display:block;font-family:"Playfair Display","Source Serif 4",serif;font-size:27px;font-weight:600;letter-spacing:.22em;color:#fff;margin-top:8px}
-      .hb-sub{display:block;font-size:9.5px;letter-spacing:.42em;color:#E6CB7E;margin-top:4px}
-      .hb-rule{height:1px;background:linear-gradient(90deg,transparent,#C9A24B,transparent);max-width:1060px;margin:16px auto 0}
+      .hb-sub{display:block;font-size:11px;letter-spacing:.42em;color:#E6CB7E;margin-top:4px}
+      .hb-rule{height:1px;background:linear-gradient(90deg,transparent,var(--brass),transparent);max-width:1060px;margin:16px auto 0}
       .hb-rule2{height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent);max-width:1060px;margin:3px auto 0}
       header.hdr-b nav.hb-nav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:0 auto;padding:12px 20px 18px;max-width:1180px}
       header.hdr-b nav.hb-nav>a,header.hdr-b nav.hb-nav .navbtn{color:#EDEAE2;text-transform:uppercase;letter-spacing:.13em;font-size:13px;font-weight:600;padding:8px 12px;border-radius:9px}
@@ -410,7 +410,7 @@
       @media (max-width:960px){header.hdr-b nav.hb-nav{order:0;width:auto}}
       footer.ftr-b{background:#0B0B0B;border-top:1px solid rgba(201,162,75,.5);color:#D9D5C9}
       footer.ftr-b .wrap{display:block;padding-top:6px}
-      .fb-giant{font-family:"Playfair Display","Source Serif 4",serif;font-weight:700;text-align:center;font-size:clamp(36px,11vw,148px);letter-spacing:.05em;line-height:1.05;padding:38px 0 2px;background:linear-gradient(180deg,#F3E2AC 15%,#C9A24B 55%,#8A6D2F);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;white-space:nowrap}
+      .fb-giant{font-family:"Playfair Display","Source Serif 4",serif;font-weight:700;text-align:center;font-size:clamp(36px,11vw,148px);letter-spacing:.05em;line-height:1.05;padding:38px 0 2px;background:linear-gradient(180deg,#F3E2AC 15%,var(--brass) 55%,#8A6D2F);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;white-space:nowrap}
       .fb-gsub{text-align:center;font-size:11px;letter-spacing:.5em;color:#9A927C}
       .fb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;padding:38px 0 34px;border-top:1px solid #26231D;margin-top:26px}
       footer.ftr-b .fb-grid h2,footer.ftr-b .fb-grid h3{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#E6CB7E;margin:0 0 14px;font-weight:700}
@@ -453,6 +453,21 @@
          this block, not left to cascade luck (the base .menu rule
          already sets var(--surface); this pins it inside the block). */
       header.hdr-b .menu{background:var(--surface)}
+      /* Pack PL2f (PL-01 Lows): skip link — parked above the document
+         until it takes keyboard focus, then pinned to the top
+         inline-start corner over the dark header. The gold --brass
+         token is theme-invariant (#c9a24b in both :root blocks), so
+         the .hb-rule / .fb-giant gradients use it directly; the rest
+         of this block's hex literals stay literal ON PURPOSE: the
+         header/footer are always-dark chrome, while --surface /
+         --ink / --spruce flip with the page theme (var(--spruce-deep)
+         is #000 in the dark theme, not this block's #0B0B0B).
+         .hb-mark's background is now the header's own #0B0B0B (was
+         #000: logo-mark.png is opaque RGB, so the literal only ever
+         showed in the object-fit letterbox bands). .hb-sub rose
+         9.5px -> 11px: it was the block's only sub-11px text. */
+      .skip-link{position:absolute;inset-inline-start:16px;top:-64px;z-index:200;background:var(--brass);color:#15130e;font-size:14px;font-weight:700;text-decoration:none;padding:10px 16px;border-radius:0 0 10px 10px}
+      .skip-link:focus{top:0}
       /* CONCEPT-B-CSS:END */
     </style>
     <script>
@@ -488,17 +503,18 @@
   </head>
   <body>
     <!-- CONCEPT-B-HEADER:BEGIN — owned by sync-concept-b.mjs (Pack PL) -->
+    <a class="skip-link" href="#main" data-i18n="skip_main">跳到主要内容</a>
     <header class="hdr-b">
       <div class="wrap hb-util">
         <a class="hb-phone" href="tel:+11112223333"><span data-i18n="hb_call">CALL</span> <b><bdi>111 222 3333</bdi></b></a>
-        <div class="langbox" role="group" aria-label="Language">
+        <div class="langbox">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#96762f" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <select id="langSel" aria-label="Language / زبان / भाषा / 语言 / Idioma">
-            <option value="en">English</option>
-            <option value="fa">فارسی</option>
-            <option value="hi">हिन्दी</option>
-            <option value="zh">中文（简体）</option>
-            <option value="es">Español</option>
+            <option value="en" lang="en">English</option>
+            <option value="fa" lang="fa">فارسی</option>
+            <option value="hi" lang="hi">हिन्दी</option>
+            <option value="zh" lang="zh-CN">中文（简体）</option>
+            <option value="es" lang="es">Español</option>
           </select>
         </div>
       </div>
@@ -510,18 +526,18 @@
         </a>
       </div>
       <div class="hb-rule"></div><div class="hb-rule2"></div>
-      <nav class="hb-nav">
+      <nav class="hb-nav" aria-label="主导航">
           <a href="zh-listings.html" data-i18n="nav_listings">房源</a>
           <div class="navtools" id="toolsMenu">
-            <button type="button" class="navbtn" id="toolsBtn" aria-haspopup="true" aria-expanded="false"><span data-i18n="nav_tools">AI 工具</span><span class="caret" aria-hidden="true">▾</span></button>
-            <div class="menu" id="toolsList" role="menu">
-              <a href="zh-mortgage-calculator.html" role="menuitem" data-i18n="nav_calculator">房贷计算器</a>
-              <a href="zh-buy-vs-rent.html" role="menuitem" data-i18n="nav_bvr">买房还是租房</a>
-              <a href="zh-affordability.html" role="menuitem" data-i18n="nav_afford">负担能力估算器</a>
-              <a href="zh-investor-analysis.html" role="menuitem" data-i18n="nav_invest">投资者分析</a>
-              <a href="zh-ai-assistant.html#match" role="menuitem" data-i18n="nav_match">匹配助手</a>
-              <a href="zh-ai-assistant.html#assistant" role="menuitem" data-i18n="nav_assistant">购房助手</a>
-              <a href="zh-seller-tools.html" role="menuitem" data-i18n="nav_seller">卖家工具</a>
+            <button type="button" class="navbtn" id="toolsBtn" aria-expanded="false" aria-controls="toolsList"><span data-i18n="nav_tools">AI 工具</span><span class="caret" aria-hidden="true">▾</span></button>
+            <div class="menu" id="toolsList">
+              <a href="zh-mortgage-calculator.html" data-i18n="nav_calculator">房贷计算器</a>
+              <a href="zh-buy-vs-rent.html" data-i18n="nav_bvr">买房还是租房</a>
+              <a href="zh-affordability.html" data-i18n="nav_afford">负担能力估算器</a>
+              <a href="zh-investor-analysis.html" data-i18n="nav_invest">投资者分析</a>
+              <a href="zh-ai-assistant.html#match" data-i18n="nav_match">匹配助手</a>
+              <a href="zh-ai-assistant.html#assistant" data-i18n="nav_assistant">购房助手</a>
+              <a href="zh-seller-tools.html" data-i18n="nav_seller">卖家工具</a>
             </div>
           </div>
           <a href="zh-first-time-buyers.html" data-i18n="nav_guide">首次购房指南</a>
@@ -535,7 +551,7 @@
     
 
 
-    <main class="wrap"><style>
+    <main class="wrap" id="main" tabindex="-1"><style>
 .x-wrap{max-width:1060px;margin:0 auto;padding:34px 20px 10px}
 .x-crumbs{font-size:13.5px;color:var(--ink-2,#6e685b);margin-bottom:14px}
 .x-crumbs a{color:inherit;text-decoration:underline}
@@ -624,7 +640,7 @@
 
     <script>try{localStorage.setItem("erfan-re-lang","zh")}catch(e){}</script>
     <script>window.PAGE_OF = {"listings":"zh-listings.html","calculator":"zh-mortgage-calculator.html","buyvsrent":"zh-buy-vs-rent.html","afford":"zh-affordability.html","invest":"zh-investor-analysis.html","match":"zh-ai-assistant.html#match","assistant":"zh-ai-assistant.html#assistant","seller-tools":"zh-seller-tools.html","market-pulse":"zh-market-pulse.html","guide":"zh-first-time-buyers.html","fhsa":"zh-first-time-buyers.html#fhsa","knowledge":"#knowledge","newsletter":"zh-index.html#newsletter","contact":"zh-contact.html"};</script>
-    <script src="bundle-shared.879565a4.js"></script>
-    <script src="bundle-page-knowledge-centre.d51a6c99.js"></script>
+    <script src="bundle-shared.afa1797b.js"></script>
+    <script src="bundle-page-knowledge-centre.9e352661.js"></script>
   </body>
 </html>

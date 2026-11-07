@@ -1,66 +1,91 @@
-    function monthlyCost(l){
-      // Self-contained on purpose: paymentFor() lives in the calculator module,
-      // which is not present on every page this card/dialog code ships to.
-      var principal = l.price * 0.8;
-      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
-      var mort = principal * r / (1 - Math.pow(1 + r, -n));
-      var strata = l.strata || 0;
-      var tax = (l.tax || 0) / 12;
-      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
-      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
+    /* ---------- lead form + CRM ---------- */
+    function buildLeadSelects(){
+      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
+      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
+      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
     }
-    function cardHTML(l, why){
+    function renderCRM(){
+      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
       var t = T();
-      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
-        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
-      var preHTML = "";
-      if (l.pt === "presale"){
-        var pbits = [];
-        if (l.project) pbits.push(esc(l.project));
-        if (l.developer) pbits.push(esc(l.developer));
-        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
-          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
-      }
-      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
-      var cmpBtn = "";
-      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
-        var cOn = cmpSel.indexOf(l.mls) !== -1;
-        var cMax = !cOn && cmpSel.length >= 4;
-        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
-      }
-      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
-        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
+      $("crmBody").innerHTML = LEADS.map(function(ld){
+        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
+        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
+          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
+          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
+          td(t.th_budget, esc(t[ld.budget] || "—")) +
+          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
+          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
+      }).join("");
     }
-    /* ---------- match assistant ---------- */
-    function buildMatchSelects(){
-      keep($("mBudget"), function(sel){ opt(sel, "", T().any_price); PRICES.concat([2000000]).forEach(function(p){ opt(sel, String(p), fmt(p)); }); });
-      keep($("mBeds"), function(sel){ buildBedsSelect(sel); });
-      keep($("mCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("mType"), function(sel){ buildTypeSelect(sel); });
+    function leadTsToken(){
+      var tok = "";
+      var r = document.querySelector('#leadForm input[name="cf-turnstile-response"]');
+      if (r) tok = r.value || "";
+      if (!tok && window.turnstile && turnstile.getResponse) { try { tok = turnstile.getResponse() || ""; } catch(e){} }
+      return tok;
     }
-    $("matchForm").addEventListener("submit", function(e){
+    function tsResetIn(formSel){
+      if (!(window.turnstile && turnstile.reset)) return;
+      var el = document.querySelector(formSel + " .cf-turnstile");
+      try { if (el) turnstile.reset(el); } catch(e){}
+    }
+    $("leadForm").addEventListener("submit", function(e){
       e.preventDefault(); var t = T();
-      var budget = $("mBudget").value ? parseInt($("mBudget").value, 10) : Infinity,
-          beds = parseInt($("mBeds").value || "0", 10), city = $("mCity").value, type = $("mType").value;
-      var hits = LISTINGS.filter(function(l){
-        return l.price <= budget && l.beds >= beds && (!city || l.city === city) && (!type || l.type === type);
+      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
+          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
+          msg = $("lMsg").value.trim(), plang = $("lLang").value;
+      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
+      renderCRM();
+      var toast = $("leadToast");
+      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+      function mailtoFallback(){
+        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
+          city: city ? (t.cities[city] || city) : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
+        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body.length > 1600 ? body.slice(0, 1600) + "…" : body);
+        showToast(t.l_fallback);
+      }
+      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = t.l_sending;
+      var payload = {
+        name: name, email: email, phone: phone || "—",
+        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
+        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
+        _subject: "New lead — EH REALTY website",
+        _template: "table", _captcha: "false",
+        _honey: $("lHoney").value
+      };
+      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
+      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
+      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
+      try {
+        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
+          signal: leadCtl ? leadCtl.signal : undefined
+        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
+      } catch(e){}
+      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
+      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
+      fetch("https://formsubmit.co/ajax/" + EMAIL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        body: JSON.stringify(payload),
+        signal: fsCtl ? fsCtl.signal : undefined
+      }).then(function(res){
+        if (!res.ok) throw new Error("FormSubmit send failed");
+        return res.json();
+      }).then(function(data){
+        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
+        showToast(t.l_success);
+      }).catch(function(){
+        mailtoFallback();
+      }).then(function(){
+        if (fsTimer) clearTimeout(fsTimer);
+        tsResetIn("#leadForm");
+        btn.disabled = false; btn.textContent = btnLabel;
       });
-      $("matchLine").style.display = ""; $("matchCount").textContent = fill(t.m_matches, {n: hits.length});
-      $("matchGrid").innerHTML = hits.length ? hits.map(function(l){
-        var why = [];
-        if (isFinite(budget)) why.push(fill(t.why_under, {x: fmt(budget - l.price)}));
-        why.push(fill(t.why_beds, {n: l.beds})); why.push(fill(t.why_city, {city: t.cities[l.city] || l.city}));
-        if (l.strata && l.strata <= 350) why.push(fill(t.why_strata, {x: fmt(l.strata)}));
-        try { return cardHTML(l, why); } catch(e){ return ""; }
-      }).join("") : '<div class="empty">'+esc(t.m_none)+"</div>";
-      $("matchGrid").scrollIntoView({behavior:"smooth", block:"nearest"});
     });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
@@ -69,7 +94,7 @@
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
     toolsBtn.addEventListener("click", function(e){ e.stopPropagation(); var open = toolsList.classList.toggle("open"); toolsBtn.setAttribute("aria-expanded", open ? "true" : "false"); });
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
-    document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTools(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
@@ -949,10 +974,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      buildMatchSelects();
+      buildLeadSelects();
+      $("lLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang();
-      $("matchGrid").innerHTML = ""; $("matchLine").style.display = "none";
+      renderCRM(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
