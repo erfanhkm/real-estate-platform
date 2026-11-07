@@ -3682,6 +3682,7 @@
   // ---------- system 5: automation rules ----------
   var puRulesArr = [], puRuleEditing = null;
   var puRulesUpdatedAt = null; // Pack PK: the config version every save is based on (worker requires it)
+  var puRulesSaving = false; // Pack PK2: one rules save in flight at a time (see puSaveRules)
   function puTrigLabel(v) { var s = v; PU_TRIGGERS().forEach(function (p) { if (p[0] === v) s = p[1]; }); return s; }
   function puActLabel(v) { var s = v; PU_ACTIONS().forEach(function (p) { if (p[0] === v) s = p[1]; }); return s; }
   function puActionRow(i, a) {
@@ -3735,16 +3736,30 @@
       $("puRulesLog").innerHTML = log.length ? log.slice(0, 30).map(function (e) { return '<div class="pu-row"><span>' + esc(e.rule || e.ruleId) + '<br><span class="pu-mini">' + esc(e.trigger) + " → " + (e.actions || []).join(", ") + '</span></span><span class="pu-mini">' + esc(fmtDate(e.at)) + "</span></div>"; }).join("") : '<div class="empty">No firings yet.</div>';
     }).catch(function () {});
   }
+  function puRulesSetSaving(on) {
+    puRulesSaving = on;
+    if ($("puRuleSave")) $("puRuleSave").disabled = on;
+    var list = $("puRulesList");
+    if (list) Array.prototype.forEach.call(list.querySelectorAll("button"), function (b) { b.disabled = on; });
+  }
   function puSaveRules() {
     // Pack PK: saves name the config version they were based on —
     // the worker 409s a stale base instead of overwriting a newer
     // save, and an empty list needs the explicit confirmEmpty flag
     // (the per-delete confirm() above is that confirmation).
+    // Pack PK2 (item 4): ONE save in flight — a double-click (or a
+    // row toggle racing the form save) used to fire a second PUT
+    // from the same stale version, which then 409d against its own
+    // first save and toasted a bogus "changed elsewhere". While a
+    // save runs, re-entry is refused and the Save button plus the
+    // rule-row buttons are disabled until the save settles.
+    if (puRulesSaving) return;
+    puRulesSetSaving(true);
     api(API_URL, "/api/admin/rules", { method: "PUT", body: JSON.stringify({ rules: puRulesArr, baseUpdatedAt: puRulesUpdatedAt, confirmEmpty: puRulesArr.length === 0 }) }).then(function (d) {
       if (d && d.ok) { puRulesUpdatedAt = d.updatedAt || puRulesUpdatedAt; toast("Rules saved ✓"); puLoadRules(); }
       else if (d && (d.error === "conflict" || d.error === "base_required")) { toast("Rules changed elsewhere — reloading the latest"); puLoadRules(); }
       else toast("Could not save rules");
-    }).catch(function () { toast("Could not save rules"); });
+    }).catch(function () { toast("Could not save rules"); }).then(function () { puRulesSetSaving(false); });
   }
   $("puRuleSave").addEventListener("click", function () {
     var actions = [];
