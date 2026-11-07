@@ -982,7 +982,7 @@
 
   function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
   function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
-  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} showLogin(); }
+  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} /* Pack APP (APP-01 M2): also purge the service worker's portal caches — portal-v3 holds cached /api/admin/ GET responses that must not outlive the session on a shared device. Fire-and-forget: sign-out never waits on Cache Storage. */ try { if (window.caches && caches.keys) caches.keys().then(function(ks){ ks.forEach(function(k){ if (k.indexOf("portal-") === 0) caches.delete(k); }); }).catch(function(){}); } catch(e){} showLogin(); }
 
   // ---------- navigation ----------
   var wsLens = "board";

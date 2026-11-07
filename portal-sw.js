@@ -13,9 +13,14 @@
    (css/js/images/fonts/manifest) are cache-first; HTML pages are
    network-first with a cache fallback. Cross-origin requests — every
    advisor-api response included — are NEVER intercepted or cached,
-   and /api/ paths are never cached. */
+   and /api/ paths are never cached.
+   Pack APP (APP-01 H1): cache-first is safe for the JS bundles because
+   the build content-hashes their URLs (bundle-*.js?v=<md5-8>) — a
+   changed bundle is a changed URL. Unversioned images/fonts can still
+   go stale inside a cache version, so SITE_CACHE must be bumped in
+   any deploy that changes an unversioned asset's bytes. */
 var PU_CACHE = 'portal-v3';
-var SITE_CACHE = 'site-v4'; // bump on every site-strategy change; stale site-* caches are deleted on activate
+var SITE_CACHE = 'site-v5'; // bump on every site-strategy change; stale site-* caches are deleted on activate
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
@@ -48,7 +53,7 @@ self.addEventListener('fetch', function (e) {
             var h = new Headers(res.headers);
             h.set('x-pu-cached-at', String(Date.now()));
             var stamped = new Response(await res.clone().blob(), { status: res.status, statusText: res.statusText, headers: h });
-            cache.put(e.request, stamped);
+            await cache.put(e.request, stamped);
           } catch (err) {}
         }
         return res;
@@ -64,6 +69,7 @@ self.addEventListener('fetch', function (e) {
   // ---- site branch (public pages) ----
   if (url.origin !== self.location.origin) return; // cross-origin (advisor APIs, Turnstile): never intercepted
   if (url.pathname.indexOf('/api/') === 0) return; // API responses are never cached
+  if (url.pathname.indexOf('/cdn-cgi/') === 0) return; // Pack APP (APP-01 low): platform plumbing (challenges, email-decode) is never cached
   var isStatic = /\.(?:css|js|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|webmanifest)$/i.test(url.pathname);
   var isPage = e.request.mode === 'navigate' || url.pathname === '/' || /\.html$/i.test(url.pathname);
   if (isStatic) {
@@ -72,7 +78,7 @@ self.addEventListener('fetch', function (e) {
       var sHit = await scache.match(e.request);
       if (sHit) return sHit;
       var sres = await fetch(e.request);
-      if (sres && sres.ok) { try { scache.put(e.request, sres.clone()); } catch (err) {} }
+      if (sres && sres.ok) { try { await scache.put(e.request, sres.clone()); } catch (err) {} }
       return sres;
     })());
     return;
@@ -82,13 +88,18 @@ self.addEventListener('fetch', function (e) {
       var pcache = await caches.open(SITE_CACHE);
       try {
         var pres = await fetch(e.request);
-        if (pres && pres.ok) { try { pcache.put(e.request, pres.clone()); } catch (err) {} }
+        if (pres && pres.ok) { try { await pcache.put(e.request, pres.clone()); } catch (err) {} }
         return pres;
       } catch (err) {
         var phit = await pcache.match(e.request);
         if (phit) return phit;
-        var home = await pcache.match('/');
-        if (home) return home;
+        // Pack APP (APP-01 H1): the home-page fallback answers a failed
+        // NAVIGATION only — a failed subresource .html fetch must fail
+        // as itself, never silently return the home page's markup.
+        if (e.request.mode === 'navigate') {
+          var home = await pcache.match('/');
+          if (home) return home;
+        }
         throw err;
       }
     })());
