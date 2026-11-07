@@ -20,7 +20,7 @@
    go stale inside a cache version, so SITE_CACHE must be bumped in
    any deploy that changes an unversioned asset's bytes. */
 var PU_CACHE = 'portal-v3';
-var SITE_CACHE = 'site-v5'; // bump on every site-strategy change; stale site-* caches are deleted on activate
+var SITE_CACHE = 'site-v6'; // bump on every site-strategy change; stale site-* caches are deleted on activate (v6: Pack APP2 static-put waitUntil)
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
@@ -78,7 +78,15 @@ self.addEventListener('fetch', function (e) {
       var sHit = await scache.match(e.request);
       if (sHit) return sHit;
       var sres = await fetch(e.request);
-      if (sres && sres.ok) { try { await scache.put(e.request, sres.clone()); } catch (err) {} }
+      if (sres && sres.ok) {
+        // Pack APP2 (APP-01 low): the static branch's cache write no
+        // longer delays the response — waitUntil keeps the worker
+        // alive until the put lands, the same completion guarantee
+        // the awaited put gave. The portal, install and page-branch
+        // puts stay awaited: correctness paths, not first-load
+        // latency paths.
+        try { e.waitUntil(scache.put(e.request, sres.clone()).catch(function () {})); } catch (err) {}
+      }
       return sres;
     })());
     return;
