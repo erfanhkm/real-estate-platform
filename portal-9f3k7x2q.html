@@ -799,7 +799,7 @@
     <section id="page-rules" hidden>
       <div class="pagehead"><h1>Automation rules</h1><button class="ghost small" id="puRulesRefresh">Refresh</button></div>
       <div class="card"><h2>Your rules</h2><div id="puRulesList"><div class="empty">Loading…</div></div>
-      <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” queues HELD mail. Agent-written emails (Assistant → prepare_email) are released ONLY when BOTH a business sender identity is configured AND the governing rule's 📤 Auto-send is ON — both default off, so everything stays held for your approval.</div></div>
+      <div class="hint">Rules run inside the platform automation cycle, after the built-in alerts + reminders, and fire at most once per target. “Queue a draft” queues HELD mail. Enabling a rule does not replay the past: past events are baselined when it is switched on — a “Lead went cold” rule nudges only leads that cross the cold threshold within an hour before enabling or later, not the whole cold list. Agent-written emails (Assistant → prepare_email) are released ONLY when BOTH a business sender identity is configured AND the governing rule's 📤 Auto-send is ON — both default off, so everything stays held for your approval.</div></div>
       <div class="card"><h2 id="puRuleFormTitle">Add a rule</h2>
         <div class="pu-filters">
           <label>Name <input id="puRName" type="text" placeholder="e.g. Valuation → task" style="width:200px"></label>
