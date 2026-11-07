@@ -18,9 +18,17 @@
    the build content-hashes their URLs (bundle-*.js?v=<md5-8>) — a
    changed bundle is a changed URL. Unversioned images/fonts can still
    go stale inside a cache version, so SITE_CACHE must be bumped in
-   any deploy that changes an unversioned asset's bytes. */
+   any deploy that changes an unversioned asset's bytes.
+   Pack PL2e (2026-11-07): the ?v= stamps turned out stale for all 13
+   bundles (later splices changed bytes without restamping), so the
+   versioning moved INTO the filenames: stamp-assets.mjs emits every
+   SW-cached asset as <name>.<sha256-8>.<ext> in the staged deploy
+   tree (app/web-staged/) and rewrites every reference. SITE_CACHE is
+   no longer hand-bumped — the stamper DERIVES it from the staged
+   cached set's content hashes and writes it into the staged copy of
+   this file. The literal below is only the pre-stamp placeholder. */
 var PU_CACHE = 'portal-v3';
-var SITE_CACHE = 'site-v8'; // bump on every site-strategy change; stale site-* caches are deleted on activate (v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil)
+var SITE_CACHE = 'site-191fd0ce1934'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
@@ -41,7 +49,7 @@ self.addEventListener('fetch', function (e) {
   try { url = new URL(e.request.url); } catch (err) { return; }
   if (e.request.method !== 'GET') return; // network default
   var isPortalDoc = url.pathname === PORTAL_PATH;
-  var isAsset = url.pathname === '/portal-manifest.webmanifest' || url.pathname.indexOf('/portal-icon-') === 0;
+  var isAsset = url.pathname === '/portal-manifest.8cddc16b.webmanifest' || url.pathname.indexOf('/portal-icon-') === 0;
   var isAdminGet = url.pathname.indexOf('/api/admin/') === 0;
   if (isPortalDoc || isAsset || isAdminGet) {
     e.respondWith((async function () {
@@ -120,8 +128,8 @@ self.addEventListener('push', function (e) {
   try { d = e.data ? e.data.json() : {}; } catch (err) {}
   e.waitUntil(self.registration.showNotification(d.title || 'Site Admin', {
     body: d.body || '',
-    icon: '/portal-icon-192.png',
-    badge: '/portal-icon-192.png',
+    icon: '/portal-icon-192.39a8f34b.png',
+    badge: '/portal-icon-192.39a8f34b.png',
     data: { url: d.url || PORTAL_PATH }
   }));
 });
