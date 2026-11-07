@@ -427,13 +427,25 @@
       @media (max-width:860px){.fb-grid{grid-template-columns:1fr 1fr}.hb-name{font-size:22px}}
       /* Pack PL (PL-01 H3): letter-spacing disconnects Arabic-script
          letters and distorts Devanagari conjuncts, so the tracked
-         header/footer copy renders un-tracked in fa and hi. */
-      html[lang="fa"] :is(header.hdr-b, footer.ftr-b) *, html[lang="hi"] :is(header.hdr-b, footer.ftr-b) *{letter-spacing:normal}
+         header/footer copy renders un-tracked in fa and hi.
+         Pack PL 1.1: the reset carries !important — as a bare rule it
+         is (0,2,2) and LOSES to the nav rules it exists to override
+         (header.hdr-b nav.hb-nav>a is (0,2,3); .navbtn is (0,3,2))
+         regardless of source order, so the nav stayed tracked in fa
+         and hi. Proven by a headless computed-style check (the
+         stage-1.1 build record). */
+      html[lang="fa"] :is(header.hdr-b, footer.ftr-b) *, html[lang="hi"] :is(header.hdr-b, footer.ftr-b) *{letter-spacing:normal!important}
       /* Pack PL (PL-01 M4): the footer email wraps instead of clipping. */
       footer.ftr-b .fb-grid .mail{overflow-wrap:anywhere}
       /* Pack PL (PL-01 M6): a visible keyboard focus ring on the dark
          header/footer (hover states existed; focus had none). */
       header.hdr-b :focus-visible, footer.ftr-b :focus-visible{outline:2px solid #E6CB7E;outline-offset:2px}
+      /* Pack PL 1.1 (PL-01 M6, verification round): inside the tools
+         menu the gold ring sits on the light var(--surface) panel,
+         where #E6CB7E is ~1.5:1 — there the outline takes var(--ink)
+         (#15130e on #ffffff in the light theme, #f4f1ea on #161513
+         in the dark theme: ~16:1 either way). */
+      header.hdr-b .menu :focus-visible{outline-color:var(--ink)}
       /* Pack PL (PL-01 M8): the gradient wordmark stays visible in
          forced-colors mode (background-clip:text alone vanishes). */
       @media (forced-colors:active){.fb-giant{background:none;color:CanvasText;-webkit-text-fill-color:currentColor}}
