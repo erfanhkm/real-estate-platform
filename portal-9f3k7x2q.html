@@ -3756,10 +3756,14 @@
     if (puRulesSaving) return;
     puRulesSetSaving(true);
     api(API_URL, "/api/admin/rules", { method: "PUT", body: JSON.stringify({ rules: puRulesArr, baseUpdatedAt: puRulesUpdatedAt, confirmEmpty: puRulesArr.length === 0 }) }).then(function (d) {
-      if (d && d.ok) { puRulesUpdatedAt = d.updatedAt || puRulesUpdatedAt; toast("Rules saved ✓"); puLoadRules(); }
+      // Pack PK3: the save response's housekeeping is surfaced, not
+      // swallowed — rejected entries and regenerated duplicate ids
+      // (PK2 S5/S8) ride the success toast instead of staying
+      // API-only.
+      if (d && d.ok) { puRulesUpdatedAt = d.updatedAt || puRulesUpdatedAt; var saveNotes = []; if (d.rejected > 0) saveNotes.push(d.rejected + " invalid " + (d.rejected === 1 ? "entry" : "entries") + " dropped"); if (d.regenerated && d.regenerated.length) saveNotes.push(d.regenerated.length + " duplicate id" + (d.regenerated.length === 1 ? "" : "s") + " renamed"); toast("Rules saved ✓" + (saveNotes.length ? " — " + saveNotes.join(", ") : "")); puLoadRules(); }
       else if (d && (d.error === "conflict" || d.error === "base_required")) { toast("Rules changed elsewhere — reloading the latest"); puLoadRules(); }
       else toast("Could not save rules");
-    }).catch(function () { toast("Could not save rules"); }).then(function () { puRulesSetSaving(false); });
+    }).catch(function () { toast("Could not save rules"); }).finally(function () { puRulesSetSaving(false); }); // Pack PK3: finally — the saving state resets even if a handler above throws
   }
   $("puRuleSave").addEventListener("click", function () {
     var actions = [];
