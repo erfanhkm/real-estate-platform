@@ -1321,7 +1321,7 @@
      "licence_short": "Erfan Hakimian es un REALTOR® autorizado en Columbia Británica, afiliado a [BROKERAGE] — envíe su consulta y le responderá."
     }
     };
-    for (var L9 in I18N9b) { if (I18N[L9]) { for (var k9 in I18N9[L9]) I18N[L9][k9] = I18N9b[L9][k9]; } }
+    for (var L9 in I18N9b) { if (I18N[L9]) { for (var k9 in I18N9b[L9]) I18N[L9][k9] = I18N9b[L9][k9]; } }
     /* ---------- Knowledge Center strings ---------- */
     var I18N10 = {
     en:{cta_kc:"Explore the Knowledge Center",
