@@ -107,7 +107,7 @@
   #hsBar { padding: 12px 16px; display: flex; gap: 10px; align-items: center; background: var(--panel); flex-wrap: wrap; }
   #hsBar select { width: auto; }
   /* toast */
-  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f9d55; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f9d55; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.4); max-width: 92vw; text-align: center; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.bad { background: #b91c1c; }
   @media (max-width: 760px) {
@@ -135,10 +135,22 @@
     input, select, textarea { font-size: 16px !important; max-width: 100%; }
     img, canvas, svg, video { max-width: 100%; height: auto; }
     .stat .n { font-size: 20px; }
+    /* Pack PM9 (#35 mobile pass): login sits outside #main/#side, so
+       the 40px rule never reached its button (measured 36px); the
+       filter labels could not shrink past a file input's intrinsic
+       width (measured overflow at 320px); data rows and modal tables
+       get the same wrap/scroll treatment #main already had. */
+    #loginView button { min-height: 44px; }
+    .pu-filters label { min-width: 0; }
+    .pu-row { flex-wrap: wrap; }
+    #detail table:not(.kv), #puModal table:not(.kv) { display: block; overflow-x: auto; max-width: 100%; }
+    #detail table.kv td, #puModal table.kv td { word-break: break-word; }
+    #navOthers:not([hidden]) { display: flex; flex-direction: row; gap: 6px; }
+    #navOthers .navbtn.sub { margin-left: 0; width: auto; }
   }
 
   /* portal upgrade (2026-11-01) */
-  .pu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .pu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px; }
   .pu-src { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #201D18; color: #A79E8C; }
   .pu-src.err { background: #3a0e0e; color: #f87171; }
   .pu-attn { border: 1px solid #C9A24B; background: rgba(201,162,75,.08); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; }
@@ -171,7 +183,7 @@
     <div class="mut" style="margin-top:6px">EH REALTY — owner access only</div>
   </div>
   <div class="card">
-    <input type="password" id="pw" placeholder="Admin password" autocomplete="current-password">
+    <input type="password" id="pw" placeholder="Admin password" aria-label="Admin password" autocomplete="current-password">
     <div class="cf-turnstile" data-sitekey="0x4AAAAAAFbCjECJ3G_8xgJE" data-theme="dark" style="margin-bottom:12px"></div>
     <button id="loginBtn" style="width:100%">Sign in</button>
     <div class="err" id="loginErr"></div>
@@ -191,7 +203,7 @@
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
-    <button class="navbtn" id="navOthersBtn"><span class="ic">🧰</span>Others <span id="navOthersCaret" style="margin-left:auto">▸</span></button>
+    <button class="navbtn" id="navOthersBtn" aria-expanded="false" aria-controls="navOthers"><span class="ic">🧰</span>Others <span id="navOthersCaret" style="margin-left:auto">▸</span></button>
     <div id="navOthers" hidden>
       <button class="navbtn sub" data-nav="site"><span class="ic">🧩</span>Site content</button>
       <button class="navbtn sub" data-nav="pipeline"><span class="ic">🗂</span>Pipeline</button>
@@ -771,9 +783,11 @@
 
     <section id="page-brain" hidden>
       <div class="pagehead"><h1>🧠 Assistant</h1><span class="pu-mini" id="pbStatus">…</span></div>
+      <div id="pbPredAcc" class="pu-mini" style="margin:-8px 0 12px"></div>
       <div class="card">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
           <button class="ghost small" id="pbLangFa">فارسی</button><button class="ghost small" id="pbNewChat" title="Start a fresh conversation (the saved one is cleared)">🆕 New chat</button>
+          <button class="ghost small" id="pbSpeakBtn" title="Read assistant replies aloud with the browser's own voice — no AI cost">🔇 Read aloud: off</button>
           <button class="ghost small" id="pbLangEn">EN</button>
           <span class="pu-mini">The assistant answers from your portal data and can run multi-step plans (agent mode): drafts, follow-ups, research with sources, briefs, copy and prepared emails. Emails stay HELD unless both send gates are open; it never changes a lead's stage by itself.</span>
         </div>
@@ -908,7 +922,7 @@
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <div id="gsOverlay" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-start;justify-content:center;padding:9vh 14px 14px">
   <div style="background:#161513;border:1px solid #2E2A23;border-radius:14px;max-width:640px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden">
@@ -1026,7 +1040,7 @@
     else if (page === "viewings") cur = "calendar";
     else if (page === "leads") cur = "leads";
     else if (page === "crm") cur = (crmView === "people") ? "people" : (crmView === "pipeline") ? "board" : (crmView === "matches") ? "matches" : (crmView === "follow") ? "follow" : cur;
-    Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){ b.classList.toggle("on", b.getAttribute("data-wslens") === cur); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){ var on = b.getAttribute("data-wslens") === cur; b.classList.toggle("on", on); b.setAttribute("role", "tab"); b.setAttribute("aria-selected", on ? "true" : "false"); }); // Pack PM9 (#35 shell a11y)
   }
   Array.prototype.forEach.call(document.querySelectorAll("[data-wslens]"), function(b){
     b.addEventListener("click", function(){ wsLens = b.getAttribute("data-wslens"); wsOpen(); });
@@ -1035,7 +1049,7 @@
     var g = $("navOthers"); if (!g) return;
     g.hidden = !open;
     var c = $("navOthersCaret"); if (c) c.textContent = open ? "▾" : "▸";
-    var b = $("navOthersBtn"); if (b) b.classList.toggle("open", open);
+    var b = $("navOthersBtn"); if (b) { b.classList.toggle("open", open); b.setAttribute("aria-expanded", open ? "true" : "false"); } // Pack PM9 (#35 shell a11y)
   }
   function go(page){
     if (page === "workspace") { wsOpen(); return; }
@@ -1047,8 +1061,11 @@
     if (["site", "pipeline", "maintenance", "rules"].indexOf(page) !== -1) navOthersOpen(true);
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
-      b.classList.toggle("on", b.getAttribute("data-nav") === navKey);
+      var on = b.getAttribute("data-nav") === navKey;
+      b.classList.toggle("on", on);
+      if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); // Pack PM9 (#35 shell a11y)
     });
+    if (typeof pbStopSpeak === "function") pbStopSpeak(); // Pack PM9 (#32): leaving a page stops any read-aloud
     if (page === "overview") loadOverview();
     if (page === "today") puLoadToday();
     if (page === "brain") pbLoadBrain();
@@ -3893,7 +3910,7 @@
         while ((m2 = re.exec(content)) !== null) { text += m2[0].replace(/\s*(?:Tj|TJ)$/, "").slice(1, -1).replace(/\\([()\\])/g, "$1").replace(/\\n/g, " ") + " "; }
         if (text.length < 40) { var re2 = /\((?:\\.|[^()\\])*\)/g; while ((m2 = re2.exec(content)) !== null) text += m2[0].slice(1, -1).replace(/\\([()\\])/g, "$1") + " "; }
       }
-      return text.replace(/\s+/g, " ").trim().slice(0, 4000);
+      return text.replace(/\s+/g, " ").trim().slice(0, 48000); // Pack PM9 (#34): the brain chunks long documents server-side now — send up to the 8-part cap instead of 4,000 chars
     })();
   }
   async function puFilesHtml(D, files, include) {
@@ -3930,6 +3947,17 @@
     }).catch(function () {});
   }
   var puFilesCache = [];
+  /* Pack PM9 (#34): the summary record now reports its own coverage
+     (chunks / partial / truncated) — surface it wherever the facts
+     are shown so a partial read never looks like a complete one. */
+  function puSummaryNote(s) {
+    if (!s) return "";
+    var bits = [];
+    if (s.chunks && s.chunks > 1) bits.push("read in " + s.chunks + " parts");
+    if (s.partial) bits.push("one part failed — the summary may be incomplete");
+    if (s.truncated) bits.push("the document was longer than the summary limit — its tail was not read");
+    return bits.length ? '<div class="pu-mini" style="margin-top:6px">⚠️ ' + bits.join(" · ") + "</div>" : "";
+  }
   async function puFileSummarise(fid) {
     var f = puFilesCache.filter(function (x) { return x.id === fid; })[0];
     if (!f) return;
@@ -3938,12 +3966,12 @@
       var blob = await puFileBlob(f);
       var text = "";
       if (f.type === "application/pdf") text = await puPdfText(await blob.arrayBuffer());
-      else if (/^text\//.test(f.type || "")) text = (await blob.text()).slice(0, 6000);
+      else if (/^text\//.test(f.type || "")) text = (await blob.text()).slice(0, 48000); // Pack PM9 (#34)
       if (!text || !text.trim()) { toast("No extractable text in that file", true); return; }
       var d = await api(API_URL, "/api/admin/brain/file-summary", { method: "POST", body: JSON.stringify({ fileId: fid, text: text }) });
       if (d && d.ok) {
         toast("AI summary saved ✓");
-        puModalOpen("🧠 AI summary — " + f.name, "<ul>" + (d.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>");
+        puModalOpen("🧠 AI summary — " + f.name, "<ul>" + (d.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" + puSummaryNote(d.aiSummary));
         puLoadFiles();
       } else toast("Summary unavailable (" + pbErrText((d && d.error) || "ai") + ")", true);
     } catch (e) { toast("Summary failed", true); }
@@ -3959,7 +3987,7 @@
       Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-dl]"), function (b) { b.addEventListener("click", function () { puFetchFileBlob(b.getAttribute("data-file-dl")).then(function (blob) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "file"; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); }); }); });
       Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-del]"), function (b) { b.addEventListener("click", function () { if (!confirm("Delete this file?")) return; api(API_URL, "/api/admin/files/" + encodeURIComponent(b.getAttribute("data-file-del")), { method: "DELETE" }).then(function () { puLoadFiles(); }); }); });
       Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-sum]"), function (b) { b.addEventListener("click", function () { puFileSummarise(b.getAttribute("data-file-sum")); }); });
-      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-sumview]"), function (b) { b.addEventListener("click", function () { var f = puFilesCache.filter(function (x) { return x.id === b.getAttribute("data-file-sumview"); })[0]; if (f && f.aiSummary) puModalOpen("🧠 AI summary — " + f.name, '<div class="pu-mini" style="margin-bottom:6px">Key facts from your file · via ' + esc(f.aiSummary.via || "") + " · " + esc(fmtDate(f.aiSummary.at)) + '</div><ul>' + (f.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>"); }); });
+      Array.prototype.forEach.call($("puFilesList").querySelectorAll("[data-file-sumview]"), function (b) { b.addEventListener("click", function () { var f = puFilesCache.filter(function (x) { return x.id === b.getAttribute("data-file-sumview"); })[0]; if (f && f.aiSummary) puModalOpen("🧠 AI summary — " + f.name, '<div class="pu-mini" style="margin-bottom:6px">Key facts from your file · via ' + esc(f.aiSummary.via || "") + " · " + esc(fmtDate(f.aiSummary.at)) + '</div><ul>' + (f.aiSummary.facts || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" + puSummaryNote(f.aiSummary)); }); });
     }).catch(function () { $("puFilesList").innerHTML = '<div class="empty">Could not load files.</div>'; });
   }
   function puLoadReports() {
@@ -4087,7 +4115,7 @@
   }
   // Pack PM2 (PB2-07c S7): raw executor failure codes never reach the
   // screen — the trace speaks plain language; unknown codes pass through.
-  var PB_ERR_TEXT = { suppressed: "suppressed — this address never receives agent mail", not_found: "not found — the record does not exist", lead_closed: "the lead is closed or dropped", invalid_date: "that date is not usable for a follow-up", validation: "the request was incomplete", rejected: "the action was rejected", failed: "the step failed", skipped: "skipped", ai_unavailable: "the AI service is unavailable right now", brain_cap: "the daily AI cap is reached", not_configured: "the AI channel is not configured", ai: "the AI service is unavailable right now", ai_down: "the AI service is unavailable right now", error: "something went wrong", rate_limit: "too many requests — wait a moment", transcribe_failed: "transcription failed", ai_not_configured: "the AI channel is not configured yet", no_stats: "no market statistics are stored yet", conflict: "the record changed underneath — reload and retry", too_large: "the file is too large" };
+  var PB_ERR_TEXT = { suppressed: "suppressed — this address never receives agent mail", not_found: "not found — the record does not exist", lead_closed: "the lead is closed or dropped", invalid_date: "that date is not usable for a follow-up", validation: "the request was incomplete", rejected: "the action was rejected", failed: "the step failed", skipped: "skipped", ai_unavailable: "the AI service is unavailable right now", brain_cap: "the daily AI cap is reached", not_configured: "the AI channel is not configured", ai: "the AI service is unavailable right now", ai_down: "the AI service is unavailable right now", error: "something went wrong", rate_limit: "too many requests — wait a moment", transcribe_failed: "transcription failed", ai_not_configured: "the AI channel is not configured yet", no_stats: "no market statistics are stored yet", conflict: "the record changed underneath — reload and retry", too_large: "the file is too large", no_photos: "this listing has no photos yet — add photos before generating a video pack" };
   function pbErrText(code) { var c = String(code || ""); return PB_ERR_TEXT[c] || c || "rejected"; }
   function puRenderCopy(rec, proposed) {
     var box = $("puCopyBox");
@@ -4161,6 +4189,32 @@
 
   // ================= portal brain UI (2026-11-01) =================
   var pbLang = "fa", pbMsgs = [], pbBusy = false, pbDocPreset = null;
+  /* Pack PM9 (#32): browser voice-OUT. The assistant was voice-in
+     only (Whisper proposals); replies can now be read aloud with the
+     browser's own speechSynthesis — phone/browser-native, zero
+     provider calls. A per-message Listen/Stop button rides every
+     assistant bubble, and the toolbar toggle auto-reads new replies.
+     The voice follows the portal chat language (pbLang). */
+  var pbSpeak = false, pbSpeakIdx = -1;
+  try { pbSpeak = localStorage.getItem("pb_speak") === "1"; } catch (e) {}
+  function pbSpeakBtnSync() { var b = $("pbSpeakBtn"); if (b) b.textContent = pbSpeak ? "🔊 Read aloud: on" : "🔇 Read aloud: off"; }
+  function pbStopSpeak() { pbSpeakIdx = -1; try { if ("speechSynthesis" in window) speechSynthesis.cancel(); } catch (e) {} }
+  function pbSpeakText(i) {
+    if (!("speechSynthesis" in window)) { toast("Voice playback is not supported in this browser", true); return; }
+    if (pbSpeakIdx === i) { pbStopSpeak(); pbRenderLog(); return; }
+    var m = pbMsgs[i];
+    if (!m || m.role !== "assistant") return;
+    pbStopSpeak();
+    var text = String(m.content || "").replace(/```[\s\S]*?```/g, " ").trim();
+    if (!text) return;
+    var u = new SpeechSynthesisUtterance(text.slice(0, 1200));
+    u.lang = pbLang === "fa" ? "fa-IR" : "en-US";
+    try { var v = speechSynthesis.getVoices().filter(function (x) { return x.lang && x.lang.toLowerCase().indexOf(u.lang.slice(0, 2).toLowerCase()) === 0; })[0]; if (v) u.voice = v; } catch (e) {}
+    pbSpeakIdx = i;
+    u.onend = u.onerror = function () { if (pbSpeakIdx === i) { pbSpeakIdx = -1; pbRenderLog(); } };
+    try { speechSynthesis.speak(u); } catch (e) { pbSpeakIdx = -1; }
+    pbRenderLog();
+  }
   var PB_CHIPS = ["امروز چه کارهایی دارم؟", "لیدهای داغ رو برام توضیح بده", "خلاصه‌ی بازار این ماه چیه؟", "برای داغ‌ترین لید یه پیش‌نویس پیگیری بساز"];
   function pbRenderBriefInto(el, brief) {
     if (!el || !brief) return;
@@ -4191,8 +4245,9 @@
     }).join("");
   }
   function pbRenderLog() {
-    $("pbLog").innerHTML = pbMsgs.length ? pbMsgs.map(function (m) {
+    $("pbLog").innerHTML = pbMsgs.length ? pbMsgs.map(function (m, mi) {
       var h = pbBubble(m.role, m.content);
+      if (m.role === "assistant" && "speechSynthesis" in window) h += '<div style="align-self:flex-start"><button class="ghost small" data-pb-speak="' + mi + '">' + (pbSpeakIdx === mi ? "⏹ Stop" : "🔊 Listen") + "</button></div>"; // Pack PM9 (#32)
       if (m.role === "assistant" && m.trace && m.trace.length) h += '<div style="align-self:flex-start;max-width:88%">' + pbTraceHtml(m.trace) + "</div>";
       return h;
     }).join("") : '<div class="empty">هنوز پیامی نیست — یکی از پیشنهادهای زیر رو بزنید یا خودتون بنویسید.</div>';
@@ -4224,6 +4279,20 @@
       if (!d.configured) el.textContent = "⚠️ AI channel not configured yet — brain features stay paused";
       else if (d.left <= 0) el.textContent = "⏸ AI paused — daily cap reached (" + d.used + "/" + d.cap + ")";
       else el.textContent = "🧠 " + d.used + "/" + d.cap + " brain calls today" + ((d.providers && (d.providers.claude || d.providers.grok || d.providers.perplexity)) ? " · paid slot present" : " · free stack");
+      /* Pack PM9 (#30b): PM3's prediction-accuracy instrument
+         (brain status predictionAccuracy) finally gets a visible
+         surface — until now nothing in the portal rendered it, so
+         the calibration proposals had no visible basis. */
+      var paEl = $("pbPredAcc");
+      if (paEl) {
+        var pa = d.predictionAccuracy;
+        if (pa && pa.checked > 0) {
+          paEl.textContent = "🎯 Prediction check: " + pa.checked + " predictions scored vs real outcomes"
+            + (pa.closeTotal ? " · close-band hits " + pa.closeHits + "/" + pa.closeTotal + " (" + Math.round(100 * pa.closeHits / pa.closeTotal) + "%)" : "")
+            + (pa.coldTotal ? " · cold-risk held " + pa.coldHits + "/" + pa.coldTotal + " (" + Math.round(100 * pa.coldHits / pa.coldTotal) + "%)" : "")
+            + (pa.at ? " · " + fmtDate(pa.at) : "");
+        } else paEl.textContent = "";
+      }
     }).catch(function () {});
     api(API_URL, "/api/admin/brain/brief").then(function (d) { if (d && d.ok && d.brief) pbRenderBriefInto($("pbBrief"), d.brief); }).catch(function () {});
     pbLoadMemory();
@@ -4309,7 +4378,7 @@
                 var ourl = URL.createObjectURL(blob);
                 host2._pm7url = ourl;
                 host2.innerHTML = "";
-                var a = document.createElement("a"); a.href = ourl; a.download = "voice-memo.webm"; a.textContent = "⬇ Download the voice memo (transcription failed)"; a.style.display = "block"; a.style.margin = "8px 0";
+                var a = document.createElement("a"); a.href = ourl; a.download = "voice-memo." + (String(blob.type || "").includes("mp4") ? "m4a" : String(blob.type || "").includes("ogg") ? "ogg" : "webm"); a.textContent = "⬇ Download the voice memo (transcription failed)"; a.style.display = "block"; a.style.margin = "8px 0";
                 a.addEventListener("click", function () { setTimeout(function () { try { URL.revokeObjectURL(ourl); } catch (e) {} if (host2._pm7url === ourl) { host2._pm7url = null; host2.innerHTML = ""; } }, 4000); });
                 host2.appendChild(a);
               }
@@ -4374,7 +4443,7 @@
   function puRenderVideoPack(pack) {
     var box = $("puVideoBox"); if (!box) return;
     if (!pack) { box.innerHTML = '<div class="empty">No video pack yet for this listing.</div>'; return; }
-    box.innerHTML = '<div class="pu-mini" style="margin-bottom:4px">🎬 Video pack · ' + esc(fmtDate(pack.at)) + (pack.via ? " · via " + esc(pack.via) : "") + (pack.rendered ? " · MP4 rendered" : " · script + storyboard (MP4 render is a follow-up step)") + "</div>" +
+    box.innerHTML = '<div class="pu-mini" style="margin-bottom:4px">🎬 Video pack · ' + esc(fmtDate(pack.at)) + (pack.via ? " · via " + esc(pack.via) : "") + (pack.totalSeconds ? " · ~" + pack.totalSeconds + "s total" : "") + (pack.rendered ? " · MP4 rendered" : " · script + storyboard (MP4 render is a follow-up step)") + "</div>" +
       '<div style="margin-bottom:6px"><b>Hook:</b> ' + esc(pack.hook || "") + "</div>" +
       '<div class="pu-mini">Script (EN)</div><div style="white-space:pre-wrap;margin-bottom:6px">' + esc(pack.scriptEn || "") + "</div>" +
       '<div class="pu-mini">Script (FA)</div><div dir="rtl" style="text-align:right;white-space:pre-wrap;margin-bottom:6px">' + esc(pack.scriptFa || "") + "</div>" +
@@ -4414,6 +4483,7 @@
          step field) lives on inside pbTraceHtml. */
       pbMsgs.push({ role: "assistant", content: d.reply || "", trace: (d.executed && d.executed.length) ? d.executed : undefined });
       pbRenderLog();
+      if (pbSpeak && d.reply) pbSpeakText(pbMsgs.length - 1); // Pack PM9 (#32): auto-read when the toggle is on
     }).catch(function () { pbBusy = false; pbMsgs.push({ role: "assistant", content: pbLang === "fa" ? "الان دستیار در دسترس نیست." : "The assistant is unavailable right now." }); pbRenderLog(); });
   }
   function pbOpenDoc(link) {
@@ -4427,6 +4497,8 @@
     if (!t || !t.closest) return;
     var c = t.closest("[data-pb-chip]");
     if (c) { pbSend(PB_CHIPS[Number(c.getAttribute("data-pb-chip"))]); return; }
+    var sp = t.closest("[data-pb-speak]");
+    if (sp) { pbSpeakText(Number(sp.getAttribute("data-pb-speak"))); return; } // Pack PM9 (#32)
     var dc = t.closest("[data-pb-doc]");
     if (dc) pbOpenDoc(dc.getAttribute("data-pb-doc"));
   });
@@ -4434,9 +4506,19 @@
   $("pbInput").addEventListener("keydown", function (e) { if (e.key === "Enter") $("pbSend").click(); });
   $("pbLangFa").addEventListener("click", function () { pbSetLang("fa"); });
   $("pbLangEn").addEventListener("click", function () { pbSetLang("en"); });
+  var pbSpeakBtn = $("pbSpeakBtn");
+  if (pbSpeakBtn) pbSpeakBtn.addEventListener("click", function () {
+    pbSpeak = !pbSpeak;
+    try { localStorage.setItem("pb_speak", pbSpeak ? "1" : "0"); } catch (e) {}
+    if (!pbSpeak) { pbStopSpeak(); pbRenderLog(); }
+    pbSpeakBtnSync();
+    toast(pbSpeak ? "Replies will be read aloud" : "Read aloud off");
+  });
+  pbSpeakBtnSync();
   var pbNewChatBtn = $("pbNewChat");
   if (pbNewChatBtn) pbNewChatBtn.addEventListener("click", function () {
     if (pbBusy) return;
+    pbStopSpeak(); // Pack PM9 (#32)
     api(API_URL, "/api/admin/brain/chat/history", { method: "DELETE" }).then(function () {}).catch(function () {});
     pbMsgs = []; pbRenderLog();
     toast(pbLang === "fa" ? "گفتگوی تازه شروع شد" : "New conversation started");
