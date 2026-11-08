@@ -962,10 +962,25 @@
     opts.headers = Object.assign({}, opts.headers || {});
     if (!(opts.body instanceof FormData)) opts.headers["Content-Type"] = "application/json";
     if (token) opts.headers["Authorization"] = "Bearer " + token;
+    /* Pack PM6 (gap #27): an optional per-call timeout. The brain
+       generation POSTs (copy, chat, market brief) pass one — a stuck
+       provider used to leave the panel on its "Writing…" state
+       forever, because fetch had no deadline at all. An abort
+       rejects and the callers' existing .catch renders their
+       unavailable message. */
+    var ctl = null, timer = null;
+    if (opts.timeoutMs && typeof AbortController !== "undefined") {
+      ctl = new AbortController();
+      opts = Object.assign({}, opts, { signal: ctl.signal });
+      timer = setTimeout(function(){ try { ctl.abort(); } catch(e){} }, opts.timeoutMs);
+    }
+    delete opts.timeoutMs;
+    var done = function(){ if (timer) clearTimeout(timer); };
     return fetch(base + path, opts).then(function(r){
+      done();
       if (r.status === 401){ signOut(); throw new Error("signed out"); }
       return r.json();
-    });
+    }, function(e){ done(); throw e; });
   }
   function api(base, path, opts){
     opts = opts || {};
@@ -3533,7 +3548,7 @@
         var bb = $("puBriefBtn");
         if (bb) bb.addEventListener("click", function () {
           bb.disabled = true; bb.textContent = "Writing…";
-          api(API_URL, "/api/admin/brain/market-brief", { method: "POST", body: "{}" }).then(function (d) {
+          api(API_URL, "/api/admin/brain/market-brief", { method: "POST", timeoutMs: 120000, body: "{}" }).then(function (d) {
             bb.disabled = false; bb.textContent = "🧠 Market brief";
             if (d && d.ok && d.brief) { pbRenderBriefInto($("puBriefOut"), d.brief); toast("Market brief ready ✓"); }
             else toast("Brief unavailable (" + ((d && d.error) || "ai") + ")", true);
@@ -4104,9 +4119,9 @@
     var mls = $("puRepMls").value;
     if (!mls) { toast("Pick a listing first"); return; }
     $("puCopyBox").innerHTML = '<div class="empty">Writing in every language…</div>';
-    api(API_URL, "/api/admin/brain/copy", { method: "POST", body: JSON.stringify({ mls: mls }) }).then(function (d) {
+    api(API_URL, "/api/admin/brain/copy", { method: "POST", timeoutMs: 120000, body: JSON.stringify({ mls: mls }) }).then(function (d) {
       if (d && d.ok && d.proposed) { api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (g) { puRenderCopy(g && g.copy, g && g.proposed); }).catch(function () {}); toast("Your edited copy was kept — the regeneration is a proposal below."); }
-      else if (d && d.ok) puRenderCopy(d.copy);
+      else if (d && d.ok) { puRenderCopy(d.copy); if (d.copy && d.copy.failed) toast("Some languages failed (" + Object.keys(d.copy.failed).join(", ") + ") — the rest are saved; regenerate to retry.", true); }
       else $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable (' + esc((d && d.error) || "ai") + ").</div>";
     }).catch(function () { $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable.</div>'; });
   });
@@ -4323,7 +4338,7 @@
     pbMsgs.push({ role: "user", content: text });
     pbRenderLog();
     $("pbLog").innerHTML += pbBubble("assistant", "…");
-    api(API_URL, "/api/admin/brain/chat", { method: "POST", body: JSON.stringify({ lang: pbLang, messages: pbMsgs.slice(-8) }) }).then(function (d) {
+    api(API_URL, "/api/admin/brain/chat", { method: "POST", timeoutMs: 120000, body: JSON.stringify({ lang: pbLang, messages: pbMsgs.slice(-8) }) }).then(function (d) {
       pbBusy = false;
       if (!d || !d.ok) {
         var why = d && d.error === "brain_cap" ? (pbLang === "fa" ? "سهمیه‌ی روزانه‌ی هوش مصنوعی تموم شده — فردا دوباره تلاش کنید." : "AI paused — the daily cap is reached.")
@@ -4374,7 +4389,7 @@
   $("pbLangEn").addEventListener("click", function () { pbSetLang("en"); });
   $("pbBriefBtn").addEventListener("click", function () {
     var b = $("pbBriefBtn"); b.disabled = true;
-    api(API_URL, "/api/admin/brain/market-brief", { method: "POST", body: "{}" }).then(function (d) {
+    api(API_URL, "/api/admin/brain/market-brief", { method: "POST", timeoutMs: 120000, body: "{}" }).then(function (d) {
       b.disabled = false;
       if (d && d.ok && d.brief) { pbRenderBriefInto($("pbBrief"), d.brief); $("pbBriefMsg").textContent = "Ready ✓"; }
       else $("pbBriefMsg").textContent = "Unavailable (" + ((d && d.error) || "ai") + ")";
