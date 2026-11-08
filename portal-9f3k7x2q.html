@@ -4048,10 +4048,26 @@
   });
 
   // ---------- portal brain: listing copywriter + showing brief ----------
+  // Pack PM2 (PB2-07b S1 + PB2-07c conf 5): ONE consolidated critic
+  // renderer. Exact-match branches only; an unknown/unavailable critic
+  // renders the pipeline line, never a claim about the copy; an absent
+  // status renders NOTHING (no critic exists for it).
+  function puCriticBadge(c) {
+    if (!c || !c.status) return "";
+    if (c.status === "passed") return ' <span class="pu-mini">✓ critic passed</span>';
+    if (c.status === "revised") return ' <span class="pu-mini">✎ critic revised</span>';
+    if (c.status === "flagged") return ' <span class="pu-mini" style="color:#fbbf24">⚠ critic flagged — review carefully</span>';
+    if (c.status === "unchecked") return ' <span class="pu-mini">critic unavailable — copy not reviewed</span>';
+    return ' <span class="pu-mini">critic status: ' + esc(String(c.status)) + '</span>';
+  }
+  // Pack PM2 (PB2-07c S7): raw executor failure codes never reach the
+  // screen — the trace speaks plain language; unknown codes pass through.
+  var PB_ERR_TEXT = { suppressed: "suppressed — this address never receives agent mail", not_found: "not found — the record does not exist", lead_closed: "the lead is closed or dropped", invalid_date: "that date is not usable for a follow-up", validation: "the request was incomplete", rejected: "the action was rejected", failed: "the step failed", skipped: "skipped", ai_unavailable: "the AI service is unavailable right now", brain_cap: "the daily AI cap is reached", not_configured: "the AI channel is not configured" };
+  function pbErrText(code) { var c = String(code || ""); return PB_ERR_TEXT[c] || c || "rejected"; }
   function puRenderCopy(rec) {
     var box = $("puCopyBox");
     if (!rec || !rec.langs || !Object.keys(rec.langs).length) { box.innerHTML = '<div class="empty">No AI copy draft yet for this listing.</div>'; return; }
-    box.innerHTML = (rec.critic && rec.critic.status ? '<div class="pu-mini" style="margin-bottom:8px">Critic: ' + (rec.critic.status === "passed" ? "✓ passed" : rec.critic.status === "revised" ? "✎ revised after critic feedback" : "⚠ flagged — review the copy carefully") + "</div>" : "") + Object.keys(rec.langs).map(function (lg) {
+    box.innerHTML = (rec.critic && rec.critic.status ? '<div class="pu-mini" style="margin-bottom:8px">Critic:' + puCriticBadge(rec.critic) + "</div>" : "") + Object.keys(rec.langs).map(function (lg) {
       var nm = lg; NL_LANGS.forEach(function (p) { if (p[0] === lg) nm = p[1]; });
       return '<div style="margin-bottom:10px"><div class="pu-mini" style="margin-bottom:3px"><b>' + esc(nm) + "</b> · draft · " + esc(fmtDate(rec.at)) + (rec.via ? " · via " + esc(rec.via) : "") + '</div><textarea id="puCopy-' + lg + '" rows="5" style="width:100%">' + esc(rec.langs[lg]) + '</textarea><div style="margin-top:3px"><button class="ghost small" data-copy-save="' + lg + '">Save ' + esc(nm) + " draft</button></div></div>";
     }).join("");
@@ -4107,7 +4123,7 @@
   var PB_CHIPS = ["امروز چه کارهایی دارم؟", "لیدهای داغ رو برام توضیح بده", "خلاصه‌ی بازار این ماه چیه؟", "برای داغ‌ترین لید یه پیش‌نویس پیگیری بساز"];
   function pbRenderBriefInto(el, brief) {
     if (!el || !brief) return;
-    el.innerHTML = '<div dir="rtl" style="text-align:right;white-space:pre-wrap">' + esc(brief.text || "") + '</div><div class="pu-mini" style="margin-top:4px">' + esc(brief.month || "") + (brief.via ? " · via " + esc(brief.via) : "") + " · " + esc(fmtDate(brief.at)) + (brief.critic && brief.critic.status ? (brief.critic.status === "passed" ? " · ✓ critic passed" : brief.critic.status === "revised" ? " · ✎ critic revised" : " · ⚠ critic flagged") : "") + "</div>";
+    el.innerHTML = '<div dir="rtl" style="text-align:right;white-space:pre-wrap">' + esc(brief.text || "") + '</div><div class="pu-mini" style="margin-top:4px">' + esc(brief.month || "") + (brief.via ? " · via " + esc(brief.via) : "") + " · " + esc(fmtDate(brief.at)) + puCriticBadge(brief.critic) + "</div>";
   }
   function pbBubble(role, text) {
     var mine = role === "user";
@@ -4140,7 +4156,7 @@
   }
 
   // ---------- Portal Brain 2: memory panel, voice, video pack ----------
-  function pbCriticBadge(c) { if (!c || !c.status) return ""; return c.status === "passed" ? ' <span class="pu-mini">✓ critic passed</span>' : c.status === "revised" ? ' <span class="pu-mini">✎ critic revised</span>' : ' <span class="pu-mini" style="color:#fbbf24">⚠ critic flagged</span>'; }
+  function pbCriticBadge(c) { return puCriticBadge(c); } // Pack PM2: consolidated in puCriticBadge (PB2-07b S1)
   function pbLoadMemory() {
     if (!token) return;
     api(API_URL, "/api/admin/brain/memory").then(function (d) {
@@ -4294,18 +4310,18 @@
       }
       pbMsgs.push({ role: "assistant", content: d.reply || "" });
       pbRenderLog();
-      var criticBadge = function (c) { if (!c || !c.status) return ""; return c.status === "passed" ? ' <span class="pu-mini" title="Second reviewer passed">✓ critic</span>' : c.status === "revised" ? ' <span class="pu-mini" title="Critic found issues; the text was revised once">✎ critic revised</span>' : ' <span class="pu-mini" style="color:#fbbf24" title="Critic flagged this text — review carefully">⚠ critic flagged</span>'; };
+      var criticBadge = function (c) { return puCriticBadge(c); }; // Pack PM2: consolidated helper (PB2-07b S1)
       var ex = (d.executed || []).map(function (x, xi) {
         // PB2-07c S7: the step label comes from the ENUMERATION, not
         // from the result's own step field (which could override it).
         var step = '<span class="pu-mini">Step ' + (xi + 1) + ": </span>";
-        if (!x.ok) return '<div class="pu-mini" style="color:#f87171">' + step + "⚠️ " + esc(x.action) + " — " + esc(x.error || "rejected") + (x.error === "skipped" ? " (plan stopped at the first failed step)" : "") + "</div>";
+        if (!x.ok) return '<div class="pu-mini" style="color:#f87171">' + step + "⚠️ " + esc(x.action) + " — " + esc(pbErrText(x.error)) + (x.error === "skipped" ? " (plan stopped at the first failed step)" : "") + "</div>";
         if (x.action === "draft_message") return '<div class="pu-mini">' + step + "✅ Draft queued (held) — nothing sent." + criticBadge(x.critic) + "</div>";
         if (x.action === "create_followup") return '<div class="pu-mini">' + step + "✅ Follow-up created · due " + esc(x.due || "") + "</div>";
-        if (x.action === "explain_score") return '<div class="pu-mini">' + step + "✅ " + esc(x.name || "") + " — score " + x.score + " (" + esc(x.band || "") + "): " + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
-        if (x.action === "research") return '<div class="pu-mini">' + step + "🔍 <b>Research:</b> " + esc(x.answer || "") + (x.sources && x.sources.length ? '<br>Sources: ' + x.sources.map(function (s, i) { return "[" + (i + 1) + "] " + esc(s.title || s.url); }).join(" · ") : "") + (x.researchNote ? '<br><i>' + esc(x.researchNote) + "</i>" : "") + "</div>";
+        if (x.action === "explain_score") return '<div class="pu-mini">' + step + "✅ " + esc(x.name || "") + " — score " + Number(x.score || 0) + " (" + esc(x.band || "") + '):</div><div style="border-left:3px solid #C9A24B;padding:4px 8px;margin:4px 0">' + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
+        if (x.action === "research") return '<div class="pu-mini">' + step + "🔍 <b>Research</b> <i>(unverified web summary)</i>:" + '<div style="border-left:3px solid #C9A24B;padding:4px 8px;margin:4px 0;white-space:pre-wrap">' + esc(x.answer || "") + "</div>" + (x.sources && x.sources.length ? 'Sources: ' + x.sources.map(function (s, i) { var lbl = "[" + (i + 1) + "] " + esc(s.title || s.url || "") + (s.host ? " — " + esc(s.host) : ""); return s.host ? '<a href="' + esc(s.url || "") + '" target="_blank" rel="noopener noreferrer">' + lbl + "</a>" : lbl; }).join(" · ") : "") + (x.researchNote ? '<br><i>' + esc(x.researchNote) + "</i>" : "") + "</div>";
         if (x.action === "prepare_email") return '<div class="pu-mini">' + step + (x.held === true ? "✉️ Email written and queued HELD for " + esc(x.to || "") + " — gate: " + (x.gate === "sender_not_configured" ? "no business sender identity configured" : x.gate === "autosend_off" ? "auto-send is OFF for the governing rule" : esc(x.gate || "")) + (x.ruleName ? " (rule: " + esc(x.ruleName) + ")" : " (no governing rule)") + (x.subject ? "<br>Subject: " + esc(x.subject) : "") + (x.mailId ? "<br>Mail queue record: " + esc(x.mailId) : "") + "." : x.held === false ? "✉️ Email written and RELEASED to the mailer queue for " + esc(x.to || "") + " (both gates open; rule: " + esc(x.ruleName || x.ruleId || "") + ")." + (x.subject ? "<br>Subject: " + esc(x.subject) : "") + (x.mailId ? "<br>Mail queue record: " + esc(x.mailId) : "") : "✉️ Email status unknown — check the mail queue.") + criticBadge(x.critic) + (x.complianceIssues && x.complianceIssues.length ? '<br>Compliance: ' + x.complianceIssues.map(esc).join("; ") : "") + "</div>";
-        if (x.action === "update_listing_copy_draft") return '<div class="pu-mini">' + step + "✅ Listing copy draft updated for " + esc(x.mls || "") + " (Reports tab)." + criticBadge(x.critic) + "</div>";
+        if (x.action === "update_listing_copy_draft") return '<div class="pu-mini">' + step + "✅ Listing copy draft regenerated for " + esc(x.mls || "") + " (Reports tab) — your previous edits to this draft were replaced." + criticBadge(x.critic) + "</div>";
         if (x.action === "create_viewing_brief") return '<div class="pu-mini">' + step + "✅ Viewing brief ready (Viewings / Reports)." + "</div>";
         if (x.link) return '<div style="margin-top:4px"><button class="ghost small" data-pb-doc="' + esc(x.link) + '">📖 Open in Reports &amp; handbook</button></div>';
         return '<div class="pu-mini">' + step + "✅ " + esc(x.action) + "</div>";
