@@ -28,7 +28,7 @@
    cached set's content hashes and writes it into the staged copy of
    this file. The literal below is only the pre-stamp placeholder. */
 var PU_CACHE = 'portal-v3';
-var SITE_CACHE = 'site-3b595736b7e8'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
+var SITE_CACHE = 'site-211cbc014064'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
