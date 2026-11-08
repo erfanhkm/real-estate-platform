@@ -4064,13 +4064,28 @@
   // screen — the trace speaks plain language; unknown codes pass through.
   var PB_ERR_TEXT = { suppressed: "suppressed — this address never receives agent mail", not_found: "not found — the record does not exist", lead_closed: "the lead is closed or dropped", invalid_date: "that date is not usable for a follow-up", validation: "the request was incomplete", rejected: "the action was rejected", failed: "the step failed", skipped: "skipped", ai_unavailable: "the AI service is unavailable right now", brain_cap: "the daily AI cap is reached", not_configured: "the AI channel is not configured" };
   function pbErrText(code) { var c = String(code || ""); return PB_ERR_TEXT[c] || c || "rejected"; }
-  function puRenderCopy(rec) {
+  function puRenderCopy(rec, proposed) {
     var box = $("puCopyBox");
     if (!rec || !rec.langs || !Object.keys(rec.langs).length) { box.innerHTML = '<div class="empty">No AI copy draft yet for this listing.</div>'; return; }
-    box.innerHTML = (rec.critic && rec.critic.status ? '<div class="pu-mini" style="margin-bottom:8px">Critic:' + puCriticBadge(rec.critic) + "</div>" : "") + Object.keys(rec.langs).map(function (lg) {
+    // Pack PM3 (PB2-04b M4): a regeneration over hand-edited copy is a
+    // PROPOSAL — shown here with an explicit Accept; the edited copy
+    // below is never replaced silently.
+    var propHtml = "";
+    if (proposed && proposed.langs) {
+      propHtml = '<div style="border:1px solid #C9A24B;border-radius:8px;padding:8px;margin-bottom:10px"><div class="pu-mini" style="margin-bottom:4px"><b>New AI proposal</b> — your edited copy below was kept. Accept replaces it (the current version is kept as the previous version).</div>'
+        + Object.keys(proposed.langs).map(function (lg) { return '<div class="pu-mini" style="white-space:pre-wrap;margin-bottom:4px"><b>' + esc(lg) + ':</b> ' + esc(String(proposed.langs[lg]).slice(0, 300)) + '</div>'; }).join("")
+        + '<button class="ghost small" id="puCopyAccept">Accept the proposal</button></div>';
+    }
+    box.innerHTML = propHtml + (rec.critic && rec.critic.status ? '<div class="pu-mini" style="margin-bottom:8px">Critic:' + puCriticBadge(rec.critic) + "</div>" : "") + Object.keys(rec.langs).map(function (lg) {
       var nm = lg; NL_LANGS.forEach(function (p) { if (p[0] === lg) nm = p[1]; });
       return '<div style="margin-bottom:10px"><div class="pu-mini" style="margin-bottom:3px"><b>' + esc(nm) + "</b> · draft · " + esc(fmtDate(rec.at)) + (rec.via ? " · via " + esc(rec.via) : "") + '</div><textarea id="puCopy-' + lg + '" rows="5" style="width:100%">' + esc(rec.langs[lg]) + '</textarea><div style="margin-top:3px"><button class="ghost small" data-copy-save="' + lg + '">Save ' + esc(nm) + " draft</button></div></div>";
     }).join("");
+    var acc = $("puCopyAccept");
+    if (acc) acc.addEventListener("click", function () {
+      api(API_URL, "/api/admin/brain/copy/accept", { method: "POST", body: JSON.stringify({ mls: $("puRepMls").value }) }).then(function (d) {
+        if (d && d.ok) { toast("Proposal accepted ✓"); puRenderCopy(d.copy); } else toast("Could not accept", true);
+      }).catch(function () { toast("Could not accept", true); });
+    });
     Array.prototype.forEach.call(box.querySelectorAll("[data-copy-save]"), function (b) { b.addEventListener("click", function () {
       var lg = b.getAttribute("data-copy-save");
       api(API_URL, "/api/admin/brain/copy", { method: "PUT", body: JSON.stringify({ mls: $("puRepMls").value, lang: lg, text: $("puCopy-" + lg).value }) }).then(function (d) { toast(d && d.ok ? "Draft saved ✓" : "Could not save", !(d && d.ok)); }).catch(function () { toast("Could not save", true); });
@@ -4081,14 +4096,15 @@
     if (!mls) { toast("Pick a listing first"); return; }
     $("puCopyBox").innerHTML = '<div class="empty">Writing in every language…</div>';
     api(API_URL, "/api/admin/brain/copy", { method: "POST", body: JSON.stringify({ mls: mls }) }).then(function (d) {
-      if (d && d.ok) puRenderCopy(d.copy);
+      if (d && d.ok && d.proposed) { api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (g) { puRenderCopy(g && g.copy, g && g.proposed); }).catch(function () {}); toast("Your edited copy was kept — the regeneration is a proposal below."); }
+      else if (d && d.ok) puRenderCopy(d.copy);
       else $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable (' + esc((d && d.error) || "ai") + ").</div>";
     }).catch(function () { $("puCopyBox").innerHTML = '<div class="empty">Copy unavailable.</div>'; });
   });
   $("puRepMls").addEventListener("change", function () {
     var mls = $("puRepMls").value;
     if (!mls) return;
-    api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderCopy(d && d.copy); }).catch(function () {});
+    api(API_URL, "/api/admin/brain/copy?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderCopy(d && d.copy, d && d.proposed); }).catch(function () {});
     api(API_URL, "/api/admin/brain/video-pack?mls=" + encodeURIComponent(mls)).then(function (d) { puRenderVideoPack(d && d.pack); }).catch(function () {});
   });
   $("puVideoBtn").addEventListener("click", function () {
@@ -4321,7 +4337,7 @@
         if (x.action === "explain_score") return '<div class="pu-mini">' + step + "✅ " + esc(x.name || "") + " — score " + Number(x.score || 0) + " (" + esc(x.band || "") + '):</div><div style="border-left:3px solid #C9A24B;padding:4px 8px;margin:4px 0">' + (x.reasons || []).map(function (r) { return esc(puReasonText(r)); }).join(" · ") + "</div>";
         if (x.action === "research") return '<div class="pu-mini">' + step + "🔍 <b>Research</b> <i>(unverified web summary)</i>:" + '<div style="border-left:3px solid #C9A24B;padding:4px 8px;margin:4px 0;white-space:pre-wrap">' + esc(x.answer || "") + "</div>" + (x.sources && x.sources.length ? 'Sources: ' + x.sources.map(function (s, i) { var lbl = "[" + (i + 1) + "] " + esc(s.title || s.url || "") + (s.host ? " — " + esc(s.host) : ""); return s.host ? '<a href="' + esc(s.url || "") + '" target="_blank" rel="noopener noreferrer">' + lbl + "</a>" : lbl; }).join(" · ") : "") + (x.researchNote ? '<br><i>' + esc(x.researchNote) + "</i>" : "") + "</div>";
         if (x.action === "prepare_email") return '<div class="pu-mini">' + step + (x.held === true ? "✉️ Email written and queued HELD for " + esc(x.to || "") + " — gate: " + (x.gate === "sender_not_configured" ? "no business sender identity configured" : x.gate === "autosend_off" ? "auto-send is OFF for the governing rule" : esc(x.gate || "")) + (x.ruleName ? " (rule: " + esc(x.ruleName) + ")" : " (no governing rule)") + (x.subject ? "<br>Subject: " + esc(x.subject) : "") + (x.mailId ? "<br>Mail queue record: " + esc(x.mailId) : "") + "." : x.held === false ? "✉️ Email written and RELEASED to the mailer queue for " + esc(x.to || "") + " (both gates open; rule: " + esc(x.ruleName || x.ruleId || "") + ")." + (x.subject ? "<br>Subject: " + esc(x.subject) : "") + (x.mailId ? "<br>Mail queue record: " + esc(x.mailId) : "") : "✉️ Email status unknown — check the mail queue.") + criticBadge(x.critic) + (x.complianceIssues && x.complianceIssues.length ? '<br>Compliance: ' + x.complianceIssues.map(esc).join("; ") : "") + "</div>";
-        if (x.action === "update_listing_copy_draft") return '<div class="pu-mini">' + step + "✅ Listing copy draft regenerated for " + esc(x.mls || "") + " (Reports tab) — your previous edits to this draft were replaced." + criticBadge(x.critic) + "</div>";
+        if (x.action === "update_listing_copy_draft") return '<div class="pu-mini">' + step + (x.proposed ? "✅ New listing copy proposed for " + esc(x.mls || "") + " (Reports tab) — your edited copy was kept; the regeneration waits in the copy panel for your accept." : "✅ Listing copy draft regenerated for " + esc(x.mls || "") + " (Reports tab) — your previous edits to this draft were replaced.") + criticBadge(x.critic) + "</div>";
         if (x.action === "create_viewing_brief") return '<div class="pu-mini">' + step + "✅ Viewing brief ready (Viewings / Reports)." + "</div>";
         if (x.link) return '<div style="margin-top:4px"><button class="ghost small" data-pb-doc="' + esc(x.link) + '">📖 Open in Reports &amp; handbook</button></div>';
         return '<div class="pu-mini">' + step + "✅ " + esc(x.action) + "</div>";
