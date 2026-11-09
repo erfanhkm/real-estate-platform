@@ -107,7 +107,7 @@
   #hsBar { padding: 12px 16px; display: flex; gap: 10px; align-items: center; background: var(--panel); flex-wrap: wrap; }
   #hsBar select { width: auto; }
   /* toast */
-  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f9d55; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.4); max-width: 92vw; text-align: center; }
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f9d55; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,.4); max-width: 92vw; text-align: center; } /* Pack PMV3 (PM P25 quick win): z-index 99 sat UNDER the modals (#puModal 200, #gsOverlay 300) — save/error feedback was invisible while a modal was open */
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.bad { background: #b91c1c; }
   @media (max-width: 760px) {
@@ -209,6 +209,7 @@
       <button class="navbtn sub" data-nav="pipeline"><span class="ic">🗂</span>Pipeline</button>
       <button class="navbtn sub" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
       <button class="navbtn sub" data-nav="rules"><span class="ic">⚙️</span>Automation rules</button>
+      <button class="navbtn sub" data-nav="mailq"><span class="ic">📥</span>Held mail</button>
     </div>
     <div class="sp"></div>
     <a class="navbtn" href="https://real-estate-platform-0aei.onrender.com" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
@@ -635,12 +636,14 @@
           <label class="lf"><span>Headline (فارسی)</span><input id="st_heroTitle_fa" dir="rtl"></label>
           <label class="lf"><span>Headline (हिन्दी)</span><input id="st_heroTitle_hi"></label>
           <label class="lf"><span>Headline (中文)</span><input id="st_heroTitle_zh"></label>
+          <label class="lf"><span>Headline (Español)</span><input id="st_heroTitle_es"></label>
         </div>
         <div class="lfgrid" style="margin-top:10px">
           <label class="lf"><span>Sub-headline (English)</span><textarea id="st_heroSub_en" rows="2"></textarea></label>
           <label class="lf"><span>Sub-headline (فارسی)</span><textarea id="st_heroSub_fa" rows="2" dir="rtl"></textarea></label>
           <label class="lf"><span>Sub-headline (हिन्दी)</span><textarea id="st_heroSub_hi" rows="2"></textarea></label>
           <label class="lf"><span>Sub-headline (中文)</span><textarea id="st_heroSub_zh" rows="2"></textarea></label>
+          <label class="lf"><span>Sub-headline (Español)</span><textarea id="st_heroSub_es" rows="2"></textarea></label>
         </div>
       </div>
       <div class="card">
@@ -651,6 +654,7 @@
           <label class="lf"><span>Announcement (فارسی)</span><input id="st_ann_fa" dir="rtl"></label>
           <label class="lf"><span>Announcement (हिन्दी)</span><input id="st_ann_hi"></label>
           <label class="lf"><span>Announcement (中文)</span><input id="st_ann_zh"></label>
+          <label class="lf"><span>Announcement (Español)</span><input id="st_ann_es"></label>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -675,6 +679,15 @@
         <div class="stat"><div class="n" id="nlZh">–</div><div class="l">中文 (Chinese)</div></div>
       </div>
       <div id="nlGroups"></div>
+    </section>
+
+    <!-- HELD MAIL / OUTBOX (Pack PMV3) -->
+    <section id="page-mailq" hidden>
+      <div class="pagehead">
+        <div><h1>Held mail</h1><div class="mut">Every email the system has queued but NOT sent — agent drafts, follow-ups, reminders. Nothing here leaves until you mark it sent (mail is sent manually today). Review the full text, edit a draft (your save re-runs the compliance check), discard what should never go out.</div></div>
+        <button class="ghost small" id="mqRefresh">Refresh</button>
+      </div>
+      <div class="card"><div id="mqBody"><div class="empty">Loading…</div></div></div>
     </section>
 
     <!-- MAINTENANCE -->
@@ -1021,7 +1034,86 @@
 
   function showLogin(){ $("loginView").hidden = false; $("appView").hidden = true; }
   function showApp(){ $("loginView").hidden = true; $("appView").hidden = false; }
-  function signOut(){ token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} /* Pack APP (APP-01 M2): also purge the service worker's portal caches — portal-v3 holds cached /api/admin/ GET responses that must not outlive the session on a shared device. Fire-and-forget: sign-out never waits on Cache Storage. */ try { if (window.caches && caches.keys) caches.keys().then(function(ks){ ks.forEach(function(k){ if (k.indexOf("portal-") === 0) caches.delete(k); }); }).catch(function(){}); } catch(e){} showLogin(); }
+  function signOut(){ /* Pack PMV1 (PM P11): revoke the session SERVER-side first (POST /api/logout deletes the token record) and unsubscribe this device's push subscription — sign-out used to forget the token only in this browser, so a copied token stayed valid for up to 24h and portal alerts kept arriving after sign-out. Both are fire-and-forget: sign-out never waits on the network. */ var oldTok = ""; try { oldTok = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || ""; } catch(e){} if (oldTok) { try { fetch(API_URL + "/api/logout", { method: "POST", headers: { "Authorization": "Bearer " + oldTok } }).catch(function(){}); } catch(e){} } try { if ("serviceWorker" in navigator) navigator.serviceWorker.ready.then(function(reg){ return reg.pushManager.getSubscription(); }).then(function(sub){ if (!sub) return; var ep = sub.endpoint; return sub.unsubscribe().then(function(){ if (oldTok) return fetch(API_URL + "/api/admin/push/unsubscribe", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + oldTok }, body: JSON.stringify({ endpoint: ep }) }).catch(function(){}); }); }).catch(function(){}); } catch(e){} token = ""; localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); leads = []; cacheClear(); try { gsItems = null; } catch(e){} /* Pack APP (APP-01 M2): also purge the service worker's portal caches — portal-v3 holds cached /api/admin/ GET responses that must not outlive the session on a shared device. Fire-and-forget: sign-out never waits on Cache Storage. */ try { if (window.caches && caches.keys) caches.keys().then(function(ks){ ks.forEach(function(k){ if (k.indexOf("portal-") === 0) caches.delete(k); }); }).catch(function(){}); } catch(e){} showLogin(); }
+
+  // ---------- held mail / outbox (Pack PMV3) ----------
+  // The review screen the mail safety model always assumed: every held
+  // record with recipient, kind, queued time, consent basis, recipient
+  // signals (banned / do-not-contact), the agent gate state, the full
+  // body, an AI-original diff when the composer stored one, edit via
+  // the existing draft-edit route (which re-runs compliance — Pack
+  // PMV2), discard, and the manual mark-sent. Mark-sent stays manual:
+  // nothing in the portal ever transmits mail by itself.
+  var mqItems = [];
+  function mqBodyText(rec){ return rec.aiText || rec.body || ""; }
+  function mqGateLine(rec){
+    var g = rec.agentEmail && rec.agentEmail.gates;
+    if (!g) return "";
+    var parts = [];
+    parts.push("sender " + (g.sender ? "✓" : "✗"));
+    parts.push("rule auto-send " + (g.autoSend ? "✓" : "✗"));
+    if (g.agentSwitch !== undefined) parts.push("agent switch " + (g.agentSwitch ? "✓" : "✗"));
+    if (g.review !== undefined) parts.push("review " + (g.review ? "✓" : "✗"));
+    if (g.market === false) parts.push("market contact — never auto-releases");
+    return '<div class="pu-mini">Agent gates: ' + esc(parts.join(" · ")) + " → " + (rec.agentEmail.released ? "<b>RELEASED to mailer</b>" : "<b>HELD</b>") + (rec.critic ? " · critic: " + esc(rec.critic.status || "") : "") + "</div>";
+  }
+  function loadMailq(){
+    var box = $("mqBody"); if (!box) return;
+    api(API_URL, "/api/admin/mailq", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load the mail queue.</div>'; return; }
+      mqItems = d.mail || [];
+      renderMailq();
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load the mail queue.</div>'; });
+  }
+  function renderMailq(){
+    var box = $("mqBody"); if (!box) return;
+    if (!mqItems.length) { box.innerHTML = '<div class="empty">No queued mail. When the assistant, the rules or the automations prepare an email, it waits here for your review.</div>'; return; }
+    var unsent = mqItems.filter(function(r){ return !r.sent; });
+    var sent = mqItems.filter(function(r){ return r.sent; });
+    var row = function(rec){
+      var sig = rec.signals || {};
+      var badges = "";
+      if (rec.sent) badges += ' <span class="tag">sent ' + esc(fmtDate(rec.sent_at || "")) + "</span>";
+      else badges += ' <span class="tag">held</span>';
+      if (sig.banned) badges += ' <span class="tag" style="color:#b91c1c">recipient BANNED</span>';
+      if (sig.dnc) badges += ' <span class="tag" style="color:#b91c1c">do-not-contact</span>';
+      if (rec.aiEdited) badges += ' <span class="tag">edited</span>';
+      var issues = (rec.agentEmail && rec.agentEmail.compliance) || rec.compliance || [];
+      var body = mqBodyText(rec);
+      var orig = (typeof rec.aiOriginal === "string" && rec.aiOriginal.trim() && rec.aiOriginal.trim() !== body.trim()) ? rec.aiOriginal : "";
+      var h = '<div class="mqrow" style="border-top:1px solid var(--line);padding:10px 0">';
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline"><b>' + esc(rec.to || "") + "</b>" + badges + '<span class="mut">' + esc(rec.kind || "") + (rec.lang ? " · " + esc(rec.lang) : "") + " · queued " + esc(fmtDate(rec.created_at || "")) + (rec.consentBasis ? " · consent: " + esc(rec.consentBasis) : "") + "</span></div>";
+      if (rec.subject) h += '<div style="margin-top:2px"><b>Subject:</b> ' + esc(rec.subject) + "</div>";
+      h += mqGateLine(rec);
+      if (issues.length) h += '<div class="pu-mini" style="color:#b45309">Compliance: ' + esc(issues.join("; ")) + "</div>";
+      h += '<details style="margin-top:4px"><summary class="mut" style="cursor:pointer">View full text</summary><div style="white-space:pre-wrap;margin-top:6px">' + esc(body) + "</div>";
+      if (orig) h += '<div class="pu-mini" style="margin-top:8px">AI original (before your composer edit):</div><div style="white-space:pre-wrap;opacity:.75">' + esc(orig) + "</div>";
+      h += "</details>";
+      if (!rec.sent) {
+        h += '<details style="margin-top:4px"><summary class="mut" style="cursor:pointer">Edit draft</summary><textarea id="puDraftEdit-' + esc(rec.id) + '" rows="8" style="width:100%;margin-top:6px">' + esc(body) + '</textarea><div style="margin-top:6px"><button class="btn-spruce small" data-draft-save="' + esc(rec.id) + '">Save edit (re-checks compliance)</button></div></details>';
+        h += '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="ghost small" data-mq-sent="' + esc(rec.id) + '">Mark sent (manual)</button><button class="ghost small" data-mq-discard="' + esc(rec.id) + '">Discard</button></div>';
+      }
+      h += "</div>";
+      return h;
+    };
+    var html = "";
+    if (unsent.length) html += '<h3 style="margin:4px 0 2px">Waiting for review (' + unsent.length + ")</h3>" + unsent.map(row).join("");
+    if (sent.length) html += '<h3 style="margin:14px 0 2px">Marked sent (' + sent.length + ")</h3>" + sent.map(row).join("");
+    box.innerHTML = html;
+  }
+  document.addEventListener("click", function(e){
+    var t = e.target && e.target.closest ? e.target.closest("[data-mq-sent],[data-mq-discard]") : null;
+    if (!t) return;
+    var sentId = t.getAttribute("data-mq-sent"), disId = t.getAttribute("data-mq-discard");
+    if (sentId) {
+      api(API_URL, "/api/admin/mailq/" + encodeURIComponent(sentId), { method: "PATCH", body: "{}" }).then(function(d){ toast(d && d.ok ? "Marked sent ✓" : "Could not mark sent", !(d && d.ok)); if (d && d.ok) loadMailq(); }).catch(function(){ toast("Could not mark sent", true); });
+    }
+    if (disId) {
+      if (!confirm("Discard this held email permanently? It will never be sent.")) return;
+      api(API_URL, "/api/admin/mailq/" + encodeURIComponent(disId), { method: "DELETE" }).then(function(d){ toast(d && d.ok ? "Discarded ✓" : "Could not discard", !(d && d.ok)); if (d && d.ok) loadMailq(); }).catch(function(){ toast("Could not discard", true); });
+    }
+  });
+  var mqRefBtn = $("mqRefresh"); if (mqRefBtn) mqRefBtn.addEventListener("click", loadMailq);
 
   // ---------- navigation ----------
   var wsLens = "board";
@@ -1055,10 +1147,10 @@
     if (page === "workspace") { wsOpen(); return; }
     if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
-    if (["site", "pipeline", "maintenance", "rules"].indexOf(page) !== -1) navOthersOpen(true);
+    if (["site", "pipeline", "maintenance", "rules", "mailq"].indexOf(page) !== -1) navOthersOpen(true);
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
       var on = b.getAttribute("data-nav") === navKey;
@@ -1085,6 +1177,7 @@
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
     if (page === "calls") loadCalls();
+    if (page === "mailq") loadMailq();
     wsSync(page);
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -2486,7 +2579,7 @@
     lstPhotoData = undefined;
     lstOrigPhoto = rec && rec.photo ? rec.photo : "";
     var isNew = !rec;
-    rec = rec || { mls: "", street: "", city: "", postal: "", type: "condo", price: "", beds: 2, baths: 1, sqft: "", lot: "", year: "", parking: "", stalls: "", strata: "", tax: "", status: "active", listed: new Date().toISOString().slice(0, 10), features: [], desc: { en: "", fa: "", hi: "", zh: "" }, photo: "" };
+    rec = rec || { mls: "", street: "", city: "", postal: "", type: "condo", price: "", beds: 2, baths: 1, sqft: "", lot: "", year: "", parking: "", stalls: "", strata: "", tax: "", status: "active", listed: vanToday(), features: [], desc: { en: "", fa: "", hi: "", zh: "" }, photo: "" }; // Pack PMV3: vanToday() (Vancouver) — was new Date().toISOString() (UTC day)
     var desc = rec.desc || {};
     var f = function(id, label, val, attrs){
       return '<label class="lf"><span>' + label + '</span><input id="' + id + '" value="' + esc(val == null ? "" : String(val)) + '"' + (attrs || "") + '></label>';
@@ -2619,7 +2712,7 @@
   });
 
   // ---------- site settings ----------
-  var stHeroPhotoData = undefined, stOrigHeroPhoto = "", stLoaded = false, stSeq = 0;
+  var stHeroPhotoData = undefined, stOrigHeroPhoto = "", stLoaded = false, stSeq = 0, stRev = null;
   function slotsFromSettings(sl){
     if (!sl || !sl.start || !sl.end) return null;
     var toMin = function(x){ var p = String(x).split(":"); return (+p[0]) * 60 + (+p[1]); };
@@ -2633,6 +2726,7 @@
     api(API_URL, "/api/admin/settings", { fresh: true }).then(function(d){
       if (!d || !d.ok) { $("stErr").textContent = "Could not load settings."; return; }
       var s = d.settings || {};
+      stRev = d.rev || s.updated_at || null; // Pack PMV2: concurrency token for the save below
       stSeq++;
       stHeroPhotoData = undefined; stOrigHeroPhoto = s.heroPhoto || "";
       var hr = $("st_heroRemove"); if (hr) hr.checked = false;
@@ -2646,7 +2740,7 @@
       $("st_slotEnd").value = sl.end || "19:00";
       $("st_slotStep").value = sl.step || 30;
       var hero = s.hero || {}, title = hero.title || {}, sub = hero.sub || {}, ann = s.announcement || {};
-      ["en", "fa", "hi", "zh"].forEach(function(lg){
+      ["en", "fa", "hi", "zh", "es"].forEach(function(lg){ // Pack PMV2: es joins the form (the worker always stored it; the form used to wipe it)
         $("st_heroTitle_" + lg).value = title[lg] || "";
         $("st_heroSub_" + lg).value = sub[lg] || "";
         $("st_ann_" + lg).value = ann[lg] || "";
@@ -2675,7 +2769,7 @@
     if ($("stSave").disabled) return;
     var v = function(id){ return $(id).value.trim(); };
     var langObj = function(prefix){
-      return { en: v(prefix + "_en"), fa: v(prefix + "_fa"), hi: v(prefix + "_hi"), zh: v(prefix + "_zh") };
+      return { en: v(prefix + "_en"), fa: v(prefix + "_fa"), hi: v(prefix + "_hi"), zh: v(prefix + "_zh"), es: v(prefix + "_es") }; // Pack PMV2: es field included
     };
     var settings = {
       brand: v("st_brand"), email: v("st_email"), phone: v("st_phone"),
@@ -2688,7 +2782,7 @@
     if (!settings.brand) { $("stErr").textContent = "Brand name cannot be empty."; return; }
     if (settings.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email)) { $("stErr").textContent = "Check the contact email address."; return; }
     if (settings.rate !== null && !isFinite(settings.rate)) { $("stErr").textContent = "Check the rate field."; return; }
-    var body = { settings: settings };
+    var body = { settings: settings, baseRev: stRev }; // Pack PMV2: stale-overwrite guard (409 {error:'stale'})
     var urlVal = v("st_heroPhotoUrl");
     if (urlVal && !/^https:\/\/[^\s"'<>]+$/i.test(urlVal)) { $("stErr").textContent = "Hero photo URL must start with https://"; return; }
     if (stHeroPhotoData) { body.heroPhotoData = stHeroPhotoData; }
@@ -2699,11 +2793,13 @@
     api(API_URL, "/api/admin/settings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
       $("stSave").disabled = false;
       if (d && d.ok) {
+        if (d.rev) stRev = d.rev;
         toast("Site settings saved — live within a minute ✓");
         var sl = d.settings && slotsFromSettings(d.settings.slots);
         if (sl) AV_SLOTS = sl;
         loadSiteSettings();
-      } else { $("stErr").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
+      } else if (d && d.error === "stale") { $("stErr").textContent = "These settings changed in another window since you opened this page — reload the page to see the latest, then re-apply your edit."; }
+      else { $("stErr").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
     }).catch(function(){ $("stSave").disabled = false; $("stErr").textContent = "Could not save — connection problem."; });
   });
   // Viewing-slot grid follows the saved settings.
@@ -3669,8 +3765,8 @@
     if (window.L) return Promise.resolve(true);
     if (puLeafletP) return puLeafletP;
     puLeafletP = new Promise(function (res) {
-      var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(css);
-      var sc = document.createElement("script"); sc.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "/vendor/leaflet.css"; document.head.appendChild(css);
+      var sc = document.createElement("script"); sc.src = "/vendor/leaflet.js";
       sc.onload = function () { res(true); };
       sc.onerror = function () { res(false); };
       document.head.appendChild(sc);
@@ -3678,6 +3774,15 @@
     });
     return puLeafletP;
   }
+  /* Pack PMV3 (PM P7): the demand map used to load Leaflet 1.9.4 from
+     unpkg with NO integrity check — a compromised CDN response would
+     run inside the authenticated portal. It now loads from the
+     same-origin /vendor/ directory (leaflet.{css,js}, the exact 1.9.4
+     dist files, sitting next to the vendored Pannellum in
+     app/web-deploy/vendor/ and deployed as static files alongside the
+     staged tree — see the PMV3 pack record), so no third-party script
+     executes in the portal at all. The marker images Leaflet's CSS
+     references are unused here (the map draws circleMarkers only). */
   function puLoadDemand() {
     if (!token) return;
     api(API_URL, "/api/admin/demand").then(function (d) {
