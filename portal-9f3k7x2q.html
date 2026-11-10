@@ -722,6 +722,11 @@
       </div>
       <div class="card"><div id="acBody"><div class="empty">Loading…</div></div><div id="acMore" style="margin-top:10px"></div></div>
       <div class="card" id="acDrawer" hidden></div>
+      <div class="card" id="acB2Card">
+        <h2>Video storage (B2)</h2>
+        <div class="mut">Lesson videos are stored in the private Backblaze B2 bucket <b>eh-realty-academy-videos</b>. Both credential parts must be stored on the worker before uploads and playback can run. Each part can be stored only once and is never displayed again.</div>
+        <div id="acB2Body" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
     </section>
 
     <!-- MAINTENANCE -->
@@ -1177,9 +1182,51 @@
       $("acStatExpiring").textContent = d.counts.expiring14; $("acStatBlocked").textContent = d.counts.blocked;
     }).catch(function(){});
   }
+  // Pack AcademyB2Video (2026-11-10): the owner provision path for the B2
+  // appKey — status is booleans only; the value is POSTed once inside the
+  // owner's session (the worker's session branch reads it from the body),
+  // is cleared from the input the moment the form submits, and is never
+  // echoed, rendered, logged or kept anywhere in this page afterwards.
+  function acLoadB2(){
+    var box = $("acB2Body"); if (!box) return;
+    api(API_URL, "/api/admin/academy/b2-status", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load video storage status.</div>'; return; }
+      renderAcB2(d);
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load video storage status.</div>'; });
+  }
+  function renderAcB2(d){
+    var box = $("acB2Body"); if (!box) return;
+    var h = '<div class="pu-mini">Key ID: ' + (d.keyIdConfigured ? "✓ stored" : "✗ not stored") + '</div>' +
+      '<div class="pu-mini">Application key: ' + (d.appKeyConfigured ? "✓ stored" : "✗ not stored") + "</div>";
+    if (d.configured) {
+      h += '<div class="ok" style="margin-top:8px">Configured ✓ — uploads and playback can run against ' + esc(d.bucket || "eh-realty-academy-videos") + ".</div>";
+      box.innerHTML = h; return;
+    }
+    h += '<form id="acB2Form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">B2 application key</span><input type="password" id="acB2Key" autocomplete="off" placeholder="Paste the applicationKey"></label>' +
+      '<button type="submit" id="acB2Save">Save application key</button></form>' +
+      '<div class="hint">One-time setup. Paste the applicationKey of the Backblaze key “academy-video-upload”. It is sent once to the worker inside your signed-in session and stored there — it is never shown again and nothing is kept in this browser.</div>';
+    box.innerHTML = h;
+    var f = $("acB2Form");
+    if (f) f.addEventListener("submit", function(e){
+      e.preventDefault();
+      var inp = $("acB2Key"); var v = (inp.value || "").trim();
+      inp.value = ""; // cleared immediately on submit — never kept client-side
+      if (!v) { toast("Paste the application key first", true); return; }
+      var btn = $("acB2Save"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+      api(API_URL, "/api/admin/academy/b2-provision", { method: "POST", body: JSON.stringify({ part: "appKey", value: v }) }).then(function(r){
+        v = "";
+        if (r && r.ok) { toast("Application key stored ✓"); acLoadB2(); return; }
+        if (r && r.error === "already_provisioned") { toast("Already stored — the application key was provisioned earlier"); acLoadB2(); return; }
+        if (r && r.error === "validation") { toast("That key was rejected — check the full applicationKey was pasted", true); acLoadB2(); return; }
+        toast("Could not store the key" + (r && r.error ? " — " + r.error : ""), true); acLoadB2();
+      }).catch(function(){ v = ""; toast("Could not store the key — network error", true); acLoadB2(); });
+    });
+  }
   function loadAcademy(more){
     var box = $("acBody"); if (!box) return;
     acLoadOverview();
+    acLoadB2();
     var st = $("acStatus").value, q = ($("acQ").value || "").trim();
     var params = [];
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
