@@ -685,7 +685,7 @@
     <!-- HELD MAIL / OUTBOX (Pack PMV3) -->
     <section id="page-mailq" hidden>
       <div class="pagehead">
-        <div><h1>Held mail</h1><div class="mut">Every email the system has queued but NOT sent — agent drafts, follow-ups, reminders. Nothing here leaves until you mark it sent (mail is sent manually today). Review the full text, edit a draft (your save re-runs the compliance check), discard what should never go out.</div></div>
+        <div><h1>Held mail</h1><div class="mut">Every email the system has queued but NOT sent — agent drafts, follow-ups, reminders. Nothing here leaves until you release it — Release sends via EH Realty mail (hello@ehrealtybc.com) after a fresh do-not-contact / ban / gate re-check at send time; a record that fails re-validation stays held with the reason shown. “Mark sent” only records mail you already sent outside the platform. Review the full text, edit a draft (your save re-runs the compliance check), discard what should never go out.</div></div>
         <button class="ghost small" id="mqRefresh">Refresh</button>
       </div>
       <div class="card"><div id="mqBody"><div class="empty">Loading…</div></div></div>
@@ -1125,7 +1125,10 @@
       h += "</details>";
       if (!rec.sent) {
         h += '<details style="margin-top:4px"><summary class="mut" style="cursor:pointer">Edit draft</summary><textarea id="puDraftEdit-' + esc(rec.id) + '" rows="8" style="width:100%;margin-top:6px">' + esc(body) + '</textarea><div style="margin-top:6px"><button class="btn-spruce small" data-draft-save="' + esc(rec.id) + '">Save edit (re-checks compliance)</button></div></details>';
-        h += '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="ghost small" data-mq-sent="' + esc(rec.id) + '">Mark sent (manual)</button><button class="ghost small" data-mq-discard="' + esc(rec.id) + '">Discard</button></div>';
+        var ss = rec.sendState || {};
+        if (ss.state === "failed") h += '<div class="pu-mini" style="color:#b91c1c;margin-top:6px">Last send failed (' + esc(ss.errorClass || "unknown") + ") · attempts: " + esc(String(ss.attempts || 0)) + ' — Release retries.</div>';
+        if (ss.state === "held" && ss.reason) h += '<div class="pu-mini" style="color:#b45309;margin-top:6px">Held at send-time re-check: ' + esc(ss.reason) + "</div>";
+        h += '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn-spruce small" data-mq-release="' + esc(rec.id) + '">Release — send now</button><button class="ghost small" data-mq-sent="' + esc(rec.id) + '">Mark sent (manual)</button><button class="ghost small" data-mq-discard="' + esc(rec.id) + '">Discard</button></div>';
       }
       h += "</div>";
       return h;
@@ -1136,9 +1139,22 @@
     box.innerHTML = html;
   }
   document.addEventListener("click", function(e){
-    var t = e.target && e.target.closest ? e.target.closest("[data-mq-sent],[data-mq-discard]") : null;
+    var t = e.target && e.target.closest ? e.target.closest("[data-mq-sent],[data-mq-discard],[data-mq-release]") : null;
     if (!t) return;
-    var sentId = t.getAttribute("data-mq-sent"), disId = t.getAttribute("data-mq-discard");
+    var sentId = t.getAttribute("data-mq-sent"), disId = t.getAttribute("data-mq-discard"), relId = t.getAttribute("data-mq-release");
+    if (relId) {
+      if (!confirm("Send this email now via EH Realty mail? It is re-checked (do-not-contact, ban, gates) at send time.")) return;
+      api(API_URL, "/api/admin/mailq/" + encodeURIComponent(relId) + "/release", { method: "POST", body: "{}" }).then(function(d){
+        if (d && d.sent) toast("Sent ✅");
+        else if (d && d.deduped) toast("Already sent — not sent again");
+        else if (d && d.error === "not_configured") toast("Mail is not configured yet (provider key not provisioned)", true);
+        else if (d && d.error === "held") toast("Held at re-check: " + (d.reason || ""), true);
+        else if (d && d.error === "send_failed") toast("Send failed (" + (d.errorClass || "provider") + ") — record kept, Release retries", true);
+        else toast("Release result unknown — refreshing", true);
+        loadMailq();
+      }).catch(function(){ toast("Release failed — check the record state", true); loadMailq(); });
+      return;
+    }
     if (sentId) {
       api(API_URL, "/api/admin/mailq/" + encodeURIComponent(sentId), { method: "PATCH", body: "{}" }).then(function(d){ toast(d && d.ok ? "Marked sent ✓" : "Could not mark sent", !(d && d.ok)); if (d && d.ok) loadMailq(); }).catch(function(){ toast("Could not mark sent", true); });
     }
