@@ -203,6 +203,7 @@
     <button class="navbtn" data-nav="radar"><span class="ic">📡</span>Market Radar</button>
     <button class="navbtn" data-nav="traffic"><span class="ic">📈</span>Traffic</button>
     <button class="navbtn" data-nav="newsletter"><span class="ic">✉️</span>Newsletter</button>
+    <button class="navbtn" data-nav="academy"><span class="ic">🎓</span>Academy</button>
     <button class="navbtn" id="navOthersBtn" aria-expanded="false" aria-controls="navOthers"><span class="ic">🧰</span>Others <span id="navOthersCaret" style="margin-left:auto">▸</span></button>
     <div id="navOthers" hidden>
       <button class="navbtn sub" data-nav="site"><span class="ic">🧩</span>Site content</button>
@@ -690,6 +691,39 @@
       <div class="card"><div id="mqBody"><div class="empty">Loading…</div></div></div>
     </section>
 
+    <!-- ACADEMY (Pack AcademyAdmin, 2026-11-09; spec §7) -->
+    <section id="page-academy" hidden>
+      <div class="pagehead">
+        <div><h1>Academy</h1><div class="mut">EH REALTY ACADEMY enrolments — activate student profiles, set access windows (standard default 6 months), extend, block, reset progress. Access closes automatically at the end of the window; status is computed live from the stored end date.</div></div>
+        <button class="ghost small" id="acRefresh">Refresh</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">
+        <div class="card" style="margin:0"><div style="font-size:24px;font-weight:800" id="acStatTotal">–</div><div class="mut" style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">Total students</div></div>
+        <div class="card" style="margin:0"><div style="font-size:24px;font-weight:800" id="acStatActive">–</div><div class="mut" style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">Active</div></div>
+        <div class="card" style="margin:0"><div style="font-size:24px;font-weight:800" id="acStatExpiring">–</div><div class="mut" style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">Expiring ≤ 14 days</div></div>
+        <div class="card" style="margin:0"><div style="font-size:24px;font-weight:800" id="acStatBlocked">–</div><div class="mut" style="font-size:12px;letter-spacing:.05em;text-transform:uppercase">Blocked</div></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <input type="search" id="acQ" placeholder="Search email…" style="flex:1;min-width:200px">
+        <select id="acStatus"><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option><option value="expired">Expired</option><option value="expiring">Expiring ≤ 14d</option></select>
+        <button id="acAddToggle">+ Add student</button>
+      </div>
+      <div class="card" id="acAddCard" hidden>
+        <h2>Activate a student</h2>
+        <form id="acAddForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Student email</span><input type="email" id="acEmail" required placeholder="student@example.com" autocomplete="off"></label>
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Product</span><select id="acProduct"><option value="exam_pass">Exam Pass</option><option value="exam_pass_shield">Exam Pass + Rewrite Shield</option><option value="math_track">Math Track</option></select></label>
+          <label style="display:flex;flex-direction:column;gap:4px;width:110px"><span class="mut">Months</span><input type="number" id="acMonths" value="6" min="1" max="60" step="1"></label>
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Custom end date (optional)</span><input type="datetime-local" id="acExpires"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><span class="mut">Note (optional)</span><input type="text" id="acNote" placeholder="e.g. e-transfer received" maxlength="500"></label>
+          <button type="submit">Activate</button>
+        </form>
+        <div class="hint">Months are prefilled with the product default (Exam Pass 6 · Shield 6 · Math Track 4) and stay editable; a custom end date overrides the month count. The 6-month standard is approved; the Math Track 4-month prefill is a working default.</div>
+      </div>
+      <div class="card"><div id="acBody"><div class="empty">Loading…</div></div><div id="acMore" style="margin-top:10px"></div></div>
+      <div class="card" id="acDrawer" hidden></div>
+    </section>
+
     <!-- MAINTENANCE -->
     <section id="page-maintenance" hidden>
       <div class="pagehead">
@@ -1115,6 +1149,177 @@
   });
   var mqRefBtn = $("mqRefresh"); if (mqRefBtn) mqRefBtn.addEventListener("click", loadMailq);
 
+  // ---------- academy (Pack AcademyAdmin, 2026-11-09; spec §7) ----------
+  var acItems = [], acCursor = null, acDetail = null;
+  var AC_PROD = { exam_pass: "Exam Pass", exam_pass_shield: "Exam Pass + Rewrite Shield", math_track: "Math Track" };
+  var AC_DEFAULT_MONTHS = { exam_pass: 6, exam_pass_shield: 6, math_track: 4 };
+  function acAddMonths(iso, months){ var d = new Date(iso); var day = d.getUTCDate(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + months); var last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(); d.setUTCDate(Math.min(day, last)); return d.toISOString(); }
+  function acLoadOverview(){
+    api(API_URL, "/api/admin/academy/overview", { fresh: true }).then(function(d){
+      if (!d || !d.counts) return;
+      $("acStatTotal").textContent = d.counts.total; $("acStatActive").textContent = d.counts.active;
+      $("acStatExpiring").textContent = d.counts.expiring14; $("acStatBlocked").textContent = d.counts.blocked;
+    }).catch(function(){});
+  }
+  function loadAcademy(more){
+    var box = $("acBody"); if (!box) return;
+    acLoadOverview();
+    var st = $("acStatus").value, q = ($("acQ").value || "").trim();
+    var params = [];
+    if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
+    if (q) params.push("q=" + encodeURIComponent(q));
+    if (more && acCursor) params.push("cursor=" + encodeURIComponent(acCursor));
+    api(API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : ""), { fresh: true }).then(function(d){
+      if (!d || !Array.isArray(d.students)) { box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; return; }
+      var rows = d.students;
+      if (st === "expiring") rows = rows.filter(function(s){ return s.status === "active" && s.daysLeft !== null && s.daysLeft <= 14; });
+      acItems = more ? acItems.concat(rows) : rows;
+      acCursor = d.nextCursor || null;
+      renderAcademy();
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; });
+  }
+  function acPill(s){
+    if (s.status === "blocked") return '<span class="tag" style="color:#b91c1c">blocked</span>';
+    if (s.status === "expired") return '<span class="tag" style="color:#b45309">expired' + (s.daysLeft !== null && s.daysLeft < 0 ? " · " + Math.abs(s.daysLeft) + "d ago" : "") + "</span>";
+    return '<span class="tag">active' + (s.daysLeft !== null ? " · " + s.daysLeft + "d left" : "") + "</span>";
+  }
+  function renderAcademy(){
+    var box = $("acBody"); if (!box) return;
+    var moreBox = $("acMore");
+    if (!acItems.length) { box.innerHTML = '<div class="empty">No Academy students match. Activate the first profile with “+ Add student” — the student signs in with this email once the Academy opens.</div>'; if (moreBox) moreBox.innerHTML = ""; return; }
+    var rows = acItems.map(function(s){
+      var win = esc(fmtDate(s.activatedAt || "")) + " → " + esc(fmtDate(s.expiresAt || ""));
+      var acts = '<button class="ghost small" data-ac-open="' + esc(s.email) + '">Details</button> ' +
+        '<button class="ghost small" data-ac-ext="' + esc(s.email) + '">Extend</button> ' +
+        (s.status === "blocked" ? '<button class="ghost small" data-ac-unblock="' + esc(s.email) + '">Unblock</button>' : '<button class="ghost small" data-ac-block="' + esc(s.email) + '">Block</button>');
+      return "<tr><td><b>" + esc(s.email) + "</b></td><td>" + esc(AC_PROD[s.product] || s.product || "") + "</td><td>" + acPill(s) + "</td><td>" + win + "</td><td>" + (s.progressPct === null || s.progressPct === undefined ? "—" : s.progressPct + "%") + "</td><td>" + (s.readiness === null || s.readiness === undefined ? "—" : s.readiness) + "</td><td>" + (s.mistakeCount === null || s.mistakeCount === undefined ? "—" : s.mistakeCount) + "</td><td>" + (s.lastActiveAt ? esc(fmtDate(s.lastActiveAt)) : "—") + '</td><td style="white-space:normal">' + acts + "</td></tr>";
+    }).join("");
+    box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Student</th><th>Product</th><th>Status</th><th>Access window</th><th>Progress</th><th>Readiness</th><th>Mistakes</th><th>Last active</th><th>Actions</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    if (moreBox) moreBox.innerHTML = acCursor ? '<button class="ghost small" id="acLoadMore">Load more</button>' : "";
+    var lm = $("acLoadMore"); if (lm) lm.addEventListener("click", function(){ loadAcademy(true); });
+  }
+  function acAct(email, action, body, okMsg){
+    return api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(email) + "/" + action, { method: "POST", body: JSON.stringify(body || {}) }).then(function(d){
+      if (!d || d.error) { toast("Action failed — " + ((d && d.error) || "try again"), true); return d; }
+      toast(okMsg, false); loadAcademy(); if (acDetail && acDetail.student && acDetail.student.email === email) acOpenDetail(email);
+      return d;
+    }).catch(function(){ toast("Action failed — try again", true); });
+  }
+  function acOpenDetail(email, focusExtend){
+    var dr = $("acDrawer"); if (!dr) return;
+    dr.hidden = false; dr.innerHTML = '<div class="empty">Loading…</div>';
+    dr.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(email), { fresh: true }).then(function(d){
+      if (!d || !d.student) { dr.innerHTML = '<div class="empty">Could not load this student.</div>'; return; }
+      acDetail = d;
+      renderAcDrawer(focusExtend);
+    }).catch(function(){ dr.innerHTML = '<div class="empty">Could not load this student.</div>'; });
+  }
+  function renderAcDrawer(focusExtend){
+    var dr = $("acDrawer"); if (!dr || !acDetail) return;
+    var s = acDetail.student;
+    var ent = s.status === "active";
+    var baseLabel = ent || s.status === "blocked" ? "from current expiry (" + fmtDate(s.expiresAt || "") + ")" : "from now (profile expired " + fmtDate(s.expiresAt || "") + ")";
+    var h = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="margin:0">' + esc(s.email) + '</h2><button class="ghost small" id="acDrawerClose">Close</button></div>';
+    h += '<div class="mut" style="margin:4px 0 10px">' + esc(AC_PROD[s.product] || s.product || "") + " · " + acPill(s) + " · window " + esc(fmtDate(s.activatedAt || "")) + " → " + esc(fmtDate(s.expiresAt || "")) + " · " + (s.accessMonths || "—") + " months · source " + esc(s.source || "manual") + (s.note ? " · note: " + esc(s.note) : "") + (s.blockReason ? ' · block reason: ' + esc(s.blockReason) : "") + "</div>";
+    h += '<div style="border-top:1px solid var(--line);padding-top:10px"><b>Extend access</b> <span class="mut">— new window runs ' + esc(baseLabel) + '</span><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><button class="ghost small" data-ac-extn="1">+1 month</button><button class="ghost small" data-ac-extn="3">+3 months</button><button class="ghost small" data-ac-extn="6">+6 months</button><input type="number" id="acExtMonths" min="1" max="60" step="1" placeholder="months" style="width:90px"><button class="ghost small" id="acExtCustom">Extend</button><input type="datetime-local" id="acExtDate"><button class="ghost small" id="acExtDateBtn">Set end date</button></div><div class="mut" id="acExtPreview" style="margin-top:6px"></div></div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">' +
+      (s.status === "blocked" ? '<button class="ghost small" id="acDUnblock">Unblock</button>' : '<button class="ghost small" id="acDBlock">Block</button>') +
+      '<button class="ghost small" id="acDReset">Reset progress</button>' +
+      '<button class="ghost small" id="acDInvite" disabled title="Available once the mail sender is configured">Resend invite — mail not configured yet</button>' +
+      '<button class="ghost small" id="acDDelete">Delete profile</button></div>';
+    var pm = (acDetail.progress && acDetail.progress.perModule) || [];
+    if (pm.length) h += '<h3 style="margin:14px 0 4px">Progress by module</h3>' + pm.map(function(m){ return '<div class="pu-mini">' + esc(m.moduleId.toUpperCase()) + ": " + m.mastered + "/" + m.total + " lessons mastered (" + m.pct + "%)</div>"; }).join("");
+    var qh = (acDetail.progress && acDetail.progress.quizHistory) || [];
+    if (qh.length) h += '<h3 style="margin:14px 0 4px">Recent quizzes</h3>' + qh.slice(0, 10).map(function(a){ return '<div class="pu-mini">' + esc(a.lessonId) + " · " + esc(fmtDate(a.at)) + " · " + a.scorePct + "% (" + a.served + " questions)</div>"; }).join("");
+    var mk = acDetail.mocks || [];
+    if (mk.length) h += '<h3 style="margin:14px 0 4px">Mock exams</h3>' + mk.map(function(a){ return '<div class="pu-mini">' + esc(a.mockId) + " · " + esc(fmtDate(a.at)) + " · " + a.scorePct + "%</div>"; }).join("");
+    if (acDetail.mistakes) h += '<h3 style="margin:14px 0 4px">Mistake bank</h3><div class="pu-mini">' + acDetail.mistakes.count + " open mistakes" + (acDetail.mistakes.topConcepts && acDetail.mistakes.topConcepts.length ? " · top: " + acDetail.mistakes.topConcepts.map(function(c){ return esc(c.concept) + " (" + c.count + ")"; }).join(", ") : "") + "</div>";
+    var at = acDetail.auditTrail || [];
+    if (at.length) h += '<h3 style="margin:14px 0 4px">Audit trail</h3>' + at.map(function(a){ return '<div class="pu-mini">' + esc(fmtDate(a.at || "")) + " · " + esc(a.action || "") + (a.detail && a.detail.months ? " · +" + a.detail.months + " months" : "") + (a.detail && a.detail.reason ? " · " + esc(a.detail.reason) : "") + "</div>"; }).join("");
+    dr.innerHTML = h;
+    var preview = function(){
+      var pv = $("acExtPreview"); if (!pv) return;
+      var m = parseInt(($("acExtMonths") && $("acExtMonths").value) || "", 10);
+      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
+      pv.textContent = m >= 1 && m <= 60 ? "Resulting end date: " + fmtDate(acAddMonths(baseIso, m)) : "";
+    };
+    var em = $("acExtMonths"); if (em) em.addEventListener("input", preview);
+    dr.querySelectorAll("[data-ac-extn]").forEach(function(b){ b.addEventListener("click", function(){
+      var months = parseInt(b.getAttribute("data-ac-extn"), 10);
+      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
+      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(baseIso, months)) + " (" + baseLabel + ").")) return;
+      acAct(s.email, "extend", { months: months }, "Extended ✓");
+    }); });
+    var ec = $("acExtCustom"); if (ec) ec.addEventListener("click", function(){
+      var months = parseInt(($("acExtMonths").value || ""), 10);
+      if (!months || months < 1 || months > 60) { toast("Enter a whole number of months (1–60)", true); return; }
+      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
+      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(baseIso, months)) + ".")) return;
+      acAct(s.email, "extend", { months: months }, "Extended ✓");
+    });
+    var ed = $("acExtDateBtn"); if (ed) ed.addEventListener("click", function(){
+      var v = $("acExtDate").value; if (!v) { toast("Pick an end date first", true); return; }
+      if (!confirm("Set the access end date for " + s.email + " to " + fmtDate(new Date(v).toISOString()) + "?")) return;
+      acAct(s.email, "extend", { expiresAt: new Date(v).toISOString() }, "End date set ✓");
+    });
+    var dc = $("acDrawerClose"); if (dc) dc.addEventListener("click", function(){ dr.hidden = true; acDetail = null; });
+    var db = $("acDBlock"); if (db) db.addEventListener("click", function(){
+      var reason = prompt("Block " + s.email + "? Access closes immediately. Reason (optional):", "");
+      if (reason === null) return;
+      acAct(s.email, "block", reason ? { reason: reason } : {}, "Blocked ✓");
+    });
+    var du = $("acDUnblock"); if (du) du.addEventListener("click", function(){ acAct(s.email, "unblock", {}, "Unblocked ✓"); });
+    var dres = $("acDReset"); if (dres) dres.addEventListener("click", function(){
+      if (!confirm("Reset ALL progress for " + s.email + "? Lessons, the mistake bank and readiness are cleared. The enrolment and its window stay. This cannot be undone.")) return;
+      acAct(s.email, "reset-progress", {}, "Progress reset ✓");
+    });
+    var ddel = $("acDDelete"); if (ddel) ddel.addEventListener("click", function(){
+      if (!confirm("Delete the Academy profile for " + s.email + " permanently? Enrolment is removed; progress is kept unless you also purge it.")) return;
+      var purge = confirm("Also delete their progress, mistake bank and readiness? OK = delete everything, Cancel = keep progress data.");
+      api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(s.email) + (purge ? "?purgeProgress=1" : ""), { method: "DELETE" }).then(function(d){ toast("Deleted ✓"); dr.hidden = true; acDetail = null; loadAcademy(); }).catch(function(){ toast("Could not delete", true); });
+    });
+    if (focusExtend) { var f = dr.querySelector("[data-ac-extn]"); if (f) f.focus(); }
+  }
+  document.addEventListener("click", function(e){
+    var t = e.target && e.target.closest ? e.target.closest("[data-ac-open],[data-ac-ext],[data-ac-block],[data-ac-unblock]") : null;
+    if (!t) return;
+    var open = t.getAttribute("data-ac-open"), ext = t.getAttribute("data-ac-ext"), blk = t.getAttribute("data-ac-block"), unb = t.getAttribute("data-ac-unblock");
+    if (open) acOpenDetail(open, false);
+    if (ext) acOpenDetail(ext, true);
+    if (blk) { var reason = prompt("Block " + blk + "? Access closes immediately. Reason (optional):", ""); if (reason === null) return; acAct(blk, "block", reason ? { reason: reason } : {}, "Blocked ✓"); }
+    if (unb) acAct(unb, "unblock", {}, "Unblocked ✓");
+  });
+  var acForm = $("acAddForm");
+  if (acForm) acForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = ($("acEmail").value || "").trim();
+    var product = $("acProduct").value;
+    var months = parseInt($("acMonths").value, 10);
+    var exp = $("acExpires").value;
+    var note = ($("acNote").value || "").trim();
+    if (!email) return;
+    var body = { email: email, product: product };
+    if (exp) body.expiresAt = new Date(exp).toISOString();
+    else { if (!months || months < 1 || months > 60) { toast("Enter a whole number of months (1–60)", true); return; } body.accessMonths = months; }
+    if (note) body.note = note;
+    api(API_URL, "/api/admin/academy/students", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+      if (d && d.student) { toast("Profile activated ✓"); acForm.reset(); $("acMonths").value = "6"; $("acAddCard").hidden = true; loadAcademy(); return; }
+      var msg = (d && d.error) || "";
+      if (msg === "already_exists") toast("Profile exists — use Extend on the student's row instead", true);
+      else if (msg === "invalid_email") toast("That email doesn't look valid", true);
+      else if (msg === "invalid_window") toast("Check the months / end date", true);
+      else if (msg === "invalid_product") toast("Unknown product", true);
+      else toast("Could not activate" + (msg ? " — " + msg : ""), true);
+    }).catch(function(){ toast("Could not activate — network error", true); });
+  });
+  var acProdSel = $("acProduct");
+  if (acProdSel) acProdSel.addEventListener("change", function(){ $("acMonths").value = AC_DEFAULT_MONTHS[acProdSel.value] || 6; });
+  var acToggle = $("acAddToggle"); if (acToggle) acToggle.addEventListener("click", function(){ var c = $("acAddCard"); c.hidden = !c.hidden; if (!c.hidden) $("acEmail").focus(); });
+  var acRefBtn = $("acRefresh"); if (acRefBtn) acRefBtn.addEventListener("click", function(){ loadAcademy(); });
+  var acQEl = $("acQ"); if (acQEl) acQEl.addEventListener("input", function(){ loadAcademy(); });
+  var acStEl = $("acStatus"); if (acStEl) acStEl.addEventListener("change", function(){ loadAcademy(); });
+
   // ---------- navigation ----------
   var wsLens = "board";
   function wsOpen(){
@@ -1178,6 +1383,7 @@
     if (page === "maintenance") loadMaint();
     if (page === "calls") loadCalls();
     if (page === "mailq") loadMailq();
+    if (page === "academy") loadAcademy();
     wsSync(page);
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
