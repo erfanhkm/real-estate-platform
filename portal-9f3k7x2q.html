@@ -1012,6 +1012,11 @@
   // instantly and refreshes in the background, re-rendering the current page
   // only when the data actually changed and no form/editor is open. Any
   // mutation clears the whole cache; sign-out clears it too.
+  // Pack Speed F1 (2026-11-10): the last three fresh:true tab bypasses joined
+  // this cache — loadMailq and loadListings no longer force a fresh fetch on
+  // every open, and the Academy students call renders from cache on internal
+  // repeats; a RE-entry to the Academy tab cacheClear()s first (acLoadedOnce)
+  // so the B2 paste session still sees fresh state. loadLeads KEEPS fresh:true.
   var _pcache = {}, _reval = {}, currentPage = "today", _cacheGen = 0;
   (function(){ try { for (var i = localStorage.length - 1; i >= 0; i--){ var k = localStorage.key(i); if (k && k.indexOf("pc1:") === 0){ var e = JSON.parse(localStorage.getItem(k)); if (e && e.d && Date.now() - (e.t || 0) < 86400000) _pcache[k.slice(4)] = e; } } } catch(e){} })();
   function cacheStore(key, d){ _pcache[key] = { t: Date.now(), d: d }; try { var s = JSON.stringify(_pcache[key]); if (s.length < 400000) localStorage.setItem("pc1:" + key, s); } catch(e){} }
@@ -1047,9 +1052,9 @@
       done();
       if (r.status === 401 && !opts._sr){
         /* Pack SessFix (2026-11-10): a single 401 used to sign the owner
-           out instantly AND revoke the session server-side — but KV read
-           inconsistency can 401 a perfectly valid fresh session (live-
-           proven today: records flapping hit/miss for over a minute).
+           out instantly AND revoke the session server-side — but a
+           transient 401 (e.g. a KV read that has not yet seen a
+           just-minted session record) must not destroy a valid session.
            A request the auth gate rejected never executed, so re-issuing
            it once after a short wait is side-effect-free; only a second
            401 is treated as a real sign-out. */
@@ -1109,7 +1114,7 @@
   }
   function loadMailq(){
     var box = $("mqBody"); if (!box) return;
-    api(API_URL, "/api/admin/mailq", { fresh: true }).then(function(d){
+    api(API_URL, "/api/admin/mailq").then(function(d){
       if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load the mail queue.</div>'; return; }
       mqItems = d.mail || [];
       renderMailq();
@@ -1182,7 +1187,7 @@
   var mqRefBtn = $("mqRefresh"); if (mqRefBtn) mqRefBtn.addEventListener("click", loadMailq);
 
   // ---------- academy (Pack AcademyAdmin, 2026-11-09; spec §7) ----------
-  var acItems = [], acCursor = null, acDetail = null;
+  var acItems = [], acCursor = null, acDetail = null, acLoadedOnce = false;
   var AC_PROD = { exam_pass: "Exam Pass", exam_pass_shield: "Exam Pass + Rewrite Shield", math_track: "Math Track" };
   var AC_DEFAULT_MONTHS = { exam_pass: 6, exam_pass_shield: 6, math_track: 4 };
   function acAddMonths(iso, months){ var d = new Date(iso); var day = d.getUTCDate(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + months); var last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(); d.setUTCDate(Math.min(day, last)); return d.toISOString(); }
@@ -1243,7 +1248,7 @@
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
     if (q) params.push("q=" + encodeURIComponent(q));
     if (more && acCursor) params.push("cursor=" + encodeURIComponent(acCursor));
-    api(API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : ""), { fresh: true }).then(function(d){
+    api(API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : "")).then(function(d){
       if (!d || !Array.isArray(d.students)) { box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; return; }
       var rows = d.students;
       if (st === "expiring") rows = rows.filter(function(s){ return s.status === "active" && s.daysLeft !== null && s.daysLeft <= 14; });
@@ -1457,7 +1462,7 @@
     if (page === "maintenance") loadMaint();
     if (page === "calls") loadCalls();
     if (page === "mailq") loadMailq();
-    if (page === "academy") loadAcademy();
+    if (page === "academy") { if (acLoadedOnce) cacheClear(); acLoadedOnce = true; loadAcademy(); }
     wsSync(page);
   }
   Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
@@ -1497,6 +1502,7 @@
   $("logoutBtn").addEventListener("click", signOut);
 
   function loadAll(){
+    var tvEl = $("puTViewings"); if (tvEl && !tvEl.textContent.trim()) tvEl.innerHTML = '<div class="empty">Loading…</div>';
     puLoadToday();
     loadOverview();
     var warm = function(){ loadLeads(); loadTourList(); loadRadar(); };
@@ -2803,7 +2809,7 @@
     return rec.photo;
   }
   function loadListings(){
-    api(API_URL, "/api/admin/listings", { fresh: true }).then(function(d){
+    api(API_URL, "/api/admin/listings").then(function(d){
       if (!d || !d.ok) { $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; return; }
       lstData = d; renderListingRows();
     }).catch(function(){ $("lstList").innerHTML = '<div class="empty">Could not load listings.</div>'; });

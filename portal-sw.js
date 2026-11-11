@@ -27,7 +27,7 @@
    no longer hand-bumped — the stamper DERIVES it from the staged
    cached set's content hashes and writes it into the staged copy of
    this file. The literal below is only the pre-stamp placeholder. */
-var PU_CACHE = 'portal-v3';
+var PU_CACHE = 'portal-v4';
 var SITE_CACHE = 'site-211cbc014064'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
@@ -51,11 +51,53 @@ self.addEventListener('fetch', function (e) {
   var isPortalDoc = url.pathname === PORTAL_PATH;
   var isAsset = url.pathname === '/portal-manifest.8cddc16b.webmanifest' || url.pathname.indexOf('/portal-icon-') === 0;
   var isAdminGet = url.pathname.indexOf('/api/admin/') === 0;
-  if (isPortalDoc || isAsset || isAdminGet) {
+  if (isPortalDoc) {
+    // Pack Speed F2 (2026-11-10): stale-while-revalidate for the portal
+    // document — a cached shell renders instantly on repeat opens and the
+    // network copy lands in the cache for the NEXT open; with no cache
+    // entry, fall back to the network-first behaviour below. Admin GETs
+    // keep network-first (next branch).
+    e.respondWith((async function () {
+      var pcache = await caches.open(PU_CACHE);
+      var pHit = await pcache.match(e.request);
+      if (pHit) {
+        e.waitUntil((async function () {
+          try {
+            var nres = await fetch(e.request);
+            if (nres && nres.ok) {
+              var nh = new Headers(nres.headers);
+              nh.set('x-pu-cached-at', String(Date.now()));
+              var nstamped = new Response(await nres.blob(), { status: nres.status, statusText: nres.statusText, headers: nh });
+              await pcache.put(e.request, nstamped);
+            }
+          } catch (err) {}
+        })());
+        return pHit;
+      }
+      try {
+        var res = await fetch(e.request);
+        if (res && res.ok) {
+          try {
+            var h = new Headers(res.headers);
+            h.set('x-pu-cached-at', String(Date.now()));
+            var stamped = new Response(await res.clone().blob(), { status: res.status, statusText: res.statusText, headers: h });
+            await pcache.put(e.request, stamped);
+          } catch (err) {}
+        }
+        return res;
+      } catch (err) {
+        var hit2 = await pcache.match(e.request);
+        if (hit2) return hit2;
+        throw err;
+      }
+    })());
+    return;
+  }
+  if (isAsset || isAdminGet) {
     e.respondWith((async function () {
       try {
         var res = await fetch(e.request);
-        if (res && res.ok && (isPortalDoc || isAdminGet)) {
+        if (res && res.ok && isAdminGet) {
           try {
             var cache = await caches.open(PU_CACHE);
             var h = new Headers(res.headers);
