@@ -1444,7 +1444,7 @@
     if (page === "workspace") { wsOpen(); return; }
     if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq","academy"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     if (["site", "pipeline", "maintenance", "rules", "mailq"].indexOf(page) !== -1) navOthersOpen(true);
@@ -3493,9 +3493,19 @@
   $("tourRefresh").addEventListener("click", function(){ cacheClear(); loadTourList(); });
   function loadTourList(){
     api(TOUR_API_URL, "/api/admin/tours").then(function(d){
-      if (d && d.ok) toursCache = d.tours || [];
-      renderTourList(); loadOverview();
-    }).catch(function(){});
+      if (d && d.ok) { toursCache = d.tours || []; renderTourList(); }
+      else tourLoadFailed();
+      loadOverview();
+    }).catch(function(){ tourLoadFailed(); });
+  }
+  function tourLoadFailed(){
+    /* Pack TabFix (2026-11-10): a failed tours call used to be
+       swallowed whole (empty .catch), leaving the section on its
+       "Loading…" placeholder forever — the failure was invisible and
+       undiagnosable from the tab itself. Render an explicit error
+       state instead; a list already on screen is kept as-is. */
+    if (toursCache.length) { renderTourList(); return; }
+    var box = $("tourList"); if (box) box.innerHTML = '<div class="empty">Could not load tours — press Refresh to try again.</div>';
   }
   function renderTourList(){
     var box = $("tourList");
