@@ -27,7 +27,7 @@
    no longer hand-bumped — the stamper DERIVES it from the staged
    cached set's content hashes and writes it into the staged copy of
    this file. The literal below is only the pre-stamp placeholder. */
-var PU_CACHE = 'portal-v4';
+var PU_CACHE = 'portal-v5'; // bumped 2026-11-10 (Pack StripePage SW fix): purge the portal-v4 shell cache — Pack Speed F2's stale-while-revalidate kept serving the pre-Stripe portal document from portal-v4 after the StripePage deploy; v5 starts empty, so the first open network-fetches the current document
 var SITE_CACHE = 'site-211cbc014064'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
@@ -38,6 +38,7 @@ self.addEventListener('activate', function (e) {
       var keys = await caches.keys();
       await Promise.all(keys.map(function (k) {
         if (k.indexOf('site-') === 0 && k !== SITE_CACHE) return caches.delete(k);
+        if (k.indexOf('portal-') === 0 && k !== PU_CACHE) return caches.delete(k); // 2026-11-10: retire stale portal shell caches on activate (portal-v4 held the pre-Stripe document)
       }));
     } catch (err) {}
     await self.clients.claim();
