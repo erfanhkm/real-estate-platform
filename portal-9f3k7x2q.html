@@ -992,6 +992,13 @@
 (function(){
   "use strict";
   var API_URL = "https://advisor-api.erfanbillion.workers.dev";
+  /* Free Split Step 4 flip 1 (2026-11-10): the Academy tab ONLY talks
+     to the business-account academy deployment (advisor-academy,
+     SCOPE=academy, ACADEMY KV); every other portal call keeps API_URL.
+     Owner sessions are minted on API_URL and validated on the academy
+     deployment through its session bridge (bridgeAuthed). Rollback =
+     point this constant back at API_URL and redeploy. */
+  var ACADEMY_API_URL = "https://advisor-academy.erfanbcrealestate.workers.dev";
   var TOUR_API_URL = "https://seller-api.erfanbillion.workers.dev";
   var SITE_URL = "https://ehrealtybc.com";
   var token = ""; try { token = localStorage.getItem("admin_token") || sessionStorage.getItem("admin_token") || sessionStorage.getItem("adv_token") || ""; } catch(e){}
@@ -1210,7 +1217,7 @@
   var AC_DEFAULT_MONTHS = { exam_pass: 6, exam_pass_shield: 6, math_track: 4 };
   function acAddMonths(iso, months){ var d = new Date(iso); var day = d.getUTCDate(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + months); var last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(); d.setUTCDate(Math.min(day, last)); return d.toISOString(); }
   function acLoadOverview(){
-    api(API_URL, "/api/admin/academy/overview", { fresh: true }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/overview", { fresh: true }).then(function(d){
       if (!d || !d.counts) return;
       $("acStatTotal").textContent = d.counts.total; $("acStatActive").textContent = d.counts.active;
       $("acStatExpiring").textContent = d.counts.expiring14; $("acStatBlocked").textContent = d.counts.blocked;
@@ -1223,7 +1230,7 @@
   // echoed, rendered, logged or kept anywhere in this page afterwards.
   function acLoadB2(){
     var box = $("acB2Body"); if (!box) return;
-    api(API_URL, "/api/admin/academy/b2-status", { fresh: true }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/b2-status", { fresh: true }).then(function(d){
       if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load video storage status.</div>'; return; }
       renderAcB2(d);
     }).catch(function(){ box.innerHTML = '<div class="empty">Could not load video storage status.</div>'; });
@@ -1248,7 +1255,7 @@
       inp.value = ""; // cleared immediately on submit — never kept client-side
       if (!v) { toast("Paste the application key first", true); return; }
       var btn = $("acB2Save"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
-      api(API_URL, "/api/admin/academy/b2-provision", { method: "POST", body: JSON.stringify({ part: "appKey", value: v }) }).then(function(r){
+      api(ACADEMY_API_URL, "/api/admin/academy/b2-provision", { method: "POST", body: JSON.stringify({ part: "appKey", value: v }) }).then(function(r){
         v = "";
         if (r && r.ok) { toast("Application key stored ✓"); acLoadB2(); return; }
         if (r && r.error === "already_provisioned") { toast("Already stored — the application key was provisioned earlier"); acLoadB2(); return; }
@@ -1271,7 +1278,7 @@
   // logged or kept anywhere in this page afterwards.
   function acLoadStripe(){
     var box = $("acStripeBody"); if (!box) return;
-    api(API_URL, "/api/admin/academy/stripe-status", { fresh: true }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/stripe-status", { fresh: true }).then(function(d){
       if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load payment status.</div>'; return; }
       renderAcStripe(d);
     }).catch(function(){ box.innerHTML = '<div class="empty">Could not load payment status.</div>'; });
@@ -1298,9 +1305,9 @@
       wsInp.value = ""; akInp.value = ""; // cleared immediately on submit — never kept client-side
       if (!ws || !ak) { toast("Paste both Stripe values first", true); return; }
       var btn = $("acStripeSave"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
-      api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "stripe", value: {} }) }).then(function(cr){
+      api(ACADEMY_API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "stripe", value: {} }) }).then(function(cr){
         if (!cr || !cr.ok) { ws = ""; ak = ""; toast("Could not clear the old payment record" + (cr && cr.error ? " — " + cr.error : ""), true); acLoadStripe(); return; }
-        return api(API_URL, "/api/admin/academy/stripe-provision", { method: "POST", body: JSON.stringify({ webhookSecret: ws, apiKey: ak }) }).then(function(r){
+        return api(ACADEMY_API_URL, "/api/admin/academy/stripe-provision", { method: "POST", body: JSON.stringify({ webhookSecret: ws, apiKey: ak }) }).then(function(r){
           ws = ""; ak = "";
           if (r && r.ok) { toast("Payment keys stored ✓"); acLoadStripe(); return; }
           if (r && r.error === "already_provisioned") { toast("Already stored — the payment keys were provisioned earlier"); acLoadStripe(); return; }
@@ -1320,7 +1327,7 @@
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
     if (q) params.push("q=" + encodeURIComponent(q));
     if (more && acCursor) params.push("cursor=" + encodeURIComponent(acCursor));
-    api(API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : "")).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : "")).then(function(d){
       if (!d || !Array.isArray(d.students)) { box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; return; }
       var rows = d.students;
       if (st === "expiring") rows = rows.filter(function(s){ return s.status === "active" && s.daysLeft !== null && s.daysLeft <= 14; });
@@ -1350,7 +1357,7 @@
     var lm = $("acLoadMore"); if (lm) lm.addEventListener("click", function(){ loadAcademy(true); });
   }
   function acAct(email, action, body, okMsg){
-    return api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(email) + "/" + action, { method: "POST", body: JSON.stringify(body || {}) }).then(function(d){
+    return api(ACADEMY_API_URL, "/api/admin/academy/students/" + encodeURIComponent(email) + "/" + action, { method: "POST", body: JSON.stringify(body || {}) }).then(function(d){
       if (!d || d.error) { toast("Action failed — " + ((d && d.error) || "try again"), true); return d; }
       toast(okMsg, false); loadAcademy(); if (acDetail && acDetail.student && acDetail.student.email === email) acOpenDetail(email);
       return d;
@@ -1360,7 +1367,7 @@
     var dr = $("acDrawer"); if (!dr) return;
     dr.hidden = false; dr.innerHTML = '<div class="empty">Loading…</div>';
     dr.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(email), { fresh: true }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/students/" + encodeURIComponent(email), { fresh: true }).then(function(d){
       if (!d || !d.student) { dr.innerHTML = '<div class="empty">Could not load this student.</div>'; return; }
       acDetail = d;
       renderAcDrawer(focusExtend);
@@ -1428,7 +1435,7 @@
     var ddel = $("acDDelete"); if (ddel) ddel.addEventListener("click", function(){
       if (!confirm("Delete the Academy profile for " + s.email + " permanently? Enrolment is removed; progress is kept unless you also purge it.")) return;
       var purge = confirm("Also delete their progress, mistake bank and readiness? OK = delete everything, Cancel = keep progress data.");
-      api(API_URL, "/api/admin/academy/students/" + encodeURIComponent(s.email) + (purge ? "?purgeProgress=1" : ""), { method: "DELETE" }).then(function(d){ toast("Deleted ✓"); dr.hidden = true; acDetail = null; loadAcademy(); }).catch(function(){ toast("Could not delete", true); });
+      api(ACADEMY_API_URL, "/api/admin/academy/students/" + encodeURIComponent(s.email) + (purge ? "?purgeProgress=1" : ""), { method: "DELETE" }).then(function(d){ toast("Deleted ✓"); dr.hidden = true; acDetail = null; loadAcademy(); }).catch(function(){ toast("Could not delete", true); });
     });
     if (focusExtend) { var f = dr.querySelector("[data-ac-extn]"); if (f) f.focus(); }
   }
@@ -1454,7 +1461,7 @@
     if (exp) body.expiresAt = new Date(exp).toISOString();
     else { if (!months || months < 1 || months > 60) { toast("Enter a whole number of months (1–60)", true); return; } body.accessMonths = months; }
     if (note) body.note = note;
-    api(API_URL, "/api/admin/academy/students", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/students", { method: "POST", body: JSON.stringify(body) }).then(function(d){
       if (d && d.student) { toast("Profile activated ✓"); acForm.reset(); $("acMonths").value = "6"; $("acAddCard").hidden = true; loadAcademy(); return; }
       var msg = (d && d.error) || "";
       if (msg === "already_exists") toast("Profile exists — use Extend on the student's row instead", true);
