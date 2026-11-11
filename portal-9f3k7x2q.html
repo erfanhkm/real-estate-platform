@@ -727,6 +727,11 @@
         <div class="mut">Lesson videos are stored in the private Backblaze B2 bucket <b>eh-realty-academy-videos</b>. Both credential parts must be stored on the worker before uploads and playback can run. Each part can be stored only once and is never displayed again.</div>
         <div id="acB2Body" style="margin-top:10px"><div class="empty">Loading…</div></div>
       </div>
+      <div class="card" id="acStripeCard">
+        <h2>Payments (Stripe)</h2>
+        <div class="mut">Academy checkout runs through Stripe (TEST mode). The webhook signing secret lets the worker verify enrolment events; the restricted read key lets it read what was purchased. Both values are stored on the worker only, are stored just once here, and are never displayed again.</div>
+        <div id="acStripeBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
     </section>
 
     <!-- MAINTENANCE -->
@@ -1252,10 +1257,64 @@
       }).catch(function(){ v = ""; toast("Could not store the key — network error", true); acLoadB2(); });
     });
   }
+  // Pack StripePage (2026-11-10): the owner provision path for
+  // cfg:stripe — status is booleans only (stripe-status). While the
+  // record is not fully configured the card shows the one-time form:
+  // on submit the page FIRST overwrites cfg:stripe with an empty
+  // record through the admin config route (POST /api/admin/config —
+  // the route's documented rotation path; the one-shot provision
+  // answers 409 while any secret exists, and the record currently on
+  // the worker holds unusable placeholder values), then POSTs the
+  // provision ONCE with the two values from this form, then re-reads
+  // the status and renders the result. Both inputs are cleared the
+  // moment the form submits; the values are never echoed, rendered,
+  // logged or kept anywhere in this page afterwards.
+  function acLoadStripe(){
+    var box = $("acStripeBody"); if (!box) return;
+    api(API_URL, "/api/admin/academy/stripe-status", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load payment status.</div>'; return; }
+      renderAcStripe(d);
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load payment status.</div>'; });
+  }
+  function renderAcStripe(d){
+    var box = $("acStripeBody"); if (!box) return;
+    var h = '<div class="pu-mini">Webhook signing secret: ' + (d.configured ? "✓ stored" : "✗ not stored") + '</div>' +
+      '<div class="pu-mini">Restricted API key: ' + (d.apiKeyConfigured ? "✓ stored" : "✗ not stored") + "</div>";
+    if (d.configured && d.apiKeyConfigured) {
+      h += '<div class="ok" style="margin-top:8px">Configured ✓ — checkout events verify against the stored signing secret.</div>';
+      box.innerHTML = h; return;
+    }
+    h += '<form id="acStripeForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Webhook signing secret</span><input type="password" id="acStripeWs" autocomplete="off" placeholder="whsec_…"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Restricted API key</span><input type="password" id="acStripeAk" autocomplete="off" placeholder="rk_test_…"></label>' +
+      '<button type="submit" id="acStripeSave">Save payment keys</button></form>' +
+      '<div class="hint">One-time setup, Stripe Dashboard in TEST mode: Developers → Webhooks → the Academy endpoint → Roll signing secret gives the whsec_ value; Developers → API keys → the restricted read key gives the rk_test_ value. Saving first clears the previously stored record, then stores these values on the worker inside your signed-in session — they are never shown again and nothing is kept in this browser.</div>';
+    box.innerHTML = h;
+    var f = $("acStripeForm");
+    if (f) f.addEventListener("submit", function(e){
+      e.preventDefault();
+      var wsInp = $("acStripeWs"), akInp = $("acStripeAk");
+      var ws = (wsInp.value || "").trim(), ak = (akInp.value || "").trim();
+      wsInp.value = ""; akInp.value = ""; // cleared immediately on submit — never kept client-side
+      if (!ws || !ak) { toast("Paste both Stripe values first", true); return; }
+      var btn = $("acStripeSave"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+      api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "stripe", value: {} }) }).then(function(cr){
+        if (!cr || !cr.ok) { ws = ""; ak = ""; toast("Could not clear the old payment record" + (cr && cr.error ? " — " + cr.error : ""), true); acLoadStripe(); return; }
+        return api(API_URL, "/api/admin/academy/stripe-provision", { method: "POST", body: JSON.stringify({ webhookSecret: ws, apiKey: ak }) }).then(function(r){
+          ws = ""; ak = "";
+          if (r && r.ok) { toast("Payment keys stored ✓"); acLoadStripe(); return; }
+          if (r && r.error === "already_provisioned") { toast("Already stored — the payment keys were provisioned earlier"); acLoadStripe(); return; }
+          if (r && r.error === "validation") { toast("A value was rejected — check the full whsec_ and rk_test_ values were pasted", true); acLoadStripe(); return; }
+          toast("Could not store the payment keys" + (r && r.error ? " — " + r.error : ""), true); acLoadStripe();
+        });
+      }).catch(function(){ ws = ""; ak = ""; toast("Could not save the payment keys — network error", true); acLoadStripe(); });
+    });
+  }
   function loadAcademy(more){
     var box = $("acBody"); if (!box) return;
     acLoadOverview();
     acLoadB2();
+    acLoadStripe();
     var st = $("acStatus").value, q = ($("acQ").value || "").trim();
     var params = [];
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
