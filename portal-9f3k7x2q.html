@@ -727,6 +727,11 @@
         <div class="mut">Lesson videos are stored in the private Backblaze B2 bucket <b>eh-realty-academy-videos</b>. Both credential parts must be stored on the worker before uploads and playback can run. Each part can be stored only once and is never displayed again.</div>
         <div id="acB2Body" style="margin-top:10px"><div class="empty">Loading…</div></div>
       </div>
+      <div class="card" id="acVideoCard">
+        <h2>Video playback</h2>
+        <div class="mut">Lesson videos play through signed, short-lived playback tokens. Playback stays off until the token-signing secret is stored on the worker — enabling it here generates that secret on the worker itself; nothing is typed, pasted or displayed, and it can be enabled only once.</div>
+        <div id="acVideoBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
       <div class="card" id="acStripeCard">
         <h2>Payments (Stripe)</h2>
         <div class="mut">Academy checkout runs through Stripe (TEST mode). The webhook signing secret lets the worker verify enrolment events; the restricted read key lets it read what was purchased. Both values are stored on the worker only, are stored just once here, and are never displayed again.</div>
@@ -1264,9 +1269,47 @@
       }).catch(function(){ v = ""; toast("Could not store the key — network error", true); acLoadB2(); });
     });
   }
+  // Pack AcademyVideoCard (2026-11-10): the enable path for
+  // cfg:video — status is booleans only (video-status). While the
+  // signing secret is not stored, the card shows ONE button: it
+  // POSTs the provision ONCE inside the owner's session with an
+  // EMPTY body — the worker mints the secret itself, so no value is
+  // ever typed, pasted, echoed, rendered, logged or kept anywhere
+  // in this page. Once configured the card is status-only.
+  function acLoadVideo(){
+    var box = $("acVideoBody"); if (!box) return;
+    api(ACADEMY_API_URL, "/api/admin/academy/video-status", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load video playback status.</div>'; return; }
+      renderAcVideo(d);
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load video playback status.</div>'; });
+  }
+  function renderAcVideo(d){
+    var box = $("acVideoBody"); if (!box) return;
+    var h = '<div class="pu-mini">Token-signing secret: ' + (d.configured ? "✓ stored" : "✗ not stored") + '</div>' +
+      '<div class="pu-mini">Video storage (B2): ' + (d.bucketBound ? "✓ ready" : "✗ not ready") + "</div>";
+    if (d.configured) {
+      h += '<div class="ok" style="margin-top:8px">Configured ✓ — signed playback tokens can be issued for entitled students.</div>';
+      box.innerHTML = h; return;
+    }
+    h += '<div style="margin-top:10px"><button type="button" id="acVideoEnable">Enable video playback</button></div>' +
+      '<div class="hint">One-time setup. The signing secret is generated on the worker when you press the button — there is nothing to paste and it is never shown. Playback turns on for entitled students as soon as it is stored.</div>';
+    box.innerHTML = h;
+    var b = $("acVideoEnable");
+    if (b) b.addEventListener("click", function(){
+      b.disabled = true; b.textContent = "Enabling…";
+      api(ACADEMY_API_URL, "/api/admin/academy/video-provision", { method: "POST", body: "{}" }).then(function(r){
+        if (r && r.ok) { toast("Video playback enabled ✓"); acLoadVideo(); return; }
+        if (r && r.error === "already_provisioned") { toast("Already enabled — the signing secret was stored earlier"); acLoadVideo(); return; }
+        toast("Could not enable playback" + (r && r.error ? " — " + r.error : ""), true); acLoadVideo();
+      }).catch(function(){ toast("Could not enable playback — network error", true); acLoadVideo(); });
+    });
+  }
   // Pack StripePage (2026-11-10): the owner provision path for
   // cfg:stripe — status is booleans only (stripe-status). While the
-  // record is not fully configured the card shows the one-time form:
+  // record is not fully configured the card shows the one-time form
+  // directly; once configured, a "Replace payment keys" button reveals
+  // the same form and saving REPLACES the stored keys (Pack
+  // StripeReplace, 2026-11-10 — Stripe pack §20):
   // on submit the page FIRST overwrites cfg:stripe with an empty
   // record through the admin config route (POST /api/admin/config —
   // the route's documented rotation path; the one-shot provision
@@ -1287,16 +1330,25 @@
     var box = $("acStripeBody"); if (!box) return;
     var h = '<div class="pu-mini">Webhook signing secret: ' + (d.configured ? "✓ stored" : "✗ not stored") + '</div>' +
       '<div class="pu-mini">Restricted API key: ' + (d.apiKeyConfigured ? "✓ stored" : "✗ not stored") + "</div>";
+    var configured = false;
     if (d.configured && d.apiKeyConfigured) {
-      h += '<div class="ok" style="margin-top:8px">Configured ✓ — checkout events verify against the stored signing secret.</div>';
-      box.innerHTML = h; return;
+      configured = true;
+      h += '<div class="ok" style="margin-top:8px">Configured ✓ — checkout events verify against the stored signing secret.</div>' +
+        '<div style="margin-top:10px"><button type="button" class="ghost small" id="acStripeReplace">Replace payment keys</button></div>' +
+        '<div class="hint">Saving REPLACES the payment keys stored on the worker: the stored record is cleared first, then the new values are stored. Use this after rolling the signing secret in the Stripe Dashboard.</div>';
     }
-    h += '<form id="acStripeForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
+    h += '<div id="acStripeFormWrap"' + (configured ? ' hidden' : '') + '><form id="acStripeForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Webhook signing secret</span><input type="password" id="acStripeWs" autocomplete="off" placeholder="whsec_…"></label>' +
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Restricted API key</span><input type="password" id="acStripeAk" autocomplete="off" placeholder="rk_test_…"></label>' +
       '<button type="submit" id="acStripeSave">Save payment keys</button></form>' +
-      '<div class="hint">One-time setup, Stripe Dashboard in TEST mode: Developers → Webhooks → the Academy endpoint → Roll signing secret gives the whsec_ value; Developers → API keys → the restricted read key gives the rk_test_ value. Saving first clears the previously stored record, then stores these values on the worker inside your signed-in session — they are never shown again and nothing is kept in this browser.</div>';
+      '<div class="hint">One-time setup, Stripe Dashboard in TEST mode: Developers → Webhooks → the Academy endpoint → Roll signing secret gives the whsec_ value; Developers → API keys → the restricted read key gives the rk_test_ value. Saving first clears the previously stored record, then stores these values on the worker inside your signed-in session — they are never shown again and nothing is kept in this browser.</div></div>';
     box.innerHTML = h;
+    var rb = $("acStripeReplace");
+    if (rb) rb.addEventListener("click", function(){
+      var w = $("acStripeFormWrap"); if (w) w.hidden = false;
+      rb.style.display = "none";
+      var wi = $("acStripeWs"); if (wi) wi.focus();
+    });
     var f = $("acStripeForm");
     if (f) f.addEventListener("submit", function(e){
       e.preventDefault();
@@ -1321,6 +1373,7 @@
     var box = $("acBody"); if (!box) return;
     acLoadOverview();
     acLoadB2();
+    acLoadVideo();
     acLoadStripe();
     var st = $("acStatus").value, q = ($("acQ").value || "").trim();
     var params = [];

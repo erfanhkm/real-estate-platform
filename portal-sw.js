@@ -27,7 +27,7 @@
    no longer hand-bumped — the stamper DERIVES it from the staged
    cached set's content hashes and writes it into the staged copy of
    this file. The literal below is only the pre-stamp placeholder. */
-var PU_CACHE = 'portal-v5'; // bumped 2026-11-10 (Pack StripePage SW fix): purge the portal-v4 shell cache — Pack Speed F2's stale-while-revalidate kept serving the pre-Stripe portal document from portal-v4 after the StripePage deploy; v5 starts empty, so the first open network-fetches the current document
+var PU_CACHE = 'portal-v6'; // bumped 2026-11-10 (Pack StripeReplace, Stripe pack §20): purge the portal-v5 shell cache — it can still hold the pre-flip portal document (Academy tab pointed at the site worker, whose poisoned cfg:stripe record hid the Stripe paste form behind Configured ticks); v6 starts empty, so the first open network-fetches the current document. Earlier: v5 purged the pre-Stripe portal-v4 shell (Pack StripePage SW fix — Pack Speed F2 stale-while-revalidate kept serving it after the StripePage deploy)
 var SITE_CACHE = 'site-211cbc014064'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
