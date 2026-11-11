@@ -1061,7 +1061,20 @@
         opts._sr = 1;
         return new Promise(function(res){ setTimeout(res, 900); }).then(function(){ return rawFetch(base, path, opts); });
       }
-      if (r.status === 401){ signOut(); throw new Error("signed out"); }
+      if (r.status === 401){
+        /* Pack SessFix2 (2026-11-10): a 401 from a DIFFERENT worker than
+           the session's own (base !== API_URL — e.g. the seller/tours
+           worker) must NEVER tear the session down: that worker can be
+           broken or lagging on its own (it read the legacy raw session
+           key for a full day and 401'd every valid session — see
+           portal-session-bug-2026-11-10.md, EVENING RECURRENCE) while
+           the session itself is perfectly valid. Only when the
+           session's own worker confirms the rejection twice do we sign
+           out; a cross-base 401 just fails this one call, exactly like
+           any other per-tab load error. */
+        if (base !== API_URL) throw new Error("load failed (401)");
+        signOut(); throw new Error("signed out");
+      }
       return r.json();
     }, function(e){ done(); throw e; });
   }
