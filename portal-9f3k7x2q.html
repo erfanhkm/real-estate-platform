@@ -1045,6 +1045,17 @@
     var done = function(){ if (timer) clearTimeout(timer); };
     return fetch(base + path, opts).then(function(r){
       done();
+      if (r.status === 401 && !opts._sr){
+        /* Pack SessFix (2026-11-10): a single 401 used to sign the owner
+           out instantly AND revoke the session server-side — but KV read
+           inconsistency can 401 a perfectly valid fresh session (live-
+           proven today: records flapping hit/miss for over a minute).
+           A request the auth gate rejected never executed, so re-issuing
+           it once after a short wait is side-effect-free; only a second
+           401 is treated as a real sign-out. */
+        opts._sr = 1;
+        return new Promise(function(res){ setTimeout(res, 900); }).then(function(){ return rawFetch(base, path, opts); });
+      }
       if (r.status === 401){ signOut(); throw new Error("signed out"); }
       return r.json();
     }, function(e){ done(); throw e; });
