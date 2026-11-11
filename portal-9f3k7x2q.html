@@ -5244,7 +5244,12 @@
   }
   function puBoot() { if (document.getElementById("puPushBody")) puRenderPush(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", puBoot); else puBoot();
-  setInterval(function () { if (document.getElementById("puPushBody") && tok() && !puState) puRenderPush(); }, 4000);
+  // PortalDeepScan (2026-11-10, portal-speed §5-D): cap the push-status
+  // retry — while the status fetch keeps failing, puState stays null and
+  // the old interval re-fetched every 4 s forever (15 calls/min). Stop
+  // after 5 attempts; a reload (or any successful render) resets it.
+  var puRetryN = 0;
+  setInterval(function () { if (puState) { puRetryN = 0; return; } if (puRetryN >= 5) return; if (document.getElementById("puPushBody") && tok()) { puRetryN++; puRenderPush(); } }, 4000);
 })();
 </script>
 </body>
