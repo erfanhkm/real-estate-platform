@@ -1229,10 +1229,14 @@
     }).catch(function(){});
   }
   // Pack AcademyB2Video (2026-11-10): the owner provision path for the B2
-  // appKey — status is booleans only; the value is POSTed once inside the
-  // owner's session (the worker's session branch reads it from the body),
-  // is cleared from the input the moment the form submits, and is never
-  // echoed, rendered, logged or kept anywhere in this page afterwards.
+  // credentials — status is booleans only; each missing part (application
+  // key, and the key ID added 2026-11-11, B2 pack §15) gets its own
+  // one-shot field whose value is POSTed once inside the owner's session
+  // (the worker's session branch reads it from the body), is cleared from
+  // the input the moment the form submits, and is never echoed, rendered,
+  // logged or kept anywhere in this page afterwards. On the academy
+  // deployment BOTH parts are absent, so both fields must be fillable
+  // there; once a part is stored its field disappears (per-part one-shot).
   function acLoadB2(){
     var box = $("acB2Body"); if (!box) return;
     api(ACADEMY_API_URL, "/api/admin/academy/b2-status", { fresh: true }).then(function(d){
@@ -1248,15 +1252,23 @@
       h += '<div class="ok" style="margin-top:8px">Configured ✓ — uploads and playback can run against ' + esc(d.bucket || "eh-realty-academy-videos") + ".</div>";
       box.innerHTML = h; return;
     }
-    h += '<form id="acB2Form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
-      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">B2 application key</span><input type="password" id="acB2Key" autocomplete="off" placeholder="Paste the applicationKey"></label>' +
-      '<button type="submit" id="acB2Save">Save application key</button></form>' +
-      '<div class="hint">One-time setup. Paste the applicationKey of the Backblaze key “academy-video-upload”. It is sent once to the worker inside your signed-in session and stored there — it is never shown again and nothing is kept in this browser.</div>';
+    h += '<form id="acB2Form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">';
+    if (!d.keyIdConfigured) {
+      h += '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">B2 key ID</span><input type="password" id="acB2KeyId" autocomplete="off" placeholder="Paste the keyID"></label>' +
+        '<button type="button" id="acB2SaveKeyId">Save key ID</button>';
+    }
+    if (!d.appKeyConfigured) {
+      h += '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">B2 application key</span><input type="password" id="acB2Key" autocomplete="off" placeholder="Paste the applicationKey"></label>' +
+        '<button type="submit" id="acB2Save">Save application key</button>';
+    }
+    h += '</form>' +
+      '<div class="hint">One-time setup. Paste each value of the Backblaze key “academy-video-upload-2” — the keyID first, then the applicationKey. Each is sent once to the worker inside your signed-in session and stored there — it is never shown again and nothing is kept in this browser.</div>';
     box.innerHTML = h;
     var f = $("acB2Form");
     if (f) f.addEventListener("submit", function(e){
       e.preventDefault();
-      var inp = $("acB2Key"); var v = (inp.value || "").trim();
+      var inp = $("acB2Key"); if (!inp) return; // appKey part already stored — nothing to submit
+      var v = (inp.value || "").trim();
       inp.value = ""; // cleared immediately on submit — never kept client-side
       if (!v) { toast("Paste the application key first", true); return; }
       var btn = $("acB2Save"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
@@ -1267,6 +1279,21 @@
         if (r && r.error === "validation") { toast("That key was rejected — check the full applicationKey was pasted", true); acLoadB2(); return; }
         toast("Could not store the key" + (r && r.error ? " — " + r.error : ""), true); acLoadB2();
       }).catch(function(){ v = ""; toast("Could not store the key — network error", true); acLoadB2(); });
+    });
+    var kb = $("acB2SaveKeyId");
+    if (kb) kb.addEventListener("click", function(){
+      var inp = $("acB2KeyId"); if (!inp) return;
+      var v = (inp.value || "").trim();
+      inp.value = ""; // cleared immediately on submit — never kept client-side
+      if (!v) { toast("Paste the key ID first", true); return; }
+      kb.disabled = true; kb.textContent = "Saving…";
+      api(ACADEMY_API_URL, "/api/admin/academy/b2-provision", { method: "POST", body: JSON.stringify({ part: "keyId", value: v }) }).then(function(r){
+        v = "";
+        if (r && r.ok) { toast("Key ID stored ✓"); acLoadB2(); return; }
+        if (r && r.error === "already_provisioned") { toast("Already stored — the key ID was provisioned earlier"); acLoadB2(); return; }
+        if (r && r.error === "validation") { toast("That key ID was rejected — check the full keyID was pasted", true); acLoadB2(); return; }
+        toast("Could not store the key ID" + (r && r.error ? " — " + r.error : ""), true); acLoadB2();
+      }).catch(function(){ v = ""; toast("Could not store the key ID — network error", true); acLoadB2(); });
     });
   }
   // Pack AcademyVideoCard (2026-11-10): the enable path for
