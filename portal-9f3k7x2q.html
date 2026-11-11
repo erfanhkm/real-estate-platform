@@ -737,6 +737,11 @@
         <div class="mut">Academy checkout runs through Stripe (TEST mode). The webhook signing secret lets the worker verify enrolment events; the restricted read key lets it read what was purchased. Both values are stored on the worker only, are stored just once here, and are never displayed again.</div>
         <div id="acStripeBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
       </div>
+      <div class="card" id="acTutorCard">
+        <h2>Learning Assistant (Tutor)</h2>
+        <div class="mut">Quality signals for the Academy tutor, last 7 days: questions the course corpus could not cover (content gaps), student feedback, and the verification-pass outcomes. Read-only — gaps show what to write next, not who asked.</div>
+        <div id="acTutorBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
     </section>
 
     <!-- MAINTENANCE -->
@@ -1331,6 +1336,38 @@
       }).catch(function(){ toast("Could not enable playback — network error", true); acLoadVideo(); });
     });
   }
+  // Pack Tutor2 (2026-11-11, Tier 3b): the owner read of the tutor's
+  // QC signals — tutor-status (booleans only: providers, corpus v2 +
+  // bank seeded flags, voice posture) and tutor-insights (7-day
+  // aggregates: gaps, feedback, verification). Read-only card.
+  function acLoadTutor(){
+    var box = $("acTutorBody"); if (!box) return;
+    Promise.all([
+      api(ACADEMY_API_URL, "/api/admin/academy/tutor-status", { fresh: true }).catch(function(){ return null; }),
+      api(ACADEMY_API_URL, "/api/admin/academy/tutor-insights", { fresh: true }).catch(function(){ return null; })
+    ]).then(function(rs){
+      if (!rs[0] || !rs[0].ok) { box.innerHTML = '<div class="empty">Could not load tutor status.</div>'; return; }
+      renderAcTutor(rs[0], rs[1]);
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load tutor status.</div>'; });
+  }
+  function renderAcTutor(st, ins){
+    var box = $("acTutorBody"); if (!box) return;
+    var h = '<div class="pu-mini">Provider chain: ' + (st.configured ? "✓ configured (" + st.providers.map(function(p){ return esc(p.kind); }).join(", ") + ")" : "✗ not provisioned — the tutor opens when its free Groq/Gemini keys are stored") + '</div>' +
+      '<div class="pu-mini">Budgets: ' + num(st.perStudentDaily) + ' / student / day · ' + num(st.globalDaily) + ' global / day (a chat = draft + verification = 2 units)</div>' +
+      '<div class="pu-mini">Corpus v1: ' + (st.corpusSeeded && st.corpusSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusSeeded && st.corpusSeeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Corpus v2 (concept chunks): ' + (st.corpusV2Seeded && st.corpusV2Seeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusV2Seeded && st.corpusV2Seeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Question bank (practice/quiz/debrief): ' + (st.bankSeeded && st.bankSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.bankSeeded && st.bankSeeded.fa ? "FA ✓" : "FA ✗") + '</div>' +
+      '<div class="pu-mini">Voice read-aloud: ' + (st.voice && st.voice.enabled ? "ON (cap " + num(st.voice.dailyCap) + " / student / day)" : "OFF (default — enabling burns the shared ElevenLabs pool and needs an explicit decision)") + '</div>';
+    if (ins && ins.ok) {
+      var v = ins.verify || {};
+      h += '<div style="margin-top:10px"><b>Verification pass (7d)</b><div class="pu-mini">' + num(v.drafts) + ' answers checked · ' + num(v.clean) + ' clean · ' + num(v.regenerated) + ' regenerated · ' + num(v.trimmed) + ' trimmed to supported claims · ' + num(v.inconclusive) + ' inconclusive · ' + num(v.skippedBudget) + ' skipped (budget)</div></div>';
+      h += '<div style="margin-top:10px"><b>Student feedback (7d)</b><div class="pu-mini">👍 ' + num(ins.feedback.up) + ' · 👎 ' + num(ins.feedback.down) + '</div>' +
+        (ins.feedback.downExcerpts && ins.feedback.downExcerpts.length ? '<div class="pu-mini" style="margin-top:4px">Down-voted answers:</div>' + ins.feedback.downExcerpts.map(function(x){ return '<div class="pu-mini" style="margin-left:10px">• ' + esc(String(x.excerpt || "").slice(0, 140)) + '</div>'; }).join("") : "") + '</div>';
+      h += '<div style="margin-top:10px"><b>Content gaps (7d): ' + num(ins.gaps.total7d) + '</b>' +
+        (ins.gaps.recent && ins.gaps.recent.length ? ins.gaps.recent.map(function(x){ return '<div class="pu-mini" style="margin-left:10px">• [' + esc(x.reason || "") + (x.lessonId ? " · " + esc(x.lessonId) : "") + '] ' + esc(String(x.q || "").slice(0, 160)) + '</div>'; }).join("") : '<div class="pu-mini">No uncovered questions logged — retrieval covered everything asked.</div>') + '</div>';
+    } else {
+      h += '<div class="empty" style="margin-top:10px">Insights unavailable right now.</div>';
+    }
+    box.innerHTML = h;
+  }
   // Pack StripePage (2026-11-10): the owner provision path for
   // cfg:stripe — status is booleans only (stripe-status). While the
   // record is not fully configured the card shows the one-time form
@@ -1402,6 +1439,7 @@
     acLoadB2();
     acLoadVideo();
     acLoadStripe();
+    acLoadTutor();
     var st = $("acStatus").value, q = ($("acQ").value || "").trim();
     var params = [];
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
