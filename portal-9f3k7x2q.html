@@ -685,7 +685,7 @@
     <!-- HELD MAIL / OUTBOX (Pack PMV3) -->
     <section id="page-mailq" hidden>
       <div class="pagehead">
-        <div><h1>Held mail</h1><div class="mut">Every email the system has queued but NOT sent — agent drafts, follow-ups, reminders. Nothing here leaves until you release it — Release sends via EH Realty mail (hello@ehrealtybc.com) after a fresh do-not-contact / ban / gate re-check at send time; a record that fails re-validation stays held with the reason shown. “Mark sent” only records mail you already sent outside the platform. Review the full text, edit a draft (your save re-runs the compliance check), discard what should never go out.</div></div>
+        <div><h1>Held mail</h1><div class="mut">Every email the system has queued but NOT sent — agent drafts, follow-ups, reminders. Nothing here leaves until you release it — Release sends via EH Realty mail (news@ehrealtybc.com; Academy invites send from academy@ehrealtybc.com) after a fresh do-not-contact / ban / gate re-check at send time; a record that fails re-validation stays held with the reason shown. “Mark sent” only records mail you already sent outside the platform. Review the full text, edit a draft (your save re-runs the compliance check), discard what should never go out.</div></div>
         <button class="ghost small" id="mqRefresh">Refresh</button>
       </div>
       <div class="card"><div id="mqBody"><div class="empty">Loading…</div></div></div>
@@ -741,6 +741,11 @@
         <h2>Learning Assistant (Tutor)</h2>
         <div class="mut">Quality signals for the Academy tutor, last 7 days: questions the course corpus could not cover (content gaps), student feedback, and the verification-pass outcomes. Read-only — gaps show what to write next, not who asked.</div>
         <div id="acTutorBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card" id="acSecFlagsCard">
+        <h2>Security flags</h2>
+        <div class="mut">Content-protection signals for today (Vancouver day): students whose booklet downloads, quiz serves or video-token issues crossed the harvest thresholds (over 40 distinct booklets, quiz velocity, over 80 video tokens in a day). Read-only — if a flag is real, block the student from the list above.</div>
+        <div id="acSecFlagsBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
       </div>
     </section>
 
@@ -1342,6 +1347,18 @@
   // QC signals — tutor-status (booleans only: providers, corpus v2 +
   // bank seeded flags, voice posture) and tutor-insights (7-day
   // aggregates: gaps, feedback, verification). Read-only card.
+  // Pack AcademyProtect (2026-11-11): harvest-anomaly flags from the
+  // worker's coalesced acsec counters — owner-only route, today only.
+  function acLoadSecFlags(){
+    var box = $("acSecFlagsBody"); if (!box) return;
+    api(ACADEMY_API_URL, "/api/admin/academy/security-flags", { fresh: true }).then(function(r){
+      if (!r || !r.ok || !Array.isArray(r.flags)) { box.innerHTML = '<div class="empty">Could not load security flags.</div>'; return; }
+      if (!r.flags.length) { box.innerHTML = '<div class="empty">No flags today — no student crossed a harvest threshold.</div>'; return; }
+      box.innerHTML = r.flags.map(function(f){
+        return '<div class="pu-mini">⚑ <b>' + esc(f.email) + '</b> — ' + esc((f.reasons || []).join(", ")) + ' · ' + esc(f.day || "") + '</div>';
+      }).join("");
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load security flags.</div>'; });
+  }
   function acLoadTutor(){
     var box = $("acTutorBody"); if (!box) return;
     Promise.all([
@@ -1523,6 +1540,7 @@
     acLoadVideo();
     acLoadStripe();
     acLoadTutor();
+    acLoadSecFlags();
     loadAcademyList(more);
   }
   // The "Expiring" predicate (L3-N7), aligned with the worker's overview
@@ -1586,7 +1604,8 @@
       var win = esc(fmtDate(s.activatedAt || "")) + " → " + esc(fmtDate(s.expiresAt || ""));
       var acts = '<button class="ghost small" data-ac-open="' + esc(s.email) + '">Details</button> ' +
         '<button class="ghost small" data-ac-ext="' + esc(s.email) + '">Extend</button> ' +
-        (s.status === "blocked" ? '<button class="ghost small" data-ac-unblock="' + esc(s.email) + '">Unblock</button>' : '<button class="ghost small" data-ac-block="' + esc(s.email) + '">Block</button>');
+        (s.status === "blocked" ? '<button class="ghost small" data-ac-unblock="' + esc(s.email) + '">Unblock</button>' : '<button class="ghost small" data-ac-block="' + esc(s.email) + '">Block</button>') + ' ' +
+        '<button class="ghost small" data-ac-invite="' + esc(s.email) + '">Copy invite link</button>';
       return "<tr><td><b>" + esc(s.email) + "</b></td><td>" + esc(AC_PROD[s.product] || s.product || "") + "</td><td>" + acPill(s) + "</td><td>" + win + "</td><td>" + (s.progressPct === null || s.progressPct === undefined ? "—" : s.progressPct + "%") + "</td><td>" + (s.readiness === null || s.readiness === undefined ? "—" : s.readiness) + "</td><td>" + (s.mistakeCount === null || s.mistakeCount === undefined ? "—" : s.mistakeCount) + "</td><td>" + (s.lastActiveAt ? esc(fmtDate(s.lastActiveAt)) : "—") + '</td><td style="white-space:normal">' + acts + "</td></tr>";
     }).join("");
     box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Student</th><th>Product</th><th>Status</th><th>Access window</th><th>Progress</th><th>Readiness</th><th>Mistakes</th><th>Last active</th><th>Actions</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
@@ -1599,6 +1618,24 @@
       toast(okMsg, false); loadAcademy(); if (acDetail && acDetail.student && acDetail.student.email === email) acOpenDetail(email);
       return d;
     }).catch(function(){ toast("Action failed — try again", true); });
+  }
+  // Pack AcademyInviteBtn (2026-11-11): per-row "Copy invite link" —
+  // mints a fresh set-password invite link via the session-gated
+  // student-invite-link route (the same api() pattern as acAct) and
+  // copies it to the clipboard; when the Clipboard API is missing or
+  // refuses, the link is shown in a prompt so the owner can copy it
+  // manually. The minted link is never rendered into the list itself.
+  function acCopyInvite(email, btn){
+    var orig = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Copying…"; }
+    var restore = function(){ if (btn) { btn.disabled = false; btn.textContent = orig || "Copy invite link"; } };
+    api(ACADEMY_API_URL, "/api/admin/academy/student-invite-link", { method: "POST", body: JSON.stringify({ email: email }) }).then(function(d){
+      restore();
+      if (!d || d.error || !d.link) { toast("Could not create the invite link" + (d && d.error ? " — " + d.error : ""), true); return; }
+      var fallback = function(){ window.prompt("Copy the invite link for " + email + ":", d.link); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(d.link).then(function(){ toast("Invite link copied ✓", false); }, fallback);
+      else fallback();
+    }).catch(function(){ restore(); toast("Could not create the invite link — network error", true); });
   }
   // Pack AcademyFixC (2026-11-11, L3-N4): the drawer's Resend invite
   // button is driven by the mail status OF THE ACADEMY DEPLOYMENT (the
@@ -1722,13 +1759,14 @@
     if (focusExtend) { var f = dr.querySelector("[data-ac-extn]"); if (f) f.focus(); }
   }
   document.addEventListener("click", function(e){
-    var t = e.target && e.target.closest ? e.target.closest("[data-ac-open],[data-ac-ext],[data-ac-block],[data-ac-unblock]") : null;
+    var t = e.target && e.target.closest ? e.target.closest("[data-ac-open],[data-ac-ext],[data-ac-block],[data-ac-unblock],[data-ac-invite]") : null;
     if (!t) return;
-    var open = t.getAttribute("data-ac-open"), ext = t.getAttribute("data-ac-ext"), blk = t.getAttribute("data-ac-block"), unb = t.getAttribute("data-ac-unblock");
+    var open = t.getAttribute("data-ac-open"), ext = t.getAttribute("data-ac-ext"), blk = t.getAttribute("data-ac-block"), unb = t.getAttribute("data-ac-unblock"), inv = t.getAttribute("data-ac-invite");
     if (open) acOpenDetail(open, false);
     if (ext) acOpenDetail(ext, true);
     if (blk) { var reason = prompt("Block " + blk + "? Access closes immediately. Reason (optional):", ""); if (reason === null) return; acAct(blk, "block", reason ? { reason: reason } : {}, "Blocked ✓"); }
     if (unb) acAct(unb, "unblock", {}, "Unblocked ✓");
+    if (inv) acCopyInvite(inv, t);
   });
   var acForm = $("acAddForm");
   if (acForm) acForm.addEventListener("submit", function(e){
