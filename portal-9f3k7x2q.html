@@ -1262,8 +1262,26 @@
     var h = '<div class="pu-mini">Key ID: ' + (d.keyIdConfigured ? "✓ stored" : "✗ not stored") + '</div>' +
       '<div class="pu-mini">Application key: ' + (d.appKeyConfigured ? "✓ stored" : "✗ not stored") + "</div>";
     if (d.configured) {
-      h += '<div class="ok" style="margin-top:8px">Configured ✓ — uploads and playback can run against ' + esc(d.bucket || "eh-realty-academy-videos") + ".</div>";
-      box.innerHTML = h; return;
+      // Pack ModelSwap+B2Clear (2026-11-12): the Replace flow —
+      // clears cfg:b2 through the b2-clear route so a fresh key
+      // can be pasted in (the one-shot provision refuses a stored
+      // part, so a bad pair was previously unfixable from the
+      // portal). On success acLoadB2() re-renders this card into
+      // its unconfigured paste-in state.
+      h += '<div class="ok" style="margin-top:8px">Configured ✓ — uploads and playback can run against ' + esc(d.bucket || "eh-realty-academy-videos") + ".</div>" +
+        '<div style="margin-top:10px"><button type="button" class="ghost small" id="acB2Replace">Replace stored key</button></div>' +
+        '<div class="hint">Wrong key stored? This clears the stored B2 key (both parts) so a fresh key can be pasted in. Uploads and playback pause until a new key is stored.</div>';
+      box.innerHTML = h;
+      var rb2 = $("acB2Replace");
+      if (rb2) rb2.addEventListener("click", function(){
+        if (!confirm("This clears the stored B2 key so a new one can be entered. Continue?")) return;
+        rb2.disabled = true; rb2.textContent = "Clearing…";
+        api(ACADEMY_API_URL, "/api/admin/academy/b2-clear", { method: "POST", body: JSON.stringify({ confirm: "clear-b2" }) }).then(function(r){
+          if (r && r.ok) { toast(r.cleared ? "Stored B2 key cleared — paste the new key" : "No stored B2 key to clear"); acLoadB2(); return; }
+          toast("Could not clear the stored key" + (r && r.error ? " — " + r.error : ""), true); acLoadB2();
+        }).catch(function(){ toast("Could not clear the stored key — network error", true); acLoadB2(); });
+      });
+      return;
     }
     h += '<form id="acB2Form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">';
     if (!d.keyIdConfigured) {
@@ -1393,8 +1411,8 @@
         '<div style="margin-top:10px"><button type="button" class="ghost small" id="acTutorRotate">Rotate keys</button></div>';
     }
     h += '<div id="acTutorFormWrap"' + (tutConfigured ? ' hidden' : '') + '><form id="acTutorForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
-      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Groq API key</span><input type="password" id="acTutorGroq" autocomplete="off" spellcheck="false"><span class="mut">Model: llama-3.3-70b-versatile (fixed)</span></label>' +
-      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Gemini API key</span><input type="password" id="acTutorGemini" autocomplete="off" spellcheck="false"><span class="mut">Model: gemini-2.0-flash (fixed)</span></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Groq API key</span><input type="password" id="acTutorGroq" autocomplete="off" spellcheck="false"><span class="mut">Model: openai/gpt-oss-120b (fixed)</span></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Gemini API key</span><input type="password" id="acTutorGemini" autocomplete="off" spellcheck="false"><span class="mut">Model: gemini-3.5-flash (fixed)</span></label>' +
       '<button type="submit" id="acTutorSave">Provision Learning Assistant</button></form>' +
       '<label style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="acTutorReplace"' + (tutConfigured ? ' checked' : '') + '><span>Replace existing keys</span></label>' +
       '<div class="hint">Free-tier keys for the Academy’s own Groq + Gemini accounts. Both fields are required every time — rotating means pasting the new pair. Stored server-side only; never shown again.</div></div>';
@@ -1450,7 +1468,7 @@
       gInp.value = ""; mInp.value = ""; // cleared immediately on submit — never kept client-side
       if (!g || !m) { toast("Paste both keys first", true); return; }
       var btn = $("acTutorSave"); if (btn) { btn.disabled = true; btn.textContent = "Provisioning…"; }
-      api(ACADEMY_API_URL, "/api/admin/academy/tutor-provision", { method: "POST", body: JSON.stringify({ providers: [{ kind: "groq", model: "llama-3.3-70b-versatile", apiKey: g }, { kind: "gemini", model: "gemini-2.0-flash", apiKey: m }], replace: rep }) }).then(function(r){
+      api(ACADEMY_API_URL, "/api/admin/academy/tutor-provision", { method: "POST", body: JSON.stringify({ providers: [{ kind: "groq", model: "openai/gpt-oss-120b", apiKey: g }, { kind: "gemini", model: "gemini-3.5-flash", apiKey: m }], replace: rep }) }).then(function(r){
         g = ""; m = "";
         if (r && r.ok) { toast("Configured ✓"); acLoadTutor(); return; }
         if (r && r.error === "already_provisioned") { toast("Already provisioned — tick Replace to rotate keys", true); acLoadTutor(); return; }
