@@ -1357,6 +1357,31 @@
       '<div class="pu-mini">Corpus v1: ' + (st.corpusSeeded && st.corpusSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusSeeded && st.corpusSeeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Corpus v2 (concept chunks): ' + (st.corpusV2Seeded && st.corpusV2Seeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusV2Seeded && st.corpusV2Seeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Question bank (practice/quiz/debrief): ' + (st.bankSeeded && st.bankSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.bankSeeded && st.bankSeeded.fa ? "FA ✓" : "FA ✗") + '</div>' +
       '<div class="pu-mini">Voice read-aloud: ' + (st.voice && st.voice.enabled ? "ON (cap " + num(st.voice.dailyCap) + " / student / day)" : "OFF (default — enabling burns the shared ElevenLabs pool and needs an explicit decision)") + '</div>';
     if (ins && ins.ok) {
+      // Pack TutorCredits (2026-11-11): the Academy chat's own credit
+      // counters, from tutor-insights' credits block — today's units
+      // vs the global cap with a usage bar, the per-provider split,
+      // verification calls, voice usage, a 7-day strip and today's
+      // top students. Counted units only: provider-side quota
+      // balances are not API-readable, so these counters are the
+      // source of truth. All days are Vancouver days.
+      var cr = ins.credits || null;
+      if (cr) {
+        var ct = cr.today || {};
+        h += '<div style="margin-top:10px"><b>Chat credits — today (' + esc(ct.day || '') + ', Vancouver day)</b>';
+        if (!cr.configured) {
+          h += '<div class="pu-mini">Not set up yet — no keys provisioned. The counters stay at zero until the tutor is provisioned; the caps below are the built-in defaults.</div>';
+        }
+        var pctC = Math.min(100, Math.round(100 * (ct.globalUsed || 0) / Math.max(1, ct.globalCap || 1)));
+        h += '<div class="pu-mini">Used today: <b>' + num(ct.globalUsed) + ' / ' + num(ct.globalCap) + '</b> units · ' + num(ct.studentsActiveToday) + ' student(s) active · cap ' + num(cr.caps ? cr.caps.perStudentDay : 0) + ' / student / day</div>' +
+          '<div style="background:#e9e4d8;height:8px;border-radius:4px;margin:4px 0;max-width:420px"><div style="width:' + pctC + '%;background:#b8860b;height:8px;border-radius:4px"></div></div>';
+        var ppC = ct.perProvider || {}; var ppKeysC = Object.keys(ppC);
+        h += '<div class="pu-mini">By provider today: ' + (ppKeysC.length ? ppKeysC.map(function(k){ return esc(k) + ' ' + num(ppC[k]); }).join(' · ') : '—') + ' · Verification calls today: ' + num(ct.verifyCalls) + ' · Voice: ' + (ins.voice && ins.voice.enabled ? 'ON' : 'OFF') + ' (' + num(ct.voiceUsed) + ' used)</div>';
+        if (cr.last7 && cr.last7.length) {
+          h += '<div class="pu-mini" style="margin-top:6px">Last 7 days (day · units used · verification calls):</div>' + cr.last7.map(function(r){ return '<div class="pu-mini" style="margin-left:10px">' + esc(r.day) + ' · ' + num(r.globalUsed) + ' · ' + num(r.verifyCalls) + '</div>'; }).join('');
+        }
+        h += '<div class="pu-mini" style="margin-top:6px">Top students today:</div>' + (cr.topStudentsToday && cr.topStudentsToday.length ? cr.topStudentsToday.map(function(s){ return '<div class="pu-mini" style="margin-left:10px">• ' + esc(s.email) + ' — ' + num(s.units) + ' units</div>'; }).join('') : '<div class="pu-mini" style="margin-left:10px">No chat usage yet today.</div>');
+        h += '</div>';
+      }
       var v = ins.verify || {};
       h += '<div style="margin-top:10px"><b>Verification pass (7d)</b><div class="pu-mini">' + num(v.drafts) + ' answers checked · ' + num(v.clean) + ' clean · ' + num(v.regenerated) + ' regenerated · ' + num(v.trimmed) + ' trimmed to supported claims · ' + num(v.inconclusive) + ' inconclusive · ' + num(v.skippedBudget) + ' skipped (budget)</div></div>';
       h += '<div style="margin-top:10px"><b>Student feedback (7d)</b><div class="pu-mini">👍 ' + num(ins.feedback.up) + ' · 👎 ' + num(ins.feedback.down) + '</div>' +
@@ -1691,7 +1716,11 @@
       .then(function(d){
         $("loginBtn").disabled = false;
         if (d && d.ok && d.token){ token = d.token; try { localStorage.setItem("admin_token", token); } catch(e){} $("pw").value = ""; showApp(); loadAll(); }
-        else { if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = (d && d.error === "captcha") ? "Security check failed. Please try again." : "Wrong password. Try again."; }
+        else { if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = (d && d.error === "captcha") ? "Security check failed. Please try again."
+          : (d && d.error === "locked") ? ("Too many failed attempts — sign-in is locked for about " + Math.max(1, Math.round(((d && d.retryAfterSec) || 900) / 60)) + " more minute(s).")
+          : (d && d.error === "rate_limit") ? "Too many attempts — wait a few minutes and try again."
+          : (d && d.error === "invalid") ? "Wrong password. Try again."
+          : "Server problem — try again in a moment."; }
       })
       .catch(function(){ $("loginBtn").disabled = false; if (window.turnstile){ try { turnstile.reset(); } catch(e){} } $("loginErr").textContent = "Could not reach the server."; });
   });
@@ -3057,12 +3086,23 @@
     if (c) return c;
     return (lstData.seeds || []).filter(function(s){ return s.mls === mls; })[0] || null;
   }
+  /* Pack PNA-Fix (Stage A U6/#5): upcoming (today-or-later, still
+     live) viewings for a listing — drives the delete / mark-sold
+     warnings. A failed lookup answers [] so a warning never blocks
+     the action itself, it just cannot warn. */
+  function puUpcomingViewings(mls){
+    return api(API_URL, "/api/admin/viewings?limit=300").then(function(d){
+      var today = vanToday();
+      return ((d && d.viewings) || []).filter(function(x){ return x.listingId === mls && (x.status === "new" || x.status === "confirmed") && String(x.date || "") >= today; })
+        .sort(function(a, b){ return String(a.date + " " + (a.time || "")).localeCompare(String(b.date + " " + (b.time || ""))); });
+    }).catch(function(){ return []; });
+  }
   function openListingEditor(rec){
     lstSeq++;
     lstPhotoData = undefined;
     lstOrigPhoto = rec && rec.photo ? rec.photo : "";
     var isNew = !rec;
-    rec = rec || { mls: "", street: "", city: "", postal: "", type: "condo", price: "", beds: 2, baths: 1, sqft: "", lot: "", year: "", parking: "", stalls: "", strata: "", tax: "", status: "active", listed: vanToday(), features: [], desc: { en: "", fa: "", hi: "", zh: "" }, photo: "" }; // Pack PMV3: vanToday() (Vancouver) — was new Date().toISOString() (UTC day)
+    rec = rec || { mls: "", street: "", city: "", postal: "", type: "condo", price: "", beds: 2, baths: 1, sqft: "", lot: "", year: "", parking: "", stalls: "", strata: "", tax: "", status: "active", listed: vanToday(), features: [], desc: { en: "", fa: "", hi: "", zh: "", es: "" }, photo: "" }; // Pack PMV3: vanToday() (Vancouver) — was new Date().toISOString() (UTC day)
     var desc = rec.desc || {};
     var f = function(id, label, val, attrs){
       return '<label class="lf"><span>' + label + '</span><input id="' + id + '" value="' + esc(val == null ? "" : String(val)) + '"' + (attrs || "") + '></label>';
@@ -3113,6 +3153,7 @@
       '<label class="lf" style="margin-top:8px"><span>Description (فارسی — optional)</span><textarea id="lf_desc_fa" rows="2" dir="rtl">' + esc(desc.fa || "") + '</textarea></label>' +
       '<label class="lf" style="margin-top:8px"><span>Description (हिन्दी — optional)</span><textarea id="lf_desc_hi" rows="2">' + esc(desc.hi || "") + '</textarea></label>' +
       '<label class="lf" style="margin-top:8px"><span>Description (中文 — optional)</span><textarea id="lf_desc_zh" rows="2">' + esc(desc.zh || "") + '</textarea></label>' +
+      '<label class="lf" style="margin-top:8px"><span>Description (Español — optional)</span><textarea id="lf_desc_es" rows="2">' + esc(desc.es || "") + '</textarea></label>' +
       '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button type="button" class="btn-spruce" id="lf_save">Save listing — goes live immediately</button>' +
       '<button type="button" class="ghost" id="lf_cancel">Cancel</button></div>' +
       '<div class="mut" id="lf_err" style="color:#a33;margin-top:8px"></div>' +
@@ -3149,7 +3190,7 @@
       project: v("lf_project"), developer: v("lf_developer"), completion: v("lf_completion"),
       depositPct: numOrNull("lf_depositPct"), depositStruct: v("lf_depositStruct"),
       originalPrice: numOrNull("lf_originalPrice"), assignment: !!($("lf_assignment") && $("lf_assignment").checked),
-      desc: { en: v("lf_desc_en"), fa: v("lf_desc_fa"), hi: v("lf_desc_hi"), zh: v("lf_desc_zh") },
+      desc: { en: v("lf_desc_en"), fa: v("lf_desc_fa"), hi: v("lf_desc_hi"), zh: v("lf_desc_zh"), es: v("lf_desc_es") },
       photo: lstOrigPhoto
     };
     var badField = !/^[A-Za-z0-9-]{3,24}$/.test(listing.mls) ? "MLS #"
@@ -3160,19 +3201,31 @@
       : ["sqft", "lot", "year", "stalls", "strata", "tax", "depositPct", "originalPrice"].filter(function(k){ return listing[k] !== null && !isFinite(listing[k]); })[0];
     if (badField) { $("lf_err").textContent = "Check the " + badField + " field."; return; }
     if (urlVal0(listing) === false) { $("lf_err").textContent = "Photo URL must start with https://"; return; }
-    if (!$("lf_mls").readOnly && lstFindRec(listing.mls.toUpperCase()) && !confirm("MLS " + listing.mls + " already exists — overwrite it?")) return;
-    var body = { listing: listing };
-    var urlVal = v("lf_photoUrl");
-    if (lstPhotoData) { body.photoData = lstPhotoData; }
-    else if ($("lf_photoRemove").checked) { listing.photo = ""; body.photoData = ""; }
-    else if (urlVal) { listing.photo = urlVal; if (lstOrigPhoto === "upload") body.photoData = ""; }
-    $("lf_err").textContent = "";
-    $("lf_save").disabled = true;
-    api(API_URL, "/api/admin/listings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
-      $("lf_save").disabled = false;
-      if (d && d.ok) { lstSeq++; lstPhotoData = undefined; toast("Listing saved — live on the site ✓"); $("lstEditor").innerHTML = ""; loadListings(); loadAvail(); }
-      else { $("lf_err").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
-    }).catch(function(){ $("lf_save").disabled = false; $("lf_err").textContent = "Could not save — connection problem."; });
+    var prevRec = lstFindRec(listing.mls.toUpperCase());
+    if (!$("lf_mls").readOnly && prevRec && !confirm("MLS " + listing.mls + " already exists — overwrite it?")) return;
+    var proceedSave = function () {
+      var body = { listing: listing };
+      var urlVal = v("lf_photoUrl");
+      if (lstPhotoData) { body.photoData = lstPhotoData; }
+      else if ($("lf_photoRemove").checked) { listing.photo = ""; body.photoData = ""; }
+      else if (urlVal) { listing.photo = urlVal; if (lstOrigPhoto === "upload") body.photoData = ""; }
+      $("lf_err").textContent = "";
+      $("lf_save").disabled = true;
+      api(API_URL, "/api/admin/listings", { method: "POST", body: JSON.stringify(body) }).then(function(d){
+        $("lf_save").disabled = false;
+        if (d && d.ok) { lstSeq++; lstPhotoData = undefined; toast("Listing saved — live on the site ✓"); $("lstEditor").innerHTML = ""; loadListings(); loadAvail(); }
+        else if (d && d.error === "not_licensed") { $("lf_err").textContent = "Listings go live publicly the moment they are saved, so creating NEW listings unlocks once you are licensed. Editing an existing listing still works."; }
+        else { $("lf_err").textContent = "Could not save" + (d && d.field ? " — check the " + d.field + " field." : "."); }
+      }).catch(function(){ $("lf_save").disabled = false; $("lf_err").textContent = "Could not save — connection problem."; });
+    };
+    /* Pack PNA-Fix (Stage A U6/#5): marking a listing sold does NOT
+       cancel its upcoming viewings — warn with the real count first. */
+    if (listing.status === "sold" && !(prevRec && prevRec.status === "sold")) {
+      puUpcomingViewings(listing.mls.toUpperCase()).then(function (ups) {
+        if (ups.length && !confirm("This listing has " + ups.length + " upcoming viewing(s) (next: " + ups[0].date + "). Marking it sold will NOT cancel them — the visitors still expect their appointments. Save as sold anyway?")) return;
+        proceedSave();
+      });
+    } else proceedSave();
   }
   $("lstAdd").addEventListener("click", function(){ openListingEditor(null); });
   $("lstList").addEventListener("click", function(e){
@@ -3180,8 +3233,15 @@
     if (!btn) return;
     var mls = btn.getAttribute("data-mls"), act = btn.getAttribute("data-lact");
     if (act === "edit") openListingEditor(lstFindRec(mls));
-    if (act === "del" && confirm("Delete this listing permanently? It disappears from the website.")) {
-      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing deleted ✓"); var lf = $("lf_mls"); if (lf && lf.value === mls) { lstSeq++; $("lstEditor").innerHTML = ""; } loadListings(); loadAvail(); } else toast("Could not delete", true); }).catch(function(){ toast("Connection problem", true); });
+    if (act === "del") {
+      /* Pack PNA-Fix (Stage A U6/#5): deleting does NOT cancel the
+         listing's upcoming viewings — name the count in the confirm
+         when there are any. */
+      puUpcomingViewings(mls).then(function (ups) {
+        var msg = ups.length ? ("This listing has " + ups.length + " upcoming viewing(s) (next: " + ups[0].date + "). Deleting the listing will NOT cancel them — the visitors still expect their appointments. Delete anyway?") : "Delete this listing permanently? It disappears from the website.";
+        if (!confirm(msg)) return;
+        api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Listing deleted ✓"); var lf = $("lf_mls"); if (lf && lf.value === mls) { lstSeq++; $("lstEditor").innerHTML = ""; } loadListings(); loadAvail(); } else toast("Could not delete", true); }).catch(function(){ toast("Connection problem", true); });
+      });
     }
     if (act === "reset" && confirm("Remove your version and restore the built-in sample?")) {
       api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls), { method: "DELETE" }).then(function(d){ if (d && d.ok) { toast("Sample restored ✓"); loadListings(); loadAvail(); } else toast("Could not reset", true); }).catch(function(){ toast("Connection problem", true); });
@@ -3370,7 +3430,7 @@
 
   // ---------- newsletter subscribers ----------
   $("nlRefresh").addEventListener("click", loadNewsletter);
-  var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"]];
+  var NL_LANGS = [["en", "English"], ["fa", "فارسی — Farsi"], ["hi", "हिन्दी — Hindi"], ["zh", "中文 — Chinese"], ["es", "Español — Spanish"]]; // Pack PNA-Fix (Stage A U3): Spanish completes the 5-language set — the newsletter groups, report languages and copy UI all render from this list
   var mtSpeedLog = [];
   var mtBackup = null;
   var mtBackups = [];
@@ -3594,14 +3654,23 @@
   $("bulkApply").addEventListener("click", function(){
     var sel = selectedLeads(), st = $("bulkStage").value;
     if (!sel.length) return;
+    /* Pack PNA-Fix (Stage A #3): a bulk stage change is a destructive
+       fan-out — confirm first, then disable + show progress while the
+       chain runs (it used to fire silently with no way to tell it was
+       still working). */
+    if (!confirm("Set stage to “" + st + "” for " + sel.length + " lead" + (sel.length === 1 ? "" : "s") + "?")) return;
+    var btn = $("bulkApply"), doneN = 0;
+    btn.disabled = true;
     var chain = Promise.resolve(), failed = 0;
     sel.forEach(function(l){
       chain = chain.then(function(){
+        btn.textContent = "Updating " + (++doneN) + "/" + sel.length + "…";
         return api(API_URL, "/api/leads/" + encodeURIComponent(l.id), { method: "PATCH", body: JSON.stringify({ stage: st }) })
           .then(function(d){ if (!d || !d.ok) failed++; }).catch(function(){ failed++; });
       });
     });
     chain.then(function(){
+      btn.disabled = false; btn.textContent = "Set stage";
       leadSel = {};
       toast(failed ? ("Stage updated with " + failed + " failure(s)") : ("Stage set to " + st + " for " + sel.length + " lead" + (sel.length === 1 ? "" : "s") + " ✓"), !!failed);
       loadLeads(); loadFollowups();
@@ -4423,12 +4492,18 @@
   $("puRuleCancel").addEventListener("click", function () { puRuleFormFill(null); });
 
   // ---------- systems 6+7: report generator core (Black & Gold) ----------
+  /* Pack PNA-Fix (Stage A I1/A1 + U3): puPostLic mirrors the worker's
+     cfg:platform.postLicense (fed by /api/settings + handbook-data).
+     Client documents print disc1Pre — no licence/brokerage claim and
+     no [BROKERAGE] placeholder — until the flag is on. */
+  var puPostLic = false;
   function puDocT(lang) {
   var T = {
-    en: { perf: "Listing performance report", prop: "Property report", handbook: "Showing handbook", views: "Views", saves: "Saves", bookings: "Viewing bookings", leadsGen: "Leads generated", since: "Tracking since", market: "Market context", neigh: "Neighbourhood", schools: "Schools in this city", pop: "Population (2021 Census)", income: "Median household income", owners: "Homeowners", renters: "Renters", age65: "Residents 65+", nonoff: "Non-official language at home", price: "Price", specs: "Property details", desc: "About this home", mortgage: "Indicative mortgage", down: "Down payment (20%)", principal: "Mortgage principal", rate: "Rate (5-yr fixed)", monthly: "Estimated monthly payment", estimate: "Estimate only — not a quote, pre-approval or financial advice.", viewing: "Your viewing", client: "Prepared for", contact: "Contact", fromfile: "From owner's file", photos: "Photos", type: "Type", beds: "Bedrooms", baths: "Bathrooms", sqft: "Living area (sq ft)", year: "Year built", strata: "Strata fee (monthly)", tax: "Property tax (annual)", parking: "Parking", benchmark: "Benchmark price", sales: "Sales", board: "Board statistics", disc1: "Erfan Hakimian is a licensed REALTOR® in British Columbia, affiliated with [BROKERAGE]. This document provides general market and property information; it is not an appraisal or a guarantee of value.", disc2: "Figures are drawn from the sources named on this page (board statistics, Statistics Canada 2021 Census Profile, BC Ministry of Education school data and platform records). Property assessment values are not market value.", bestEffort: "Text extracted from the file on a best-effort basis; check the original file for exact wording.", map: "View on map" },
-    fa: { perf: "گزارش عملکرد آگهی", prop: "گزارش ملک", handbook: "دفترچه‌ی بازدید", views: "بازدید", saves: "ذخیره‌ها", bookings: "رزرو بازدید", leadsGen: "سرنخ‌های ایجادشده", since: "ردیابی از", market: "وضعیت بازار", neigh: "محله", schools: "مدارس این شهر", pop: "جمعیت (سرشماری ۲۰۲۱)", income: "درآمد میانه‌ی خانوار", owners: "مالکان", renters: "مستأجران", age65: "ساکنان ۶۵ سال به بالا", nonoff: "زبان غیررسمی در خانه", price: "قیمت", specs: "مشخصات ملک", desc: "درباره‌ی این خانه", mortgage: "برآورد وام مسکن", down: "پیش‌پرداخت (۲۰٪)", principal: "اصل وام", rate: "نرخ (ثابت ۵ ساله)", monthly: "قسط ماهانه‌ی برآوردی", estimate: "فقط برآورد است — نه پیشنهاد رسمی، نه تأییدیه و نه مشاوره‌ی مالی.", viewing: "بازدید شما", client: "تهیه‌شده برای", contact: "تماس", fromfile: "از پرونده‌ی مالک", photos: "عکس‌ها", type: "نوع", beds: "خواب", baths: "حمام", sqft: "متراژ (فوت مربع)", year: "سال ساخت", strata: "شارژ ماهانه", tax: "مالیات سالانه‌ی ملک", parking: "پارکینگ", benchmark: "قیمت معیار", sales: "فروش", board: "آمار هیئت املاک", disc1: "عرفان حکیمیان مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا و وابسته به [BROKERAGE] است. این سند اطلاعات عمومی بازار و ملک را ارائه می‌دهد؛ ارزیابی رسمی یا تضمین ارزش نیست.", disc2: "اعداد از منابع نام‌برده در این صفحه گرفته شده‌اند (آمار هیئت‌های املاک، سرشماری ۲۰۲۱ آمار کانادا، داده‌های مدارس بریتیش کلمبیا و سوابق سامانه). ارزش ارزیابی مالیاتی، ارزش بازار نیست.", bestEffort: "متن از فایل با بهترین تلاش استخراج شده است؛ برای عبارت دقیق به فایل اصلی مراجعه کنید.", map: "مشاهده روی نقشه" },
-    hi: { perf: "लिस्टिंग प्रदर्शन रिपोर्ट", prop: "संपत्ति रिपोर्ट", handbook: "शोइंग हैंडबुक", views: "व्यूज़", saves: "सेव", bookings: "व्यूइंग बुकिंग", leadsGen: "बनी लीड्स", since: "ट्रैकिंग शुरू", market: "बाज़ार संदर्भ", neigh: "मोहल्ला", schools: "इस शहर के स्कूल", pop: "जनसंख्या (2021 जनगणना)", income: "मध्य घरेलू आय", owners: "घर मालिक", renters: "किरायेदार", age65: "65+ निवासी", nonoff: "घर पर गैर-आधिकारिक भाषा", price: "कीमत", specs: "संपत्ति विवरण", desc: "इस घर के बारे में", mortgage: "संकेतक बंधक", down: "डाउन पेमेंट (20%)", principal: "बंधक मूलधन", rate: "दर (5-वर्ष फिक्स्ड)", monthly: "अनुमानित मासिक भुगतान", estimate: "केवल अनुमान — कोई कोट, पूर्व-स्वीकृति या वित्तीय सलाह नहीं।", viewing: "आपकी व्यूइंग", client: "के लिए तैयार", contact: "संपर्क", fromfile: "मालिक की फ़ाइल से", photos: "तस्वीरें", type: "प्रकार", beds: "बेडरूम", baths: "बाथरूम", sqft: "क्षेत्रफल (वर्ग फ़ुट)", year: "निर्माण वर्ष", strata: "स्ट्राटा शुल्क (मासिक)", tax: "संपत्ति कर (वार्षिक)", parking: "पार्किंग", benchmark: "बेंचमार्क कीमत", sales: "बिक्री", board: "बोर्ड आँकड़े", disc1: "एरफ़ान हकीमियन ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR® हैं, [BROKERAGE] से संबद्ध। यह दस्तावेज़ सामान्य बाज़ार और प्रॉपर्टी जानकारी देता है; यह मूल्यांकन या मूल्य की गारंटी नहीं है।", disc2: "आँकड़े इस पृष्ठ पर नामित स्रोतों से हैं (बोर्ड आँकड़े, Statistics Canada 2021 जनगणना, BC शिक्षा मंत्रालय के स्कूल डेटा और प्लेटफ़ॉर्म रिकॉर्ड)। कर-मूल्यांकन मूल्य बाज़ार मूल्य नहीं है।", bestEffort: "पाठ फ़ाइल से सर्वोत्तम प्रयास से निकाला गया है; सटीक शब्दों के लिए मूल फ़ाइल देखें।", map: "मानचित्र पर देखें" },
-    zh: { perf: "房源表现报告", prop: "房产报告", handbook: "看房手册", views: "浏览量", saves: "收藏", bookings: "看房预约", leadsGen: "产生的客户线索", since: "统计起始", market: "市场背景", neigh: "社区概况", schools: "本市学校", pop: "人口(2021年人口普查)", income: "家庭收入中位数", owners: "自住业主", renters: "租户", age65: "65岁以上居民", nonoff: "在家使用非官方语言", price: "价格", specs: "房产详情", desc: "房源介绍", mortgage: "参考按揭", down: "首付(20%)", principal: "贷款本金", rate: "利率(5年固定)", monthly: "预计月供", estimate: "仅为估算 — 并非报价、预批或财务建议。", viewing: "您的看房安排", client: "为以下客户准备", contact: "联系方式", fromfile: "来自业主文件", photos: "照片", type: "类型", beds: "卧室", baths: "浴室", sqft: "面积(平方英尺)", year: "建造年份", strata: "管理费(每月)", tax: "房产税(每年)", parking: "停车位", benchmark: "基准价格", sales: "成交量", board: "地产局统计", disc1: "Erfan Hakimian 是 BC 省持牌 REALTOR®,隶属于 [BROKERAGE]。本文件提供一般市场和物业信息,不构成评估或价值保证。", disc2: "数据来自本页注明来源(地产局统计、加拿大统计局2021年人口普查、BC省教育部学校数据及平台记录)。政府评估价并非市场价值。", bestEffort: "文字为尽力从文件中提取;准确措辞请查阅原文件。", map: "在地图上查看" }
+    en: { perf: "Listing performance report", prop: "Property report", handbook: "Showing handbook", views: "Views", saves: "Saves", bookings: "Viewing bookings", leadsGen: "Leads generated", since: "Tracking since", market: "Market context", neigh: "Neighbourhood", schools: "Schools in this city", pop: "Population (2021 Census)", income: "Median household income", owners: "Homeowners", renters: "Renters", age65: "Residents 65+", nonoff: "Non-official language at home", price: "Price", specs: "Property details", desc: "About this home", mortgage: "Indicative mortgage", down: "Down payment (20%)", principal: "Mortgage principal", rate: "Rate (5-yr fixed)", monthly: "Estimated monthly payment", estimate: "Estimate only — not a quote, pre-approval or financial advice.", viewing: "Your viewing", client: "Prepared for", contact: "Contact", fromfile: "From owner's file", photos: "Photos", type: "Type", beds: "Bedrooms", baths: "Bathrooms", sqft: "Living area (sq ft)", year: "Year built", strata: "Strata fee (monthly)", tax: "Property tax (annual)", parking: "Parking", benchmark: "Benchmark price", sales: "Sales", board: "Board statistics", disc1: "Erfan Hakimian is a licensed REALTOR® in British Columbia, affiliated with [BROKERAGE]. This document provides general market and property information; it is not an appraisal or a guarantee of value.", disc2: "Figures are drawn from the sources named on this page (board statistics, Statistics Canada 2021 Census Profile, BC Ministry of Education school data and platform records). Property assessment values are not market value.", bestEffort: "Text extracted from the file on a best-effort basis; check the original file for exact wording.", map: "View on map", disc1Pre: "Prepared by Erfan Hakimian of EH Realty. This document provides general market and property information; it is not an appraisal or a guarantee of value.", notTracked: "Not tracked yet — engagement counting starts when this listing is live on the site.", staleFigs: "Note: the engagement figures above may be stale — the latest totals update did not complete.", assump: "Assumptions", rateAsOf: "Rate as of", rateStale: "This rate is stale (over 45 days old) — verify the current rate before relying on these figures." },
+    fa: { perf: "گزارش عملکرد آگهی", prop: "گزارش ملک", handbook: "دفترچه‌ی بازدید", views: "بازدید", saves: "ذخیره‌ها", bookings: "رزرو بازدید", leadsGen: "سرنخ‌های ایجادشده", since: "ردیابی از", market: "وضعیت بازار", neigh: "محله", schools: "مدارس این شهر", pop: "جمعیت (سرشماری ۲۰۲۱)", income: "درآمد میانه‌ی خانوار", owners: "مالکان", renters: "مستأجران", age65: "ساکنان ۶۵ سال به بالا", nonoff: "زبان غیررسمی در خانه", price: "قیمت", specs: "مشخصات ملک", desc: "درباره‌ی این خانه", mortgage: "برآورد وام مسکن", down: "پیش‌پرداخت (۲۰٪)", principal: "اصل وام", rate: "نرخ (ثابت ۵ ساله)", monthly: "قسط ماهانه‌ی برآوردی", estimate: "فقط برآورد است — نه پیشنهاد رسمی، نه تأییدیه و نه مشاوره‌ی مالی.", viewing: "بازدید شما", client: "تهیه‌شده برای", contact: "تماس", fromfile: "از پرونده‌ی مالک", photos: "عکس‌ها", type: "نوع", beds: "خواب", baths: "حمام", sqft: "متراژ (فوت مربع)", year: "سال ساخت", strata: "شارژ ماهانه", tax: "مالیات سالانه‌ی ملک", parking: "پارکینگ", benchmark: "قیمت معیار", sales: "فروش", board: "آمار هیئت املاک", disc1: "عرفان حکیمیان مشاور املاک دارای مجوز (REALTOR®) در بریتیش کلمبیا و وابسته به [BROKERAGE] است. این سند اطلاعات عمومی بازار و ملک را ارائه می‌دهد؛ ارزیابی رسمی یا تضمین ارزش نیست.", disc2: "اعداد از منابع نام‌برده در این صفحه گرفته شده‌اند (آمار هیئت‌های املاک، سرشماری ۲۰۲۱ آمار کانادا، داده‌های مدارس بریتیش کلمبیا و سوابق سامانه). ارزش ارزیابی مالیاتی، ارزش بازار نیست.", bestEffort: "متن از فایل با بهترین تلاش استخراج شده است؛ برای عبارت دقیق به فایل اصلی مراجعه کنید.", map: "مشاهده روی نقشه", disc1Pre: "تهیه‌شده توسط عرفان حکیمیان از EH Realty. این سند اطلاعات عمومی بازار و ملک را ارائه می‌دهد؛ ارزیابی رسمی یا تضمین ارزش نیست.", notTracked: "هنوز ردیابی نشده است — شمارش تعامل (بازدید/ذخیره/رزرو) از زمانی آغاز می‌شود که این آگهی در سایت فعال شود.", staleFigs: "توجه: ارقام تعامل بالا ممکن است قدیمی باشند — آخرین به‌روزرسانی مجموع‌ها کامل نشده است.", assump: "فرض‌ها", rateAsOf: "نرخ مربوط به", rateStale: "این نرخ قدیمی است (بیش از ۴۵ روز) — پیش از اتکا به این ارقام، نرخ روز را بررسی کنید." },
+    hi: { perf: "लिस्टिंग प्रदर्शन रिपोर्ट", prop: "संपत्ति रिपोर्ट", handbook: "शोइंग हैंडबुक", views: "व्यूज़", saves: "सेव", bookings: "व्यूइंग बुकिंग", leadsGen: "बनी लीड्स", since: "ट्रैकिंग शुरू", market: "बाज़ार संदर्भ", neigh: "मोहल्ला", schools: "इस शहर के स्कूल", pop: "जनसंख्या (2021 जनगणना)", income: "मध्य घरेलू आय", owners: "घर मालिक", renters: "किरायेदार", age65: "65+ निवासी", nonoff: "घर पर गैर-आधिकारिक भाषा", price: "कीमत", specs: "संपत्ति विवरण", desc: "इस घर के बारे में", mortgage: "संकेतक बंधक", down: "डाउन पेमेंट (20%)", principal: "बंधक मूलधन", rate: "दर (5-वर्ष फिक्स्ड)", monthly: "अनुमानित मासिक भुगतान", estimate: "केवल अनुमान — कोई कोट, पूर्व-स्वीकृति या वित्तीय सलाह नहीं।", viewing: "आपकी व्यूइंग", client: "के लिए तैयार", contact: "संपर्क", fromfile: "मालिक की फ़ाइल से", photos: "तस्वीरें", type: "प्रकार", beds: "बेडरूम", baths: "बाथरूम", sqft: "क्षेत्रफल (वर्ग फ़ुट)", year: "निर्माण वर्ष", strata: "स्ट्राटा शुल्क (मासिक)", tax: "संपत्ति कर (वार्षिक)", parking: "पार्किंग", benchmark: "बेंचमार्क कीमत", sales: "बिक्री", board: "बोर्ड आँकड़े", disc1: "एरफ़ान हकीमियन ब्रिटिश कोलंबिया में लाइसेंसधारी REALTOR® हैं, [BROKERAGE] से संबद्ध। यह दस्तावेज़ सामान्य बाज़ार और प्रॉपर्टी जानकारी देता है; यह मूल्यांकन या मूल्य की गारंटी नहीं है।", disc2: "आँकड़े इस पृष्ठ पर नामित स्रोतों से हैं (बोर्ड आँकड़े, Statistics Canada 2021 जनगणना, BC शिक्षा मंत्रालय के स्कूल डेटा और प्लेटफ़ॉर्म रिकॉर्ड)। कर-मूल्यांकन मूल्य बाज़ार मूल्य नहीं है।", bestEffort: "पाठ फ़ाइल से सर्वोत्तम प्रयास से निकाला गया है; सटीक शब्दों के लिए मूल फ़ाइल देखें।", map: "मानचित्र पर देखें", disc1Pre: "EH Realty के एरफ़ान हकीमियन द्वारा तैयार। यह दस्तावेज़ सामान्य बाज़ार और प्रॉपर्टी जानकारी देता है; यह मूल्यांकन या मूल्य की गारंटी नहीं है।", notTracked: "अभी ट्रैक नहीं हुआ — एंगेजमेंट गिनती तब शुरू होती है जब यह लिस्टिंग साइट पर लाइव होगी।", staleFigs: "नोट: ऊपर के एंगेजमेंट आँकड़े पुराने हो सकते हैं — नवीनतम योग अपडेट पूरा नहीं हुआ।", assump: "मान्यताएँ", rateAsOf: "दर दिनांक", rateStale: "यह दर पुरानी है (45 दिन से अधिक) — इन आँकड़ों पर भरोसा करने से पहले वर्तमान दर जाँचें।" },
+    zh: { perf: "房源表现报告", prop: "房产报告", handbook: "看房手册", views: "浏览量", saves: "收藏", bookings: "看房预约", leadsGen: "产生的客户线索", since: "统计起始", market: "市场背景", neigh: "社区概况", schools: "本市学校", pop: "人口(2021年人口普查)", income: "家庭收入中位数", owners: "自住业主", renters: "租户", age65: "65岁以上居民", nonoff: "在家使用非官方语言", price: "价格", specs: "房产详情", desc: "房源介绍", mortgage: "参考按揭", down: "首付(20%)", principal: "贷款本金", rate: "利率(5年固定)", monthly: "预计月供", estimate: "仅为估算 — 并非报价、预批或财务建议。", viewing: "您的看房安排", client: "为以下客户准备", contact: "联系方式", fromfile: "来自业主文件", photos: "照片", type: "类型", beds: "卧室", baths: "浴室", sqft: "面积(平方英尺)", year: "建造年份", strata: "管理费(每月)", tax: "房产税(每年)", parking: "停车位", benchmark: "基准价格", sales: "成交量", board: "地产局统计", disc1: "Erfan Hakimian 是 BC 省持牌 REALTOR®,隶属于 [BROKERAGE]。本文件提供一般市场和物业信息,不构成评估或价值保证。", disc2: "数据来自本页注明来源(地产局统计、加拿大统计局2021年人口普查、BC省教育部学校数据及平台记录)。政府评估价并非市场价值。", bestEffort: "文字为尽力从文件中提取;准确措辞请查阅原文件。", map: "在地图上查看", disc1Pre: "由 EH Realty 的 Erfan Hakimian 编制。本文件提供一般市场和物业信息,不构成评估或价值保证。", notTracked: "尚未追踪 — 互动统计从该房源在网站上线时开始计算。", staleFigs: "注意:以上互动数据可能已过期 — 最近一次汇总未完成。", assump: "假设", rateAsOf: "利率月份", rateStale: "该利率已过期(超过45天)— 依据这些数字前请核实当前利率。" },
+    es: { perf: "Informe de rendimiento del anuncio", prop: "Informe de la propiedad", handbook: "Guía de visita", views: "Vistas", saves: "Guardados", bookings: "Reservas de visita", leadsGen: "Contactos generados", since: "Seguimiento desde", market: "Contexto del mercado", neigh: "Barrio", schools: "Escuelas en esta ciudad", pop: "Población (Censo 2021)", income: "Ingreso familiar mediano", owners: "Propietarios", renters: "Inquilinos", age65: "Residentes de 65+", nonoff: "Idioma no oficial en casa", price: "Precio", specs: "Detalles de la propiedad", desc: "Sobre esta vivienda", mortgage: "Hipoteca indicativa", down: "Pago inicial (20%)", principal: "Capital de la hipoteca", rate: "Tasa (fija a 5 años)", monthly: "Pago mensual estimado", estimate: "Solo una estimación — no es una cotización, preaprobación ni asesoría financiera.", viewing: "Su visita", client: "Preparado para", contact: "Contacto", fromfile: "Del archivo del propietario", photos: "Fotos", type: "Tipo", beds: "Dormitorios", baths: "Baños", sqft: "Superficie (pies²)", year: "Año de construcción", strata: "Cuota de strata (mensual)", tax: "Impuesto predial (anual)", parking: "Estacionamiento", benchmark: "Precio de referencia", sales: "Ventas", board: "Estadísticas de la junta", disc1: "Erfan Hakimian es REALTOR® con licencia en Columbia Británica, afiliado a [BROKERAGE]. Este documento ofrece información general sobre el mercado y la propiedad; no es una tasación ni una garantía de valor.", disc1Pre: "Preparado por Erfan Hakimian de EH Realty. Este documento ofrece información general sobre el mercado y la propiedad; no es una tasación ni una garantía de valor.", disc2: "Las cifras provienen de las fuentes citadas en esta página (estadísticas de las juntas, Perfil del Censo 2021 de Statistics Canada, datos escolares del Ministerio de Educación de BC y registros de la plataforma). Los valores de tasación fiscal no son el valor de mercado.", bestEffort: "Texto extraído del archivo con el mayor esfuerzo; consulte el archivo original para la redacción exacta.", map: "Ver en el mapa", notTracked: "Aún sin seguimiento — el conteo de interacciones empieza cuando este anuncio esté activo en el sitio.", staleFigs: "Nota: las cifras de interacción anteriores pueden estar desactualizadas — la última actualización de totales no se completó.", assump: "Supuestos", rateAsOf: "Tasa de", rateStale: "Esta tasa está desactualizada (más de 45 días) — verifique la tasa actual antes de confiar en estas cifras." }
   };
     return T[lang] || T.en;
   }
@@ -4450,7 +4525,7 @@
       '.photos img { width: 100%; max-height: 340px; object-fit: cover; margin: 0 0 10px; border: 1px solid #e5e0d2; } .photos2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .photos2 img { width: 100%; height: 190px; object-fit: cover; border: 1px solid #e5e0d2; }' +
       '.disc { font-size: 11px; color: #6d675c; margin-top: 26px; border-top: 1px solid #e5e0d2; padding-top: 10px; } .price { font-family: "Playfair Display", Georgia, serif; font-size: 26px; } @media print { body { background: #fff; } }';
     var html = '<!DOCTYPE html><html lang="' + lang + '"' + (rtl ? ' dir="rtl"' : "") + '><head><meta charset="utf-8"><title>' + esc(title) + "</title><style>" + css + '</style></head><body><div class="band"><div class="brand">' + esc(name) + "</div>" + (contact ? '<div class="bcontact">' + esc(contact) + "</div>" : "") + "</div><main>" + bodyHtml +
-      '<div class="disc">' + esc(D.disc1) + "<br>" + esc(D.disc2) + "</div></main></body></html>";
+      '<div class="disc">' + esc(puPostLic ? D.disc1 : D.disc1Pre) + "<br>" + esc(D.disc2) + "</div></main></body></html>";
     w.document.write(html);
     w.document.close();
     setTimeout(function () { try { w.focus(); w.print(); } catch (e) {} }, 400);
@@ -4628,14 +4703,18 @@
     $("puRepMsg").textContent = "Building…";
     try {
       var brandR = null;
-      try { var stR = await api(API_URL, "/api/settings"); if (stR && stR.settings) brandR = { name: stR.settings.brand || "", email: stR.settings.email || "", phone: stR.settings.phone || "" }; } catch (e) {}
+      try { var stR = await api(API_URL, "/api/settings"); if (stR && stR.settings) brandR = { name: stR.settings.brand || "", email: stR.settings.email || "", phone: stR.settings.phone || "" }; if (stR && typeof stR.postLicense === "boolean") puPostLic = stR.postLicense; } catch (e) {}
       if (type === "seller") {
         var d = await api(API_URL, "/api/admin/reports/listing-performance?mls=" + encodeURIComponent(mls));
         if (!d || !d.ok) throw new Error("bad");
         var h = d.listing, p = d.perf;
         var body = "<h1>" + esc(D.perf) + "</h1><div class=\"sub\">" + esc(h.street || "") + ", " + esc(h.city || "") + " · MLS " + esc(h.mls) + " · " + new Date().toLocaleDateString("en-CA") + "</div>" +
           '<div class="price">' + puMoney(h.price) + "</div>" +
-          '<div class="kpis"><div class="kpi"><b>' + p.views + "</b><span>" + D.views + '</span></div><div class="kpi"><b>' + p.saves + "</b><span>" + D.saves + '</span></div><div class="kpi"><b>' + p.bookings + "</b><span>" + D.bookings + '</span></div><div class="kpi"><b>' + p.leads + "</b><span>" + D.leadsGen + "</span></div></div>" +
+          /* Pack PNA-Fix (Stage A A4/A9): untracked listings say so —
+             zero KPIs for a never-tracked listing were a false "no
+             interest" signal to the seller. Stale folds are flagged. */
+          (p.tracked ? '<div class="kpis"><div class="kpi"><b>' + p.views + "</b><span>" + D.views + '</span></div><div class="kpi"><b>' + p.saves + "</b><span>" + D.saves + '</span></div><div class="kpi"><b>' + p.bookings + "</b><span>" + D.bookings + '</span></div><div class="kpi"><b>' + p.leads + "</b><span>" + D.leadsGen + "</span></div></div>" : '<div class="sub" style="margin:10px 0">◷ ' + esc(D.notTracked) + "</div>") +
+          (p.stale ? '<div class="sub">⚠ ' + esc(D.staleFigs) + "</div>" : "") +
           (p.since ? '<div class="sub">' + D.since + ": " + esc(fmtDate(p.since)) + "</div>" : "") +
           puMarketHtml(D, d.market) + puNeighHtml(D, await (async function () { var pr = await api(API_URL, "/api/admin/reports/property?mls=" + encodeURIComponent(mls)); return pr && pr.neighbourhood; })()) +
           (await puFilesHtml(D, d.files, inc));
@@ -4663,6 +4742,7 @@
     try {
       var d = await api(API_URL, "/api/admin/handbook-data?mls=" + encodeURIComponent(mls) + (leadId ? "&leadId=" + encodeURIComponent(leadId) : "") + (incHb ? "&includeFiles=1" : ""));
       if (!d || !d.ok) throw new Error("bad");
+      if (typeof d.postLicense === "boolean") puPostLic = d.postLicense; // Pack PNA-Fix: disc1 follows the licensure flag
       var useLang = (d.client && d.client.lang) || lang;
       var D = puDocT(useLang);
       var h = d.listing;
@@ -4682,19 +4762,28 @@
           "<tr><th>" + D.principal + "</th><td>" + puMoney(mg.principal) + "</td></tr>" +
           "<tr><th>" + D.rate + "</th><td>" + mg.ratePct + "% (" + esc(mg.rateSource) + ")</td></tr>" +
           "<tr><th>" + D.monthly + "</th><td><b>" + puMoney(mg.monthly) + "</b></td></tr></table>" +
-          '<div class="sub">' + esc(D.estimate) + "</div>";
+          '<div class="sub">' + esc(D.estimate) + "</div>" +
+          /* Pack PNA-Fix (Stage A A5): the assumptions + the rate's age
+             print with the figures — the payload carried them all
+             along (rateSource/rateMonth/rateStale/assumptions). */
+          (mg.assumptions ? '<div class="sub">' + esc(D.assump) + ": " + esc([mg.assumptions.compounding, mg.assumptions.amortizationYears ? mg.assumptions.amortizationYears + "y" : "", mg.assumptions.downPaymentPct != null ? mg.assumptions.downPaymentPct + "% down" : "", mg.assumptions.paymentFrequency, mg.assumptions.rateBasis].filter(Boolean).join(" · ")) + (mg.rateMonth ? " · " + esc(D.rateAsOf) + " " + esc(mg.rateMonth) : "") + "</div>" : "") +
+          (mg.rateStale ? '<div class="sub">⚠ ' + esc(D.rateStale) + "</div>" : "");
       }
       body += '<p><a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((h.street || "") + ", " + (h.city || "") + ", BC") + '">' + D.map + "</a></p>";
       body += (await puFilesHtml(D, d.files, incHb));
       if (puHbInternalNotes) {
-        // The AI showing brief rides as a clearly-marked INTERNAL page
-        // at the very end — it is never part of the client copy.
-        body += '<div style="page-break-before:always"><h2>INTERNAL — advisor notes (not for the client)</h2><div class="fromfile"><span class="fftag">🧠 AI showing brief — internal</span><br>' + esc(puHbInternalNotes) + "</div></div>";
+        /* Pack PNA-Fix (Stage A #7): the AI showing brief is the
+           ADVISOR's document — it no longer rides as a page inside
+           the client handbook (a "Save as PDF" of the client copy
+           used to include it). It opens as its OWN document from the
+           button below (a fresh click — popup-blocker safe). */
+        puHbPendingNotes = puHbInternalNotes; puHbPendingNotesMeta = { mls: h.mls, lang: useLang, brand: d.brand };
         puHbInternalNotes = "";
         var atc = $("puBriefAttach"); if (atc) atc.checked = false;
       }
       puDocOpen(D.handbook + " — " + h.mls, useLang, d.brand, body);
-      $("puHbMsg").textContent = "Opened — use “Save as PDF” in the print dialog.";
+      $("puHbMsg").innerHTML = "Opened — use “Save as PDF” in the print dialog." + (puHbPendingNotes ? ' <button type="button" class="ghost small" id="puHbNotesBtn">Open the internal AI brief (separate document)</button>' : "");
+      var puNb = $("puHbNotesBtn"); if (puNb) puNb.addEventListener("click", function () { var meta = puHbPendingNotesMeta || {}; puDocOpen("INTERNAL — advisor notes — " + (meta.mls || ""), meta.lang || "en", meta.brand, '<h1>INTERNAL — advisor notes (not for the client)</h1><div class="fromfile"><span class="fftag">🧠 AI showing brief — internal</span><br>' + esc(puHbPendingNotes) + "</div>"); });
     } catch (e) { $("puHbMsg").textContent = "Could not build the handbook."; }
   });
 
@@ -4764,6 +4853,7 @@
     puVideoPackGenerate(mls);
   });
   var puHbInternalNotes = "";
+  var puHbPendingNotes = "", puHbPendingNotesMeta = null; // Pack PNA-Fix: the brief opens as its own document after the handbook
   $("puShowBrief").addEventListener("click", function () {
     var mls = $("puHbMls").value, leadId = $("puHbLead").value;
     if (!mls) { toast("Pick a listing first"); return; }
@@ -4779,9 +4869,9 @@
         ((b.talkingPoints || []).length ? "<b>Talking points</b><ul>" + b.talkingPoints.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
         (b.propertyNotes ? "<b>Property notes</b><p>" + esc(b.propertyNotes) + "</p>" : "") +
         (b.followUp ? "<b>Follow-up</b><p>" + esc(b.followUp) + "</p>" : "") +
-        '<label class="pu-chk" style="display:block;margin-top:10px"><input type="checkbox" id="puBriefAttach"> Attach to the next handbook as an INTERNAL notes page (never in the client copy)</label>');
+        '<label class="pu-chk" style="display:block;margin-top:10px"><input type="checkbox" id="puBriefAttach"> After the next handbook, offer this brief as a SEPARATE internal document (never in the client copy)</label>');
       var at = $("puBriefAttach");
-      if (at) at.addEventListener("change", function () { puHbInternalNotes = at.checked ? txt : ""; if (at.checked) toast("Brief will ride the next handbook as an internal page"); });
+      if (at) at.addEventListener("change", function () { puHbInternalNotes = at.checked ? txt : ""; if (at.checked) toast("Brief will be offered as a separate internal document after the handbook"); });
     }).catch(function () { $("puShowBriefMsg").textContent = "Brief unavailable."; });
   });
 
@@ -4941,7 +5031,7 @@
   });
 
   // ---- voice: one recorder, several contexts ----
-  var pbRec = null, pbRecChunks = [], pbRecCtx = null, pbRecBtn = null;
+  var pbRec = null, pbRecChunks = [], pbRecCtx = null, pbRecBtn = null, pbRecTimer = null;
   function pbVoiceToggle(ctx2, btn) {
     if (pbRec) { try { pbRec.stop(); } catch (e) {} return; }
     if (!navigator.mediaDevices || !window.MediaRecorder) { toast("Voice recording is not supported in this browser", true); return; }
@@ -4952,6 +5042,7 @@
       if (pbRecBtn) pbRecBtn.textContent = "⏹";
       mr.ondataavailable = function (e) { if (e.data && e.data.size) pbRecChunks.push(e.data); };
       mr.onstop = function () {
+        if (pbRecTimer) { clearTimeout(pbRecTimer); pbRecTimer = null; }
         stream.getTracks().forEach(function (t) { t.stop(); });
         var blob = new Blob(pbRecChunks, { type: mr.mimeType || "audio/webm" });
         var myCtx = pbRecCtx, myBtn = pbRecBtn;
@@ -4988,7 +5079,12 @@
         rd.readAsDataURL(blob);
       };
       mr.start();
-      toast("Recording… tap 🎤 again to stop");
+      /* Pack PNA-Fix (Stage A P6): a hard 2-minute cap — an unbounded
+         recording produced base64 the brain route could never accept
+         (and a memo nobody can use). Auto-stop matches the raised
+         server cap (~12 MB ≈ several minutes of compressed audio). */
+      pbRecTimer = setTimeout(function () { if (pbRec) { toast("Recording stopped — 2-minute limit reached"); try { pbRec.stop(); } catch (e) {} } }, 120000);
+      toast("Recording… tap 🎤 again to stop (max 2 min)");
     }).catch(function () { toast("Microphone permission denied", true); });
   }
   $("pbMic").addEventListener("click", function () {
@@ -5204,7 +5300,24 @@
     }
   };
 
-  if (token) { showApp(); loadAll(); } else { showLogin(); }
+  /* Pack PNA-Fix (Stage A S2 + S3): a stored token is VERIFIED before
+     the app opens — a revoked/expired session lands on the login
+     screen with the local caches (pc1:) purged, instead of an app
+     full of 401s sitting on cached PII. Only a definitive 401 clears
+     the token: a network failure keeps it (the next load retries)
+     and simply does not open the app. */
+  if (token) {
+    fetch(API_URL + "/api/admin/session", { headers: { "Authorization": "Bearer " + token } }).then(function (r) {
+      if (r.status === 200) { showApp(); loadAll(); }
+      else if (r.status === 401) {
+        token = "";
+        try { localStorage.removeItem("admin_token"); sessionStorage.removeItem("admin_token"); sessionStorage.removeItem("adv_token"); } catch (e) {}
+        try { cacheClear(); } catch (e) {}
+        showLogin();
+        var le = $("loginErr"); if (le) le.textContent = "Your session ended — sign in again.";
+      } else { showLogin(); var le2 = $("loginErr"); if (le2) le2.textContent = "Could not verify your session (server " + r.status + ") — sign in again."; }
+    }).catch(function () { showLogin(); var le3 = $("loginErr"); if (le3) le3.textContent = "Could not verify your session — check your connection, then sign in."; });
+  } else { showLogin(); }
 })();
 </script>
 <script>
