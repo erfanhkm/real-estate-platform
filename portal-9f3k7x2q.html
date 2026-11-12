@@ -712,6 +712,7 @@
         <h2>Activate a student</h2>
         <form id="acAddForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
           <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Student email</span><input type="email" id="acEmail" required placeholder="student@example.com" autocomplete="off"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><span class="mut">Name (optional)</span><input type="text" id="acName" placeholder="e.g. Ali Moghadam" maxlength="120" autocomplete="off"></label>
           <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Product</span><select id="acProduct"><option value="exam_pass">Exam Pass</option><option value="exam_pass_shield">Exam Pass + Rewrite Shield</option><option value="math_track">Math Track</option></select></label>
           <label style="display:flex;flex-direction:column;gap:4px;width:110px"><span class="mut">Months</span><input type="number" id="acMonths" value="6" min="1" max="60" step="1"></label>
           <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Custom end date (optional)</span><input type="datetime-local" id="acExpires"></label>
@@ -1606,7 +1607,7 @@
         '<button class="ghost small" data-ac-ext="' + esc(s.email) + '">Extend</button> ' +
         (s.status === "blocked" ? '<button class="ghost small" data-ac-unblock="' + esc(s.email) + '">Unblock</button>' : '<button class="ghost small" data-ac-block="' + esc(s.email) + '">Block</button>') + ' ' +
         '<button class="ghost small" data-ac-invite="' + esc(s.email) + '">Copy invite link</button>';
-      return "<tr><td><b>" + esc(s.email) + "</b></td><td>" + esc(AC_PROD[s.product] || s.product || "") + "</td><td>" + acPill(s) + "</td><td>" + win + "</td><td>" + (s.progressPct === null || s.progressPct === undefined ? "—" : s.progressPct + "%") + "</td><td>" + (s.readiness === null || s.readiness === undefined ? "—" : s.readiness) + "</td><td>" + (s.mistakeCount === null || s.mistakeCount === undefined ? "—" : s.mistakeCount) + "</td><td>" + (s.lastActiveAt ? esc(fmtDate(s.lastActiveAt)) : "—") + '</td><td style="white-space:normal">' + acts + "</td></tr>";
+      return "<tr><td><b>" + esc(s.email) + "</b>" + (s.name ? '<br><span class="mut">' + esc(s.name) + "</span>" : "") + "</td><td>" + esc(AC_PROD[s.product] || s.product || "") + "</td><td>" + acPill(s) + "</td><td>" + win + "</td><td>" + (s.progressPct === null || s.progressPct === undefined ? "—" : s.progressPct + "%") + "</td><td>" + (s.readiness === null || s.readiness === undefined ? "—" : s.readiness) + "</td><td>" + (s.mistakeCount === null || s.mistakeCount === undefined ? "—" : s.mistakeCount) + "</td><td>" + (s.lastActiveAt ? esc(fmtDate(s.lastActiveAt)) : "—") + '</td><td style="white-space:normal">' + acts + "</td></tr>";
     }).join("");
     box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Student</th><th>Product</th><th>Status</th><th>Access window</th><th>Progress</th><th>Readiness</th><th>Mistakes</th><th>Last active</th><th>Actions</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
     if (moreBox) moreBox.innerHTML = acCursor ? '<button class="ghost small" id="acLoadMore">Load more</button>' : "";
@@ -1776,11 +1777,13 @@
     var months = parseInt($("acMonths").value, 10);
     var exp = $("acExpires").value;
     var note = ($("acNote").value || "").trim();
+    var nm = ($("acName").value || "").trim();
     if (!email) return;
     var body = { email: email, product: product };
     if (exp) body.expiresAt = new Date(exp).toISOString();
     else { if (!months || months < 1 || months > 60) { toast("Enter a whole number of months (1–60)", true); return; } body.accessMonths = months; }
     if (note) body.note = note;
+    if (nm) body.name = nm;
     api(ACADEMY_API_URL, "/api/admin/academy/students", { method: "POST", body: JSON.stringify(body) }).then(function(d){
       if (d && d.student) { toast("Profile activated ✓"); acForm.reset(); $("acMonths").value = "6"; $("acAddCard").hidden = true; loadAcademy(); return; }
       var msg = (d && d.error) || "";
