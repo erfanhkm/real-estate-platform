@@ -1223,6 +1223,8 @@
 
   // ---------- academy (Pack AcademyAdmin, 2026-11-09; spec §7) ----------
   var acItems = [], acCursor = null, acDetail = null, acLoadedOnce = false;
+  var acListSeq = 0, acQTimer = null; // Pack AcademyFixC (2026-11-11, L3-N3): students-list request sequence guard + search debounce timer
+  var acMailConfigured = null, acMailStatusP = null; // Pack AcademyFixC (L3-N4): resend-invite enable state, from GET /api/admin/mail/status
   var AC_PROD = { exam_pass: "Exam Pass", exam_pass_shield: "Exam Pass + Rewrite Shield", math_track: "Math Track" };
   var AC_DEFAULT_MONTHS = { exam_pass: 6, exam_pass_shield: 6, math_track: 4 };
   function acAddMonths(iso, months){ var d = new Date(iso); var day = d.getUTCDate(); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + months); var last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(); d.setUTCDate(Math.min(day, last)); return d.toISOString(); }
@@ -1356,6 +1358,28 @@
       '<div class="pu-mini">Budgets: ' + num(st.perStudentDaily) + ' / student / day · ' + num(st.globalDaily) + ' global / day (a chat = draft + verification = 2 units)</div>' +
       '<div class="pu-mini">Corpus v1: ' + (st.corpusSeeded && st.corpusSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusSeeded && st.corpusSeeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Corpus v2 (concept chunks): ' + (st.corpusV2Seeded && st.corpusV2Seeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.corpusV2Seeded && st.corpusV2Seeded.fa ? "FA ✓" : "FA ✗") + ' &nbsp;·&nbsp; Question bank (practice/quiz/debrief): ' + (st.bankSeeded && st.bankSeeded.en ? "EN ✓" : "EN ✗") + ' · ' + (st.bankSeeded && st.bankSeeded.fa ? "FA ✓" : "FA ✗") + '</div>' +
       '<div class="pu-mini">Voice read-aloud: ' + (st.voice && st.voice.enabled ? "ON (cap " + num(st.voice.dailyCap) + " / student / day)" : "OFF (default — enabling burns the shared ElevenLabs pool and needs an explicit decision)") + '</div>';
+    // Pack FixF (2026-11-11): the provision half of this card. The
+    // tutor-provision route is owner-session-only BY DESIGN and had
+    // no UI, which stranded key entry; the block below gives it the
+    // same one-shot pattern as the B2/Stripe cards — the two values
+    // are read from the password fields, POSTed once inside the
+    // owner’s session, cleared from the inputs the moment the form
+    // submits, and never echoed, rendered, logged or kept anywhere
+    // in this page afterwards. While no chain is stored the form
+    // shows directly; once configured it collapses to a one-line
+    // "Keys stored ✓" plus a "Rotate keys" disclosure that re-opens
+    // the same form with the replace box already ticked.
+    var tutConfigured = !!st.configured;
+    if (tutConfigured) {
+      h += '<div class="ok" style="margin-top:8px">Keys stored ✓</div>' +
+        '<div style="margin-top:10px"><button type="button" class="ghost small" id="acTutorRotate">Rotate keys</button></div>';
+    }
+    h += '<div id="acTutorFormWrap"' + (tutConfigured ? ' hidden' : '') + '><form id="acTutorForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Groq API key</span><input type="password" id="acTutorGroq" autocomplete="off" spellcheck="false"><span class="mut">Model: llama-3.3-70b-versatile (fixed)</span></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:240px"><span class="mut">Gemini API key</span><input type="password" id="acTutorGemini" autocomplete="off" spellcheck="false"><span class="mut">Model: gemini-2.0-flash (fixed)</span></label>' +
+      '<button type="submit" id="acTutorSave">Provision Learning Assistant</button></form>' +
+      '<label style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="acTutorReplace"' + (tutConfigured ? ' checked' : '') + '><span>Replace existing keys</span></label>' +
+      '<div class="hint">Free-tier keys for the Academy’s own Groq + Gemini accounts. Both fields are required every time — rotating means pasting the new pair. Stored server-side only; never shown again.</div></div>';
     if (ins && ins.ok) {
       // Pack TutorCredits (2026-11-11): the Academy chat's own credit
       // counters, from tutor-insights' credits block — today's units
@@ -1392,6 +1416,34 @@
       h += '<div class="empty" style="margin-top:10px">Insights unavailable right now.</div>';
     }
     box.innerHTML = h;
+    var trb = $("acTutorRotate");
+    if (trb) trb.addEventListener("click", function(){
+      var w = $("acTutorFormWrap"); if (w) w.hidden = false;
+      trb.style.display = "none";
+      var rc0 = $("acTutorReplace"); if (rc0) rc0.checked = true;
+      var gi0 = $("acTutorGroq"); if (gi0) gi0.focus();
+    });
+    var tf = $("acTutorForm");
+    if (tf) tf.addEventListener("submit", function(e){
+      e.preventDefault();
+      var gInp = $("acTutorGroq"), mInp = $("acTutorGemini"), rcInp = $("acTutorReplace");
+      var g = (gInp.value || "").trim(), m = (mInp.value || "").trim();
+      var rep = !!(rcInp && rcInp.checked);
+      gInp.value = ""; mInp.value = ""; // cleared immediately on submit — never kept client-side
+      if (!g || !m) { toast("Paste both keys first", true); return; }
+      var btn = $("acTutorSave"); if (btn) { btn.disabled = true; btn.textContent = "Provisioning…"; }
+      api(ACADEMY_API_URL, "/api/admin/academy/tutor-provision", { method: "POST", body: JSON.stringify({ providers: [{ kind: "groq", model: "llama-3.3-70b-versatile", apiKey: g }, { kind: "gemini", model: "gemini-2.0-flash", apiKey: m }], replace: rep }) }).then(function(r){
+        g = ""; m = "";
+        if (r && r.ok) { toast("Configured ✓"); acLoadTutor(); return; }
+        if (r && r.error === "already_provisioned") { toast("Already provisioned — tick Replace to rotate keys", true); acLoadTutor(); return; }
+        if (r && r.error === "validation") { toast("Key rejected (validation)", true); acLoadTutor(); return; }
+        toast("Could not provision the Learning Assistant" + (r && r.error ? " — " + r.error : ""), true); acLoadTutor();
+      }).catch(function(e){
+        g = ""; m = "";
+        if (e && e.message === "load failed (401)") { toast("Session expired — sign in again, then retry", true); return; }
+        toast("Could not provision the Learning Assistant — network error", true); acLoadTutor();
+      });
+    });
   }
   // Pack StripePage (2026-11-10): the owner provision path for
   // cfg:stripe — status is booleans only (stripe-status). While the
@@ -1458,26 +1510,68 @@
       }).catch(function(){ ws = ""; ak = ""; toast("Could not save the payment keys — network error", true); acLoadStripe(); });
     });
   }
+  // Pack AcademyFixC (2026-11-11, Scan Line 3): loadAcademy() stays the
+  // FULL reload (overview + every card + the students list) — tab entry,
+  // Refresh and post-mutation refreshes. Search/filter changes go through
+  // loadAcademyList() alone (L3-N3): the overview and the cards do not
+  // depend on the query, and re-running them per keystroke made every
+  // character pay for the worker's full scans.
   function loadAcademy(more){
-    var box = $("acBody"); if (!box) return;
+    if (!$("acBody")) return;
     acLoadOverview();
     acLoadB2();
     acLoadVideo();
     acLoadStripe();
     acLoadTutor();
+    loadAcademyList(more);
+  }
+  // The "Expiring" predicate (L3-N7), aligned with the worker's overview
+  // count: effectiveStatus 'active' AND the expiry inside a 14-DAY window.
+  // The worker tests expiresAt - now <= 14 * 86400000 and ships
+  // daysLeft = ceil((expiresAt - now) / 86400000), so for an active student
+  // daysLeft <= 14 is the same 14-day window. The filter runs client-side,
+  // so loadAcademyList pages through the WHOLE (server q-filtered) set
+  // before filtering — filtering only the fetched pages is what made the
+  // list disagree with the overview's expiring14 count.
+  function acIsExpiring(s){ return s.status === "active" && s.daysLeft !== null && s.daysLeft <= 14; }
+  function loadAcademyList(more){
+    var box = $("acBody"); if (!box) return;
+    var seq = ++acListSeq; // L3-N3: only the latest list request may paint
     var st = $("acStatus").value, q = ($("acQ").value || "").trim();
     var params = [];
     if (st && st !== "expiring") params.push("status=" + encodeURIComponent(st));
     if (q) params.push("q=" + encodeURIComponent(q));
+    var fail = function(){
+      if (seq !== acListSeq || more) return; // stale, or a Load-more failure: keep the list on screen
+      box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>';
+    };
+    if (st === "expiring" && !more) {
+      // Client-side filter => full coverage first (see acIsExpiring).
+      var all = [];
+      var page = function(cursor){
+        var pp = params.concat(["limit=100"]);
+        if (cursor) pp.push("cursor=" + encodeURIComponent(cursor));
+        return api(ACADEMY_API_URL, "/api/admin/academy/students?" + pp.join("&")).then(function(d){
+          if (seq !== acListSeq) return;
+          if (!d || !Array.isArray(d.students)) { fail(); return; }
+          all = all.concat(d.students);
+          if (d.nextCursor) return page(d.nextCursor);
+          acItems = all.filter(acIsExpiring);
+          acCursor = null;
+          renderAcademy();
+        });
+      };
+      page(null).catch(fail);
+      return;
+    }
     if (more && acCursor) params.push("cursor=" + encodeURIComponent(acCursor));
     api(ACADEMY_API_URL, "/api/admin/academy/students" + (params.length ? "?" + params.join("&") : "")).then(function(d){
-      if (!d || !Array.isArray(d.students)) { box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; return; }
-      var rows = d.students;
-      if (st === "expiring") rows = rows.filter(function(s){ return s.status === "active" && s.daysLeft !== null && s.daysLeft <= 14; });
-      acItems = more ? acItems.concat(rows) : rows;
+      if (seq !== acListSeq) return; // a newer request owns the paint; the current list stays visible meanwhile
+      if (!d || !Array.isArray(d.students)) { fail(); return; }
+      acItems = more ? acItems.concat(d.students) : d.students;
       acCursor = d.nextCursor || null;
       renderAcademy();
-    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load Academy enrolments.</div>'; });
+    }).catch(fail);
   }
   function acPill(s){
     if (s.status === "blocked") return '<span class="tag" style="color:#b91c1c">blocked</span>';
@@ -1497,7 +1591,7 @@
     }).join("");
     box.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Student</th><th>Product</th><th>Status</th><th>Access window</th><th>Progress</th><th>Readiness</th><th>Mistakes</th><th>Last active</th><th>Actions</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
     if (moreBox) moreBox.innerHTML = acCursor ? '<button class="ghost small" id="acLoadMore">Load more</button>' : "";
-    var lm = $("acLoadMore"); if (lm) lm.addEventListener("click", function(){ loadAcademy(true); });
+    var lm = $("acLoadMore"); if (lm) lm.addEventListener("click", function(){ loadAcademyList(true); }); // Pack AcademyFixC (L3-N3): pagination is list-only too — no card/overview reload
   }
   function acAct(email, action, body, okMsg){
     return api(ACADEMY_API_URL, "/api/admin/academy/students/" + encodeURIComponent(email) + "/" + action, { method: "POST", body: JSON.stringify(body || {}) }).then(function(d){
@@ -1505,6 +1599,33 @@
       toast(okMsg, false); loadAcademy(); if (acDetail && acDetail.student && acDetail.student.email === email) acOpenDetail(email);
       return d;
     }).catch(function(){ toast("Action failed — try again", true); });
+  }
+  // Pack AcademyFixC (2026-11-11, L3-N4): the drawer's Resend invite
+  // button is driven by the mail status OF THE ACADEMY DEPLOYMENT (the
+  // resend-invite action runs there and reads that deployment's
+  // cfg:mail). GET /api/admin/mail/status answers booleans only:
+  // { ok, configured, provider, from, provisionedAt }. While the state
+  // is unknown or unconfigured the button stays disabled with the
+  // honest tooltip; a blocked student's button stays disabled too
+  // (the route refuses blocked students). The status is re-read on
+  // every drawer open until it answers configured.
+  function acPaintInvite(){
+    var b = $("acDInvite"); if (!b) return;
+    var stu = acDetail && acDetail.student;
+    if (stu && stu.status === "blocked") { b.disabled = true; b.textContent = "Resend invite"; b.title = "Student is blocked — unblock before sending an invite"; return; }
+    if (acMailConfigured) { b.disabled = false; b.textContent = "Resend invite"; b.title = "Email the Academy invite to this student again"; return; }
+    b.disabled = true; b.textContent = "Resend invite — mail not configured yet"; b.title = "Available once the mail sender is configured";
+  }
+  function acLoadMailStatus(){
+    if (acMailConfigured) { acPaintInvite(); return Promise.resolve(true); }
+    if (acMailStatusP) return acMailStatusP;
+    acMailStatusP = api(ACADEMY_API_URL, "/api/admin/mail/status", { fresh: true }).then(function(d){
+      acMailConfigured = !!(d && d.ok && d.configured);
+      acMailStatusP = null;
+      acPaintInvite();
+      return acMailConfigured;
+    }).catch(function(){ acMailConfigured = false; acMailStatusP = null; acPaintInvite(); return false; });
+    return acMailStatusP;
   }
   function acOpenDetail(email, focusExtend){
     var dr = $("acDrawer"); if (!dr) return;
@@ -1520,7 +1641,17 @@
     var dr = $("acDrawer"); if (!dr || !acDetail) return;
     var s = acDetail.student;
     var ent = s.status === "active";
-    var baseLabel = ent || s.status === "blocked" ? "from current expiry (" + fmtDate(s.expiresAt || "") + ")" : "from now (profile expired " + fmtDate(s.expiresAt || "") + ")";
+    // Pack AcademyFixC (2026-11-11, L3-N8): the months-extend base mirrors
+    // the worker rule exactly — from the current expiresAt while that
+    // window is still in the future (blocked included; extend never
+    // unblocks), from TODAY once it has ended. The old base used
+    // expiresAt for every blocked student, so for a blocked-but-expired
+    // student the confirm promised an end date EARLIER than the one the
+    // worker actually sets; the label below says "from today" explicitly
+    // in that case.
+    var extBaseFuture = !!(s.expiresAt && Date.parse(s.expiresAt) > Date.now());
+    var extBaseIso = extBaseFuture ? s.expiresAt : new Date().toISOString();
+    var baseLabel = extBaseFuture ? "from current expiry (" + fmtDate(s.expiresAt || "") + ")" : "from today (previous window ended " + fmtDate(s.expiresAt || "") + ")";
     var h = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="margin:0">' + esc(s.email) + '</h2><button class="ghost small" id="acDrawerClose">Close</button></div>';
     h += '<div class="mut" style="margin:4px 0 10px">' + esc(AC_PROD[s.product] || s.product || "") + " · " + acPill(s) + " · window " + esc(fmtDate(s.activatedAt || "")) + " → " + esc(fmtDate(s.expiresAt || "")) + " · " + (s.accessMonths || "—") + " months · source " + esc(s.source || "manual") + (s.note ? " · note: " + esc(s.note) : "") + (s.blockReason ? ' · block reason: ' + esc(s.blockReason) : "") + "</div>";
     h += '<div style="border-top:1px solid var(--line);padding-top:10px"><b>Extend access</b> <span class="mut">— new window runs ' + esc(baseLabel) + '</span><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><button class="ghost small" data-ac-extn="1">+1 month</button><button class="ghost small" data-ac-extn="3">+3 months</button><button class="ghost small" data-ac-extn="6">+6 months</button><input type="number" id="acExtMonths" min="1" max="60" step="1" placeholder="months" style="width:90px"><button class="ghost small" id="acExtCustom">Extend</button><input type="datetime-local" id="acExtDate"><button class="ghost small" id="acExtDateBtn">Set end date</button></div><div class="mut" id="acExtPreview" style="margin-top:6px"></div></div>';
@@ -1542,21 +1673,18 @@
     var preview = function(){
       var pv = $("acExtPreview"); if (!pv) return;
       var m = parseInt(($("acExtMonths") && $("acExtMonths").value) || "", 10);
-      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
-      pv.textContent = m >= 1 && m <= 60 ? "Resulting end date: " + fmtDate(acAddMonths(baseIso, m)) : "";
+      pv.textContent = m >= 1 && m <= 60 ? "Resulting end date: " + fmtDate(acAddMonths(extBaseIso, m)) : "";
     };
     var em = $("acExtMonths"); if (em) em.addEventListener("input", preview);
     dr.querySelectorAll("[data-ac-extn]").forEach(function(b){ b.addEventListener("click", function(){
       var months = parseInt(b.getAttribute("data-ac-extn"), 10);
-      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
-      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(baseIso, months)) + " (" + baseLabel + ").")) return;
+      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(extBaseIso, months)) + " (" + baseLabel + ").")) return;
       acAct(s.email, "extend", { months: months }, "Extended ✓");
     }); });
     var ec = $("acExtCustom"); if (ec) ec.addEventListener("click", function(){
       var months = parseInt(($("acExtMonths").value || ""), 10);
       if (!months || months < 1 || months > 60) { toast("Enter a whole number of months (1–60)", true); return; }
-      var baseIso = (ent || s.status === "blocked") ? s.expiresAt : new Date().toISOString();
-      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(baseIso, months)) + ".")) return;
+      if (!confirm("Extend " + s.email + " by " + months + " month(s)? New end date: " + fmtDate(acAddMonths(extBaseIso, months)) + ".")) return;
       acAct(s.email, "extend", { months: months }, "Extended ✓");
     });
     var ed = $("acExtDateBtn"); if (ed) ed.addEventListener("click", function(){
@@ -1575,6 +1703,17 @@
       if (!confirm("Reset ALL progress for " + s.email + "? Lessons, the mistake bank and readiness are cleared. The enrolment and its window stay. This cannot be undone.")) return;
       acAct(s.email, "reset-progress", {}, "Progress reset ✓");
     });
+    var di = $("acDInvite"); if (di) { di.addEventListener("click", function(){
+      if (!confirm("Resend the Academy invite email to " + s.email + "?")) return;
+      di.disabled = true; di.textContent = "Sending…";
+      api(ACADEMY_API_URL, "/api/admin/academy/students/" + encodeURIComponent(s.email) + "/resend-invite", { method: "POST", body: "{}" }).then(function(d){
+        if (d && d.ok && d.sent === false) toast("Invite queued — it is waiting in the Outbox");
+        else if (d && d.ok) toast("Invite sent ✓");
+        else if (d && d.error === "not_configured") { acMailConfigured = false; toast("Mail is not configured yet — provision it first", true); }
+        else toast("Could not resend the invite" + (d && d.error ? " — " + d.error : ""), true);
+        di.textContent = "Resend invite"; acPaintInvite();
+      }).catch(function(){ toast("Could not resend the invite — network error", true); di.textContent = "Resend invite"; acPaintInvite(); });
+    }); acLoadMailStatus(); acPaintInvite(); }
     var ddel = $("acDDelete"); if (ddel) ddel.addEventListener("click", function(){
       if (!confirm("Delete the Academy profile for " + s.email + " permanently? Enrolment is removed; progress is kept unless you also purge it.")) return;
       var purge = confirm("Also delete their progress, mistake bank and readiness? OK = delete everything, Cancel = keep progress data.");
@@ -1618,8 +1757,11 @@
   if (acProdSel) acProdSel.addEventListener("change", function(){ $("acMonths").value = AC_DEFAULT_MONTHS[acProdSel.value] || 6; });
   var acToggle = $("acAddToggle"); if (acToggle) acToggle.addEventListener("click", function(){ var c = $("acAddCard"); c.hidden = !c.hidden; if (!c.hidden) $("acEmail").focus(); });
   var acRefBtn = $("acRefresh"); if (acRefBtn) acRefBtn.addEventListener("click", function(){ loadAcademy(); });
-  var acQEl = $("acQ"); if (acQEl) acQEl.addEventListener("input", function(){ loadAcademy(); });
-  var acStEl = $("acStatus"); if (acStEl) acStEl.addEventListener("change", function(){ loadAcademy(); });
+  // Pack AcademyFixC (L3-N3): typing is debounced (250 ms) and reloads
+  // ONLY the students list — the old per-keystroke full loadAcademy()
+  // re-ran the overview scan and all five cards on every character.
+  var acQEl = $("acQ"); if (acQEl) acQEl.addEventListener("input", function(){ clearTimeout(acQTimer); acQTimer = setTimeout(function(){ loadAcademyList(); }, 250); });
+  var acStEl = $("acStatus"); if (acStEl) acStEl.addEventListener("change", function(){ loadAcademyList(); });
 
   // ---------- navigation ----------
   var wsLens = "board";
