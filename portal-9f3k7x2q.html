@@ -1270,7 +1270,9 @@
       // its unconfigured paste-in state.
       h += '<div class="ok" style="margin-top:8px">Configured ✓ — uploads and playback can run against ' + esc(d.bucket || "eh-realty-academy-videos") + ".</div>" +
         '<div style="margin-top:10px"><button type="button" class="ghost small" id="acB2Replace">Replace stored key</button></div>' +
-        '<div class="hint">Wrong key stored? This clears the stored B2 key (both parts) so a fresh key can be pasted in. Uploads and playback pause until a new key is stored.</div>';
+        '<div class="hint">Wrong key stored? This clears the stored B2 key (both parts) so a fresh key can be pasted in. Uploads and playback pause until a new key is stored.</div>' +
+        '<div style="margin-top:8px"><button type="button" class="ghost small" id="acB2Test">Test read</button></div>' +
+        '<div id="acB2ProbeOut"></div>';
       box.innerHTML = h;
       var rb2 = $("acB2Replace");
       if (rb2) rb2.addEventListener("click", function(){
@@ -1283,6 +1285,28 @@
           if (r && r.ok) { toast(r.cleared ? "Stored B2 key cleared — paste the new key" : "No stored B2 key to clear"); acLoadB2(); return; }
           toast("Could not clear the stored key" + (r && r.error ? " — " + r.error : ""), true); acLoadB2();
         }).catch(function(){ toast("Could not clear the stored key — network error", true); acLoadB2(); });
+      });
+      var tb2 = $("acB2Test");
+      if (tb2) tb2.addEventListener("click", function(){
+        // Pack B2Probe (2026-11-12): asks the worker to attempt ONE
+        // real signed read with the stored key (b2-status?probe=1)
+        // and renders the verdict inline — no native dialogs (see
+        // the Replace note above). A stored-but-unreadable key used
+        // to fail silently at playback; this shows the upstream
+        // HTTP status + S3 error code/message right in the card.
+        var pout = $("acB2ProbeOut");
+        tb2.disabled = true; tb2.textContent = "Testing…";
+        api(ACADEMY_API_URL, "/api/admin/academy/b2-status?probe=1", { fresh: true }).then(function(r){
+          tb2.disabled = false; tb2.textContent = "Test read";
+          if (!pout) return;
+          var pr = r && r.probe;
+          if (!pr) { pout.innerHTML = '<div class="hint">Read test unavailable.</div>'; return; }
+          if (pr.ok) { pout.innerHTML = '<div class="ok">Read test: OK — the stored key can read the videos (status ' + esc(String(pr.status)) + ').</div>'; return; }
+          pout.innerHTML = '<div class="err">Read test failed: HTTP ' + esc(String(pr.status)) + " · " + esc(pr.code || "") + (pr.message ? " — " + esc(pr.message) : "") + "</div>";
+        }).catch(function(){
+          tb2.disabled = false; tb2.textContent = "Test read";
+          if (pout) pout.innerHTML = '<div class="err">Read test failed — network error</div>';
+        });
       });
       return;
     }
