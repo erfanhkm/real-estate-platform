@@ -1274,7 +1274,10 @@
       box.innerHTML = h;
       var rb2 = $("acB2Replace");
       if (rb2) rb2.addEventListener("click", function(){
-        if (!confirm("This clears the stored B2 key so a new one can be entered. Continue?")) return;
+        // Inline two-step confirm (no native confirm() dialog — the
+        // automated browser dismisses those, and an inline arm is
+        // clearer anyway): first click arms for 6s, second clears.
+        if (rb2.dataset.armed !== "1") { rb2.dataset.armed = "1"; rb2.textContent = "Click again to clear the stored key"; setTimeout(function(){ if (rb2.dataset.armed === "1" && !rb2.disabled) { rb2.dataset.armed = ""; rb2.textContent = "Replace stored key"; } }, 6000); return; }
         rb2.disabled = true; rb2.textContent = "Clearing…";
         api(ACADEMY_API_URL, "/api/admin/academy/b2-clear", { method: "POST", body: JSON.stringify({ confirm: "clear-b2" }) }).then(function(r){
           if (r && r.ok) { toast(r.cleared ? "Stored B2 key cleared — paste the new key" : "No stored B2 key to clear"); acLoadB2(); return; }
