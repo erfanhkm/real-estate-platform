@@ -620,6 +620,7 @@
       </div>
       <div id="lstEditor"></div>
       <div id="lstList"><div class="empty">Loading…</div></div>
+      <div id="campPanel"></div>
       <div class="pagehead" style="margin-top:28px">
         <div><h1 style="font-size:20px">Viewing availability</h1><div class="mut">Optional: set the exact dates and times the owner can host viewings. When set, the site's Book a viewing shows ONLY those slots (booked ones disappear automatically). Leave a listing unset and all standard slots stay open.</div></div>
       </div>
@@ -3785,8 +3786,123 @@
     return '<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">' + thumb +
       '<div style="flex:1 1 260px"><h2 style="margin:0 0 2px">' + esc(rec.street) + ', ' + esc(rec.city) + '</h2>' +
       '<div class="mut">$' + Number(rec.price).toLocaleString("en-CA") + ' · MLS ' + esc(rec.mls) + ' · ' + esc(rec.type) + ' · ' + esc(rec.beds) + ' bed</div></div>' +
-      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + status + state + btns + '</div></div>';
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + status + state + btns + '<button type="button" class="ghost small" data-lact="campaign" data-mls="' + esc(rec.mls) + '">📣 Campaign</button>' + '</div></div>';
   }
+  /* Pack SystemListingMedia (2026-11-12): listing campaign builder.
+     Generates the per-listing asset pack (Instagram post copy, Reel
+     script, email draft, presentation link, tour-video script) from
+     the listing record — facts only, the same rule as the site —
+     and stores it as DRAFTS via the worker campaign routes. The
+     email asset lands in the held Outbox queue (addressed to the
+     business inbox) when the pack is first saved; approving an
+     asset here is a label only and never sends or publishes
+     anything. Tour narration stays OFF unless cfg:media enables it;
+     the per-video ElevenLabs credit estimate (the Academy pool) is
+     shown on the video asset before any render can happen. */
+  var campState = { mls: null, campaign: null, media: null };
+  var CAMP_FEATURE_LABEL = { balcony: "Balcony", laundry: "In-suite laundry", gym: "Gym", concierge: "24-hour concierge", fenced_yard: "Fenced yard", dbl_garage: "Double garage", fireplace: "Fireplace", reno_kitchen: "Renovated kitchen", suite: "Suite potential", deck: "Deck", rooftop: "Rooftop terrace", bike_room: "Bike room", ac: "Air conditioning", ev: "EV charging", playground: "Playground", mt_view: "Mountain views", new_roof: "Newer roof", storage: "Storage" };
+  function campMoney(n){ return "$" + Number(n).toLocaleString("en-CA"); }
+  function campLines(rec){
+    var lines = [];
+    lines.push("Welcome to " + rec.street + ", in " + rec.city + ".");
+    lines.push("Offered at " + campMoney(rec.price) + " — " + rec.beds + " " + (Number(rec.beds) === 1 ? "bedroom" : "bedrooms") + ", " + rec.baths + " " + (Number(rec.baths) === 1 ? "bathroom" : "bathrooms") + ", and " + Number(rec.sqft).toLocaleString("en-CA") + " square feet of living space.");
+    if (rec.desc && rec.desc.en) lines.push(rec.desc.en);
+    var feats = (rec.features || []).filter(function(k){ return CAMP_FEATURE_LABEL[k]; }).slice(0, 3).map(function(k){ return CAMP_FEATURE_LABEL[k]; });
+    if (feats.length === 1) lines.push("Featuring " + feats[0] + ".");
+    else if (feats.length === 2) lines.push("Featuring " + feats[0] + " and " + feats[1] + ".");
+    else if (feats.length >= 3) lines.push("Highlights include " + feats[0] + ", " + feats[1] + ", and " + feats[2] + ".");
+    var tail = [];
+    if (rec.year) tail.push("Built in " + rec.year);
+    if (rec.parking === "garage") tail.push("with garage parking");
+    else if (rec.parking === "underground") tail.push("with underground parking");
+    if (tail.length) lines.push(tail.join(", ") + ".");
+    lines.push("Book your private viewing today at ehrealtybc.com. MLS® number " + rec.mls + ".");
+    return lines;
+  }
+  function campBuildAssets(rec){
+    var link = "https://ehrealtybc.com/present-" + rec.mls + ".html";
+    var factsLine = rec.beds + " bed · " + rec.baths + " bath · " + Number(rec.sqft).toLocaleString("en-CA") + " sq ft";
+    var ig = "🏡 " + rec.street + ", " + rec.city + " — " + campMoney(rec.price) + "\n" + factsLine + "\n" + ((rec.desc && rec.desc.en) || "") + "\n\n🎬 Tour + book a viewing: " + link + "\n#MetroVancouver #BCRealEstate #" + String(rec.city).replace(/[^A-Za-z]/g, "") + " #" + String(rec.type || "home") + " MLS® " + rec.mls;
+    var shots = ["Shot 1 (0–4s) — Brand card: EH REALTY, address + price on black/gold.",
+      "Shot 2 (4–14s) — Hero photo, slow zoom. Caption: ", "Shot 3 (14–22s) — Photo detail pan. Caption: ",
+      "Shot 4 (22–30s) — Photo, slow zoom out. Caption: ", "Shot 5 (30–35s) — Facts card (year, parking, strata, tax as listed). Caption: ",
+      "Shot 6 (35–40s) — CTA card: Book a viewing · ehrealtybc.com · MLS® " + rec.mls + "."];
+    var L = campLines(rec);
+    var reel = "REEL SCRIPT — " + rec.street + ", " + rec.city + " (" + rec.mls + ")\n" +
+      shots[0] + "\n" + shots[1] + (L[1] || "") + "\n" + shots[2] + (L[2] || "") + "\n" + shots[3] + (L[3] || "") + "\n" + shots[4] + (L[4] || "") + "\n" + shots[5] +
+      "\nAudio: narration (ElevenLabs) only when enabled in cfg:media — otherwise captions only.\nVertical 1080×1920 · photos: the listing's own photo, cinematic crops.";
+    var subject = "New listing: " + rec.street + ", " + rec.city + " — " + campMoney(rec.price);
+    var body = rec.street + ", " + rec.city + " — " + campMoney(rec.price) + "\n" + factsLine + " · " + (rec.type || "") + (rec.year ? " · built " + rec.year : "") + "\n\n" + ((rec.desc && rec.desc.en) || "") + "\n\n▶ Watch the presentation: " + link + "\n📅 Book a viewing: https://ehrealtybc.com/listings.html#viewing=" + rec.mls + "\n\nMLS® " + rec.mls + " · EH REALTY\n(Draft campaign email — held in the Outbox addressed to the business inbox for review. Re-address before any release; nothing sends automatically.)";
+    return { ig: { text: ig }, reel: { text: reel }, email: { subject: subject, body: body } };
+  }
+  function campAssetCard(kind, title, inner, status){
+    var pill = status === "approved" ? '<span class="pill" style="background:#e7f0e4;color:#2f5d23">Approved</span>' : '<span class="pill" style="background:#fdeeda;color:#8a5a00">Draft</span>';
+    var btn = status === "approved"
+      ? '<button type="button" class="ghost small" data-campact="reopen" data-kind="' + kind + '">Back to draft</button>'
+      : '<button type="button" class="ghost small" data-campact="approve" data-kind="' + kind + '">Approve</button>';
+    return '<div class="card" style="margin-top:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">' + title + '</h3>' + pill + btn + '</div>' + inner + '</div>';
+  }
+  function renderCampaign(){
+    var box = $("campPanel"); if (!box) return;
+    var rec = lstFindRec(campState.mls);
+    var camp = campState.campaign, media = campState.media || {};
+    if (!rec) { box.innerHTML = ""; return; }
+    var head = '<div class="card" style="margin-top:14px;border:1.5px solid var(--brass)"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0;flex:1">📣 Campaign — ' + esc(rec.street) + ', ' + esc(rec.city) + '</h2>' +
+      '<button type="button" class="btn-spruce" data-campact="generate">' + (camp ? "Regenerate pack" : "Generate asset pack") + '</button>' +
+      '<button type="button" class="ghost small" data-campact="close">Close</button></div>' +
+      '<div class="mut">Assets are generated from the listing record and stored as drafts. Approving is a label only — nothing is sent or published from here. The email draft waits in the Outbox (held, addressed to the business inbox).</div></div>';
+    if (!camp) { box.innerHTML = head + '<div class="empty" style="margin-top:10px">No campaign pack yet for ' + esc(rec.mls) + '.</div>'; return; }
+    var a = camp.assets || {};
+    var pre = function (txt) { return '<pre style="white-space:pre-wrap;font:inherit;font-size:14px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0 0">' + esc(txt || "") + '</pre>'; };
+    var html = head;
+    if (a.ig) html += campAssetCard("ig", "📸 Instagram post (1:1)", pre(a.ig.text), a.ig.status);
+    if (a.reel) html += campAssetCard("reel", "🎬 Reel script / shot list", pre(a.reel.text), a.reel.status);
+    if (a.email) html += campAssetCard("email", "✉️ Email draft (held in Outbox)", '<div class="mut" style="margin-top:8px">Subject: <b>' + esc(a.email.subject || "") + '</b>' + (a.email.mailId ? ' · held record ' + esc(a.email.mailId) : ' · not queued') + '</div>' + pre(a.email.body), a.email.status);
+    if (a.link) html += campAssetCard("link", "🔗 Presentation page", '<div style="margin-top:8px"><a href="' + esc(a.link.url) + '" target="_blank" rel="noopener">' + esc(a.link.url) + '</a></div>', a.link.status);
+    if (a.video) {
+      var v = a.video;
+      var note = v.narration === "on"
+        ? 'Narration ENABLED in cfg:media — rendering the narrated variant is allowed. Estimated cost ≈ ' + esc(v.estCredits) + ' ElevenLabs credits (Academy pool).'
+        : 'Narration OFF (cfg:media) — only the silent/text-overlay render is produced. Narration would cost ≈ ' + esc(v.estCredits) + ' ElevenLabs credits per video from the Academy pool (' + esc((media.estCreditsPerVideo || 450)) + ' configured cap).';
+      html += campAssetCard("video", "🎥 Tour video", '<div class="mut" style="margin-top:8px">File: ' + esc(v.path) + ' · ' + esc(note) + '</div>' + pre(v.script), v.status);
+    }
+    box.innerHTML = html;
+  }
+  function openCampaign(mls){
+    campState.mls = mls; campState.campaign = null; campState.media = null;
+    renderCampaign();
+    var box = $("campPanel"); if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
+    Promise.all([
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "/campaign").catch(function(){ return null; }),
+      api(API_URL, "/api/admin/media/status").catch(function(){ return null; })
+    ]).then(function (rs) {
+      if (campState.mls !== mls) return;
+      campState.campaign = rs[0] && rs[0].ok ? rs[0].campaign : null;
+      campState.media = rs[1] && rs[1].ok ? rs[1] : {};
+      renderCampaign();
+    });
+  }
+  $("campPanel").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-campact]"); if (!btn) return;
+    var act = btn.getAttribute("data-campact"), mls = campState.mls;
+    if (!mls) return;
+    if (act === "close") { campState.mls = null; $("campPanel").innerHTML = ""; return; }
+    if (act === "generate") {
+      var rec = lstFindRec(mls); if (!rec) return;
+      btn.disabled = true;
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "/campaign", { method: "POST", body: JSON.stringify({ assets: campBuildAssets(rec) }) }).then(function (d) {
+        if (d && d.ok) { campState.campaign = d.campaign; toast("Campaign pack saved as drafts ✓"); renderCampaign(); }
+        else toast("Could not save the campaign pack", true);
+      }).catch(function () { toast("Connection problem", true); }).finally(function () { btn.disabled = false; });
+      return;
+    }
+    if (act === "approve" || act === "reopen") {
+      var kind = btn.getAttribute("data-kind");
+      api(API_URL, "/api/admin/listings/" + encodeURIComponent(mls) + "/campaign/status", { method: "POST", body: JSON.stringify({ asset: kind, status: act === "approve" ? "approved" : "draft" }) }).then(function (d) {
+        if (d && d.ok) { campState.campaign = d.campaign; renderCampaign(); } else toast("Could not update the asset", true);
+      }).catch(function () { toast("Connection problem", true); });
+    }
+  });
   function lstFindRec(mls){
     if (!lstData) return null;
     var c = (lstData.listings || []).filter(function(r){ return r.mls === mls; })[0];
@@ -3940,6 +4056,7 @@
     if (!btn) return;
     var mls = btn.getAttribute("data-mls"), act = btn.getAttribute("data-lact");
     if (act === "edit") openListingEditor(lstFindRec(mls));
+    if (act === "campaign") openCampaign(mls);
     if (act === "del") {
       /* Pack PNA-Fix (Stage A U6/#5): deleting does NOT cancel the
          listing's upcoming viewings — name the count in the confirm
