@@ -2729,7 +2729,8 @@
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
           (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
           (c.leadId ? '<span class="chip">lead created</span>' : '') + '<button type="button" class="ghost small" data-tl-open="' + esc(String(other || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button></div>' +
-          (c.transcript ? '<div class="mut" style="padding:2px 10px 8px">📝 ' + esc(String(c.transcript).slice(0, 220)) + '</div>' : '');
+          (c.summaryOneLine ? '<div class="mut" style="padding:2px 10px 2px">📝 ' + esc(c.summaryOneLine) + '</div>' : '') +
+          ((c.hasTranscript || c.transcriptStatus || c.hasSummary) ? '<div style="padding:0 10px 8px"><button type="button" class="ghost small" data-call-expand="' + esc(c.id) + '" aria-expanded="false">▸ Summary &amp; transcript</button><div data-call-detail="' + esc(c.id) + '" hidden></div></div>' : '');
       }).join("") : '<div class="empty">No calls logged yet.</div>';
     }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
   }
@@ -2791,13 +2792,27 @@
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Twilio Account SID</span><input type="text" id="callCfgSid" autocomplete="off" spellcheck="false" placeholder="AC…"></label>' +
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Twilio Auth Token</span><input type="password" id="callCfgToken" autocomplete="off" spellcheck="false" placeholder="Paste the Auth Token"></label>' +
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Ingest secret</span><input type="password" id="callCfgSecret" autocomplete="off" spellcheck="false" placeholder="Any random word of your own"></label>' +
+      '<label style="display:flex;flex-direction:row;gap:6px;align-items:center;min-width:220px"><input type="checkbox" id="callCfgTranscribe"> <span class="mut">Transcribe recorded calls + AI summary</span></label>' +
       '<button type="submit" id="callCfgSave">' + (configured ? "Save / replace calls setup" : "Save calls setup") + "</button></form>" +
-      '<div class="hint">One save stores the whole setup and replaces any previous one. The SID and Auth Token travel only from this page to the worker inside your signed-in session — never through chat — and are never shown again. Leave the ingest secret blank to keep the generic ingest routes off.</div>';
+      '<div class="hint">One save stores the whole setup and replaces any previous one — including the Transcribe tick above: saving with it unticked turns call transcription off. The SID and Auth Token travel only from this page to the worker inside your signed-in session — never through chat — and are never shown again. Leave the ingest secret blank to keep the generic ingest routes off.</div>';
     if (configured) {
       h += '<div style="margin-top:10px"><button type="button" class="ghost small" id="callCfgClear">Clear / reset calls setup</button></div>' +
         '<div class="hint">Reset stores an EMPTY setup: every call/text route goes back to inert and the banner above flips to "not connected yet". The status line above reads the stored record, so it can still show as stored (empty) after a reset — the banner and the routes are the live truth.</div>';
     }
     box.innerHTML = h;
+    // Pack TelephonySmarter D1 fix (2026-11-13): initialise the
+    // Transcribe tick from the stored flag on EVERY card render.
+    // GET /api/admin/calls carries a lone 'transcribe' boolean
+    // (worker edit W7; the config itself is never returned).
+    // Without this the box always rendered unticked, so any
+    // routine card save posted transcribe:false and silently
+    // disabled transcription — CallsConfigPreserve cannot cure
+    // that: transcribe IS a posted field, and posted fields win
+    // under merge.
+    api(API_URL, "/api/admin/calls?limit=1").then(function(d){
+      var t = $("callCfgTranscribe");
+      if (t) t.checked = !!(d && d.transcribe === true);
+    }).catch(function(){});
     var f = $("callCfgForm");
     if (f) f.addEventListener("submit", function(e){
       e.preventDefault();
@@ -2810,6 +2825,7 @@
       if (!num || !fwd || !sid || !tok) { toast("Fill in the business number, forward-to number, Account SID and Auth Token first", true); return; }
       var btn = $("callCfgSave"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
       var value = { provider: prov, number: num, forwardTo: fwd, secret: sec, twilioAccountSid: sid, twilioAuthToken: tok };
+      value.transcribe = !!($("callCfgTranscribe") && $("callCfgTranscribe").checked); // Pack TelephonySmarter: the transcription opt-in rides the same whole-object save — saving with the box unticked turns transcription off (the hint below says so)
       api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "calls", value: value }) }).then(function(r){
         tok = ""; sec = "";
         if (r && r.ok) { toast("Calls setup saved ✓"); loadCallsConfig(); loadCalls(); return; }
@@ -2855,6 +2871,39 @@
         setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
       })
       .catch(function(){ if (rw) try { rw.close(); } catch(e){} toast("Could not load the recording", true); });
+  });
+  // Pack TelephonySmarter (2026-11-12): the collapsible Summary &
+  // transcript section — the owner's ruling is that the calls list
+  // stays compact (one summary line per call at most); the full
+  // summary + transcript are fetched from /api/admin/calls/:id/detail
+  // ONLY when the owner expands a call, and never sit in the list
+  // markup before that.
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest && e.target.closest("[data-call-expand]");
+    if (!btn) return;
+    var id = btn.getAttribute("data-call-expand");
+    var box = document.querySelector('[data-call-detail="' + id + '"]');
+    if (!box) return;
+    if (btn.getAttribute("aria-expanded") === "true") { btn.setAttribute("aria-expanded", "false"); btn.textContent = "▸ Summary & transcript"; box.hidden = true; return; }
+    btn.setAttribute("aria-expanded", "true"); btn.textContent = "▾ Summary & transcript"; box.hidden = false;
+    if (box.getAttribute("data-loaded") === "1") return;
+    box.innerHTML = '<div class="mut">Loading…</div>';
+    api(API_URL, "/api/admin/calls/" + encodeURIComponent(id) + "/detail").then(function(d){
+      if (!d || !d.ok || !d.call) { box.innerHTML = '<div class="mut">Could not load the transcript.</div>'; return; }
+      box.setAttribute("data-loaded", "1");
+      var c = d.call, h = "";
+      var sm = c.callSummary;
+      if (sm) {
+        if (sm.oneLine) h += '<div style="margin:4px 0"><b>' + esc(sm.oneLine) + '</b></div>';
+        h += [["Intent", sm.intent], ["Budget", sm.budget], ["Areas", sm.areas], ["Timeline", sm.timeline], ["Next step", sm.nextStep]].filter(function(r){ return !!r[1]; }).map(function(r){ return '<div class="kv"><span class="mut">' + r[0] + ':</span> ' + esc(r[1]) + '</div>'; }).join("");
+      }
+      if (c.transcript) h += '<div class="mut" style="margin-top:6px">Transcript</div><div style="white-space:pre-wrap;padding:2px 0 4px">' + esc(c.transcript) + '</div>';
+      else if (c.transcriptStatus === "pending") h += '<div class="mut">Transcription in progress — refresh in a moment.</div>';
+      else if (c.transcriptStatus === "unavailable") h += '<div class="mut">Transcription is not available for this call.</div>';
+      else if (c.transcriptStatus === "failed") h += '<div class="mut">Transcription failed' + (c.transcriptError ? ' (' + esc(c.transcriptError) + ')' : '') + '.</div>';
+      else h += '<div class="mut">No transcript for this call.</div>';
+      box.innerHTML = h || '<div class="mut">Nothing to show for this call.</div>';
+    }).catch(function(){ box.innerHTML = '<div class="mut">Could not load the transcript.</div>'; });
   });
   function fillCalls(c){
     var box = $("crmCalls"); if (!box) return;
