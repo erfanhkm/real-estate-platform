@@ -604,6 +604,7 @@
       <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">Messages</h1><div class="mut" id="smsCount"></div></div></div>
       <div id="smsThreads"></div>
       <div id="smsThread" style="margin-top:12px"></div>
+      <div id="callTimeline" style="margin-top:12px"></div>
       <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">WhatsApp</h1><div class="mut" id="waCount"></div></div></div>
       <div id="waThreads"></div>
       <div id="waThread" style="margin-top:12px"></div>
@@ -2182,7 +2183,7 @@
           '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' +
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
           (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
-          (c.leadId ? '<span class="chip">lead created</span>' : '') + '</div>' +
+          (c.leadId ? '<span class="chip">lead created</span>' : '') + '<button type="button" class="ghost small" data-tl-open="' + esc(String(other || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button></div>' +
           (c.transcript ? '<div class="mut" style="padding:2px 10px 8px">📝 ' + esc(String(c.transcript).slice(0, 220)) + '</div>' : '');
       }).join("") : '<div class="empty">No calls logged yet.</div>';
     }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
@@ -2298,6 +2299,57 @@
       }).join("");
     }).catch(function(){});
   }
+  // Pack TelephonyPreciser (2026-11-12): the unified per-person
+  // timeline — calls + texts (+ WhatsApp when that store lands)
+  // merged server-side by GET /api/admin/timeline into ONE
+  // chronological, channel-tagged list. Rendered in the CRM
+  // person panel (#crmTimeline, filled with the profile) and in
+  // the Calls workspace (#callTimeline, opened from any call row
+  // or SMS thread via [data-tl-open]).
+  function tlIcon(e){ return e.channel === "call" ? "📞" : e.channel === "whatsapp" ? "🟢" : "💬"; }
+  function tlRow(e){
+    var head = tlIcon(e) + " " + (e.direction === "in" ? "📥" : "📤") + " " + esc(fmtDate(e.at));
+    var detail = "";
+    if (e.channel === "call") {
+      detail = " · " + fmtDur(e.durationSec) + " · " + esc(e.status || "") +
+        (e.recording ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(e.id) + '">▶ Recording</button>' : "") +
+        (e.listing ? " · Re: " + esc(e.listing) : "");
+    } else {
+      detail = " — " + esc(String(e.body || "").slice(0, 220)) + (e.media ? " · 📎 " + e.media : "");
+    }
+    return '<div class="kv">' + head + detail + (e.enrichLine ? '<div class="mut">' + esc(e.enrichLine) + "</div>" : "") + "</div>";
+  }
+  function fillTimeline(c){
+    var box = $("crmTimeline"); if (!box) return;
+    var last = String(c.phone || "").replace(/\D/g, "").slice(-10);
+    var q = last.length === 10 ? "phone=" + encodeURIComponent(last) : "email=" + encodeURIComponent(c.email || "");
+    api(API_URL, "/api/admin/timeline?" + q + "&limit=300").then(function(d){
+      if (!crmOpen || crmOpen !== c.email) return;
+      var box2 = $("crmTimeline"); if (!box2 || !d || !d.ok) return;
+      if (!d.events || !d.events.length) { box2.innerHTML = ""; return; }
+      box2.innerHTML = '<div class="mut" style="margin-bottom:2px">🕘 Timeline — every call &amp; text, one list</div>' + d.events.map(tlRow).join("");
+    }).catch(function(){});
+  }
+  function openTimeline(phone){
+    var box = $("callTimeline"); if (!box) return;
+    var last = String(phone || "").replace(/\D/g, "").slice(-10);
+    if (last.length !== 10) { box.innerHTML = ""; return; }
+    box.innerHTML = '<div class="card"><div class="empty">Loading timeline…</div></div>';
+    api(API_URL, "/api/admin/timeline?phone=" + encodeURIComponent(last) + "&limit=300").then(function(d){
+      var box2 = $("callTimeline"); if (!box2) return;
+      if (!d || !d.ok) { box2.innerHTML = '<div class="card"><div class="empty">Could not load the timeline.</div></div>'; return; }
+      var who = d.matchedName || last;
+      box2.innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">🕘 Timeline — ' + esc(who) + ' <span class="mut">' + esc(last) + '</span> <button type="button" class="ghost small" data-tl-close="1" style="float:right">✕ Close</button></div>' +
+        ((d.events && d.events.length) ? d.events.map(tlRow).join("") : '<div class="empty">No calls or texts with this number yet.</div>') + "</div>";
+      box2.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }).catch(function(){ var b3 = $("callTimeline"); if (b3) b3.innerHTML = '<div class="card"><div class="empty">Could not load the timeline.</div></div>'; });
+  }
+  document.addEventListener("click", function(e){
+    var cl = e.target.closest && e.target.closest("[data-tl-close]");
+    if (cl) { var b = $("callTimeline"); if (b) b.innerHTML = ""; return; }
+    var t = e.target.closest && e.target.closest("[data-tl-open]");
+    if (t) openTimeline(t.getAttribute("data-tl-open"));
+  });
   var smsOpenPhone = null, smsCache = [];
   function smsOther(m){ return m.direction === "in" ? m.from : m.to; }
   function renderSmsThreads(){
@@ -2333,7 +2385,7 @@
         var out = m.direction === "out";
         return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
       }).join("") + '</div>' +
-      '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="smsReplyText" rows="2" placeholder="Reply as the business number…" style="flex:1"></textarea><button type="button" class="btn-spruce" data-sms-send="' + esc(phone) + '">Send</button></div></div>';
+      '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="smsReplyText" rows="2" placeholder="Reply as the business number…" style="flex:1"></textarea><button type="button" class="ghost small" data-tl-open="' + esc(String(phone || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button><button type="button" class="btn-spruce" data-sms-send="' + esc(phone) + '">Send</button></div></div>';
     if (prevReply) { var nr = $("smsReplyText"); if (nr) nr.value = prevReply; }
     var hasUnread = msgs.some(function(m){ return m.direction === "in" && !m.read; });
     if (hasUnread) {
@@ -3097,7 +3149,7 @@
       if (c) {
         var keep = {};
         ["crmCommSubject", "crmCommText", "crmExtractText", "crmTags", "crmNoteText"].forEach(function(id){ var el = $(id); if (el) keep[id] = el.value; });
-        $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c);
+        $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c); fillTimeline(c);
         Object.keys(keep).forEach(function(id){ var el = $(id); if (el && keep[id]) el.value = keep[id]; });
         return;
       }
@@ -3192,6 +3244,7 @@
       (homes ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">❤️ Saved homes</div>' + homes + '</div>' : "") +
       '<div id="crmRadarOpp" style="margin-top:12px"></div>' +
       '<div id="crmCalls" style="margin-top:12px"></div>' +
+      '<div id="crmTimeline" style="margin-top:12px"></div>' +
       '<div id="crmSms" style="margin-top:12px"></div>' +
       (searches ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">🔎 Saved searches</div>' + searches + '</div>' : "") +
       (vws ? '<div style="margin-top:12px"><div class="mut" style="margin-bottom:2px">📅 Viewings</div>' + vws + '</div>' : "") +
