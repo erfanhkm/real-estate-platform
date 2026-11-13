@@ -27,8 +27,8 @@
    no longer hand-bumped — the stamper DERIVES it from the staged
    cached set's content hashes and writes it into the staged copy of
    this file. The literal below is only the pre-stamp placeholder. */
-var PU_CACHE = 'portal-v18'; // bumped 2026-11-12 (PortalAddLead): the Leads page gains the manual Add lead card (form + duplicate-profile offer) wired to POST /api/admin/leads // bumped 2026-11-12 (B2Probe): the B2 card gains a Test read button wired to GET /api/admin/academy/b2-status?probe=1 — one real signed read with the stored key, its verdict (upstream status + S3 error code/message) rendered inline in the card // bumped 2026-11-12 (B2ClearInlineConfirm): the B2 Replace button uses an inline two-step arm instead of a native confirm() dialog (the automated browser auto-dismisses native dialogs, which silently blocked the clear) // bumped 2026-11-12 (ModelSwap+B2Clear): Academy Tutor card provisions the live provider models (Groq openai/gpt-oss-120b, Gemini gemini-3.5-flash — the retired llama-3.3-70b-versatile / gemini-2.0-flash are gone) and the B2 card gains a Replace stored key button wired to POST /api/admin/academy/b2-clear // bumped 2026-11-12 (InviteLinkShow): the Academy Copy-invite-link action also renders the invite link in an on-page box (acInviteLinkBox) so the link is visible/copyable without clipboard access // bumped 2026-11-12 (Pack AcademyStampFull + AcademyStudentsListFix deploy): portal document gains the student Name field (add-student form + list) for name-aware booklet watermarking; v12 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack AcademyFixC): Academy tab — debounced list-only search with a sequence guard, full-coverage Expiring filter (14-day window aligned with the overview count), worker-aligned extend base, resend-invite wired to mail status; v10 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack PNA-Fix): session-verified boot, Spanish client documents, listing viewings warnings; v9 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack Tutor2): ship the Academy-tab Tutor card portal document fresh on first open; v8 retired on activate by the portal-* sweep below // bumped 2026-11-11 (B2KeyId, B2 pack §15): ship the B2-card keyId-field portal document fresh on first open; v7 retired on activate by the portal-* sweep below // bumped 2026-11-10 (PortalDeepScan): ship the §5-D push-retry-cap portal document fresh on first open; v6 retired on activate by the portal-* sweep below // bumped 2026-11-10 (Pack StripeReplace, Stripe pack §20): purge the portal-v5 shell cache — it can still hold the pre-flip portal document (Academy tab pointed at the site worker, whose poisoned cfg:stripe record hid the Stripe paste form behind Configured ticks); v6 starts empty, so the first open network-fetches the current document. Earlier: v5 purged the pre-Stripe portal-v4 shell (Pack StripePage SW fix — Pack Speed F2 stale-while-revalidate kept serving it after the StripePage deploy)
-var SITE_CACHE = 'site-0c37f918f358'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
+var PU_CACHE = 'portal-v19'; // bumped 2026-11-12 (Pack CallTagOutcome): the push handler forwards the pop's outcome actions (clamped to Notification.maxActions) and action clicks POST {subId, callId, outcome} to /api/calls/outcome; the two handler edits were spliced onto the LIVE SW per APPLY.md (never the v15 candidate file) // bumped 2026-11-12 (PortalAddLead): the Leads page gains the manual Add lead card (form + duplicate-profile offer) wired to POST /api/admin/leads // bumped 2026-11-12 (B2Probe): the B2 card gains a Test read button wired to GET /api/admin/academy/b2-status?probe=1 — one real signed read with the stored key, its verdict (upstream status + S3 error code/message) rendered inline in the card // bumped 2026-11-12 (B2ClearInlineConfirm): the B2 Replace button uses an inline two-step arm instead of a native confirm() dialog (the automated browser auto-dismisses native dialogs, which silently blocked the clear) // bumped 2026-11-12 (ModelSwap+B2Clear): Academy Tutor card provisions the live provider models (Groq openai/gpt-oss-120b, Gemini gemini-3.5-flash — the retired llama-3.3-70b-versatile / gemini-2.0-flash are gone) and the B2 card gains a Replace stored key button wired to POST /api/admin/academy/b2-clear // bumped 2026-11-12 (InviteLinkShow): the Academy Copy-invite-link action also renders the invite link in an on-page box (acInviteLinkBox) so the link is visible/copyable without clipboard access // bumped 2026-11-12 (Pack AcademyStampFull + AcademyStudentsListFix deploy): portal document gains the student Name field (add-student form + list) for name-aware booklet watermarking; v12 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack AcademyFixC): Academy tab — debounced list-only search with a sequence guard, full-coverage Expiring filter (14-day window aligned with the overview count), worker-aligned extend base, resend-invite wired to mail status; v10 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack PNA-Fix): session-verified boot, Spanish client documents, listing viewings warnings; v9 retired on activate by the portal-* sweep below // bumped 2026-11-11 (Pack Tutor2): ship the Academy-tab Tutor card portal document fresh on first open; v8 retired on activate by the portal-* sweep below // bumped 2026-11-11 (B2KeyId, B2 pack §15): ship the B2-card keyId-field portal document fresh on first open; v7 retired on activate by the portal-* sweep below // bumped 2026-11-10 (PortalDeepScan): ship the §5-D push-retry-cap portal document fresh on first open; v6 retired on activate by the portal-* sweep below // bumped 2026-11-10 (Pack StripeReplace, Stripe pack §20): purge the portal-v5 shell cache — it can still hold the pre-flip portal document (Academy tab pointed at the site worker, whose poisoned cfg:stripe record hid the Stripe paste form behind Configured ticks); v6 starts empty, so the first open network-fetches the current document. Earlier: v5 purged the pre-Stripe portal-v4 shell (Pack StripePage SW fix — Pack Speed F2 stale-while-revalidate kept serving it after the StripePage deploy)
+var SITE_CACHE = 'site-669939eace1f'; // PRE-STAMP PLACEHOLDER (Pack PL2e): stamp-assets.mjs replaces this value in the staged deploy copy with the content-derived cache name ('site-' + set hash); the manual bump discipline is retired. History of the hand-bumped values: v8: Pack PL2d — I18N9b merge-loop fix changed bundle-shared.js bytes. v7: Pack PL — hb_call overlay changed bundle-shared.js bytes; first bump under the verify-tree --check-sw rule. v6: Pack APP2 static-put waitUntil
 var PORTAL_PATH = '/portal-9f3k7x2q.html';
 
 self.addEventListener('install', function (e) { self.skipWaiting(); });
@@ -169,17 +169,56 @@ self.addEventListener('fetch', function (e) {
 self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) {}
-  e.waitUntil(self.registration.showNotification(d.title || 'Site Admin', {
+  var opts = {
     body: d.body || '',
     icon: '/portal-icon-192.39a8f34b.png',
     badge: '/portal-icon-192.39a8f34b.png',
-    data: { url: d.url || PORTAL_PATH }
-  }));
+    data: { url: d.url || PORTAL_PATH, callId: (d.data && d.data.callId) || '' }
+  };
+  // Pack CallTagOutcome ADD-2 (2026-11-12): forward the
+  // payload's one-tap outcome actions where the platform
+  // supports them. Chrome caps the VISIBLE actions at
+  // Notification.maxActions (2 on desktop today); the payload
+  // carries all three and the UA shows the first maxActions.
+  // iOS web push exposes NO actions at all — the plain pop and
+  // its portal deep link are the iPhone path.
+  try {
+    if (Array.isArray(d.actions) && d.actions.length) {
+      var maxA = 2;
+      try { if (self.Notification && Notification.maxActions > 0) maxA = Notification.maxActions; } catch (err) {}
+      var acts = d.actions.slice(0, maxA).map(function (a) { return { action: String((a && a.action) || ''), title: String((a && (a.title || a.action)) || '') }; }).filter(function (a) { return !!a.action; });
+      if (acts.length) opts.actions = acts;
+    }
+  } catch (err) {}
+  e.waitUntil(self.registration.showNotification(d.title || 'Site Admin', opts));
 });
 
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
-  var target = (e.notification.data && e.notification.data.url) || PORTAL_PATH;
+  var data = e.notification.data || {};
+  var target = data.url || PORTAL_PATH;
+  // Pack CallTagOutcome ADD-2 (2026-11-12): an outcome ACTION
+  // click files the outcome with the worker and does NOT open
+  // the portal. The POST is authenticated by this device's own
+  // push-subscription identity — subId = sha256(endpoint)[..24],
+  // the same derivation the worker's subscribe route mints —
+  // and the worker fails closed on anything else.
+  if (e.action && data.callId) {
+    e.waitUntil((async function () {
+      try {
+        var sub = await self.registration.pushManager.getSubscription();
+        if (!sub || !sub.endpoint) return;
+        var digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sub.endpoint));
+        var subId = Array.from(new Uint8Array(digest)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('').slice(0, 24);
+        await fetch('https://advisor-api.erfanbillion.workers.dev/api/calls/outcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subId: subId, callId: data.callId, outcome: e.action })
+        });
+      } catch (err) {}
+    })());
+    return;
+  }
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) {
       if (list[i].url.indexOf('portal-') !== -1) { list[i].focus(); if ('navigate' in list[i]) list[i].navigate(target); return; }
