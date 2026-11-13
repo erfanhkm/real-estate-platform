@@ -599,7 +599,7 @@
           </div>
           <div class="panel" style="margin-top:24px">
             <h3 style="font-size:21px" data-i18n="hv_title">خانه‌ام چقدر می‌ارزد؟</h3>
-            <p class="note" style="margin-top:6px" data-i18n="hv_sub">یک بازه‌ی تخمینی رایگان و فوری برای خانه‌تان، که فقط از روی خانه‌های مشابهی که همین حالا در این سایت فهرست شده‌اند محاسبه می‌شود — همان داده‌ای که جستجوی سایت از آن استفاده می‌کند. این فقط یک نقطه‌ی شروع است، نه ارزیابی رسمی. عرفان در ادامه یک ارزیابی کامل و شخصی برایتان آماده می‌کند.</p>
+            <p class="note" style="margin-top:6px" data-i18n="hv_sub">یک بازه‌ی رایگان و فوری از قیمت درخواستی خانه‌تان، که فقط از روی خانه‌های مشابهی که همین حالا در این سایت فهرست شده‌اند محاسبه می‌شود — همان داده‌ای که جستجوی سایت از آن استفاده می‌کند. این فقط یک نقطه‌ی شروع است، نه ارزیابی رسمی. عرفان شخصاً با شما پیگیری می‌کند.</p>
             <form id="hvForm" style="margin-top:16px">
               <div class="calc-inputs">
                 <div class="field wide"><label for="hvAddress" data-i18n="hv_address">نشانی خیابان</label><input id="hvAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
@@ -615,7 +615,7 @@
               </div>
               <input type="text" id="hvHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="hvBtn" data-i18n="hv_btn">دریافت تخمین</button></div>
-              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">اطلاعات شما فقط برای آماده‌کردن ارزیابی و تماس با شما در همان مورد استفاده می‌شود.</span> <a href="#footer" data-i18n="hv_privacy_link">اطلاعات تماس و سایت</a></p>
+              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">حریم خصوصی: آنچه اینجا وارد می‌کنید این‌گونه مدیریت می‌شود. (۱) ارزیابی خانه: نام، نشانی ملک، شهر، تلفن، ایمیل و جزئیات ملکی که می‌دهید (نوع، تعداد اتاق‌خواب و حمام، متراژ) در پایگاه داده‌ی سرنخ‌های این سایت ذخیره می‌شود تا عرفان بازه‌ی قیمت درخواستی‌تان را آماده کند و درباره‌اش با شما تماس بگیرد. این اطلاعات تا وقتی نگه داشته می‌شود که خودتان حذفشان را بخواهید یا عرفان حذفشان کند، و هرگز فروخته نمی‌شود. برای حذف، همان ایمیل و نشانی ملکی را که ثبت کرده‌اید از طریق فرم حذف پایین همین صفحه بفرستید (یا مستقیم از عرفان بخواهید) — حذف دائمی است. (۲) گزارش ملک: کد پستی و نشانی‌ای که وارد می‌کنید به سرور این سایت فرستاده می‌شود و سرور آن‌ها را برای ساختن گزارش به سرویس‌های داده‌ی عمومی (OpenStreetMap و داده‌های باز شهر ونکوور) می‌دهد. متنی که تایپ می‌کنید نگه داشته نمی‌شود؛ موقعیت نقشه‌ای که برایش پیدا می‌شود، با یک کلید رمزی به‌جای خود نشانی، تا ۳۰ روز نگه داشته می‌شود تا جستجوهای تکراری سریع‌تر شوند.</span> <a href="#footer" data-i18n="hv_privacy_link">اطلاعات تماس و سایت</a></p>
             </form>
             <div id="hvOut" role="status" aria-live="polite" style="margin-top:16px"></div>
           </div>
@@ -629,9 +629,23 @@
                 <div class="field wide"><label for="prAddress"><span data-i18n="hv_address">نشانی خیابان</span> <span class="note" data-i18n="pr_optional">(اختیاری — سابقه‌ی ملک را اضافه می‌کند)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
               </div>
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">گزارشم را بساز</button></div>
-              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">حریم خصوصی: کد پستی و نشانی‌ای که وارد می‌کنید برای ساختن این گزارش به خدمات داده‌ی عمومی (OpenStreetMap و داده‌های باز شهر ونکوور) فرستاده می‌شود.</p>
+              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">حریم خصوصی: آنچه اینجا وارد می‌کنید این‌گونه مدیریت می‌شود. (۱) ارزیابی خانه: نام، نشانی ملک، شهر، تلفن، ایمیل و جزئیات ملکی که می‌دهید (نوع، تعداد اتاق‌خواب و حمام، متراژ) در پایگاه داده‌ی سرنخ‌های این سایت ذخیره می‌شود تا عرفان بازه‌ی قیمت درخواستی‌تان را آماده کند و درباره‌اش با شما تماس بگیرد. این اطلاعات تا وقتی نگه داشته می‌شود که خودتان حذفشان را بخواهید یا عرفان حذفشان کند، و هرگز فروخته نمی‌شود. برای حذف، همان ایمیل و نشانی ملکی را که ثبت کرده‌اید از طریق فرم حذف پایین همین صفحه بفرستید (یا مستقیم از عرفان بخواهید) — حذف دائمی است. (۲) گزارش ملک: کد پستی و نشانی‌ای که وارد می‌کنید به سرور این سایت فرستاده می‌شود و سرور آن‌ها را برای ساختن گزارش به سرویس‌های داده‌ی عمومی (OpenStreetMap و داده‌های باز شهر ونکوور) می‌دهد. متنی که تایپ می‌کنید نگه داشته نمی‌شود؛ موقعیت نقشه‌ای که برایش پیدا می‌شود، با یک کلید رمزی به‌جای خود نشانی، تا ۳۰ روز نگه داشته می‌شود تا جستجوهای تکراری سریع‌تر شوند.</p>
             </form>
             <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
+          </div>
+          <div class="panel" style="margin-top:24px" id="hv-delete">
+            <h3 style="font-size:21px">حذف داده‌های ارزیابی شما</h3>
+            <p class="note" style="margin-top:6px">در این صفحه درخواست ارزیابی خانه داده‌اید؟ می‌توانید همه‌ی آنچه از آن درخواست ذخیره شده است حذف کنید. همان ایمیل و نشانی ملکی را که ثبت کرده‌اید وارد کنید.</p>
+            <form id="hvDelForm" style="margin-top:16px">
+              <div class="calc-inputs">
+                <div class="field"><label for="hvDelEmail">ایمیل</label><input id="hvDelEmail" type="email" autocomplete="email" /></div>
+                <div class="field wide"><label for="hvDelAddress">نشانی ملک</label><input id="hvDelAddress" type="text" autocomplete="street-address" /></div>
+              </div>
+              <input type="text" id="hvDelHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <div style="margin-top:16px"><button class="btn btn-line" type="submit" id="hvDelBtn">حذف داده‌های من</button></div>
+              <p class="note" id="hvDelOut" role="status" aria-live="polite" style="margin-top:10px" hidden>انجام شد. اگر درخواست ارزیابی‌ای با آن ایمیل و نشانی مطابقت داشته باشد، اکنون حذف شده است. این پیام در هر دو حالت یکسان است تا از این فرم نشود فهمید نشانی‌ای در پرونده هست یا نه.</p>
+              <p class="note" id="hvDelErr" role="alert" style="margin-top:10px;color:#c0392b" hidden>ارسال نشد — لطفاً اتصالتان را بررسی کنید و دوباره تلاش کنید.</p>
+            </form>
           </div>
         </div>
       </section>
@@ -693,7 +707,7 @@
 
     <script>try{localStorage.setItem("erfan-re-lang","fa")}catch(e){}</script>
     <script>window.PAGE_OF = {"listings":"fa-listings.html","calculator":"fa-mortgage-calculator.html","buyvsrent":"fa-buy-vs-rent.html","afford":"fa-affordability.html","invest":"fa-investor-analysis.html","match":"fa-ai-assistant.html#match","assistant":"fa-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"fa-market-pulse.html","guide":"fa-first-time-buyers.html","fhsa":"fa-first-time-buyers.html#fhsa","knowledge":"fa-knowledge-centre.html","newsletter":"fa-index.html#newsletter","contact":"fa-contact.html"};</script>
-    <script src="bundle-shared.2acf2969.js"></script>
-    <script src="bundle-page-seller-tools.57fce5b6.js"></script>
+    <script src="bundle-shared.7ae2d34e.js"></script>
+    <script src="bundle-page-seller-tools.4214fedb.js"></script>
   </body>
 </html>

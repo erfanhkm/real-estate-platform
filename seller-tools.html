@@ -599,7 +599,7 @@
           </div>
           <div class="panel" style="margin-top:24px">
             <h3 style="font-size:21px" data-i18n="hv_title">What is my home worth?</h3>
-            <p class="note" style="margin-top:6px" data-i18n="hv_sub">A free instant estimate range for your home, calculated only from comparable homes currently listed on this site — the same data our search uses. It is a starting point, not an appraisal. Erfan will follow up with a full, personal assessment.</p>
+            <p class="note" style="margin-top:6px" data-i18n="hv_sub">A free instant asking-price range for your home, calculated only from comparable homes currently listed on this site — the same data our search uses. It is a starting point, not an appraisal. Erfan will follow up with you personally.</p>
             <form id="hvForm" style="margin-top:16px">
               <div class="calc-inputs">
                 <div class="field wide"><label for="hvAddress" data-i18n="hv_address">Street address</label><input id="hvAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
@@ -615,7 +615,7 @@
               </div>
               <input type="text" id="hvHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="hvBtn" data-i18n="hv_btn">Get my estimate</button></div>
-              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">Your details are used only to prepare your assessment and to contact you about it.</span> <a href="#footer" data-i18n="hv_privacy_link">Contact &amp; site information</a></p>
+              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">Privacy: what you enter here is handled as follows. (1) Home valuation: your name, property address, city, phone, email and the property details you give (type, bedrooms, bathrooms, floor area) are stored in this site's lead database so Erfan can prepare your asking-price range and contact you about it. They are kept until you ask for their deletion or Erfan removes them, and they are never sold. To delete them, send the same email and property address you submitted through the deletion form at the bottom of this page (or ask Erfan directly) — deletion is permanent. (2) Property report: the postal code and address you enter are sent to this site's server, which passes them to public data services (OpenStreetMap and the City of Vancouver open data) to build the report. The text you type is not kept; the map location found for it is cached, under a coded key rather than the address itself, for up to 30 days so repeat lookups are faster.</span> <a href="#footer" data-i18n="hv_privacy_link">Contact &amp; site information</a></p>
             </form>
             <div id="hvOut" role="status" aria-live="polite" style="margin-top:16px"></div>
           </div>
@@ -629,9 +629,23 @@
                 <div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Street address</span> <span class="note" data-i18n="pr_optional">(optional — adds the property record)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
               </div>
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">Build my report</button></div>
-              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacy: the postal code and address you enter are sent to public data services (OpenStreetMap and the City of Vancouver open data) to build this report.</p>
+              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacy: what you enter here is handled as follows. (1) Home valuation: your name, property address, city, phone, email and the property details you give (type, bedrooms, bathrooms, floor area) are stored in this site's lead database so Erfan can prepare your asking-price range and contact you about it. They are kept until you ask for their deletion or Erfan removes them, and they are never sold. To delete them, send the same email and property address you submitted through the deletion form at the bottom of this page (or ask Erfan directly) — deletion is permanent. (2) Property report: the postal code and address you enter are sent to this site's server, which passes them to public data services (OpenStreetMap and the City of Vancouver open data) to build the report. The text you type is not kept; the map location found for it is cached, under a coded key rather than the address itself, for up to 30 days so repeat lookups are faster.</p>
             </form>
             <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
+          </div>
+          <div class="panel" style="margin-top:24px" id="hv-delete">
+            <h3 style="font-size:21px">Delete your valuation data</h3>
+            <p class="note" style="margin-top:6px">Asked for a home valuation on this page? You can delete everything stored from that request. Enter the same email and property address you submitted.</p>
+            <form id="hvDelForm" style="margin-top:16px">
+              <div class="calc-inputs">
+                <div class="field"><label for="hvDelEmail">Email</label><input id="hvDelEmail" type="email" autocomplete="email" /></div>
+                <div class="field wide"><label for="hvDelAddress">Property address</label><input id="hvDelAddress" type="text" autocomplete="street-address" /></div>
+              </div>
+              <input type="text" id="hvDelHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <div style="margin-top:16px"><button class="btn btn-line" type="submit" id="hvDelBtn">Delete my data</button></div>
+              <p class="note" id="hvDelOut" role="status" aria-live="polite" style="margin-top:10px" hidden>Done. If a valuation request matched that email and address, it has now been deleted. This message is the same either way, so the form can't be used to check whether an address is on file.</p>
+              <p class="note" id="hvDelErr" role="alert" style="margin-top:10px;color:#c0392b" hidden>That didn't go through — please check your connection and try again.</p>
+            </form>
           </div>
         </div>
       </section>
@@ -692,7 +706,7 @@
     </div>
 
     <script>window.PAGE_OF = {"listings":"listings.html","calculator":"mortgage-calculator.html","buyvsrent":"buy-vs-rent.html","afford":"affordability.html","invest":"investor-analysis.html","match":"ai-assistant.html#match","assistant":"ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"market-pulse.html","guide":"first-time-buyers.html","fhsa":"first-time-buyers.html#fhsa","knowledge":"knowledge-centre.html","newsletter":"index.html#newsletter","contact":"contact.html"};</script>
-    <script src="bundle-shared.2acf2969.js"></script>
-    <script src="bundle-page-seller-tools.57fce5b6.js"></script>
+    <script src="bundle-shared.7ae2d34e.js"></script>
+    <script src="bundle-page-seller-tools.4214fedb.js"></script>
   </body>
 </html>

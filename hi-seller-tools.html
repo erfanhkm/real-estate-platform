@@ -599,7 +599,7 @@
           </div>
           <div class="panel" style="margin-top:24px">
             <h3 style="font-size:21px" data-i18n="hv_title">मेरे घर की कीमत क्या है?</h3>
-            <p class="note" style="margin-top:6px" data-i18n="hv_sub">आपके घर के लिए एक मुफ़्त, तुरंत अनुमानित मूल्य-सीमा, जो केवल उन तुलनीय घरों से निकाली जाती है जो अभी इस साइट पर सूचीबद्ध हैं — वही डेटा जो हमारी खोज उपयोग करती है। यह केवल एक शुरुआत है, मूल्यांकन नहीं। एरफ़ान बाद में पूरा व्यक्तिगत आकलन देंगे।</p>
+            <p class="note" style="margin-top:6px" data-i18n="hv_sub">आपके घर के लिए एक मुफ़्त, तुरंत मांगी जाने वाली कीमत-सीमा, जो केवल उन तुलनीय घरों से निकाली जाती है जो अभी इस साइट पर सूचीबद्ध हैं — वही डेटा जो हमारी खोज उपयोग करती है। यह केवल एक शुरुआत है, मूल्यांकन नहीं। एरफ़ान व्यक्तिगत रूप से आपसे संपर्क करेंगे।</p>
             <form id="hvForm" style="margin-top:16px">
               <div class="calc-inputs">
                 <div class="field wide"><label for="hvAddress" data-i18n="hv_address">गली का पता</label><input id="hvAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
@@ -615,7 +615,7 @@
               </div>
               <input type="text" id="hvHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="hvBtn" data-i18n="hv_btn">मेरा अनुमान पाएँ</button></div>
-              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">आपकी जानकारी केवल आपका आकलन तैयार करने और उसी बारे में आपसे संपर्क करने के लिए उपयोग होती है।</span> <a href="#footer" data-i18n="hv_privacy_link">संपर्क और साइट जानकारी</a></p>
+              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">गोपनीयता: आप यहाँ जो दर्ज करते हैं, उसका प्रबंधन इस प्रकार होता है। (1) गृह मूल्यांकन: आपका नाम, संपत्ति का पता, शहर, फ़ोन, ईमेल और आपके द्वारा दिए गए संपत्ति विवरण (प्रकार, बेडरूम, बाथरूम, क्षेत्रफल) इस साइट के लीड डेटाबेस में सहेजे जाते हैं ताकि एरफ़ान आपकी मांगी जाने वाली कीमत की सीमा तैयार कर सकें और उसी बारे में आपसे संपर्क कर सकें। इन्हें तब तक रखा जाता है जब तक आप इन्हें हटाने के लिए न कहें या एरफ़ान इन्हें हटा न दें, और इन्हें कभी बेचा नहीं जाता। इन्हें हटाने के लिए, वही ईमेल और संपत्ति का पता जो आपने जमा किया था, इस पृष्ठ के नीचे दिए गए हटाने वाले फ़ॉर्म के माध्यम से भेजें (या सीधे एरफ़ान से कहें) — हटाना स्थायी है। (2) संपत्ति रिपोर्ट: आप जो डाक कोड और पता दर्ज करते हैं, वे इस साइट के सर्वर को भेजे जाते हैं, जो रिपोर्ट बनाने के लिए उन्हें सार्वजनिक डेटा सेवाओं (OpenStreetMap और सिटी ऑफ़ वैंकूवर ओपन डेटा) को देता है। आप जो पाठ लिखते हैं वह रखा नहीं जाता; उसके लिए मिला मानचित्र स्थान, पते के बजाय एक कोडित कुंजी के तहत, 30 दिनों तक कैश किया जाता है ताकि दोबारा खोज तेज़ हो।</span> <a href="#footer" data-i18n="hv_privacy_link">संपर्क और साइट जानकारी</a></p>
             </form>
             <div id="hvOut" role="status" aria-live="polite" style="margin-top:16px"></div>
           </div>
@@ -629,9 +629,23 @@
                 <div class="field wide"><label for="prAddress"><span data-i18n="hv_address">गली का पता</span> <span class="note" data-i18n="pr_optional">(वैकल्पिक — संपत्ति रिकॉर्ड जोड़ता है)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
               </div>
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">मेरी रिपोर्ट बनाएँ</button></div>
-              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">गोपनीयता: आपके द्वारा दर्ज किया गया डाक कोड और पता यह रिपोर्ट बनाने के लिए सार्वजनिक डेटा सेवाओं (OpenStreetMap और वैंकूवर शहर के खुले डेटा) को भेजा जाता है।</p>
+              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">गोपनीयता: आप यहाँ जो दर्ज करते हैं, उसका प्रबंधन इस प्रकार होता है। (1) गृह मूल्यांकन: आपका नाम, संपत्ति का पता, शहर, फ़ोन, ईमेल और आपके द्वारा दिए गए संपत्ति विवरण (प्रकार, बेडरूम, बाथरूम, क्षेत्रफल) इस साइट के लीड डेटाबेस में सहेजे जाते हैं ताकि एरफ़ान आपकी मांगी जाने वाली कीमत की सीमा तैयार कर सकें और उसी बारे में आपसे संपर्क कर सकें। इन्हें तब तक रखा जाता है जब तक आप इन्हें हटाने के लिए न कहें या एरफ़ान इन्हें हटा न दें, और इन्हें कभी बेचा नहीं जाता। इन्हें हटाने के लिए, वही ईमेल और संपत्ति का पता जो आपने जमा किया था, इस पृष्ठ के नीचे दिए गए हटाने वाले फ़ॉर्म के माध्यम से भेजें (या सीधे एरफ़ान से कहें) — हटाना स्थायी है। (2) संपत्ति रिपोर्ट: आप जो डाक कोड और पता दर्ज करते हैं, वे इस साइट के सर्वर को भेजे जाते हैं, जो रिपोर्ट बनाने के लिए उन्हें सार्वजनिक डेटा सेवाओं (OpenStreetMap और सिटी ऑफ़ वैंकूवर ओपन डेटा) को देता है। आप जो पाठ लिखते हैं वह रखा नहीं जाता; उसके लिए मिला मानचित्र स्थान, पते के बजाय एक कोडित कुंजी के तहत, 30 दिनों तक कैश किया जाता है ताकि दोबारा खोज तेज़ हो।</p>
             </form>
             <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
+          </div>
+          <div class="panel" style="margin-top:24px" id="hv-delete">
+            <h3 style="font-size:21px">अपना मूल्यांकन डेटा हटाएँ</h3>
+            <p class="note" style="margin-top:6px">इस पृष्ठ पर घर का मूल्यांकन मांगा था? आप उस अनुरोध से सहेजा गया सब कुछ हटा सकते हैं। वही ईमेल और संपत्ति का पता दर्ज करें जो आपने जमा किया था।</p>
+            <form id="hvDelForm" style="margin-top:16px">
+              <div class="calc-inputs">
+                <div class="field"><label for="hvDelEmail">ईमेल</label><input id="hvDelEmail" type="email" autocomplete="email" /></div>
+                <div class="field wide"><label for="hvDelAddress">संपत्ति का पता</label><input id="hvDelAddress" type="text" autocomplete="street-address" /></div>
+              </div>
+              <input type="text" id="hvDelHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <div style="margin-top:16px"><button class="btn btn-line" type="submit" id="hvDelBtn">मेरा डेटा हटाएँ</button></div>
+              <p class="note" id="hvDelOut" role="status" aria-live="polite" style="margin-top:10px" hidden>हो गया। यदि कोई मूल्यांकन अनुरोध उस ईमेल और पते से मेल खाता था, तो वह अब हटा दिया गया है। यह संदेश दोनों स्थितियों में एक ही है, ताकि इस फ़ॉर्म से यह न जांचा जा सके कि कोई पता फ़ाइल में है या नहीं।</p>
+              <p class="note" id="hvDelErr" role="alert" style="margin-top:10px;color:#c0392b" hidden>यह नहीं हो पाया — कृपया अपना कनेक्शन जांचकर फिर से प्रयास करें।</p>
+            </form>
           </div>
         </div>
       </section>
@@ -693,7 +707,7 @@
 
     <script>try{localStorage.setItem("erfan-re-lang","hi")}catch(e){}</script>
     <script>window.PAGE_OF = {"listings":"hi-listings.html","calculator":"hi-mortgage-calculator.html","buyvsrent":"hi-buy-vs-rent.html","afford":"hi-affordability.html","invest":"hi-investor-analysis.html","match":"hi-ai-assistant.html#match","assistant":"hi-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"hi-market-pulse.html","guide":"hi-first-time-buyers.html","fhsa":"hi-first-time-buyers.html#fhsa","knowledge":"hi-knowledge-centre.html","newsletter":"hi-index.html#newsletter","contact":"hi-contact.html"};</script>
-    <script src="bundle-shared.2acf2969.js"></script>
-    <script src="bundle-page-seller-tools.57fce5b6.js"></script>
+    <script src="bundle-shared.7ae2d34e.js"></script>
+    <script src="bundle-page-seller-tools.4214fedb.js"></script>
   </body>
 </html>

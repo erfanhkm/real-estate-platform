@@ -1,3 +1,391 @@
+    /* ---------- city market reports (System A, 2026-11-12) ----------
+       Renders the board statistics on the city market pages
+       (market-<city>.html) and the hub (markets.html) from
+       GET /api/market/stats — the same dataset as Market Pulse.
+       HONESTY: the figures are BOARD-level; every render names the
+       board, the source and the "as of" month. A field the payload
+       does not carry is not rendered (GVR types carry no
+       days-on-market, so no DOM column appears). A failed or absent
+       fetch leaves the baked no-figures state and shows the
+       load-fail note — never invented or stale numbers. The full
+       report (by-type table, month-by-month trend, rate snapshot)
+       unlocks after the capture form posts to
+       /api/market/report-request, which records a CRM lead
+       (source 'leadmagnet', magnet 'leadmagnet:neighbourhood:<city>')
+       through the worker's standard lead path.
+       renderKnowledge() is defined here because the shared language
+       handler (below) calls it on every language change — it
+       re-renders this module in the newly selected language. */
+    var CM_API = "https://advisor-api.erfanbillion.workers.dev";
+    var CM_BOARD = { gvr: "Greater Vancouver REALTORS® (GVR)", fvreb: "Fraser Valley Real Estate Board (FVREB)", none: "Chilliwack and District Real Estate Board (CADREB)" };
+    var CM_STR = {
+ "en": {
+  "regionNote": "Board-region figures — {board}",
+  "asOf": "Statistics as of {month}",
+  "sourceLine": "Source: {source}",
+  "tBenchmark": "Benchmark price",
+  "tSales": "Home sales",
+  "tActive": "Active listings",
+  "tRatio": "Sales-to-active ratio",
+  "tNew": "New listings",
+  "tYoy": "vs a year earlier",
+  "tMom": "vs previous month",
+  "typesTitle": "By home type",
+  "colType": "Home type",
+  "colPrice": "Benchmark price",
+  "colYoy": "Year over year",
+  "colDom": "Days on market",
+  "colSales": "Sales",
+  "typeDetached": "Detached",
+  "typeTownhouse": "Townhouse",
+  "typeApartment": "Apartment",
+  "trendMom": "Benchmark vs previous month",
+  "trendYoy": "Benchmark vs same month last year",
+  "conditionsLabel": "Board description",
+  "loadFail": "The latest statistics could not be loaded just now. Please check your connection and reload — no figures are shown rather than stale or invented ones.",
+  "errForm": "Please add your name and an email address or phone number.",
+  "errSend": "That didn’t go through — please check your connection and try again.",
+  "ratesTitle": "Mortgage-rate snapshot",
+  "rPolicy": "Bank of Canada policy rate",
+  "rPrime": "Prime rate",
+  "rFixed": "Best 5-year fixed",
+  "rVar": "Best 5-year variable",
+  "trendTableTitle": "Month by month",
+  "colMonth": "Month"
+ },
+ "fa": {
+  "regionNote": "اعداد منطقه‌ی بورد — {board}",
+  "asOf": "آمار تا {month}",
+  "sourceLine": "منبع: {source}",
+  "tBenchmark": "قیمت معیار",
+  "tSales": "فروش خانه‌ها",
+  "tActive": "آگهی‌های فعال",
+  "tRatio": "نسبت فروش به آگهی فعال",
+  "tNew": "آگهی‌های جدید",
+  "tYoy": "نسبت به سال قبل",
+  "tMom": "نسبت به ماه قبل",
+  "typesTitle": "بر اساس نوع خانه",
+  "colType": "نوع خانه",
+  "colPrice": "قیمت معیار",
+  "colYoy": "سال‌به‌سال",
+  "colDom": "روزهای عرضه",
+  "colSales": "فروش",
+  "typeDetached": "خانه‌ی مستقل",
+  "typeTownhouse": "تاون‌هاوس",
+  "typeApartment": "آپارتمان",
+  "trendMom": "قیمت معیار نسبت به ماه قبل",
+  "trendYoy": "قیمت معیار نسبت به ماه مشابه سال قبل",
+  "conditionsLabel": "توصیف بورد",
+  "loadFail": "آمار تازه همین حالا بارگذاری نشد. لطفاً اتصالتان را بررسی کنید و صفحه را دوباره بارگذاری کنید — به‌جای عدد کهنه یا ساختگی، هیچ عددی نشان داده نمی‌شود.",
+  "errForm": "لطفاً نام و یک نشانی ایمیل یا شماره‌ی تلفن وارد کنید.",
+  "errSend": "ارسال نشد — لطفاً اتصالتان را بررسی کنید و دوباره تلاش کنید.",
+  "ratesTitle": "نرخ‌های وام مسکن در یک نگاه",
+  "rPolicy": "نرخ سیاستی بانک کانادا",
+  "rPrime": "نرخ پرایم",
+  "rFixed": "بهترین نرخ ثابت ۵ساله",
+  "rVar": "بهترین نرخ متغیر ۵ساله",
+  "trendTableTitle": "ماه‌به‌ماه",
+  "colMonth": "ماه"
+ },
+ "hi": {
+  "regionNote": "बोर्ड-क्षेत्र के आँकड़े — {board}",
+  "asOf": "{month} तक के आँकड़े",
+  "sourceLine": "स्रोत: {source}",
+  "tBenchmark": "बेंचमार्क कीमत",
+  "tSales": "घरों की बिक्री",
+  "tActive": "सक्रिय लिस्टिंग",
+  "tRatio": "बिक्री-से-सक्रिय अनुपात",
+  "tNew": "नई लिस्टिंग",
+  "tYoy": "एक साल पहले की तुलना में",
+  "tMom": "पिछले महीने की तुलना में",
+  "typesTitle": "घर के प्रकार के अनुसार",
+  "colType": "घर का प्रकार",
+  "colPrice": "बेंचमार्क कीमत",
+  "colYoy": "वर्ष-दर-वर्ष",
+  "colDom": "बाज़ार में दिन",
+  "colSales": "बिक्री",
+  "typeDetached": "अलग घर",
+  "typeTownhouse": "टाउनहाउस",
+  "typeApartment": "अपार्टमेंट",
+  "trendMom": "पिछले महीने की तुलना में बेंचमार्क",
+  "trendYoy": "पिछले साल के उसी महीने की तुलना में बेंचमार्क",
+  "conditionsLabel": "बोर्ड का विवरण",
+  "loadFail": "ताज़ा आँकड़े अभी लोड नहीं हो सके। कृपया अपना कनेक्शन जांचकर फिर से लोड करें — पुराने या गढ़े हुए आँकड़ों के बजाय कोई आँकड़ा नहीं दिखाया गया है।",
+  "errForm": "कृपया अपना नाम और ईमेल पता या फ़ोन नंबर दर्ज करें।",
+  "errSend": "यह नहीं हो पाया — कृपया अपना कनेक्शन जांचकर फिर से प्रयास करें।",
+  "ratesTitle": "बंधक दरों की झलक",
+  "rPolicy": "बैंक ऑफ़ कनाडा नीति दर",
+  "rPrime": "प्राइम दर",
+  "rFixed": "सर्वोत्तम 5-वर्षीय स्थिर दर",
+  "rVar": "सर्वोत्तम 5-वर्षीय परिवर्तनीय दर",
+  "trendTableTitle": "महीने-दर-महीने",
+  "colMonth": "महीना"
+ },
+ "zh": {
+  "regionNote": "局方区域数据——{board}",
+  "asOf": "截至{month}的统计",
+  "sourceLine": "来源：{source}",
+  "tBenchmark": "基准价格",
+  "tSales": "房屋销量",
+  "tActive": "在售房源",
+  "tRatio": "销售与在售比率",
+  "tNew": "新上市房源",
+  "tYoy": "与去年同期相比",
+  "tMom": "与上月相比",
+  "typesTitle": "按房型划分",
+  "colType": "房型",
+  "colPrice": "基准价格",
+  "colYoy": "同比",
+  "colDom": "上市天数",
+  "colSales": "销量",
+  "typeDetached": "独立屋",
+  "typeTownhouse": "联排别墅",
+  "typeApartment": "公寓",
+  "trendMom": "基准价格与上月对比",
+  "trendYoy": "基准价格与去年同月对比",
+  "conditionsLabel": "局方描述",
+  "loadFail": "最新统计暂时无法加载。请检查您的网络连接并重新加载——本页不会显示过期或编造的数字。",
+  "errForm": "请填写您的姓名以及电子邮件地址或电话号码。",
+  "errSend": "提交未成功——请检查您的网络连接后重试。",
+  "ratesTitle": "房贷利率快照",
+  "rPolicy": "加拿大银行政策利率",
+  "rPrime": "优惠利率（Prime）",
+  "rFixed": "最佳5年固定利率",
+  "rVar": "最佳5年浮动利率",
+  "trendTableTitle": "逐月数据",
+  "colMonth": "月份"
+ },
+ "es": {
+  "regionNote": "Cifras de la región de la junta — {board}",
+  "asOf": "Estadísticas a {month}",
+  "sourceLine": "Fuente: {source}",
+  "tBenchmark": "Precio de referencia",
+  "tSales": "Ventas de viviendas",
+  "tActive": "Anuncios activos",
+  "tRatio": "Ratio ventas/activos",
+  "tNew": "Anuncios nuevos",
+  "tYoy": "frente a un año antes",
+  "tMom": "frente al mes anterior",
+  "typesTitle": "Por tipo de vivienda",
+  "colType": "Tipo de vivienda",
+  "colPrice": "Precio de referencia",
+  "colYoy": "Año tras año",
+  "colDom": "Días en el mercado",
+  "colSales": "Ventas",
+  "typeDetached": "Casa independiente",
+  "typeTownhouse": "Casa adosada",
+  "typeApartment": "Apartamento",
+  "trendMom": "Precio de referencia frente al mes anterior",
+  "trendYoy": "Precio de referencia frente al mismo mes del año pasado",
+  "conditionsLabel": "Descripción de la junta",
+  "loadFail": "Las estadísticas más recientes no se pudieron cargar en este momento. Revisa tu conexión y vuelve a cargar la página: no se muestra ninguna cifra antes que cifras viejas o inventadas.",
+  "errForm": "Por favor agrega tu nombre y un correo electrónico o número de teléfono.",
+  "errSend": "No se pudo enviar — revisa tu conexión e inténtalo de nuevo.",
+  "ratesTitle": "Foto de tasas hipotecarias",
+  "rPolicy": "Tasa de política del Banco de Canadá",
+  "rPrime": "Tasa preferencial (prime)",
+  "rFixed": "Mejor fija a 5 años",
+  "rVar": "Mejor variable a 5 años",
+  "trendTableTitle": "Mes a mes",
+  "colMonth": "Mes"
+ }
+};
+    var cmMonths = null, cmFetching = false, cmUnlocked = false;
+    function cmRootEl(){ return document.getElementById("cmRoot"); }
+    function cmLang(){
+      try { if (typeof lang !== "undefined" && CM_STR[lang]) return lang; } catch (e) {}
+      var r = cmRootEl() || document.getElementById("cmHub");
+      var dl = r ? r.getAttribute("data-lang") : null;
+      return (dl && CM_STR[dl]) ? dl : "en";
+    }
+    function cmT(){ return CM_STR[cmLang()]; }
+    function cmLocale(){ var l = cmLang(); return l === "zh" ? "zh-CN" : l; }
+    function cmFill(s, city, board){ return String(s == null ? "" : s).split("{city}").join(city || "").split("{board}").join(board || ""); }
+    function cmNum(n){ return Number(n).toLocaleString(cmLocale()); }
+    function cmMoney(n){ return "$" + cmNum(Math.round(Number(n))); }
+    function cmPct(n){ var v = Number(n); if (!isFinite(v)) return ""; return (v > 0 ? "+" : "") + v.toLocaleString(cmLocale(), { maximumFractionDigits: 1 }) + "%"; }
+    function cmMonthLabel(ym){ try { return new Intl.DateTimeFormat(cmLocale(), { month: "long", year: "numeric" }).format(new Date(ym + "-02T12:00:00")); } catch (e) { return ym; } }
+    function cmEsc(s){ return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function cmFetch(done){
+      if (cmMonths) { done(cmMonths); return; }
+      if (cmFetching) { setTimeout(function(){ cmFetch(done); }, 120); return; }
+      cmFetching = true;
+      var ctl = null, timer = null;
+      try { ctl = new AbortController(); timer = setTimeout(function(){ try { ctl.abort(); } catch (e) {} }, 10000); } catch (e) {}
+      fetch(CM_API + "/api/market/stats", ctl ? { signal: ctl.signal } : undefined).then(function(r){ return r.json(); }).then(function(d){
+        if (timer) clearTimeout(timer);
+        cmFetching = false;
+        cmMonths = (d && d.ok && Array.isArray(d.months) && d.months.length) ? d.months : null;
+        done(cmMonths);
+      }).catch(function(){
+        if (timer) clearTimeout(timer);
+        cmFetching = false;
+        done(null);
+      });
+    }
+    function cmTile(label, value, sub){
+      return '<div class="cm-tile"><div class="cm-tlabel">' + cmEsc(label) + '</div><div class="cm-tvalue">' + cmEsc(value) + '</div>' + (sub ? '<div class="cm-tsub">' + cmEsc(sub) + '</div>' : '') + '</div>';
+    }
+    function cmRenderCity(){
+      var root = cmRootEl(); if (!root) return;
+      var board = root.getAttribute("data-board") || "none";
+      if (!CM_BOARD[board]) return;
+      if (board === "none") {
+        // No board block exists for this city: the baked
+        // insufficient-data state stands; only the board-independent
+        // rate snapshot is rendered into the report region.
+        cmFetch(function(months){
+          if (months) cmRenderRates(months[months.length - 1], root.getAttribute("data-city") || "");
+        });
+        return;
+      }
+      var t = cmT(), city = root.getAttribute("data-city") || "";
+      cmFetch(function(months){
+        var fail = document.getElementById("cmLoadFail");
+        var latest = months ? months[months.length - 1] : null;
+        var blk = latest ? latest[board] : null;
+        if (!blk) { if (fail) fail.hidden = false; return; }
+        if (fail) fail.hidden = true;
+        var tiles = "";
+        if (blk.benchmark != null) {
+          var subs = [];
+          if (blk.benchmarkYoyPct != null) subs.push(cmPct(blk.benchmarkYoyPct) + " " + t.tYoy);
+          if (blk.benchmarkMomPct != null) subs.push(cmPct(blk.benchmarkMomPct) + " " + t.tMom);
+          tiles += cmTile(t.tBenchmark, cmMoney(blk.benchmark), subs.join(" · "));
+        }
+        if (blk.sales != null) tiles += cmTile(t.tSales, cmNum(blk.sales), blk.salesYoyPct != null ? cmPct(blk.salesYoyPct) + " " + t.tYoy : "");
+        if (blk.activeListings != null) tiles += cmTile(t.tActive, cmNum(blk.activeListings), "");
+        if (blk.salesToActivePct != null) tiles += cmTile(t.tRatio, cmPct(blk.salesToActivePct).replace("+", ""), "");
+        if (blk.newListings != null) tiles += cmTile(t.tNew, cmNum(blk.newListings), "");
+        var tilesEl = document.getElementById("cmTiles");
+        if (tilesEl) tilesEl.innerHTML = tiles;
+        var noteEl = document.getElementById("cmRegionNote");
+        if (noteEl) noteEl.textContent = cmFill(t.regionNote, city, CM_BOARD[board]);
+        var srcEl = document.getElementById("cmSource");
+        if (srcEl) srcEl.textContent = (blk.source ? cmFill(t.sourceLine, city, CM_BOARD[board]).replace("{source}", blk.source) + " · " : "") + cmFill(t.asOf, city, CM_BOARD[board]).replace("{month}", cmMonthLabel(latest.month));
+        var condEl = document.getElementById("cmConditions");
+        if (condEl) { condEl.textContent = blk.conditions ? t.conditionsLabel + ": " + blk.conditions : ""; }
+        cmRenderReport(months, board, city);
+      });
+    }
+    function cmRenderReport(months, board, city){
+      var t = cmT();
+      var latest = months[months.length - 1];
+      var blk = latest[board] || {};
+      /* by-type table — a row renders only when the payload carries
+         that type; the DOM column exists only when a type has it */
+      var typesEl = document.getElementById("cmTypes");
+      if (typesEl) {
+        var types = blk.types || {};
+        var order = [["detached", t.typeDetached], ["townhouse", t.typeTownhouse], ["apartment", t.typeApartment]];
+        var hasDom = order.some(function(o){ return types[o[0]] && types[o[0]].dom != null; });
+        var h = '<table class="cm-table"><thead><tr><th>' + cmEsc(t.colType) + '</th><th>' + cmEsc(t.colPrice) + '</th><th>' + cmEsc(t.colYoy) + '</th>' + (hasDom ? '<th>' + cmEsc(t.colDom) + '</th>' : '') + '<th>' + cmEsc(t.colSales) + '</th></tr></thead><tbody>';
+        var rows = 0;
+        order.forEach(function(o){
+          var ty = types[o[0]]; if (!ty || ty.price == null) return;
+          rows++;
+          h += '<tr><td>' + cmEsc(o[1]) + '</td><td>' + cmEsc(cmMoney(ty.price)) + '</td><td>' + cmEsc(ty.yoyPct != null ? cmPct(ty.yoyPct) : "—") + '</td>' + (hasDom ? '<td>' + cmEsc(ty.dom != null ? cmNum(ty.dom) : "—") + '</td>' : '') + '<td>' + cmEsc(ty.sales != null ? cmNum(ty.sales) : "—") + '</td></tr>';
+        });
+        h += '</tbody></table>';
+        typesEl.innerHTML = rows ? h : "";
+        var tt = document.getElementById("cmTypesTitle");
+        if (tt) tt.hidden = !rows;
+      }
+      /* month-by-month trend — only the months the payload carries */
+      var trendEl = document.getElementById("cmTrend");
+      if (trendEl) {
+        var th = '<table class="cm-table"><thead><tr><th>' + cmEsc(t.colMonth) + '</th><th>' + cmEsc(t.colPrice) + '</th><th>' + cmEsc(t.colSales) + '</th><th>' + cmEsc(t.tActive) + '</th></tr></thead><tbody>';
+        months.forEach(function(mo){
+          var b = mo[board] || {};
+          th += '<tr><td>' + cmEsc(cmMonthLabel(mo.month)) + '</td><td>' + cmEsc(b.benchmark != null ? cmMoney(b.benchmark) : "—") + '</td><td>' + cmEsc(b.sales != null ? cmNum(b.sales) : "—") + '</td><td>' + cmEsc(b.activeListings != null ? cmNum(b.activeListings) : "—") + '</td></tr>';
+        });
+        th += '</tbody></table>';
+        trendEl.innerHTML = th;
+      }
+      cmRenderRates(latest, city);
+    }
+    /* rate snapshot — from the latest month's rates block; the
+       rates are board-independent, so this also serves the
+       insufficient-data city page */
+    function cmRenderRates(latest, city){
+      var t = cmT();
+      var ratesEl = document.getElementById("cmRates");
+      if (!ratesEl || !latest) return;
+      var rt = latest.rates || {};
+      var rrows = [[t.rPolicy, rt.policyRate], [t.rPrime, rt.prime], [t.rFixed, rt.bestFixed5], [t.rVar, rt.bestVariable5]].filter(function(r){ return r[1] != null; });
+      if (rrows.length) {
+        var rh = '<table class="cm-table"><tbody>';
+        rrows.forEach(function(r){ rh += '<tr><td>' + cmEsc(r[0]) + '</td><td>' + cmEsc(Number(r[1]).toLocaleString(cmLocale(), { maximumFractionDigits: 2 }) + "%") + '</td></tr>'; });
+        rh += '</tbody></table>';
+        if (rt.source) rh += '<p class="cm-src">' + cmEsc(cmFill(t.sourceLine, city, "").replace("{source}", rt.source)) + '</p>';
+        ratesEl.innerHTML = rh;
+      } else ratesEl.innerHTML = "";
+      var rt2 = document.getElementById("cmRatesTitle");
+      if (rt2) rt2.hidden = !rrows.length;
+    }
+    function cmRenderHub(){
+      var hub = document.getElementById("cmHub"); if (!hub) return;
+      cmFetch(function(months){
+        if (!months) return;
+        var latest = months[months.length - 1];
+        hub.querySelectorAll(".cm-card").forEach(function(card){
+          var b = card.getAttribute("data-board");
+          var blk = b && b !== "none" ? latest[b] : null;
+          var benchEl = card.querySelector(".cm-card-bench");
+          var asofEl = card.querySelector(".cm-card-asof");
+          if (blk && blk.benchmark != null && benchEl) benchEl.textContent = cmMoney(blk.benchmark);
+          if (blk && asofEl) asofEl.textContent = cmFill(cmT().asOf, "", "").replace("{month}", cmMonthLabel(latest.month));
+        });
+      });
+    }
+    function cmRender(){ cmRenderCity(); cmRenderHub(); }
+    function renderKnowledge(){ cmRender(); }
+    /* capture form — mirrors the valuation form's Turnstile token
+       read; success unlocks the already-rendered report region */
+    (function(){
+      var form = document.getElementById("cmForm");
+      if (!form) return;
+      form.addEventListener("submit", function(ev){
+        ev.preventDefault();
+        var t = cmT();
+        var root = cmRootEl();
+        var name = (document.getElementById("cmName") || {}).value || "";
+        var email = (document.getElementById("cmEmail") || {}).value || "";
+        var phone = (document.getElementById("cmPhone") || {}).value || "";
+        var hp = (document.getElementById("cmHoney") || {}).value || "";
+        var errEl = document.getElementById("cmFormErr");
+        function fail(msg){ if (errEl) { errEl.textContent = msg; errEl.hidden = false; } }
+        if (!name.trim() || (!email.trim() && !phone.trim())) { fail(t.errForm); return; }
+        if (errEl) errEl.hidden = true;
+        var tok = "";
+        var tin = form.querySelector('input[name="cf-turnstile-response"]');
+        if (tin && tin.value) tok = tin.value;
+        if (!tok && window.turnstile && turnstile.getResponse) { var el = form.querySelector(".cf-turnstile"); if (el) { try { tok = turnstile.getResponse(el) || ""; } catch (e) {} } }
+        var btn = document.getElementById("cmBtn");
+        if (btn) btn.disabled = true;
+        fetch(CM_API + "/api/market/report-request", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name, email: email, phone: phone, city: root ? root.getAttribute("data-slug") : "", lang: cmLang(), turnstileToken: tok, hp: hp })
+        }).then(function(r){ return r.json(); }).then(function(d){
+          if (btn) btn.disabled = false;
+          if (d && d.ok) {
+            cmUnlocked = true;
+            var rep = document.getElementById("cmReport");
+            var gate = document.getElementById("cmGate");
+            if (gate) gate.hidden = true;
+            if (rep) { rep.hidden = false; try { rep.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} }
+          } else fail(t.errSend);
+        }).catch(function(){
+          if (btn) btn.disabled = false;
+          fail(t.errSend);
+        });
+      });
+      var printBtn = document.getElementById("cmPrint");
+      if (printBtn) printBtn.addEventListener("click", function(){ window.print(); });
+    })();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", cmRender);
+    else cmRender();
+
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -876,636 +1264,6 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
-    /* ---------- seller tools: home-prep checklist + listing-description draft ---------- */
-    var CHECKLIST = [
-      {cat:"ext", items:["ext1","ext2","ext3","ext4","ext5"]},
-      {cat:"dec", items:["dec1","dec2","dec3","dec4","dec5"]},
-      {cat:"rep", items:["rep1","rep2","rep3","rep4","rep5"]},
-      {cat:"cln", items:["cln1","cln2","cln3","cln4","cln5"]},
-      {cat:"stg", items:["stg1","stg2","stg3","stg4","stg5"]},
-      {cat:"pho", items:["pho1","pho2","pho3","pho4","pho5"]}
-    ];
-    var prepDone = {};
-    try { var pd = JSON.parse(localStorage.getItem("erfan-re-prep") || "{}"); if (pd && typeof pd === "object") prepDone = pd; } catch(e){}
-    function savePrep(){ try { localStorage.setItem("erfan-re-prep", JSON.stringify(prepDone)); } catch(e){} }
-    function countChk(){
-      var total = 0, done = 0;
-      CHECKLIST.forEach(function(g){ g.items.forEach(function(key){ total++; if (prepDone[key]) done++; }); });
-      return {total: total, done: done};
-    }
-    function updateChkProgress(){
-      var t = T(), c = countChk();
-      $("chkProgress").textContent = fill(t.chk_progress, {d: c.done, n: c.total});
-      $("chkBar").style.width = (c.total ? c.done / c.total * 100 : 0) + "%";
-    }
-    function renderChecklist(){
-      var t = T(), html = "";
-      CHECKLIST.forEach(function(g){
-        html += '<div class="chk-cat"><h4>' + esc(t["cat_" + g.cat]) + "</h4>";
-        g.items.forEach(function(key){
-          var on = !!prepDone[key];
-          html += '<label class="chk-item' + (on ? " done" : "") + '"><input type="checkbox" data-chk="' + key + '"' + (on ? " checked" : "") + ' /><span>' + esc(t[key]) + "</span></label>";
-        });
-        html += "</div>";
-      });
-      $("chkCats").innerHTML = html;
-      updateChkProgress();
-    }
-    $("chkCats").addEventListener("change", function(e){
-      var inp = e.target;
-      if (!inp.getAttribute || !inp.getAttribute("data-chk")) return;
-      var key = inp.getAttribute("data-chk");
-      if (inp.checked) prepDone[key] = true; else delete prepDone[key];
-      savePrep();
-      var lbl = inp.closest("label"); if (lbl) lbl.classList.toggle("done", inp.checked);
-      updateChkProgress();
-    });
-    $("chkResetBtn").addEventListener("click", function(){ prepDone = {}; savePrep(); renderChecklist(); });
-    function buildChkReport(){
-      var t = T(), c = countChk();
-      var html = '<div class="rp-wrap"><div class="rp-brand">' + esc((window.__portalSettings && window.__portalSettings.brand) || "EH REALTY") + '</div>'
-        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
-        + '<h1 class="rp-title">' + esc(t.chk_title) + "</h1>"
-        + '<p class="rp-meta">' + esc(fill(t.chk_progress, {d: c.done, n: c.total})) + "</p>";
-      CHECKLIST.forEach(function(g){
-        html += '<h2 class="rp-h">' + esc(t["cat_" + g.cat]) + '</h2><ul class="chk-print-list">';
-        g.items.forEach(function(key){ html += "<li>" + (prepDone[key] ? "☑ " : "☐ ") + esc(t[key]) + "</li>"; });
-        html += "</ul>";
-      });
-      html += "</div>";
-      var root = $("chkReport");
-      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
-      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
-      root.innerHTML = html;
-    }
-    $("chkPrintBtn").addEventListener("click", function(){
-      buildChkReport();
-      document.body.classList.add("print-chk");
-      window.print();
-    });
-    window.addEventListener("afterprint", function(){ document.body.classList.remove("print-chk"); });
-
-    /* listing-description draft: template assembly from the visitor's own inputs only */
-    var dgVals = null;
-    function cleanTail(s){ return s.replace(/[\s.。।,，、;؛]+$/, "").trim(); }
-    var DRAFT_BUILD = {
-      en: function(v, type){
-        var head = [];
-        if (v.beds) head.push(v.beds + "-bedroom");
-        if (v.baths) head.push(v.baths + "-bathroom");
-        var s = "This " + (head.length ? head.join(", ") + " " : "") + type.toLowerCase();
-        if (v.sqft) s += " offers " + Number(v.sqft).toLocaleString("en-US") + " sq ft of interior living space";
-        s += ".";
-        if (v.features) s += " Key features: " + v.features + ".";
-        if (v.nb) s += " Neighbourhood highlights: " + v.nb + ".";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      fa: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " اتاق خواب");
-        if (v.baths) seg.push(v.baths + " حمام");
-        var s = "این " + type;
-        if (seg.length && v.sqft) s += " دارای " + seg.join(" و ") + " است و زیربنای آن " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع است.";
-        else if (seg.length) s += " دارای " + seg.join(" و ") + " است.";
-        else if (v.sqft) s += " زیربنای " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع دارد.";
-        else s += " برای فروش عرضه شده است.";
-        if (v.features) s += " امکانات کلیدی: " + v.features + ".";
-        if (v.nb) s += " نکات برجسته‌ی محله: " + v.nb + ".";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      hi: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " बेडरूम");
-        if (v.baths) seg.push(v.baths + " बाथरूम");
-        var s = "यह " + type;
-        if (seg.length) s += " " + seg.join(" और ") + " के साथ आता है";
-        if (v.sqft) s += (seg.length ? " और" : "") + " इसका आंतरिक क्षेत्र " + Number(v.sqft).toLocaleString("en-US") + " वर्ग फुट है";
-        s += "।";
-        if (v.features) s += " मुख्य विशेषताएँ: " + v.features + "।";
-        if (v.nb) s += " इलाके की मुख्य बातें: " + v.nb + "।";
-        if (v.notes) s += " " + v.notes;
-        return s;
-      },
-      zh: function(v, type){
-        var seg = [];
-        if (v.beds) seg.push(v.beds + " 间卧室");
-        if (v.baths) seg.push(v.baths + " 间浴室");
-        var s = "这套" + type;
-        if (seg.length) s += "设有" + seg.join("和");
-        if (v.sqft) s += (seg.length ? "," : "") + "室内面积为 " + Number(v.sqft).toLocaleString("en-US") + " 平方英尺";
-        s += "。";
-        if (v.features) s += "主要特色:" + v.features + "。";
-        if (v.nb) s += "社区亮点:" + v.nb + "。";
-        if (v.notes) s += v.notes;
-        return s;
-      }
-    };
-    function buildDraftText(){
-      if (!dgVals) return "";
-      var v = dgVals;
-      if (v.sqft && isNaN(Number(v.sqft))) v = { type: v.type, beds: v.beds, baths: v.baths, sqft: "", features: v.features, nb: v.nb, notes: v.notes };
-      var type = T()["type_" + v.type] || v.type;
-      return (DRAFT_BUILD[lang] || DRAFT_BUILD.en)(v, type);
-    }
-    function renderDraft(){
-      if (!dgVals){ $("dgBody").textContent = T().dg_placeholder; $("dgCopyBtn").disabled = true; return; }
-      $("dgBody").textContent = buildDraftText();
-      $("dgCopyBtn").disabled = false;
-    }
-    $("dgForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      dgVals = {
-        type: $("dgType").value,
-        beds: $("dgBeds").value.trim() === "0" ? "" : $("dgBeds").value.trim(),
-        baths: $("dgBaths").value.trim() === "0" ? "" : $("dgBaths").value.trim(),
-        sqft: $("dgSqft").value.trim(),
-        features: cleanTail($("dgFeatures").value.trim()),
-        nb: cleanTail($("dgNb").value.trim()),
-        notes: cleanTail($("dgNotes").value.trim())
-      };
-      renderDraft();
-      $("dgOut").scrollIntoView({behavior: "smooth", block: "nearest"});
-    });
-    function copyFallback(text){
-      var ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand("copy"); } catch(e){}
-      ta.remove();
-    }
-    $("dgCopyBtn").addEventListener("click", function(){
-      if (!dgVals) return;
-      var text = buildDraftText(), btn = this;
-      function done(){ btn.textContent = T().dg_copied; setTimeout(function(){ btn.textContent = T().dg_copy; }, 1800); }
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ copyFallback(text); done(); });
-      else { copyFallback(text); done(); }
-    });
-    function renderSellerTools(){
-      keep($("dgType"), function(sel){ ["condo","townhouse","house"].forEach(function(tp){ opt(sel, tp, T()["type_" + tp]); }); }, "condo");
-      renderChecklist();
-      renderDraft();
-      renderValuation();
-    }
-
-    /* home valuation: the form posts the visitor's own home facts to the
-       advisor worker, which derives the estimate ONLY from catalog
-       comparables and stores a seller lead (source "home-valuation").
-       This page never computes a price itself — it only displays what
-       the worker returns. */
-    var hvLast = null; // last accepted answer { est, inputs }, re-painted on language change (F-07)
-    var hvErr = null;  // last submit error as an i18n key, so a language switch repaints it translated (F-07 M1)
-    var hvBusy = false;
-    var HV_FIELD_ERR = { sqft: "hv_err_sqft", email: "hv_err_email", phone: "hv_err_phone", beds: "hv_err_beds", baths: "hv_err_baths" };
-    function hvTsToken(){
-      var tok = "";
-      var r = document.querySelector('#hvForm input[name="cf-turnstile-response"]');
-      if (r) tok = r.value || "";
-      /* fallback: ask ONLY this form's own widget — the no-argument call can
-         return another form's token (F-07 shared-captcha bug) */
-      if (!tok && window.turnstile && turnstile.getResponse) { var el = document.querySelector("#hvForm .cf-turnstile"); if (el) { try { tok = turnstile.getResponse(el) || ""; } catch(e){} } }
-      return tok;
-    }
-    function hvTsReset(){
-      if (!(window.turnstile && turnstile.reset)) return;
-      var el = document.querySelector("#hvForm .cf-turnstile");
-      try { if (el) turnstile.reset(el); } catch(e){}
-    }
-    /* F-07 M4: Persian / Arabic-Indic / Devanagari / full-width digits and
-       thousands separators never reach the worker — its validators expect
-       ASCII, and type=number inputs silently swallowed them before */
-    function hvNormDigits(v){
-      return String(v == null ? "" : v)
-        .replace(/[\u06F0-\u06F9]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); })
-        .replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); })
-        .replace(/[\u0966-\u096F]/g, function(c){ return String(c.charCodeAt(0) - 0x966); })
-        .replace(/[\uFF10-\uFF19]/g, function(c){ return String(c.charCodeAt(0) - 0xFF10); })
-        .replace(/\u066B/g, ".").replace(/[,\s\u066C]/g, "");
-    }
-    /* F-07 Core: an estimate is DISPLAYED only when it passes the contract —
-       finite positive bounds, high >= low, at least one comparable, and the
-       authoritative manual flag honoured (the honeypot/manual shape
-       {estimate:null, manual:true} included). Anything else renders the
-       manual-review message — never "$0 – $0" or "$NaN". */
-    function hvEstimateOk(d){
-      var e = d && d.estimate;
-      if (!e || d.manual) return null;
-      var lo = Number(e.low), hi = Number(e.high), n = Number(e.comps);
-      if (e.low == null || e.high == null || !isFinite(lo) || !isFinite(hi) || !(lo > 0) || hi < lo || !(n >= 1)) return null;
-      return { low: lo, high: hi, comps: n, basis: e.basis === "ppsf" ? "ppsf" : "price", confidence: e.confidence || "low" };
-    }
-    function hvMoney(v){
-      /* a missing figure renders as "—", never as $0 (PR-02 M1: the
-         report worker returns null totals when a part is missing, and
-         Intl.format(null) would otherwise print a fabricated $0) */
-      if (v === null || v === undefined || v === "" || typeof v === "boolean") return "—";
-      var n = Number(v);
-      if (!isFinite(n)) return "—";
-      var tag = ({ en: "en-CA", fa: "fa-IR", hi: "hi-IN", zh: "zh-CN", es: "es-CA" })[lang] || "en-CA";
-      try { return new Intl.NumberFormat(tag, { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n); }
-      catch(e){ return "$" + n.toLocaleString("en-US"); }
-    }
-    function renderValuation(){
-      if (!$("hvForm")) return;
-      /* empty placeholder option on BOTH selects (F-07): nothing is silently
-         pre-selected, so the city/type actually submitted is the visitor's */
-      keep($("hvCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
-      keep($("hvType"), function(sel){ opt(sel, "", T().hv_choose); ["condo","townhouse","house","duplex","apartment"].forEach(function(tp){ opt(sel, tp, T()["type_" + tp] || tp); }); });
-      if (hvLast || hvErr) paintValuation();
-    }
-    function paintValuation(){
-      var t = T(), out = $("hvOut");
-      if (!out) return;
-      if (hvErr) { out.innerHTML = '<p class="note" role="alert" style="font-weight:600;color:#b3261e">' + esc(t[hvErr] || t.hv_err) + "</p>"; return; }
-      if (!hvLast) { out.innerHTML = ""; return; }
-      if (hvLast.est) {
-        var e = hvLast.est, inp = hvLast.inputs || {}, isPrice = e.basis === "price";
-        /* echo WHAT the estimate describes, so it is verifiable (F-07) */
-        var echo = fill(t.hv_for, { addr: inp.address || "", city: (t.cities && t.cities[inp.city]) || inp.city || "", type: t["type_" + inp.type] || inp.type || "" });
-        if (inp.sqft != null) echo += fill(t.hv_for_sqft, { sqft: Number(inp.sqft).toLocaleString("en-US") });
-        var based = isPrice
-          ? (e.comps === 1 ? t.hv_based_price_one : fill(t.hv_based_price, { n: e.comps }))
-          : (e.comps === 1 ? t.hv_based_one : fill(t.hv_based, { n: e.comps }));
-        out.innerHTML = '<div class="out"><p class="note" style="margin-bottom:8px">' + esc(echo) + '</p><div class="row hero-row"><span>' + esc(isPrice ? t.hv_range_price : t.hv_range) + '</span><b dir="ltr" style="unicode-bidi:isolate">' + esc(hvMoney(e.low)) + " – " + esc(hvMoney(e.high)) + "</b></div>" +
-          '<p class="note" style="margin-top:10px">' + esc(based) + (e.confidence === "low" ? " " + esc(t.hv_limited) : "") + " " + esc(t.hv_note) + "</p></div>";
-      } else {
-        out.innerHTML = '<div class="out"><p class="note" style="font-weight:600;color:var(--ink)">' + esc(t.hv_manual) + "</p></div>";
-      }
-    }
-    if ($("hvForm")) $("hvForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      if (hvBusy) return; // in-flight double submit is a no-op (the button is disabled too)
-      var t = T(), out = $("hvOut");
-      function fail(key){ hvErr = key; hvLast = null; paintValuation(); }
-      var name = $("hvName").value.trim(), email = $("hvEmail").value.trim();
-      var phone = hvNormDigits($("hvPhone").value).trim();
-      var address = $("hvAddress").value.trim(), city = $("hvCity").value, type = $("hvType").value;
-      var sqftRaw = hvNormDigits($("hvSqft").value).trim(), bedsRaw = hvNormDigits($("hvBeds").value).trim(), bathsRaw = hvNormDigits($("hvBaths").value).trim();
-      if (!name || !address || !city || !type) { fail("hv_err_fields"); return; }
-      if (!email && !phone) { fail("hv_err_contact"); return; }
-      var tok = hvTsToken();
-      if (!tok) { fail("hv_err_captcha"); return; }
-      hvBusy = true; hvLast = null; hvErr = null; if (out) out.innerHTML = "";
-      var btn = $("hvBtn");
-      btn.disabled = true; btn.textContent = t.hv_sending;
-      var ctrl = ("AbortController" in window) ? new AbortController() : null;
-      var timer = ctrl ? setTimeout(function(){ try { ctrl.abort(); } catch(e2){} }, 20000) : null;
-      /* the HTTP status is checked BEFORE the body is trusted (F-07 M1): a
-         proxy 429 with a non-JSON body still reads as the rate-limit message */
-      fetch("https://advisor-api.erfanbillion.workers.dev/api/valuation", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        signal: ctrl ? ctrl.signal : undefined,
-        body: JSON.stringify({
-          name: name, email: email, phone: phone || null, address: address, city: city, type: type,
-          beds: bedsRaw === "" ? null : Number(bedsRaw), baths: bathsRaw === "" ? null : Number(bathsRaw), sqft: sqftRaw === "" ? null : Number(sqftRaw),
-          lang: lang, turnstileToken: tok, hp: $("hvHoney").value
-        })
-      }).then(function(res){
-        return res.json().catch(function(){ return {}; }).then(function(d){ return { status: res.status, d: d || {} }; });
-      }).then(function(r){
-        if (timer) clearTimeout(timer);
-        hvBusy = false; btn.disabled = false; btn.textContent = T().hv_btn; hvTsReset();
-        var d = r.d;
-        if (r.status === 429 || d.error === "rate_limit") { fail("hv_err_rate"); return; }
-        if (d.ok) {
-          hvErr = null;
-          hvLast = { est: hvEstimateOk(d), inputs: { address: address, city: city, type: type, sqft: sqftRaw === "" ? null : Number(sqftRaw) } };
-          paintValuation();
-        }
-        else if (d.error === "captcha") fail("hv_err_captcha");
-        else if (d.error === "validation") fail(HV_FIELD_ERR[d.field] || "hv_err_fields");
-        else if (d.error === "bad_sqft" || d.code === "bad_sqft") fail("hv_err_sqft");
-        else fail("hv_err");
-      }).catch(function(){
-        if (timer) clearTimeout(timer);
-        hvBusy = false; btn.disabled = false; btn.textContent = T().hv_btn; hvTsReset(); fail("hv_err");
-      });
-    });
-
-
-    /* ---------- property & neighbourhood report (2026-11-01) ----------
-       Postal code -> /api/report/neighbourhood (census snapshot, nearest
-       schools, Vancouver crime context); optional address ->
-       /api/report/property (Vancouver public record, POSTed so the
-       address stays out of URLs and logs). Sold history and title
-       search are built-but-gated until licensing (see the gated cards
-       rendered below and files/post-licensing-activation.md).
-       Pack H (2026-11-02, PR-02 verdict): parallel fetches with a 12s
-       timeout and per-part failure states, per-source status rendering
-       (the Pack G contract), null-safe figures, strata median and
-       truncated states, a response-aware title button, live gate-state
-       copy, and digit-normalised postal input. */
-    var PR_API = "https://advisor-api.erfanbillion.workers.dev";
-    var PR_LINK_HOSTS = ["www.bcassessment.ca", "maps.ltsa.ca", "www.walkscore.com", "ltsa.ca"];
-    var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false, prTitleBusy = false, prTitleGen = 0;
-    function prMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
-    function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
-    function prMoney(v){ if (prMissing(v)) return "—"; var n = Number(v); return isFinite(n) ? hvMoney(n) : "—"; }
-    function prPct(v){ if (prMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? (Math.round(x * 10) / 10) + "%" : "—"; }
-    /* scoped safe fill (PR-02 L2): single-pass, a missing key becomes ""
-       instead of the shared fill()'s "," artefact; the site-wide fill()
-       itself is deliberately untouched */
-    function prFill(tpl, obj){
-      return String(tpl === null || tpl === undefined ? "" : tpl).replace(/\{(\w+)\}/g, function(m, k){
-        var v = obj ? obj[k] : null;
-        return (v === null || v === undefined) ? "" : String(v);
-      });
-    }
-    /* report links are worker constants, but esc() alone is not a URL
-       check (PR-02 L1): only https on a known host survives */
-    function prSafeUrl(u){
-      var s = String(u || "");
-      if (!/^https:\/\//i.test(s)) return "";
-      try { var pu = new URL(s); if (PR_LINK_HOSTS.indexOf(pu.hostname.toLowerCase()) === -1) return ""; if (pu.username || pu.password || pu.port) return ""; return pu.href; } catch (e) { return ""; }
-    }
-    /* postal input normalisation (PR-02 M7): Persian / Arabic-Indic /
-       Devanagari / full-width digits via hvNormDigits, full-width
-       letters folded to ASCII, then the Canadian shape is checked
-       client-side so a typo never spends a rate-limited request */
-    function prNormPostalInput(raw){
-      var s = hvNormDigits(raw === null || raw === undefined ? "" : String(raw));
-      s = s.replace(/[Ａ-Ｚａ-ｚ]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
-      s = s.toUpperCase().replace(/[\s-]+/g, "");
-      if (!/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(s)) return "";
-      return s.slice(0, 3) + " " + s.slice(3);
-    }
-    /* address digit normalisation (PH-01 L8): the same digit ranges
-       as hvNormDigits but WITHOUT its whitespace/comma strip, which
-       exists for valuation figures — a street address keeps its
-       spaces ("3742 W 10th Ave", never "3742W10thAve") */
-    function prNormAddrDigits(v){
-      return String(v == null ? "" : v)
-        .replace(/[\u06F0-\u06F9]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); })
-        .replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); })
-        .replace(/[\u0966-\u096F]/g, function(c){ return String(c.charCodeAt(0) - 0x966); })
-        .replace(/[\uFF10-\uFF19]/g, function(c){ return String(c.charCodeAt(0) - 0xFF10); })
-        .replace(/\u066B/g, ".");
-    }
-    /* fetch with a 12s ceiling that NEVER rejects (PR-02 H2): callers
-       branch on {status, d} per part, so one part's failure can neither
-       discard the other part's data nor lock the form */
-    function prFetch(url, opts){
-      var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
-      var tm = ac ? setTimeout(function(){ try { ac.abort(); } catch (e) {} }, 12000) : null;
-      var o = {};
-      if (opts) for (var k in opts) o[k] = opts[k];
-      if (ac) o.signal = ac.signal;
-      var fp; try { fp = fetch(url, o); } catch (e) { fp = Promise.reject(e); }
-      return fp.then(function(r){
-        return r.json().catch(function(){ return null; }).then(function(d){ return { status: r.status, d: d }; });
-      }).catch(function(){ return { status: 0, d: null }; }).then(function(x){ if (tm) clearTimeout(tm); return x; });
-    }
-    function prRow(label, val){ return '<div class="row"><span>' + esc(label) + '</span><b dir="ltr" style="unicode-bidi:isolate">' + esc(val) + "</b></div>"; }
-    function buildPrCity(){
-      if (!$("prCity")) return;
-      keep($("prCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); var vi = cs.indexOf("Vancouver"); if (vi > 0) { cs.splice(vi, 1); cs.unshift("Vancouver"); } cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
-    }
-    function prGatedHTML(){
-      var t = T();
-      /* the gated copy renders by the worker's LIVE gate state (PR-02
-         M5): until the status fetch lands the gated wording shows; a
-         flag-on-but-unconfigured answer shows the neutral pending line */
-      var pending = !!(prGates && prGates.gated === false);
-      var soldTxt = pending ? t.pr_gated_pending : t.pr_sold_gated;
-      var titleTxt = pending ? t.pr_gated_pending : t.pr_title_gated;
-      var tbOff = (prTitleBusy || (prTitleKey && prTitleKey !== "pr_err" && prTitleKey !== "pr_err_rate" && prTitleKey !== "pr_title_err")) ? " disabled" : "";
-      return '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_sold_title) + '</h4><p class="note" style="margin-top:6px">' + esc(soldTxt) + "</p>" +
-        '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_title_title) + '</h4><p class="note" style="margin-top:6px">' + esc(titleTxt) + "</p>" +
-        '<div style="margin-top:10px"><button class="btn btn-line" type="button" id="prTitleBtn"' + tbOff + '>' + esc(t.pr_title_btn) + '</button></div><p class="note" id="prTitleOut" style="margin-top:8px">' + (prTitleKey ? esc(t[prTitleKey] || "") : "") + "</p>";
-    }
-    function prLoadGates(){
-      if (prGates || prGatesBusy) return;
-      prGatesBusy = true;
-      prFetch(PR_API + "/api/report/sold-history").then(function(r){
-        prGatesBusy = false;
-        if (r.d && r.d.ok) { prGates = r.d; if (prLast) { try { paintReport(); } catch (e) { console.error(e); } } }
-      });
-    }
-    function paintReport(){
-      var t = T(), out = $("prOut");
-      if (!out) return;
-      out.setAttribute("aria-busy", "false");
-      if (prErrKey) { out.innerHTML = '<p class="note" style="font-weight:600;color:#b3261e">' + esc(t[prErrKey] || t.pr_err) + "</p>"; return; }
-      if (!prLast) { out.innerHTML = ""; return; }
-      var h = prLast.hood, p = prLast.prop, html = "";
-      if (h && h.ok && h.inArea === false) {
-        out.innerHTML = '<div class="out"><p class="note" style="font-weight:600;color:var(--ink)">' + esc(t.pr_out_area) + "</p></div>";
-        return;
-      }
-      if (h && h.ok) {
-        var src = h.sources || {};
-        html += '<div class="out"><h4 id="prFirstHead" tabindex="-1" style="font-size:17px">' + esc(prFill(t.pr_hood_title, { fsa: h.fsa })) + (h.area ? " — <bdi>" + esc(h.area) + "</bdi>" : "") + "</h4>";
-        if (h.approximate) html += '<p class="note" style="margin-top:6px">' + esc(t.pr_approx) + "</p>";
-        var c = h.census;
-        if (c) {
-          html += '<div style="margin-top:10px">';
-          html += prRow(t.pr_pop, prNum(c.pop));
-          if (c.dwellings != null) html += prRow(t.pr_dwell, prNum(c.dwellings));
-          if (c.medianHouseholdIncome != null) html += prRow(t.pr_income, prMoney(c.medianHouseholdIncome));
-          if (c.avgHouseholdSize != null) html += prRow(t.pr_hhsize, prNum(c.avgHouseholdSize));
-          if (c.medianAge != null) html += prRow(t.pr_medage, prNum(c.medianAge));
-          if (c.pctUnder15 != null) html += prRow(t.pr_age_child, prPct(c.pctUnder15));
-          if (c.pct65plus != null) html += prRow(t.pr_age_senior, prPct(c.pct65plus));
-          if (c.pctOwner != null) html += prRow(t.pr_owner, prPct(c.pctOwner));
-          if (c.pctRenter != null) html += prRow(t.pr_renter, prPct(c.pctRenter));
-          if (c.pctSingleDetached != null) html += prRow(t.pr_detached, prPct(c.pctSingleDetached));
-          if (c.pctEnglishAtHome != null) html += prRow(t.pr_eng_home, prPct(c.pctEnglishAtHome));
-          if (c.pctNonOfficialAtHome != null) html += prRow(t.pr_nonoff_home, prPct(c.pctNonOfficialAtHome));
-          html += '</div><p class="note" style="margin-top:8px">' + esc(prFill(t.pr_src_census, { fsa: h.fsa })) + "</p>";
-        } else {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_census_na) + "</p>";
-        }
-        html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_schools_title) + "</h4>";
-        if (src.schools === "unavailable") {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_unavailable) + "</p>";
-        } else if (h.schools && h.schools.length) {
-          html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
-          h.schools.forEach(function(s){
-            var lv = t["pr_school_" + String(s.level || "").toLowerCase()] || "";
-            var kd = s.kind === "independent" ? t.pr_school_ind : (s.kind === "public" ? t.pr_school_pub : (s.kind === "other" ? t.pr_school_other : ""));
-            html += "<li><bdi>" + esc(s.name) + "</bdi>" + (s.city ? " (<bdi>" + esc(s.city) + "</bdi>)" : "") + ' — <b dir="ltr">' + esc(prNum(s.km)) + "</b> " + esc(t.pr_km) + (lv ? " · " + esc(lv) : "") + (kd ? " · " + esc(kd) : "") + "</li>";
-          });
-          html += "</ul>";
-        } else {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_none) + "</p>";
-        }
-        if (src.schools !== "unavailable") html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_src) + "</p>";
-        html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_safety_title) + "</h4>";
-        if (h.safety) {
-          html += '<p class="note" style="margin-top:6px;color:var(--ink)">' + esc(prFill(t.pr_safety_body, { n: prNum(h.safety.incidents), area: h.safety.neighbourhood, year: h.safety.year, total: prNum(h.safety.cityTotal) })) + '</p><p class="note">' + esc(t.pr_safety_src) + "</p>";
-        } else if (src.safety === "unavailable") {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_unavailable) + "</p>";
-        } else {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_na) + "</p>";
-        }
-        html += "</div>";
-      }
-      if (p && p.failed) {
-        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + '</h4><p class="note" style="margin-top:6px">' + esc(p.failed === "rate" ? t.pr_err_rate : t.pr_prop_unavailable) + "</p></div>";
-      } else if (p) {
-        html += '<div class="out" style="margin-top:14px">';
-        html += '<h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + "</h4>";
-        if (p.supported && p.found && p.card) {
-          var cd = p.card;
-          html += '<div style="margin-top:10px">';
-          if (cd.kind === "strata") {
-            if (cd.truncated) {
-              /* a possibly-incomplete set shows the truncation state —
-                 no subset range or median presented as complete */
-              html += '<p class="note" style="color:var(--ink)">' + esc(t.pr_card_truncated) + "</p>";
-            } else {
-              html += '<p class="note" style="color:var(--ink)">' + esc(prFill(t.pr_card_strata, { n: prNum(cd.units) })) + "</p>";
-              html += prRow(t.pr_card_range, prMoney(cd.rangeLow) + " – " + prMoney(cd.rangeHigh));
-              html += prRow(prFill(t.pr_card_median, { year: cd.assessedYear }), prMoney(cd.medianTotal));
-            }
-          } else if (cd.kind === "single") {
-            html += prRow(t.pr_card_land, prMoney(cd.land));
-            html += prRow(t.pr_card_building, prMoney(cd.building));
-            html += prRow(prFill(t.pr_card_total, { year: cd.assessedYear }), prMoney(cd.total));
-            if (cd.taxLevy != null) html += prRow(t.pr_card_levy, prMoney(cd.taxLevy));
-            if (cd.pid) html += prRow(t.pr_card_pid, cd.pid);
-          } else {
-            html += '<p class="note">' + esc(t.pr_prop_unavailable) + "</p>";
-          }
-          if (cd.yearBuilt) html += prRow(t.pr_card_built, String(cd.yearBuilt));
-          if (cd.zoning) html += prRow(t.pr_card_zoning, cd.zoning);
-          html += '</div><p class="note" style="margin-top:8px">' + esc(t.pr_card_note) + '</p><p class="note">' + esc(t.pr_card_src) + "</p>";
-          html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_permits_title) + "</h4>";
-          if (p.sources && p.sources.permits === "unavailable") {
-            html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_unavailable) + "</p>";
-          } else if (p.permits && p.permits.length) {
-            html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
-            p.permits.forEach(function(pm){ html += "<li>" + esc(pm.number) + " · " + esc(pm.date) + (pm.category ? " · " + esc(pm.category) : "") + (pm.typeOfWork ? " · " + esc(pm.typeOfWork) : "") + "</li>"; });
-            html += "</ul>";
-          } else {
-            html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_none) + "</p>";
-          }
-        } else if (p.supported && p.found) {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_unavailable) + "</p>";
-        } else if (p.supported) {
-          var psrc = p.sources || {};
-          html += '<p class="note" style="margin-top:6px">' + esc(psrc.parcels === "ambiguous" ? t.pr_prop_ambiguous : ((psrc.parcels === "unavailable" || psrc.geocode === "unavailable") ? t.pr_prop_unavailable : t.pr_prop_notfound)) + "</p>";
-        } else {
-          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_na) + "</p>";
-        }
-        html += "</div>";
-      }
-      var links = (p && p.links) || (h && h.links) || null;
-      if (links) {
-        var lk = [["bca", t.pr_link_bca], ["parcel", t.pr_link_parcel], ["walkscore", t.pr_link_walkscore], ["ltsa", t.pr_link_ltsa]], lhtml = "", lfirst = true;
-        lk.forEach(function(pair){
-          var u = prSafeUrl(links[pair[0]]);
-          if (!u) return;
-          lhtml += '<p class="note"' + (lfirst ? ' style="margin-top:8px"' : "") + '><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(pair[1]) + "</a></p>";
-          lfirst = false;
-        });
-        if (lhtml) html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_links_title) + "</h4>" + lhtml + "</div>";
-      }
-      if (prLast.address) {
-        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_est_title) + '</h4><p class="note" style="margin-top:6px">' + esc(t.pr_est_body) + '</p><div style="margin-top:10px"><button class="btn btn-spruce" type="button" id="prEstBtn">' + esc(t.pr_est_btn) + "</button></div></div>";
-      }
-      html += '<div class="out" style="margin-top:14px"><p class="note">' + esc(t.pr_gated_note) + "</p>" + prGatedHTML() + "</div>";
-      out.innerHTML = html;
-      if (prFocusPending) {
-        prFocusPending = false;
-        var fh = $("prFirstHead");
-        if (fh) { try { fh.focus({ preventScroll: true }); } catch (e) {} }
-      }
-      var tb = $("prTitleBtn");
-      if (tb) tb.addEventListener("click", function(){
-        if (prTitleBusy) return;
-        prTitleBusy = true;
-        tb.disabled = true;
-        var gen = prTitleGen;
-        prFetch(PR_API + "/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(function(r){
-          if (gen !== prTitleGen) return; /* a newer report superseded this request (PH-01 L3) — a stale response must not clear the newer request's busy flag (PH-verify L1) */
-          prTitleBusy = false;
-          var d = r.d || {};
-          /* every branch is explicit and the chain ends in an error
-             (PH-01 M1): success wording exists only for placed ===
-             true, the gated state shows the gated copy, and anything
-             unrecognised is pr_title_err — never a default success */
-          var key;
-          if (r.status === 429) key = "pr_err_rate";
-          else if (!d.ok) key = "pr_title_err";
-          else if (d.placed === true) key = "pr_title_placed";
-          else if (d.gated === true) key = "pr_title_sent"; /* the gated click placed nothing — the honest no-order line (PH-verify H1); the card explainer carries pr_title_gated */
-          else if (d.gated === false && d.state === "not_configured") key = "pr_title_unavailable";
-          else key = "pr_title_err";
-          prTitleKey = key;
-          var o = $("prTitleOut");
-          if (o) o.textContent = T()[key] || "";
-          var b2 = $("prTitleBtn");
-          if (b2) b2.disabled = (key !== "pr_err" && key !== "pr_err_rate" && key !== "pr_title_err");
-        });
-      });
-      var eb = $("prEstBtn");
-      if (eb) eb.addEventListener("click", function(){
-        var f = $("hvForm"); if (!f) return;
-        /* clear the previous estimate first (PR-02 M6): a stale figure
-           must never sit next to the new address, and it repaints on
-           language switches so hvLast goes too */
-        hvLast = null; hvErr = null;
-        var ho = $("hvOut"); if (ho) ho.innerHTML = "";
-        var ha = $("hvAddress");
-        if (ha && prLast.address && !ha.value.trim()) ha.value = prLast.address; /* never overwrite what the visitor typed */
-        var cityGuess = prLast.city || (prLast.hood && prLast.hood.cityName) || "";
-        var hc = $("hvCity"), matched = false;
-        if (hc && cityGuess) { for (var i = 0; i < hc.options.length; i++) if (hc.options[i].value === cityGuess) { hc.value = cityGuess; matched = true; break; } }
-        if (hc && !matched) hc.value = ""; /* placeholder, not a stale city */
-        var reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
-        f.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-        var ht = (hc && !hc.value) ? hc : $("hvType");
-        if (ht) try { ht.focus({ preventScroll: true }); } catch (e) {}
-      });
-    }
-    if ($("prForm")) $("prForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      if (prBusy) return;
-      var t = T();
-      var pc = prNormPostalInput($("prPostal").value);
-      var address = prNormAddrDigits($("prAddress").value);
-      address = (address.toWellFormed ? address.toWellFormed() : address).trim();
-      address = [...address].slice(0, 140).join("");
-      var citySel = $("prCity").value;
-      if (!pc) { prErrKey = "pr_err_postal"; prLast = null; paintReport(); return; }
-      if (address && !citySel) { prErrKey = "pr_err_city"; prLast = null; paintReport(); return; }
-      prBusy = true; prErrKey = null; prLast = null; prTitleKey = null; prTitleGen++; prTitleBusy = false;
-      var btn = $("prBtn"); btn.disabled = true; btn.textContent = t.pr_loading;
-      var out0 = $("prOut"); if (out0) { out0.setAttribute("aria-busy", "true"); out0.innerHTML = '<p class="note">' + esc(t.pr_loading) + "</p>"; }
-      /* both requests fire together (PR-02 H2) and each part keeps its
-         own outcome; the property request is skipped only when the
-         code cannot be in BC at all (a non-V FSA), and its answer is
-         discarded when the hood answer says out-of-area */
-      var hoodP = prFetch(PR_API + "/api/report/neighbourhood?pc=" + encodeURIComponent(pc.replace(/\s+/g, "")));
-      var propP = (address && pc.charAt(0) === "V") ? prFetch(PR_API + "/api/report/property", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: address, city: citySel }) }) : null;
-      Promise.all([hoodP, propP]).then(function(rs){
-        prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn;
-        var r1 = rs[0];
-        if (!(r1.status === 200 && r1.d && r1.d.ok)) {
-          prErrKey = r1.status === 429 ? "pr_err_rate" : (r1.status === 400 ? "pr_err_postal" : "pr_err");
-          prLast = null; paintReport(); return;
-        }
-        var hood = r1.d, prop = null;
-        if (propP && hood.inArea !== false) {
-          var r2 = rs[1];
-          prop = (r2.status === 200 && r2.d && r2.d.ok) ? r2.d : { failed: r2.status === 429 ? "rate" : "err" };
-        }
-        prLast = { hood: hood, prop: prop, address: address, city: citySel };
-        prFocusPending = true;
-        try { paintReport(); }
-        catch (err) { console.error(err); var o = $("prOut"); if (o) { o.setAttribute("aria-busy", "false"); o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } }
-        prLoadGates();
-      }).catch(function(err){ console.error(err); prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn; prErrKey = "pr_err"; prLast = null; try { paintReport(); } catch (e) { console.error(e); } });
-    });
-    /* language switches repaint the last report in the new language;
-       the langSel change listener below calls this hook (PR-02 L4) */
-    window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) { console.error(e); var o = $("prOut"); if (o) o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } } };
-    var prLangSel = $("langSel");
-    if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ if (window.__prRepaint) window.__prRepaint(); }, 0); });
-    buildPrCity();
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -1516,7 +1274,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang(); renderSellerTools();
+      renderAssistantLang(); renderKnowledge();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });

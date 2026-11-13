@@ -599,7 +599,7 @@
           </div>
           <div class="panel" style="margin-top:24px">
             <h3 style="font-size:21px" data-i18n="hv_title">¿Cuánto vale mi vivienda?</h3>
-            <p class="note" style="margin-top:6px" data-i18n="hv_sub">Un rango de estimación instantáneo y gratuito para tu vivienda, calculado solo a partir de viviendas comparables actualmente anunciadas en este sitio — los mismos datos que usa nuestra búsqueda. Es un punto de partida, no una valuación. Erfan hará un seguimiento con una evaluación completa y personal.</p>
+            <p class="note" style="margin-top:6px" data-i18n="hv_sub">Un rango gratuito e instantáneo del precio de venta de tu vivienda, calculado solo a partir de viviendas comparables actualmente anunciadas en este sitio — los mismos datos que usa nuestra búsqueda. Es un punto de partida, no una valuación. Erfan hará un seguimiento personal contigo.</p>
             <form id="hvForm" style="margin-top:16px">
               <div class="calc-inputs">
                 <div class="field wide"><label for="hvAddress" data-i18n="hv_address">Dirección</label><input id="hvAddress" type="text" autocomplete="address-line1" dir="auto" /></div>
@@ -615,7 +615,7 @@
               </div>
               <input type="text" id="hvHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="hvBtn" data-i18n="hv_btn">Obtener mi estimación</button></div>
-              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">Tus datos se usan solo para preparar tu evaluación y comunicarnos contigo al respecto.</span> <a href="#footer" data-i18n="hv_privacy_link">Contacto e información del sitio</a></p>
+              <p class="note" style="margin:10px 0 0"><span data-i18n="hv_privacy">Privacidad: lo que ingresas aquí se gestiona así. (1) Valoración de vivienda: tu nombre, la dirección de la propiedad, la ciudad, el teléfono, el correo electrónico y los datos de la propiedad que entregas (tipo, dormitorios, baños, superficie) se guardan en la base de datos de contactos de este sitio para que Erfan pueda preparar tu rango de precio de venta y comunicarse contigo al respecto. Se conservan hasta que pidas su eliminación o Erfan los elimine, y nunca se venden. Para eliminarlos, envía el mismo correo electrónico y la misma dirección de propiedad que registraste mediante el formulario de eliminación al final de esta página (o pídeselo directamente a Erfan): la eliminación es permanente. (2) Informe de propiedad: el código postal y la dirección que ingresas se envían al servidor de este sitio, que los pasa a servicios públicos de datos (OpenStreetMap y los datos abiertos de la Ciudad de Vancouver) para crear el informe. El texto que escribes no se guarda; la ubicación en el mapa encontrada para él se guarda en caché, bajo una clave codificada y no la dirección en sí, hasta por 30 días para que las búsquedas repetidas sean más rápidas.</span> <a href="#footer" data-i18n="hv_privacy_link">Contacto e información del sitio</a></p>
             </form>
             <div id="hvOut" role="status" aria-live="polite" style="margin-top:16px"></div>
           </div>
@@ -629,9 +629,23 @@
                 <div class="field wide"><label for="prAddress"><span data-i18n="hv_address">Dirección</span> <span class="note" data-i18n="pr_optional">(opcional — agrega el registro de la propiedad)</span></label><input id="prAddress" type="text" autocomplete="address-line1" dir="auto" maxlength="140" /></div>
               </div>
               <div style="margin-top:16px"><button class="btn btn-spruce" type="submit" id="prBtn" data-i18n="pr_btn">Crear mi informe</button></div>
-              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacidad: el código postal y la dirección que ingresas se envían a servicios públicos de datos (OpenStreetMap y los datos abiertos de la Ciudad de Vancouver) para construir este informe.</p>
+              <p class="note" style="margin-top:10px" data-i18n="pr_privacy">Privacidad: lo que ingresas aquí se gestiona así. (1) Valoración de vivienda: tu nombre, la dirección de la propiedad, la ciudad, el teléfono, el correo electrónico y los datos de la propiedad que entregas (tipo, dormitorios, baños, superficie) se guardan en la base de datos de contactos de este sitio para que Erfan pueda preparar tu rango de precio de venta y comunicarse contigo al respecto. Se conservan hasta que pidas su eliminación o Erfan los elimine, y nunca se venden. Para eliminarlos, envía el mismo correo electrónico y la misma dirección de propiedad que registraste mediante el formulario de eliminación al final de esta página (o pídeselo directamente a Erfan): la eliminación es permanente. (2) Informe de propiedad: el código postal y la dirección que ingresas se envían al servidor de este sitio, que los pasa a servicios públicos de datos (OpenStreetMap y los datos abiertos de la Ciudad de Vancouver) para crear el informe. El texto que escribes no se guarda; la ubicación en el mapa encontrada para él se guarda en caché, bajo una clave codificada y no la dirección en sí, hasta por 30 días para que las búsquedas repetidas sean más rápidas.</p>
             </form>
             <div id="prOut" role="status" aria-live="polite" style="margin-top:16px"></div>
+          </div>
+          <div class="panel" style="margin-top:24px" id="hv-delete">
+            <h3 style="font-size:21px">Elimina tus datos de valoración</h3>
+            <p class="note" style="margin-top:6px">¿Pediste una valoración de vivienda en esta página? Puedes eliminar todo lo guardado de esa solicitud. Ingresa el mismo correo electrónico y la misma dirección de propiedad que registraste.</p>
+            <form id="hvDelForm" style="margin-top:16px">
+              <div class="calc-inputs">
+                <div class="field"><label for="hvDelEmail">Correo electrónico</label><input id="hvDelEmail" type="email" autocomplete="email" /></div>
+                <div class="field wide"><label for="hvDelAddress">Dirección de la propiedad</label><input id="hvDelAddress" type="text" autocomplete="street-address" /></div>
+              </div>
+              <input type="text" id="hvDelHoney" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <div style="margin-top:16px"><button class="btn btn-line" type="submit" id="hvDelBtn">Eliminar mis datos</button></div>
+              <p class="note" id="hvDelOut" role="status" aria-live="polite" style="margin-top:10px" hidden>Listo. Si una solicitud de valoración coincidía con ese correo y esa dirección, ya se eliminó. Este mensaje es el mismo en ambos casos, para que el formulario no sirva para comprobar si una dirección está registrada.</p>
+              <p class="note" id="hvDelErr" role="alert" style="margin-top:10px;color:#c0392b" hidden>No se pudo enviar — revisa tu conexión e inténtalo de nuevo.</p>
+            </form>
           </div>
         </div>
       </section>
@@ -693,7 +707,7 @@
 
     <script>try{localStorage.setItem("erfan-re-lang","es")}catch(e){}</script>
     <script>window.PAGE_OF = {"listings":"es-listings.html","calculator":"es-mortgage-calculator.html","buyvsrent":"es-buy-vs-rent.html","afford":"es-affordability.html","invest":"es-investor-analysis.html","match":"es-ai-assistant.html#match","assistant":"es-ai-assistant.html#assistant","seller-tools":"#seller-tools","market-pulse":"es-market-pulse.html","guide":"es-first-time-buyers.html","fhsa":"es-first-time-buyers.html#fhsa","knowledge":"es-knowledge-centre.html","newsletter":"es-index.html#newsletter","contact":"es-contact.html"};</script>
-    <script src="bundle-shared.2acf2969.js"></script>
-    <script src="bundle-page-seller-tools.57fce5b6.js"></script>
+    <script src="bundle-shared.7ae2d34e.js"></script>
+    <script src="bundle-page-seller-tools.4214fedb.js"></script>
   </body>
 </html>

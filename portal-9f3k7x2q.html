@@ -301,6 +301,11 @@
         <div id="addLeadErr" style="color:#e5484d;margin-top:8px" hidden></div>
         <div id="addLeadExists" style="margin-top:8px" hidden></div>
       </div>
+      <div class="card" id="leadSourcesCard">
+        <h2>Lead sources</h2>
+        <div class="mut" style="margin-bottom:6px">Where the loaded leads came from, by stored source. Lead-magnet captures are broken out by their magnet tag underneath, so you can see which magnet produces.</div>
+        <div id="leadSourcesBody"><span class="mut">No leads loaded yet.</span></div>
+      </div>
       <div class="filters">
         <input type="search" id="leadSearch" placeholder="Search name, email, city…">
         <select id="stageFilter">
@@ -4979,7 +4984,23 @@
       renderLeads(); loadOverview();
     }).catch(function(){ if (!leads.length) toast("Could not load leads", true); });
   }
+  function renderLeadSources(){
+    var el = $("leadSourcesBody"); if (!el) return;
+    var counts = {}, magnets = {}, total = 0;
+    (leads || []).forEach(function(l){
+      var s = (l && l.source) || "unknown"; counts[s] = (counts[s] || 0) + 1; total++;
+      if (l && l.magnet) magnets[l.magnet] = (magnets[l.magnet] || 0) + 1;
+    });
+    if (!total) { el.innerHTML = '<span class="mut">No leads yet.</span>'; return; }
+    function rows(obj, indent){
+      return Object.keys(obj).sort(function(a, b){ return obj[b] - obj[a]; }).map(function(k){
+        return '<div style="display:flex;justify-content:space-between;gap:14px;padding:3px 0;' + (indent ? "padding-left:18px" : "") + '"><span>' + esc(k) + '</span><b>' + obj[k] + "</b></div>";
+      }).join("");
+    }
+    el.innerHTML = rows(counts, false) + (Object.keys(magnets).length ? '<div class="mut" style="margin:8px 0 2px">Lead magnets (by tag)</div>' + rows(magnets, true) : "");
+  }
   function renderLeads(){
+    renderLeadSources();
     var sf = $("stageFilter").value, inf = $("intentFilter").value;
     var q = ($("leadSearch").value || "").toLowerCase();
     var rows = leads.filter(function(l){
@@ -5502,7 +5523,7 @@
   // endpoints; nothing here invents a figure.
   function PU_TRIGGERS() { return [["lead_created", "New lead created"], ["valuation_submitted", "Valuation submitted"], ["viewing_booked", "Viewing booked"], ["viewing_cancelled", "Viewing cancelled"], ["stage_changed", "Stage changed"], ["search_match", "Saved-search match found"], ["lead_cold", "Lead went cold (days in Contacted)"]]; }
   function PU_ACTIONS() { return [["create_followup", "Create follow-up task"], ["queue_draft", "Queue a draft message (held)"], ["flag_hot", "Flag as hot"], ["portal_note", "Add a portal note (Today)"]]; }
-  function PU_SOURCES() { return ["site-form", "home-valuation", "viewing", "call", "canary"]; }
+  function PU_SOURCES() { return ["site-form", "home-valuation", "viewing", "call", "canary", "leadmagnet"]; } // "leadmagnet" added by System A (2026-11-12): the neighbourhood-report magnet stores its leads server-side under this source
   function PU_STAGE_LABEL() { return { new: "New", contacted: "Contacted", viewing: "Viewing", offer: "Offer", closed: "Closed", dropped: "Dropped" }; }
   function puMoney(n) { return "$" + Number(n || 0).toLocaleString("en-CA"); }
   function puAge(iso) { var t = Date.parse(iso); if (!isFinite(t)) return "—"; var h = Math.max(0, (Date.now() - t) / 3600000); if (h < 24) return Math.floor(h) + "h"; return Math.floor(h / 24) + "d"; }
