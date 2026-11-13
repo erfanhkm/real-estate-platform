@@ -1,67 +1,38 @@
-    function monthlyCost(l){
-      // Self-contained on purpose: paymentFor() lives in the calculator module,
-      // which is not present on every page this card/dialog code ships to.
-      var principal = l.price * 0.8;
-      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
-      var mort = principal * r / (1 - Math.pow(1 + r, -n));
-      var strata = l.strata || 0;
-      var tax = (l.tax || 0) / 12;
-      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
-      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
+    /* ---------- mortgage calculator ---------- */
+    function buildCalcSelects(){
+      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
+      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
+      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
     }
-    function cardHTML(l, why){
-      var t = T();
-      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
-        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
-      var preHTML = "";
-      if (l.pt === "presale"){
-        var pbits = [];
-        if (l.project) pbits.push(esc(l.project));
-        if (l.developer) pbits.push(esc(l.developer));
-        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
-          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
+    function paymentFor(principal, annualPct, years, perYear){
+      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
+      if (r <= 0) return principal / n;
+      return principal * r / (1 - Math.pow(1 + r, -n));
+    }
+    function calc(){
+      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
+          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
+          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
+      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
+      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
+      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
+      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
+      var premium = base * premRate, principal = base + premium;
+      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
+      $("payLabel").textContent = t["pay_" + freq];
+      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
+      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
+      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
+      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
+      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
+      var cw = $("calcWarn");
+      if (cw) {
+        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
+        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
+        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
+        else cw.style.display = "none";
       }
-      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
-      var cmpBtn = "";
-      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
-        var cOn = cmpSel.indexOf(l.mls) !== -1;
-        var cMax = !cOn && cmpSel.length >= 4;
-        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
-      }
-      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
-        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
-    /* ---------- match assistant ---------- */
-    function buildMatchSelects(){
-      keep($("mBudget"), function(sel){ opt(sel, "", T().any_price); PRICES.concat([2000000]).forEach(function(p){ opt(sel, String(p), fmt(p)); }); });
-      keep($("mBeds"), function(sel){ buildBedsSelect(sel); });
-      keep($("mCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("mType"), function(sel){ buildTypeSelect(sel); });
-    }
-    $("matchForm").addEventListener("submit", function(e){
-      e.preventDefault(); var t = T();
-      var budget = $("mBudget").value ? parseInt($("mBudget").value, 10) : Infinity,
-          beds = parseInt($("mBeds").value || "0", 10), city = $("mCity").value, type = $("mType").value;
-      var hits = LISTINGS.filter(function(l){
-        return l.price <= budget && l.beds >= beds && (!city || l.city === city) && (!type || l.type === type);
-      });
-      $("matchLine").style.display = ""; $("matchCount").textContent = fill(t.m_matches, {n: hits.length});
-      $("matchGrid").innerHTML = hits.length ? hits.map(function(l){
-        var why = [];
-        if (isFinite(budget)) why.push(fill(t.why_under, {x: fmt(budget - l.price)}));
-        why.push(fill(t.why_beds, {n: l.beds})); why.push(fill(t.why_city, {city: t.cities[l.city] || l.city}));
-        if (l.strata && l.strata <= 350) why.push(fill(t.why_strata, {x: fmt(l.strata)}));
-        try { return cardHTML(l, why); } catch(e){ return ""; }
-      }).join("") : '<div class="empty">'+esc(t.m_none)+"</div>";
-      $("matchGrid").scrollIntoView({behavior:"smooth", block:"nearest"});
-    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -949,13 +920,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      buildMatchSelects();
+      buildCalcSelects();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang();
-      $("matchGrid").innerHTML = ""; $("matchLine").style.display = "none";
+      calc(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
+    ["cPrice","cDown","cRate","cAmort","cFreq"].forEach(function(id){ $(id).addEventListener("input", calc); $(id).addEventListener("change", calc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1555,7 +1526,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +

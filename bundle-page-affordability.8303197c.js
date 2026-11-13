@@ -1,94 +1,26 @@
-    /* ---------- lead form + CRM ---------- */
-    function buildLeadSelects(){
-      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
-      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
-    }
-    function renderCRM(){
-      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
-      var t = T();
-      $("crmBody").innerHTML = LEADS.map(function(ld){
-        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
-        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
-          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
-          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
-          td(t.th_budget, esc(t[ld.budget] || "—")) +
-          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
-          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
-      }).join("");
-    }
-    function leadTsToken(){
-      var tok = "";
-      var r = document.querySelector('#leadForm input[name="cf-turnstile-response"]');
-      if (r) tok = r.value || "";
-      if (!tok && window.turnstile && turnstile.getResponse) { try { tok = turnstile.getResponse() || ""; } catch(e){} }
-      return tok;
-    }
-    function tsResetIn(formSel){
-      if (!(window.turnstile && turnstile.reset)) return;
-      var el = document.querySelector(formSel + " .cf-turnstile");
-      try { if (el) turnstile.reset(el); } catch(e){}
-    }
-    $("leadForm").addEventListener("submit", function(e){
-      e.preventDefault(); var t = T();
-      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
-          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
-          msg = $("lMsg").value.trim(), plang = $("lLang").value;
-      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
-      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
-      renderCRM();
-      var toast = $("leadToast");
-      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
-      function mailtoFallback(){
-        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
-          city: city ? (t.cities[city] || city) : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
-        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body.length > 1600 ? body.slice(0, 1600) + "…" : body);
-        showToast(t.l_fallback);
-      }
-      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
-      btn.disabled = true; btn.textContent = t.l_sending;
-      var payload = {
-        name: name, email: email, phone: phone || "—",
-        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
-        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
-        _subject: "New lead — EH REALTY website",
-        _template: "table", _captcha: "false",
-        _honey: $("lHoney").value
-      };
-      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
-      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
-      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
-      try {
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
-          signal: leadCtl ? leadCtl.signal : undefined
-        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
-      } catch(e){}
-      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
-      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
-      fetch("https://formsubmit.co/ajax/" + EMAIL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify(payload),
-        signal: fsCtl ? fsCtl.signal : undefined
-      }).then(function(res){
-        if (!res.ok) throw new Error("FormSubmit send failed");
-        return res.json();
-      }).then(function(data){
-        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
-        showToast(t.l_success);
-      }).catch(function(){
-        mailtoFallback();
-      }).then(function(){
-        if (fsTimer) clearTimeout(fsTimer);
-        tsResetIn("#leadForm");
-        btn.disabled = false; btn.textContent = btnLabel;
-      });
-    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
+    /* ---------- affordability (GDS / TDS) ---------- */
+    function affordCalc(){
+      var t = T();
+      var income = numVal("afIncome", 120000), debts = numVal("afDebts", 450), taxYr = numVal("afTax", 4200),
+          heat = numVal("afHeat", 120), strata = numVal("afStrata", 0), rate = numVal("afRate", 4.79),
+          amort = Math.max(1, numVal("afAmort", 25)), downPct = numVal("afDown", 20);
+      var gds = 0.39 * income / 12, tdsRoom = 0.44 * income / 12 - debts;
+      var isGds = gds <= tdsRoom;
+      var housingCap = Math.max(0, Math.min(gds, tdsRoom));
+      var payBudget = Math.max(0, housingCap - taxYr / 12 - heat - strata / 2);
+      var qualRate = Math.max(rate + 2, 5.25); /* stress test: contract rate + 2% or the 5.25% minimum qualifying rate, whichever is higher */
+      var r = Math.pow(1 + qualRate / 200, 2 / 12) - 1, n = amort * 12;
+      var maxMort = r > 0 ? payBudget * (1 - Math.pow(1 + r, -n)) / r : payBudget * n;
+      var maxPrice = downPct >= 100 ? 0 : (downPct <= 0 ? maxMort : maxMort / (1 - downPct / 100));
+      $("afMaxPrice").textContent = fmt(maxPrice);
+      $("afMaxMort").textContent = fmt(maxMort);
+      $("afBudget").textContent = fmt(payBudget);
+      $("afGds").textContent = fmt(gds);
+      $("afTds").textContent = fmt(Math.max(0, tdsRoom));
+      $("afLimit").textContent = isGds ? t.af_limit_gds : t.af_limit_tds;
+    }
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -974,13 +906,12 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      buildLeadSelects();
-      $("lLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderCRM(); renderAssistantLang();
+      affordCalc(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
+    ["afIncome","afDebts","afTax","afHeat","afStrata","afRate","afAmort","afDown"].forEach(function(id){ $(id).addEventListener("input", affordCalc); $(id).addEventListener("change", affordCalc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1580,7 +1511,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +

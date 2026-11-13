@@ -1,122 +1,151 @@
-    var GUIDE = {
-    en:"<h3>The buying steps in BC</h3><ol>"
-      +"<li><b>Get pre-approved.</b> A lender or mortgage broker confirms your budget using the GDS/TDS ratios and the stress test — before you start shopping.</li>"
-      +"<li><b>Save your down payment and closing costs.</b> First-time buyers can use the FHSA (First Home Savings Account) and the RRSP Home Buyers' Plan (withdraw up to $60,000 from your RRSP, tax-free, as of 2026).</li>"
-      +"<li><b>Set your search criteria.</b> Cities, property type, must-haves and a budget range — so you can compare new listings against the same yardstick.</li>"
-      +"<li><b>View homes and compare.</b> For condos and townhouses, read the strata documents: meeting minutes, the depreciation report, and any special levies.</li>"
-      +"<li><b>Write an offer.</b> Price, deposit, dates, and subject conditions (financing, inspection, strata documents) with clear deadlines.</li>"
-      +"<li><b>Remove subjects and pay the deposit.</b> Once the conditions are met, the contract is firm and the deposit is held in trust.</li>"
-      +"<li><b>Complete the purchase.</b> Your lawyer or notary registers the transfer, the property transfer tax is paid, and the balance is due on the completion date.</li>"
-      +"<li><b>Possession day.</b> You get the keys — and start budgeting for property tax, insurance, strata and maintenance.</li></ol>"
-      +"<h3>Minimum down payment</h3><ul>"
-      +"<li><b>Under $500,000:</b> 5% of the purchase price.</li>"
-      +"<li><b>$500,000 to $1,499,999:</b> 5% of the first $500,000, plus 10% of the portion above $500,000.</li>"
-      +"<li><b>$1,500,000 and over:</b> 20% of the purchase price.</li>"
-      +"<li>With less than 20% down, mortgage default insurance (CMHC) is required and the premium is added to your mortgage. Homes priced at $1.5M and over are not eligible for insured mortgages — verify the current eligibility rules.</li></ul>"
-      +"<h3>BC property transfer tax (PTT)</h3><ul>"
-      +"<li>1% on the first $200,000 of the price.</li>"
-      +"<li>2% on the portion from $200,000 to $2,000,000.</li>"
-      +"<li>3% on the portion above $2,000,000 (an additional 2% can apply to the residential portion above $3,000,000).</li>"
-      +"<li><b>First-time buyer exemption:</b> as of October 2026, qualifying first-time buyers pay no tax on the first $500,000 (a saving of up to $8,000) on homes up to $835,000, with a partial exemption up to $860,000. You must be a Canadian citizen or permanent resident, a BC resident, and have never owned a principal residence. Thresholds change — verify the current rules at gov.bc.ca before relying on them.</li>"
-      +"<li>Newly built homes have their own exemption — full up to $1,100,000 and partial up to $1,150,000 — and an additional property transfer tax for foreign buyers can apply in specified areas.</li></ul>"
-      +"<h3>Closing costs to budget for</h3><ul>"
-      +"<li>Property transfer tax (above).</li>"
-      +"<li>Legal / notary fees and disbursements.</li>"
-      +"<li>Home inspection and appraisal fees.</li>"
-      +"<li>Title insurance and registration fees.</li>"
-      +"<li>GST (5%) on newly built homes — not charged on resale homes. Since March 2026, first-time buyers can also claim a federal GST rebate on new homes: a full rebate up to $1,000,000, phasing out to $1,500,000.</li>"
-      +"<li>Adjustments (prepaid property taxes, utilities, strata fees), moving costs, and utility hookups.</li>"
-      +"<li><b>Rule of thumb:</b> budget roughly 1.5%–4% of the purchase price for closing costs, on top of your down payment.</li></ul>",
-    fa:"<h3>مراحل خرید خانه در BC</h3><ol>"
-      +"<li><b>پیش‌تأیید بگیرید.</b> وام‌دهنده یا کارگزار وام، پیش از شروع جست‌وجو، با نسبت‌های GDS/TDS و تست استرس بودجه‌تان را تأیید می‌کند.</li>"
-      +"<li><b>پیش‌پرداخت و هزینه‌های پایانی را پس‌انداز کنید.</b> خریداران اولی می‌توانند از حساب FHSA (پس‌انداز خانه‌ی اول) و طرح Home Buyers' Plan از RRSP استفاده کنند (با این طرح می‌توانید تا ۶۰٬۰۰۰ دلار بدون مالیات از RRSP برداشت کنید؛ طبق قواعد ۲۰۲۶).</li>"
-      +"<li><b>معیارهای جست‌وجو را مشخص کنید.</b> شهر، نوع ملک، بایدها و بازه‌ی بودجه — تا فایل‌های جدید را با یک معیار ثابت مقایسه کنید.</li>"
-      +"<li><b>خانه‌ها را ببینید و مقایسه کنید.</b> برای آپارتمان و تاون‌هاوس، اسناد ساختمان را بخوانید: صورت‌جلسه‌ها، گزارش استهلاک و هزینه‌های ویژه (levy).</li>"
-      +"<li><b>پیشنهاد (آفر) بنویسید.</b> قیمت، ودیعه، تاریخ‌ها و شروط (تأمین مالی، بازرسی، اسناد ساختمان) با مهلت مشخص.</li>"
-      +"<li><b>شروط را بردارید و ودیعه را بپردازید.</b> با برآورده‌شدن شرط‌ها قرارداد قطعی می‌شود و ودیعه نزد امانی نگه داشته می‌شود.</li>"
-      +"<li><b>معامله را کامل کنید.</b> وکیل یا دفتر اسناد رسمی انتقال را ثبت می‌کند، مالیات انتقال ملک پرداخت می‌شود و مانده در روز تکمیل (completion) سررسید است.</li>"
-      +"<li><b>روز تحویل (possession).</b> کلیدها را می‌گیرید — و بودجه‌بندی مالیات ملک، بیمه، شارژ و نگهداری شروع می‌شود.</li></ol>"
-      +"<h3>حداقل پیش‌پرداخت</h3><ul>"
-      +"<li><b>کمتر از ۵۰۰ هزار دلار:</b> ۵٪ قیمت خرید.</li>"
-      +"<li><b>۵۰۰ هزار تا ۱٬۴۹۹٬۹۹۹ دلار:</b> ۵٪ از ۵۰۰ هزار دلار اول، به‌علاوه‌ی ۱۰٪ از بخش بالاتر از ۵۰۰ هزار دلار.</li>"
-      +"<li><b>۱٫۵ میلیون دلار و بیشتر:</b> ۲۰٪ قیمت خرید.</li>"
-      +"<li>با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی نکول وام (CMHC) الزامی است و حق بیمه‌اش به وام اضافه می‌شود. خانه‌های ۱٫۵ میلیون دلار به بالا واجد شرایط وام بیمه‌شده نیستند — قواعد جاری احراز صلاحیت را بررسی کنید.</li></ul>"
-      +"<h3>مالیات انتقال ملک BC ‏(PTT)</h3><ul>"
-      +"<li>۱٪ روی ۲۰۰ هزار دلار اول قیمت.</li>"
-      +"<li>۲٪ روی بخش ۲۰۰ هزار تا ۲ میلیون دلار.</li>"
-      +"<li>۳٪ روی بخش بالاتر از ۲ میلیون دلار (۲٪ اضافی می‌تواند روی بخش مسکونی بالاتر از ۳ میلیون دلار اعمال شود).</li>"
-      +"<li><b>معافیت خریدار اولی:</b> طبق قواعد اکتبر ۲۰۲۶، خریداران اولی واجد شرایط برای خانه‌های تا ۸۳۵ هزار دلار، از مالیات روی ۵۰۰ هزار دلار اول (تا سقف ۸٬۰۰۰ دلار) معاف‌اند و تا ۸۶۰ هزار دلار معافیت نسبی می‌گیرند. باید شهروند یا مقیم دائم کانادا و ساکن BC باشید و هرگز مالک محل سکونت اصلی نبوده باشید. سقف‌ها تغییر می‌کنند — پیش از اتکا، قواعد جاری را در gov.bc.ca بررسی کنید.</li>"
-      +"<li>خانه‌های نوساز معافیت جداگانه‌ی خودشان را دارند: معافیت کامل تا ۱٫۱ میلیون دلار و نسبی تا ۱٫۱۵ میلیون دلار. در مناطق مشخص، مالیات اضافی انتقال برای خریداران خارجی هم اعمال می‌شود.</li></ul>"
-      +"<h3>هزینه‌های پایانی که باید بودجه‌بندی کنید</h3><ul>"
-      +"<li>مالیات انتقال ملک (بالا).</li>"
-      +"<li>هزینه‌های وکیل / دفتر اسناد رسمی و مخارج اداری.</li>"
-      +"<li>هزینه‌ی بازرسی خانه و ارزیابی (appraisal).</li>"
-      +"<li>بیمه‌ی مالکیت (title insurance) و هزینه‌های ثبت.</li>"
-      +"<li>مالیات GST ‏(۵٪) روی خانه‌های نوساز — روی خانه‌های دست‌دوم اعمال نمی‌شود. از مارس ۲۰۲۶، خریداران اولی می‌توانند برای خانه‌های نوساز از تخفیف فدرال GST هم استفاده کنند: تخفیف کامل تا ۱ میلیون دلار و کاهشی تا ۱٫۵ میلیون دلار.</li>"
-      +"<li>تعدیل‌ها (مالیات ملک، آب‌وبرق و شارژ پیش‌پرداخت‌شده)، هزینه‌ی اسباب‌کشی و اتصال خدمات.</li>"
-      +"<li><b>قاعده‌ی سرانگشتی:</b> برای هزینه‌های پایانی، علاوه بر پیش‌پرداخت، حدود ۱٫۵ تا ۴٪ قیمت خرید را کنار بگذارید.</li></ul>",
-    hi:"<h3>BC में खरीद के चरण</h3><ol>"
-      +"<li><b>पूर्व-अनुमोदन लें।</b> ऋणदाता या मॉर्गेज ब्रोकर, खोज शुरू करने से पहले, GDS/TDS अनुपात और स्ट्रेस टेस्ट से आपका बजट पुष्टि करता है।</li>"
-      +"<li><b>डाउन पेमेंट और समापन लागत बचाएँ।</b> पहली बार खरीदार FHSA (First Home Savings Account) और RRSP Home Buyers' Plan का उपयोग कर सकते हैं (इस योजना से आप अपने RRSP से $60,000 तक कर-मुक्त निकाल सकते हैं, 2026 के अनुसार)।</li>"
-      +"<li><b>अपने खोज मानदंड तय करें।</b> शहर, प्रॉपर्टी प्रकार, अनिवार्य चीज़ें और एक बजट सीमा — ताकि आप नई लिस्टिंग की तुलना एक ही पैमाने से कर सकें।</li>"
-      +"<li><b>घर देखें और तुलना करें।</b> कॉन्डो और टाउनहाउस के लिए स्ट्राटा दस्तावेज़ पढ़ें: बैठक कार्यवृत्त (minutes), मूल्यह्रास रिपोर्ट और कोई विशेष शुल्क (levy)।</li>"
-      +"<li><b>ऑफ़र लिखें।</b> कीमत, जमा, तिथियाँ और स्पष्ट समय-सीमा वाले शर्त-विषय (वित्तपोषण, निरीक्षण, स्ट्राटा दस्तावेज़)।</li>"
-      +"<li><b>शर्तें हटाएँ और जमा दें।</b> शर्तें पूरी होते ही अनुबंध पक्का हो जाता है और जमा ट्रस्ट में रखा जाता है।</li>"
-      +"<li><b>खरीद पूरी करें।</b> आपका वकील या नोटरी हस्तांतरण पंजीकृत करता है, संपत्ति हस्तांतरण कर चुकता होता है और शेष राशि समापन तिथि पर देय होती है।</li>"
-      +"<li><b>कब्ज़े का दिन।</b> आपको चाबियाँ मिलती हैं — और संपत्ति कर, बीमा, स्ट्राटा व रखरखाव का बजट शुरू होता है।</li></ol>"
-      +"<h3>न्यूनतम डाउन पेमेंट</h3><ul>"
-      +"<li><b>$500,000 से कम:</b> खरीद कीमत का 5%।</li>"
-      +"<li><b>$500,000 से $1,499,999:</b> पहले $500,000 का 5%, और $500,000 से ऊपर के हिस्से का 10%।</li>"
-      +"<li><b>$1,500,000 और अधिक:</b> खरीद कीमत का 20%।</li>"
-      +"<li>20% से कम डाउन पेमेंट पर मॉर्गेज चूक बीमा (CMHC) अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ता है। $1.5M और अधिक कीमत के घर बीमित मॉर्गेज के पात्र नहीं हैं — वर्तमान पात्रता नियम जाँचें।</li></ul>"
-      +"<h3>BC संपत्ति हस्तांतरण कर (PTT)</h3><ul>"
-      +"<li>कीमत के पहले $200,000 पर 1%।</li>"
-      +"<li>$200,000 से $2,000,000 के हिस्से पर 2%।</li>"
-      +"<li>$2,000,000 से ऊपर के हिस्से पर 3% ($3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% लग सकता है)।</li>"
-      +"<li><b>पहली बार खरीदार छूट:</b> अक्टूबर 2026 के अनुसार, पात्र पहली बार खरीदार $835,000 तक के घरों पर पहले $500,000 पर लगने वाले कर (अधिकतम $8,000) से छूट पाते हैं, और $860,000 तक आंशिक छूट मिलती है। आपको कनाडा का नागरिक या स्थायी निवासी, BC निवासी होना चाहिए और पहले कभी मुख्य निवास का मालिक नहीं होना चाहिए। सीमाएँ बदलती रहती हैं — भरोसा करने से पहले gov.bc.ca पर वर्तमान नियम जाँचें।</li>"
-      +"<li>नए बने घरों की अपनी छूट है: $1,100,000 तक पूर्ण और $1,150,000 तक आंशिक। निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर भी लग सकता है।</li></ul>"
-      +"<h3>बजट में रखने योग्य समापन लागतें</h3><ul>"
-      +"<li>संपत्ति हस्तांतरण कर (ऊपर)।</li>"
-      +"<li>वकील / नोटरी शुल्क और खर्चे।</li>"
-      +"<li>गृह निरीक्षण और मूल्यांकन (appraisal) शुल्क।</li>"
-      +"<li>टाइटल बीमा और पंजीकरण शुल्क।</li>"
-      +"<li>नए बने घरों पर GST (5%) — पुनर्विक्रय घरों पर नहीं लगता। मार्च 2026 से, पहली बार खरीदार नए घरों पर संघीय GST छूट का दावा भी कर सकते हैं: $1,000,000 तक पूर्ण छूट, $1,500,000 तक क्रमिक कमी।</li>"
-      +"<li>समायोजन (पूर्व-चुकता संपत्ति कर, उपयोगिताएँ, स्ट्राटा शुल्क), स्थानांतरण लागत और उपयोगिता कनेक्शन।</li>"
-      +"<li><b>सामान्य नियम:</b> डाउन पेमेंट के अलावा, समापन लागतों के लिए खरीद कीमत का लगभग 1.5%–4% बजट रखें।</li></ul>",
-    zh:"<h3>在 BC 买房的步骤</h3><ol>"
-      +"<li><b>先取得预批。</b>在开始看房前,贷款机构或房贷经纪会用 GDS/TDS 比率和压力测试确认您的预算。</li>"
-      +"<li><b>存够首付和过户费用。</b>首次购房者可以使用 FHSA(首次购房储蓄账户)和 RRSP 的购房者计划(Home Buyers' Plan)(通过该计划可从 RRSP 免税提取最高 $60,000,截至 2026 年)。</li>"
-      +"<li><b>确定您的搜索标准。</b>城市、物业类型、必备条件和预算范围——这样您就能用同一把尺子比较新房源。</li>"
-      +"<li><b>看房并比较。</b>购买公寓和联排别墅时,务必阅读物业文件:会议记录、折旧报告和任何特别征费。</li>"
-      +"<li><b>提交报价(offer)。</b>价格、定金、日期和附带条件(贷款、验房、物业文件),并设定明确的截止日期。</li>"
-      +"<li><b>移除条件并支付定金。</b>条件满足后合同即成定局,定金由信托保管。</li>"
-      +"<li><b>完成交易。</b>您的律师或公证人登记过户,缴纳房产转让税,余款在成交日到期。</li>"
-      +"<li><b>交房日。</b>您拿到钥匙 — 同时开始为地税、保险、管理费和维护做预算。</li></ol>"
-      +"<h3>最低首付</h3><ul>"
-      +"<li><b>$500,000 以下:</b>房价的 5%。</li>"
-      +"<li><b>$500,000 至 $1,499,999:</b>首 $500,000 的 5%,加上超出 $500,000 部分的 10%。</li>"
-      +"<li><b>$1,500,000 及以上:</b>房价的 20%。</li>"
-      +"<li>首付低于 20% 时必须购买房贷违约保险(CMHC),保费计入贷款。$150 万及以上的房屋不符合保险型房贷资格 — 请核实当前资格规则。</li></ul>"
-      +"<h3>BC 房产转让税(PTT)</h3><ul>"
-      +"<li>房价首 $200,000 部分:1%。</li>"
-      +"<li>$200,000 至 $2,000,000 部分:2%。</li>"
-      +"<li>$2,000,000 以上部分:3%($3,000,000 以上的住宅部分可能另加 2%)。</li>"
-      +"<li><b>首次购房者减免:</b>截至 2026 年 10 月,符合条件的首次购房者购买 $835,000 以内的房屋,可免除首 $500,000 部分的税款(最高 $8,000),$860,000 以内可获部分减免。您必须是加拿大公民或永久居民、BC 居民,且从未拥有过主要居所。门槛会变化 — 依赖之前请先到 gov.bc.ca 核实当前规则。</li>"
-      +"<li>新建房屋有单独的减免:价值 $1,100,000 以内全额减免,$1,150,000 以内部分减免。在指定地区,外国买家还可能需缴纳额外转让税。</li></ul>"
-      +"<h3>需要预算的过户费用</h3><ul>"
-      +"<li>房产转让税(见上)。</li>"
-      +"<li>律师 / 公证费及杂费。</li>"
-      +"<li>验房费和评估费。</li>"
-      +"<li>产权保险和登记费。</li>"
-      +"<li>新建房屋的 GST(5%)— 二手房不收取。自 2026 年 3 月起,首次购房者购买新建房屋还可申请联邦 GST 退税:$1,000,000 以内全额退税,$1,500,000 以内逐步递减。</li>"
-      +"<li>调整项(预付的地税、水电费、管理费)、搬家费和开通水电的费用。</li>"
-      +"<li><b>经验法则:</b>除首付外,过户费用约为房价的 1.5%–4%。</li></ul>",
-    es:"<h3>Los pasos para comprar en BC</h3><ol><li><b>Obtenga una preaprobación.</b> Una entidad prestamista o un corredor hipotecario confirma su presupuesto utilizando las ratios GDS/TDS y la prueba de estrés — antes de que empiece a buscar.</li><li><b>Ahorre para la cuota inicial y los costos de cierre.</b> Los compradores primerizos pueden utilizar la FHSA (First Home Savings Account) y el Plan de Compradores de Vivienda de los RRSP (Home Buyers' Plan) (retirar hasta $60,000 de su RRSP, libre de impuestos, a partir de 2026).</li><li><b>Defina sus criterios de búsqueda.</b> Ciudades, tipo de propiedad, requisitos imprescindibles y un rango de presupuesto, para poder comparar las nuevas opciones con el mismo criterio.</li><li><b>Visite viviendas y compare.</b> En el caso de condominios y casas adosadas, lea los documentos de la strata: las actas de las reuniones, el informe de depreciación y cualquier cuota extraordinaria.</li><li><b>Presente una oferta.</b> Precio, depósito, fechas y condiciones suspensivas (financiamiento, inspección, documentos de la strata) con plazos claros.</li><li><b>Retire las condiciones y pague el depósito.</b> Una vez cumplidas las condiciones, el contrato queda en firme y el depósito se mantiene en fideicomiso.</li><li><b>Complete la compra.</b> Su abogado o notario registra la transferencia, se paga el impuesto de transferencia de la propiedad y el saldo vence en la fecha de cierre.</li><li><b>Día de posesión.</b> Recibe las llaves, y empieza a presupuestar el impuesto predial, el seguro, la cuota de mantenimiento de la strata y el mantenimiento.</li></ol><h3>Cuota inicial mínima</h3><ul><li><b>Menos de $500,000:</b> 5% del precio de compra.</li><li><b>De $500,000 a $1,499,999:</b> 5% de los primeros $500,000, más 10% de la parte que supere los $500,000.</li><li><b>$1,500,000 o más:</b> 20% del precio de compra.</li><li>Con una cuota inicial inferior al 20%, se requiere un seguro de incumplimiento hipotecario (CMHC) y la prima se suma a su hipoteca. Las viviendas con un precio de $1.5M o más no son elegibles para hipotecas aseguradas — verifique las normas de elegibilidad vigentes.</li></ul><h3>Impuesto de transferencia de la propiedad (PTT) de BC</h3><ul><li>1% sobre los primeros $200,000 del precio.</li><li>2% sobre la parte entre $200,000 y $2,000,000.</li><li>3% sobre la parte que supere los $2,000,000 (puede aplicarse un 2% adicional a la parte residencial que supere los $3,000,000).</li><li><b>Exención para compradores primerizos:</b> a partir de octubre de 2026, los compradores primerizos que califiquen no pagan impuesto sobre los primeros $500,000 (un ahorro de hasta $8,000) en viviendas de hasta $835,000, con una exención parcial hasta $860,000. Debe ser ciudadano canadiense o residente permanente, residente de BC, y nunca haber sido propietario de una residencia principal. Los umbrales cambian — verifique las normas vigentes en gov.bc.ca antes de basar su decisión en ellas.</li><li>Las viviendas de nueva construcción tienen su propia exención — total hasta $1,100,000 y parcial hasta $1,150,000 — y puede aplicarse un impuesto adicional de transferencia de la propiedad para compradores extranjeros en las zonas especificadas.</li></ul><h3>Costos de cierre a presupuestar</h3><ul><li>Impuesto de transferencia de la propiedad (arriba).</li><li>Honorarios de abogado / notario y desembolsos.</li><li>Honorarios de inspección de la vivienda y de avalúo.</li><li>Seguro de título y tarifas de registro.</li><li>GST (5%) en viviendas de nueva construcción — no se cobra en viviendas de reventa. Desde marzo de 2026, los compradores primerizos también pueden reclamar un reembolso federal del GST en viviendas nuevas: un reembolso total hasta $1,000,000, con eliminación gradual hasta $1,500,000.</li><li>Ajustes (impuestos prediales prepagados, servicios públicos, cuotas de mantenimiento), costos de mudanza y conexiones de servicios públicos.</li><li><b>Regla general:</b> presupueste aproximadamente el 1.5%–4% del precio de compra para los costos de cierre, además de su cuota inicial.</li></ul>"
-    };
+    /* ---------- mortgage calculator ---------- */
+    function buildCalcSelects(){
+      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
+      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
+      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
+    }
+    function paymentFor(principal, annualPct, years, perYear){
+      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
+      if (r <= 0) return principal / n;
+      return principal * r / (1 - Math.pow(1 + r, -n));
+    }
+    function calc(){
+      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
+          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
+          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
+      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
+      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
+      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
+      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
+      var premium = base * premRate, principal = base + premium;
+      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
+      $("payLabel").textContent = t["pay_" + freq];
+      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
+      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
+      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
+      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
+      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
+      var cw = $("calcWarn");
+      if (cw) {
+        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
+        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
+        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
+        else cw.style.display = "none";
+      }
+    }
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    /* ---------- first-time buyer guide ---------- */
-    function renderGuide(){ $("guideBody").innerHTML = GUIDE[lang] || GUIDE.en; }
+    /* ---------- investor analysis ---------- */
+    function investCalc(){
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
+      var down = price * downPct / 100, L = Math.max(0, price - down);
+      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
+      var effRent = rent * (1 - vac / 100), opex = tax + strata + ins + maint;
+      var noiYr = (effRent - opex) * 12, cf = effRent - opex - P;
+      var cap = price > 0 ? noiYr / price * 100 : 0, coc = down > 0 ? cf * 12 / down * 100 : 0;
+      var cfEl = $("ivCf"); cfEl.textContent = fmt(cf); cfEl.className = cf < 0 ? "neg" : "";
+      $("ivNoi").textContent = fmt(noiYr);
+      $("ivCap").textContent = cap.toFixed(2) + "%";
+      var cocEl = $("ivCoc"); cocEl.textContent = coc.toFixed(2) + "%"; cocEl.className = coc < 0 ? "neg" : "";
+      $("ivCashIn").textContent = fmt(down);
+    }
+    /* ---------- investor report export (print view + downloadable HTML) ---------- */
+    var RP_LOCALES = {en:"en-CA", fa:"fa-IR-u-ca-gregory", hi:"hi-IN", zh:"zh-CN", es:"es"};
+    var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#15130e;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
+      + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
+      + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
+      + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
+      + "h1,h2{font-family:Georgia,serif}"
+      + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
+      + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
+      + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
+      + ".rp-wrap{max-width:720px;margin:0 auto;color:#15130e}"
+      + ".rp-brand{font-size:20px;font-weight:800;color:#0b0b0b}"
+      + ".rp-brandsub{color:#6e685b;font-size:13.5px;margin-top:2px}"
+      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0b0b0b}"
+      + ".rp-meta{color:#6e685b;font-size:14px;margin:0 0 6px}"
+      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0b0b0b}"
+      + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
+      + ".rp-table th{text-align:start;font-weight:600;color:#3a362c;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#6e685b;border:1px solid #e4dfd3;border-radius:9px;padding:12px 14px}"
+      + ".rp-foot{margin-top:16px;font-size:14.5px}"
+      + ".rp-foot a{color:#0b0b0b;font-weight:700}";
+    function reportData(){
+      var t = T();
+      try { investCalc(); } catch(e){}
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
+      var down = price * downPct / 100, L = Math.max(0, price - down);
+      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0; /* same payment investCalc uses internally */
+      return {
+        inputs: [
+          [t.iv_price, fmt(price)],
+          [t.iv_down, downPct + "%"],
+          [t.iv_rate, rate + "%"],
+          [t.iv_amort, amort + " " + t.rp_years],
+          [t.iv_rent, fmt(rent)],
+          [t.iv_tax, fmt(tax)],
+          [t.iv_strata, fmt(strata)],
+          [t.iv_ins, fmt(ins)],
+          [t.iv_maint, fmt(maint)],
+          [t.iv_vac, vac + "%"]
+        ],
+        outputs: [
+          [t.rp_pay, fmt(P)],
+          [t.iv_cf, $("ivCf").textContent],
+          [t.iv_noi, $("ivNoi").textContent],
+          [t.iv_cap, $("ivCap").textContent],
+          [t.iv_coc, $("ivCoc").textContent],
+          [t.iv_cashin, $("ivCashIn").textContent]
+        ]
+      };
+    }
+    function rpTable(rows){
+      return '<table class="rp-table"><tbody>' + rows.map(function(r){
+        return '<tr><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+    }
+    function reportHTML(){
+      var t = T(), d = reportData();
+      var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
+      return '<div class="rp-wrap">'
+        + '<div class="rp-brand">EH REALTY</div>'
+        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
+        + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
+        + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
+        + '<h2 class="rp-h">' + esc(t.rp_inputs) + "</h2>" + rpTable(d.inputs)
+        + '<h2 class="rp-h">' + esc(t.rp_outputs) + "</h2>" + rpTable(d.outputs)
+        + '<p class="rp-disc">' + esc(t.rp_disclaimer) + "</p>"
+        + '<p class="rp-foot">' + esc(t.rp_contact) + ' <a href="mailto:' + EMAIL + '">' + EMAIL + "</a></p>"
+        + "</div>";
+    }
+    function buildReport(){
+      var root = $("ivReport");
+      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
+      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
+      root.innerHTML = reportHTML();
+    }
+    function downloadReport(){
+      var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
+      var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
+        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+        + "<title>" + esc(T().rp_title) + " — EH REALTY</title>"
+        + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
+      var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "investment-analysis-report-" + lang + ".html";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    }
+    $("ivPrintBtn").addEventListener("click", function(){ buildReport(); window.print(); });
+    $("ivDownloadBtn").addEventListener("click", downloadReport);
+    window.addEventListener("beforeprint", buildReport);
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -124,56 +153,6 @@
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
-    /* ---------- FHSA contribution tracker ---------- */
-    var FH_CUR = new Date().getFullYear();
-    var fhAmounts = {};
-    function fhStartYear(){
-      var s = parseInt($("fhStart").value, 10);
-      if (isNaN(s)) s = FH_CUR;
-      return Math.min(Math.max(s, 2023), FH_CUR);
-    }
-    function fhBuildRows(){
-      var start = fhStartYear(), box = $("fhRows"), html = "";
-      for (var y = start; y <= FH_CUR; y++){
-        var v = fhAmounts[y] != null ? fhAmounts[y] : "";
-        html += '<div class="field"><label for="fhAmt' + y + '">' + y + " — " + esc(T().fh_contrib) + '</label><input id="fhAmt' + y + '" type="number" min="0" max="40000" step="100" data-year="' + y + '" value="' + esc(v) + '" /></div>';
-      }
-      box.innerHTML = html;
-      box.querySelectorAll("input").forEach(function(inp){
-        inp.addEventListener("input", function(){ fhAmounts[inp.getAttribute("data-year")] = inp.value; fhsaCalc(false); });
-      });
-    }
-    function fhsaCalc(rebuild){
-      if (rebuild !== false) fhBuildRows();
-      var t = T(), start = fhStartYear();
-      var total = 0, roomNow = 0;
-      for (var y = start; y <= FH_CUR; y++){
-        var accruedBefore = Math.min((y - start) * 8000, 40000);
-        var unusedPrev = Math.max(0, accruedBefore - total);
-        var avail = Math.max(0, Math.min(8000 + Math.min(unusedPrev, 8000), 40000 - total));
-        var raw = parseFloat(fhAmounts[y]); if (isNaN(raw) || raw < 0) raw = 0;
-        total += Math.min(raw, avail);
-        if (y === FH_CUR) roomNow = avail;
-      }
-      var accruedAll = Math.min((FH_CUR - start + 1) * 8000, 40000);
-      var unusedAll = Math.max(0, accruedAll - total);
-      var remain = Math.max(0, 40000 - total);
-      var carryNext = Math.min(unusedAll, 8000, remain);
-      $("fhTotal").textContent = fmt(total);
-      $("fhRoomL").textContent = fill(t.fh_room, {y: FH_CUR});
-      $("fhRoom").textContent = fmt(roomNow);
-      $("fhCarry").textContent = fmt(carryNext);
-      $("fhRemain").textContent = fmt(remain);
-      var pct = Math.min(100, total / 400);
-      $("fhPct").textContent = (Math.round(pct * 10) / 10) + "%";
-      $("fhBar").style.width = pct + "%";
-      var pace = total / (FH_CUR - start + 1), proj = $("fhProj");
-      if (remain <= 0) proj.textContent = t.fh_proj_done;
-      else if (pace > 0) proj.textContent = fill(t.fh_proj, {x: fmt(pace), y: FH_CUR + Math.ceil(remain / pace)});
-      else proj.textContent = t.fh_proj_none;
-    }
-    $("fhStart").addEventListener("input", function(){ fhsaCalc(true); });
-    $("fhStart").addEventListener("change", function(){ fhsaCalc(true); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
     en:{ai_sub:"Site answers first — web search for current market questions",
@@ -1053,10 +1032,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderGuide(); fhsaCalc(true); renderAssistantLang();
+      investCalc(); renderAssistantLang(); buildReport();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
+    ["ivPrice","ivDown","ivRate","ivAmort","ivRent","ivTax","ivStrata","ivIns","ivMaint","ivVac"].forEach(function(id){ $(id).addEventListener("input", investCalc); $(id).addEventListener("change", investCalc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1656,7 +1636,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +

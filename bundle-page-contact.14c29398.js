@@ -1,83 +1,94 @@
-    /* ---------- mortgage calculator ---------- */
-    function buildCalcSelects(){
-      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
-      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
-      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
+    /* ---------- lead form + CRM ---------- */
+    function buildLeadSelects(){
+      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
+      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
+      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
     }
-    function paymentFor(principal, annualPct, years, perYear){
-      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
-      if (r <= 0) return principal / n;
-      return principal * r / (1 - Math.pow(1 + r, -n));
+    function renderCRM(){
+      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
+      var t = T();
+      $("crmBody").innerHTML = LEADS.map(function(ld){
+        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
+        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
+          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
+          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
+          td(t.th_budget, esc(t[ld.budget] || "—")) +
+          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
+          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
+      }).join("");
     }
-    function calc(){
-      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
-          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
-          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
-      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
-      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
-      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
-      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
-      var premium = base * premRate, principal = base + premium;
-      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
-      $("payLabel").textContent = t["pay_" + freq];
-      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
-      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
-      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
-      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
-      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
-      var cw = $("calcWarn");
-      if (cw) {
-        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
-        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
-        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
-        else cw.style.display = "none";
+    function leadTsToken(){
+      var tok = "";
+      var r = document.querySelector('#leadForm input[name="cf-turnstile-response"]');
+      if (r) tok = r.value || "";
+      if (!tok && window.turnstile && turnstile.getResponse) { try { tok = turnstile.getResponse() || ""; } catch(e){} }
+      return tok;
+    }
+    function tsResetIn(formSel){
+      if (!(window.turnstile && turnstile.reset)) return;
+      var el = document.querySelector(formSel + " .cf-turnstile");
+      try { if (el) turnstile.reset(el); } catch(e){}
+    }
+    $("leadForm").addEventListener("submit", function(e){
+      e.preventDefault(); var t = T();
+      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
+          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
+          msg = $("lMsg").value.trim(), plang = $("lLang").value;
+      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
+      renderCRM();
+      var toast = $("leadToast");
+      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+      function mailtoFallback(){
+        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
+          city: city ? (t.cities[city] || city) : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
+        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body.length > 1600 ? body.slice(0, 1600) + "…" : body);
+        showToast(t.l_fallback);
       }
-    }
+      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = t.l_sending;
+      var payload = {
+        name: name, email: email, phone: phone || "—",
+        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
+        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
+        _subject: "New lead — EH REALTY website",
+        _template: "table", _captcha: "false",
+        _honey: $("lHoney").value
+      };
+      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
+      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
+      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
+      try {
+        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
+          signal: leadCtl ? leadCtl.signal : undefined
+        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
+      } catch(e){}
+      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
+      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
+      fetch("https://formsubmit.co/ajax/" + EMAIL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        body: JSON.stringify(payload),
+        signal: fsCtl ? fsCtl.signal : undefined
+      }).then(function(res){
+        if (!res.ok) throw new Error("FormSubmit send failed");
+        return res.json();
+      }).then(function(data){
+        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
+        showToast(t.l_success);
+      }).catch(function(){
+        mailtoFallback();
+      }).then(function(){
+        if (fsTimer) clearTimeout(fsTimer);
+        tsResetIn("#leadForm");
+        btn.disabled = false; btn.textContent = btnLabel;
+      });
+    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    /* ---------- buy vs rent ---------- */
-    function bvrCalc(){
-      var t = T();
-      var price = Math.max(0, numVal("bvPrice", 800000)), downPct = Math.min(100, Math.max(0, numVal("bvDown", 20))), rate = Math.max(0, numVal("bvRate", 4.79)),
-          amort = Math.max(1, Math.round(numVal("bvAmort", 25))), taxYr = Math.max(0, numVal("bvTax", 4200)),
-          strataMo = Math.max(0, numVal("bvStrata", 350)), appr = numVal("bvAppr", 3), rentMo = Math.max(0, numVal("bvRent", 2600)),
-          rentInc = numVal("bvRentInc", 2), yrs = Math.min(30, Math.max(1, Math.round(numVal("bvYears", 10))));
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1;
-      function balAt(m){
-        if (L <= 0) return 0;
-        if (r <= 0) return Math.max(0, L - P * m);
-        return Math.max(0, L * Math.pow(1 + r, m) - P * ((Math.pow(1 + r, m) - 1) / r));
-      }
-      var rentCum = 0, spentCum = down, rows = "", lastEquity = Math.max(0, price - L);
-      for (var y = 1; y <= yrs; y++){
-        var bal = balAt(Math.min(y, amort) * 12);
-        var payYr = y <= amort ? P * 12 : 0;
-        rentCum += rentMo * 12 * Math.pow(1 + rentInc / 100, y - 1);
-        spentCum += payYr + taxYr + strataMo * 12;
-        var value = price * Math.pow(1 + appr / 100, y);
-        var equity = value - bal; lastEquity = equity;
-        rows += "<tr><td data-th=\"" + esc(t.bv_th_year) + "\">" + y + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_rent) + "\">" + fmt(rentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_spent) + "\">" + fmt(spentCum) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_value) + "\">" + fmt(value) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_bal) + "\">" + fmt(bal) + "</td>" +
-          "<td data-th=\"" + esc(t.bv_th_equity) + "\">" + fmt(equity) + "</td></tr>";
-      }
-      $("bvBody").innerHTML = rows;
-      var costBuy = spentCum - lastEquity, diff = rentCum - costBuy;
-      $("bvCostRentL").textContent = fill(t.bv_cost_rent, {n: yrs});
-      $("bvEquityL").textContent = fill(t.bv_equity, {n: yrs});
-      $("bvCostRent").textContent = fmt(rentCum);
-      $("bvSpent").textContent = fmt(spentCum);
-      $("bvEquity").textContent = fmt(lastEquity);
-      $("bvCostBuy").textContent = fmt(costBuy);
-      var vd = $("bvVerdict");
-      if (Math.abs(diff) < Math.max(rentCum, costBuy, 1) * 0.02){ vd.className = "verdict"; vd.textContent = fill(t.bv_tie, {n: yrs}); }
-      else if (diff > 0){ vd.className = "verdict"; vd.textContent = fill(t.bv_win_buy, {x: fmt(diff), n: yrs}); }
-      else { vd.className = "verdict rent"; vd.textContent = fill(t.bv_win_rent, {x: fmt(-diff), n: yrs}); }
-    }
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -963,12 +974,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
+      buildLeadSelects();
+      $("lLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      bvrCalc(); renderAssistantLang();
+      renderCRM(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["bvPrice","bvDown","bvRate","bvAmort","bvTax","bvStrata","bvAppr","bvRent","bvRentInc","bvYears"].forEach(function(id){ $(id).addEventListener("input", bvrCalc); $(id).addEventListener("change", bvrCalc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1568,7 +1580,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +

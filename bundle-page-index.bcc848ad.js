@@ -2273,7 +2273,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +

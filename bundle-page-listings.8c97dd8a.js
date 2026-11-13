@@ -1,38 +1,113 @@
-    /* ---------- mortgage calculator ---------- */
-    function buildCalcSelects(){
-      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
-      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
-      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
+    /* ---------- listing cards ---------- */
+    function monthlyCost(l){
+      // Self-contained on purpose: paymentFor() lives in the calculator module,
+      // which is not present on every page this card/dialog code ships to.
+      var principal = l.price * 0.8;
+      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
+      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
+      var mort = principal * r / (1 - Math.pow(1 + r, -n));
+      var strata = l.strata || 0;
+      var tax = (l.tax || 0) / 12;
+      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
+      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
     }
-    function paymentFor(principal, annualPct, years, perYear){
-      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
-      if (r <= 0) return principal / n;
-      return principal * r / (1 - Math.pow(1 + r, -n));
-    }
-    function calc(){
-      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
-          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
-          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
-      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
-      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
-      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
-      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
-      var premium = base * premRate, principal = base + premium;
-      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
-      $("payLabel").textContent = t["pay_" + freq];
-      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
-      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
-      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
-      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
-      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
-      var cw = $("calcWarn");
-      if (cw) {
-        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
-        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
-        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
-        else cw.style.display = "none";
+    function cardHTML(l, why){
+      var t = T();
+      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
+        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
+        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
+      var preHTML = "";
+      if (l.pt === "presale"){
+        var pbits = [];
+        if (l.project) pbits.push(esc(l.project));
+        if (l.developer) pbits.push(esc(l.developer));
+        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
+        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
+          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
       }
+      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
+      var cmpBtn = "";
+      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
+        var cOn = cmpSel.indexOf(l.mls) !== -1;
+        var cMax = !cOn && cmpSel.length >= 4;
+        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
+      }
+      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
+        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
+    function filteredListings(){
+      var q = $("q").value.trim().toLowerCase(), city = $("fCity").value, type = $("fType").value,
+          price = $("fPrice").value, beds = parseInt($("fBeds").value||"0",10), sort = $("fSort").value;
+      var out = LISTINGS.filter(function(l){
+        if (city && l.city !== city) return false;
+        if (type && l.type !== type) return false;
+        if (price && l.price > parseInt(price,10)) return false;
+        if (l.beds < beds) return false;
+        if (q){ var hay = (l.street+" "+l.city+" "+l.mls+" "+(l.postal||"")+" "+(l.project||"")+" "+(l.developer||"")+" "+["en","fa","hi","zh","es"].map(function(L){ var cc = I18N[L] && I18N[L].cities; return cc ? (cc[l.city] || "") : ""; }).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+        if (document.getElementById("fPresale") && document.getElementById("fPresale").checked && l.pt !== "presale") return false;
+        return true;
+      });
+      if (sort === "price-asc") out.sort(function(a,b){return a.price-b.price;});
+      if (sort === "price-desc") out.sort(function(a,b){return b.price-a.price;});
+      if (sort === "newest") out.sort(function(a,b){return b.listed.localeCompare(a.listed);});
+      if (sort === "dom") out.sort(function(a,b){return domOf(b)-domOf(a);});
+      return out;
+    }
+    function renderListings(){
+      var list = filteredListings(), t = T();
+      $("resultCount").textContent = fill(t.results, {n: list.length});
+      $("grid").innerHTML = list.length ? list.map(function(l){ try { return cardHTML(l, null); } catch(e){ return ""; } }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
+    }
+
+    /* ---------- detail dialog ---------- */
+    var dlg = $("dlg"), current = null;
+    window.openListing = function(mls){
+      var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
+      $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
+      var b = $("dBadge"); b.textContent = t[statusKey(l)]; b.className = "badge" + (statusKey(l) === "active" ? "" : " " + statusKey(l));
+      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = (t.cities[l.city] || l.city) + ", BC · " + l.postal;
+      function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
+      $("dKv").innerHTML =
+        kv(t.m_type, t["type_"+l.type] || l.type) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
+        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString("en-US")+" "+t.sqft : t.na) +
+        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString("en-US")+" "+t.sqft : t.na_ap) +
+        kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
+        kv(t.m_strata, l.strata ? fmt(l.strata) : t.na_ap) + kv(t.m_dom, domOf(l)) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
+      var mc = monthlyCost(l);
+      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#fbf6e9;border:1px solid #e7d9b4;border-radius:12px;padding:12px 14px;color:#2a251c">' +
+        '<div style="font-weight:700;margin-bottom:6px;color:#0b0b0b">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px">' +
+        '<span>' + esc(t.mc_mort) + '</span><b>' + fmt(Math.round(mc.mort)) + '</b>' +
+        (mc.strata ? '<span>' + esc(t.m_strata) + '</span><b>' + fmt(mc.strata) + '</b>' : "") +
+        '<span>' + esc(t.mc_tax) + '</span><b>' + fmt(Math.round(mc.tax)) + '</b>' +
+        '<span>' + esc(t.mc_heat) + '</span><b>' + fmt(mc.heat) + '</b></div>' +
+        '<div style="font-size:12px;color:#6e685b;margin-top:6px">' + esc(t.mc_note) + '</div></div>';
+      $("dFeat").innerHTML = l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("");
+      if (l.pt === "presale"){
+        var pchips = [];
+        if (l.project) pchips.push("🏗️ " + esc(l.project));
+        if (l.completion) pchips.push(esc(t.completion) + " " + esc(l.completion));
+        if (l.depositPct) pchips.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        if (l.assignment && l.originalPrice && l.price < l.originalPrice) pchips.push("💎 " + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig));
+        else if (l.assignment) pchips.push(esc(t.assignment_ok));
+        if (pchips.length) $("dFeat").innerHTML += pchips.map(function(x){ return "<span>" + x + "</span>"; }).join("");
+      }
+      $("dDesc").textContent = l.desc[lang] || l.desc.en;
+      $("dAsk").href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.ask_subject, {mls: l.mls, addr: l.street + ", " + l.city}));
+      $("dTour").style.display = "none"; // Pack PortalAddLeadViewingFix (2026-11-12): was the `hidden` property — .btn{display:inline-block} in the page CSS defeats the UA [hidden] rule, so the button stayed VISIBLE on listings with no tour at all, and clicking it closed the dialog then silently did nothing (getTour -> null). Inline display toggling cannot be defeated by the class rule.
+      if (typeof getTour === "function") getTour(l.mls, function(tour){
+        if (tour && tour.enabled && Array.isArray(tour.rooms) && tour.rooms.length && current === l) $("dTour").style.display = "";
+      });
+      $("dTour").onclick = function(){ openTour(l.mls); };
+      var tourCloseEl = $("tourClose"); if (tourCloseEl) tourCloseEl.onclick = closeTour;
+      try { if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open",""); } catch(e){}
+    };
+    $("dClose").addEventListener("click", function(){ dlg.close(); });
+    dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -911,6 +986,90 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
+    /* ---------- compare homes (reads only the LISTINGS data above) ---------- */
+    var cmpSel = (function(){ // Pack PortalAddLeadViewingFix rider (2026-11-12): was a hard-coded [LISTINGS[0], LISTINGS[1]] pre-seed on every load, discarding the visitor's own selection; the tray now starts EMPTY and persists the visitor's picks in localStorage
+      try { var saved = JSON.parse(localStorage.getItem("erfan-cmp") || "[]"); if (Array.isArray(saved)) return saved.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); }).slice(0, 4); } catch(e){}
+      return [];
+    })();
+    function cmpSave(){ try { localStorage.setItem("erfan-cmp", JSON.stringify(cmpSel)); } catch(e){} }
+    function cmpRows(t){
+      return [
+        ["cmp_photo", function(l){ return '<img class="cmp-img" src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />'; }],
+        ["m_price", function(l){ return "<b>"+fmt(l.price)+"</b>"; }],
+        ["cmp_ppsf", function(l){ return l.sqft ? fmt(Math.round(l.price / l.sqft)) : "—"; }],
+        ["cmp_address", function(l){ return esc(l.street); }],
+        ["f_city", function(l){ return esc(t.cities[l.city] || l.city); }],
+        ["m_type", function(l){ return esc(t["type_"+l.type]); }],
+        ["d_beds", function(l){ return String(l.beds); }],
+        ["m_baths", function(l){ return String(l.baths); }],
+        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
+        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
+        ["m_year", function(l){ return l.year ? String(l.year) : "—"; }],
+        ["m_strata", function(l){ return l.strata ? fmt(l.strata) : "—"; }],
+        ["m_parking", function(l){ return esc(t["parking_"+l.parking]) + fill(t.stalls, {n: l.stalls}); }],
+        ["cmp_status", function(l){ return esc(t[statusKey(l)]); }],
+        ["m_dom", function(l){ return String(domOf(l)); }],
+        ["m_mls", function(l){ return esc(l.mls); }],
+        ["m_features", function(l){ return '<div class="chips">'+l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("")+"</div>"; }]
+      ];
+    }
+    function renderCompare(){
+      var t = T();
+      $("cmpPicker").innerHTML = LISTINGS.map(function(l){
+        var on = cmpSel.indexOf(l.mls) !== -1;
+        var maxed = !on && cmpSel.length >= 4;
+        return '<div class="cmp-pick'+(on ? " on" : "")+'"><img src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+          '<div class="cmp-pick-body"><div class="cmp-price">'+fmt(l.price)+'</div><div class="cmp-addr">'+esc(l.street)+'</div>' +
+          '<div class="cmp-meta">'+esc(t.cities[l.city] || l.city)+" · "+l.beds+" "+esc(t.beds)+" · "+l.baths+" "+esc(t.baths)+'</div>' +
+          '<button type="button" class="btn '+(on ? "btn-line" : "btn-spruce")+' cmp-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(on ? "true" : "false")+'"'+(maxed ? " disabled" : "")+">"+esc(on ? t.cmp_remove : t.cmp_add)+"</button>" +
+          "</div></div>";
+      }).join("");
+      $("cmpPicker").querySelectorAll(".cmp-toggle").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
+          if (i !== -1) cmpSel.splice(i, 1);
+          else if (cmpSel.length < 4) cmpSel.push(mls);
+          renderCompare(); syncCmpCardButtons();
+        });
+      });
+      cmpSel = cmpSel.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); });
+      cmpSave(); // Pack PortalAddLeadViewingFix rider: renderCompare runs after every selection mutation (picker toggle, card toggle, clear), so persisting here covers all paths
+      var sel = LISTINGS.filter(function(l){ return cmpSel.indexOf(l.mls) !== -1; });
+      $("cmpCount").textContent = fill(t.cmp_count, {n: sel.length});
+      if (sel.length < 2){
+        $("cmpTableWrap").innerHTML = '<div class="empty">'+esc(t.cmp_need)+"</div>";
+        return;
+      }
+      var html = '<div class="tbl-scroll"><table class="cmp-table"><thead><tr><th scope="col">'+esc(t.cmp_home)+"</th>" +
+        sel.map(function(l){ return '<th scope="col">'+esc(l.street)+'<div class="mls">'+esc(t.cities[l.city] || l.city)+" · MLS® "+esc(l.mls)+"</div></th>"; }).join("") +
+        "</tr></thead><tbody>";
+      cmpRows(t).forEach(function(row){
+        html += '<tr><th scope="row">'+esc(t[row[0]])+"</th>" +
+          sel.map(function(l){ return '<td data-th="'+esc(l.street)+'">'+row[1](l)+"</td>"; }).join("") + "</tr>";
+      });
+      html += "</tbody></table></div>";
+      $("cmpTableWrap").innerHTML = html;
+    }
+    $("cmpClear").addEventListener("click", function(){ cmpSel = []; renderCompare(); syncCmpCardButtons(); });
+    /* keep the Add-to-comparison buttons on the listing cards in sync with the picker */
+    function syncCmpCardButtons(){
+      var t = T();
+      document.querySelectorAll(".cmp-card-toggle").forEach(function(btn){
+        var mls = btn.getAttribute("data-mls"), on = cmpSel.indexOf(mls) !== -1;
+        btn.className = "btn " + (on ? "btn-line" : "btn-spruce") + " cmp-card-toggle";
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.textContent = on ? t.cmp_remove : t.cmp_add;
+        if (!on && cmpSel.length >= 4) btn.setAttribute("disabled", ""); else btn.removeAttribute("disabled");
+      });
+    }
+    document.addEventListener("click", function(e){
+      var btn = e.target && e.target.closest ? e.target.closest(".cmp-card-toggle") : null;
+      if (!btn) return;
+      var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
+      if (i !== -1) cmpSel.splice(i, 1);
+      else if (cmpSel.length < 4) cmpSel.push(mls);
+      renderCompare(); syncCmpCardButtons();
+    });
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -920,13 +1079,19 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      buildCalcSelects();
+      keep($("fCity"), function(sel){ buildCitySelect(sel, true); });
+      keep($("fType"), function(sel){ buildTypeSelect(sel); });
+      keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
+      keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
+      keep($("fSort"), function(sel){ buildSortSelect(sel); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      calc(); renderAssistantLang();
+      renderListings(); renderAssistantLang(); renderCompare();
+      if (dlg.open && current){ window.__langSwitch = true; try { openListing(current.mls); } catch (e) {} window.__langSwitch = false; }
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["cPrice","cDown","cRate","cAmort","cFreq"].forEach(function(id){ $(id).addEventListener("input", calc); $(id).addEventListener("change", calc); });
+    ["q","fCity","fType","fPrice","fBeds","fSort","fPresale"].forEach(function(id){ var el = $(id); if (!el) return; el.addEventListener("input", renderListings); el.addEventListener("change", renderListings); }); // Pack PortalAddLeadViewingFix rider (2026-11-12): fPresale was missing from this wiring — the filteredListings() predicate checked it, but ticking "Presales only" fired no re-render, so the filter looked dead
+    $("resetBtn").addEventListener("click", function(){ $("q").value = ""; $("fCity").value = ""; $("fType").value = ""; $("fPrice").value = ""; $("fBeds").value = "0"; $("fSort").value = "featured"; if ($("fPresale")) $("fPresale").checked = false; renderListings(); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1526,7 +1691,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function showViewing(mls){
           var dEl2 = document.getElementById("dlg");
           if (dEl2 && dEl2.open) { try { dEl2.close(); } catch(e){} }
-          var p = MINI[mls];
+          var p = miniOf(mls); // Pack PortalAddLeadViewingFix (2026-11-12): was MINI[mls] — MINI is defined nowhere, so showViewing threw a ReferenceError right after closing the detail dialog and the booking form never opened; miniOf() is this IIFE's own [street, city, price] lookup
           var times = (window.__portalSlots || ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00"]).map(function(x){ return '<option>' + x + '</option>'; }).join("");
           openFx('<h3>📅 ' + tt("bookViewing") + '</h3>' +
             (p ? '<p style="color:#6e685b;margin:0 0 6px">' + esc2(p[0]) + ', ' + esc2(p[1]) + ' · ' + money(p[2]) + '</p>' : "") +
@@ -1602,6 +1767,20 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             });
           });
         }
+        /* Pack PortalAddLeadViewingFix (2026-11-12): deep link from the
+           static per-listing pages — listings.html#viewing=<MLS> opens
+           that listing's booking form directly, through the SAME
+           showViewing() path the dialog's Book button takes (per-listing
+           Availability overrides included). The hash form (not a query
+           string) is deliberate: build-seo's rewriteLinks already
+           rewrites "listings.html#" hrefs into each language variant,
+           so fa/hi/zh/es listing pages land on their own language's
+           listings page with the parameter intact. Unknown ids are
+           ignored (the plain listings page just renders). */
+        try {
+          var dlMatch = /(?:^#|&)viewing=([A-Za-z0-9-]+)/.exec(location.hash || "");
+          if (dlMatch && LISTINGS.some(function(x){ return x.mls === dlMatch[1]; })) { curMls = dlMatch[1]; showViewing(dlMatch[1]); }
+        } catch(e){}
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();
