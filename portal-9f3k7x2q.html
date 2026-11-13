@@ -604,6 +604,9 @@
       <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">Messages</h1><div class="mut" id="smsCount"></div></div></div>
       <div id="smsThreads"></div>
       <div id="smsThread" style="margin-top:12px"></div>
+      <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">WhatsApp</h1><div class="mut" id="waCount"></div></div></div>
+      <div id="waThreads"></div>
+      <div id="waThread" style="margin-top:12px"></div>
     </section>
 
     <!-- LISTINGS -->
@@ -2171,6 +2174,7 @@
         : '<div class="card" style="margin-bottom:12px">📞 <b>Business number not connected yet</b> — it activates with the domain in December. The logging pipeline is built and tested; calls will land here and on each person\'s profile automatically.</div>';
       $("callCount").textContent = d.calls.length + " call" + (d.calls.length === 1 ? "" : "s");
       renderSmsThreads();
+      renderWaThreads();
       $("callList").innerHTML = d.calls.length ? d.calls.map(function(c){
         var other = c.direction === "in" ? c.from : c.to;
         var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#E6CB7E">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
@@ -2360,6 +2364,142 @@
       else if (d && d.error === "not_configured") toast("Texting activates with the business number in December", true);
       else toast("Could not send the text", true);
     }).catch(function(){ sb.disabled = false; toast("Could not send the text", true); });
+  });
+  var waOpenPhone = null, waCache = [], waThreadsMeta = {}, waTemplatesCache = [], waDraftState = null;
+  function waOther(m){ return m.direction === "in" ? m.from : m.to; }
+  function waLast10(v){ return String(v || "").replace(/\D/g, "").slice(-10); }
+  function renderWaThreads(){
+    api(API_URL, "/api/admin/whatsapp?limit=300").then(function(d){
+      if (!d || !d.ok) return;
+      waCache = d.messages || [];
+      waThreadsMeta = d.threads || {};
+      waTemplatesCache = d.templates || [];
+      var threads = {}, order = [];
+      waCache.forEach(function(m){
+        var k = waOther(m) || "—";
+        if (!threads[k]) { threads[k] = { phone: k, msgs: [], unread: 0, name: m.matchedName || "", email: m.matchedEmail || "" }; order.push(k); }
+        threads[k].msgs.push(m);
+        if (m.direction === "in" && !m.read) threads[k].unread++;
+        if (m.matchedName && !threads[k].name) threads[k].name = m.matchedName;
+        if (m.matchedEmail && !threads[k].email) threads[k].email = m.matchedEmail;
+      });
+      $("waCount").textContent = order.length + " conversation" + (order.length === 1 ? "" : "s") + (d.unread ? " · " + d.unread + " unread" : "") + (d.configured ? "" : " · activates with the business number in December");
+      $("waThreads").innerHTML = order.length ? order.map(function(k){
+        var t = threads[k], last = t.msgs[0], meta = waThreadsMeta[waLast10(k)] || {};
+        var win = meta.windowOpen ? '<span class="chip">24h window open</span>' : '<span class="chip">template only</span>';
+        return '<div class="tourrow" data-wa-open="' + esc(k) + '" style="cursor:pointer"><div>' + (t.unread ? '<b style="color:#f87171">● </b>' : '') + '<b>' + esc(t.name || k) + '</b> <span class="mut">' + esc(k) + '</span> ' + win + '<div class="mut" style="margin-top:2px">' + (last.direction === "in" ? "📥 " : "📤 ") + esc(String(last.body || "").slice(0, 90)) + '</div></div><span class="mut">' + esc(fmtDate(last.at)) + (t.unread ? ' · <b>' + t.unread + ' new</b>' : '') + '</span></div>';
+      }).join("") : '<div class="empty">No WhatsApp conversations yet — messages to the business number will appear here.</div>';
+      if (waOpenPhone && threads[waOpenPhone]) openWaThread(waOpenPhone, true);
+    }).catch(function(){});
+  }
+  function openWaThread(phone, keepScroll){
+    var prevEl = $("waReplyText"); var prevReply = prevEl ? prevEl.value : "";
+    waOpenPhone = phone; waDraftState = null;
+    var msgs = waCache.filter(function(m){ return waOther(m) === phone; }).slice().reverse();
+    var label = (msgs.filter(function(m){ return m.matchedName; })[0] || {}).matchedName || phone;
+    var meta = waThreadsMeta[waLast10(phone)] || {};
+    var winOpen = !!meta.windowOpen;
+    var tplOpts = waTemplatesCache.map(function(t, i){ return '<option value="' + i + '">' + esc(t.name) + ' (' + esc(t.lang) + ')</option>'; }).join("");
+    $("waThread").innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">🟢 WhatsApp · ' + esc(label) + ' <span class="mut">' + esc(phone) + '</span></div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding:2px">' + msgs.map(function(m){
+        var out = m.direction === "out";
+        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
+      }).join("") + '</div>' +
+      '<div id="waDraftBox"></div>' +
+      (winOpen
+        ? '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="waReplyText" rows="2" placeholder="Reply on WhatsApp…" style="flex:1"></textarea><button type="button" class="btn-spruce" data-wa-send="' + esc(phone) + '">Send</button></div>'
+        : '<div class="mut" style="margin-top:10px">⏳ The 24-hour window is closed (last message from this contact: ' + (meta.lastInAt ? esc(fmtDate(new Date(meta.lastInAt).toISOString())) : 'never') + '). Free-form replies are refused by the server — send an approved template instead:</div>' +
+          '<div style="display:flex;gap:6px;margin-top:8px"><select id="waTplPick" style="flex:1">' + tplOpts + '</select><input id="waTplVar" placeholder="Name for {{1}} (optional)" style="flex:1"><button type="button" class="btn-spruce" data-wa-tpl-send="' + esc(phone) + '">Send template</button></div>') +
+      '<div style="margin-top:10px"><button type="button" class="ghost small" data-wa-draft="' + esc(phone) + '">🤖 Draft a reply with AI</button> <span class="mut">Draft only — nothing is ever sent automatically.</span></div>' +
+      '</div>';
+    if (prevReply && winOpen) { var nr = $("waReplyText"); if (nr) nr.value = prevReply; }
+    var hasUnread = msgs.some(function(m){ return m.direction === "in" && !m.read; });
+    if (hasUnread) {
+      api(API_URL, "/api/admin/whatsapp/read", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(){ waCache.forEach(function(m){ if (waOther(m) === phone && m.direction === "in") m.read = true; }); }).catch(function(){});
+    }
+  }
+  function renderWaDraft(phone, d){
+    waDraftState = d;
+    var box = $("waDraftBox"); if (!box) return;
+    box.innerHTML = '<div style="margin-top:10px;border:1px dashed rgba(198,161,91,.6);border-radius:12px;padding:10px 12px">' +
+      '<div class="mut" style="margin-bottom:6px">🤖 AI draft (' + esc(d.lang || 'en') + (d.grounded ? '' : ' · ⚠ details not in the catalog — confirm-first wording') + ') — review before sending. Summary: ' + esc(d.summary || '') + ' · suggested temperature: <b>' + esc(d.temperature || 'warm') + '</b></div>' +
+      '<textarea id="waDraftText" rows="3" style="width:100%">' + esc(d.draft || '') + '</textarea>' +
+      '<div style="display:flex;gap:6px;margin-top:8px"><button type="button" class="btn-spruce" data-wa-draft-send="' + esc(phone) + '">Send draft</button><button type="button" class="ghost small" data-wa-draft-accept="' + esc(phone) + '">Save suggestion to profile</button><button type="button" class="ghost small" data-wa-draft-discard="' + esc(phone) + '">Discard</button></div></div>';
+  }
+  $("waThreads").addEventListener("click", function(e){
+    var row = e.target.closest("[data-wa-open]");
+    if (row) openWaThread(row.getAttribute("data-wa-open"));
+  });
+  $("waThread").addEventListener("click", function(e){
+    var phone, body;
+    var sb = e.target.closest("[data-wa-send]");
+    if (sb) {
+      phone = sb.getAttribute("data-wa-send"); body = ($("waReplyText").value || "").trim(); if (!body) return;
+      sb.disabled = true;
+      api(API_URL, "/api/admin/whatsapp/send", { method: "POST", body: JSON.stringify({ phone: phone, body: body }) }).then(function(d){
+        sb.disabled = false;
+        if (d && d.ok) { toast("WhatsApp sent ✓"); waOpenPhone = phone; renderWaThreads(); }
+        else if (d && d.error === "outside_24h_window") toast("Outside the 24-hour window — only a template can be sent", true);
+        else if (d && d.error === "not_configured") toast("WhatsApp activates with the business number in December", true);
+        else toast("Could not send the WhatsApp message", true);
+      }).catch(function(){ sb.disabled = false; toast("Could not send the WhatsApp message", true); });
+      return;
+    }
+    var tb = e.target.closest("[data-wa-tpl-send]");
+    if (tb) {
+      phone = tb.getAttribute("data-wa-tpl-send");
+      var pick = $("waTplPick"); var t = waTemplatesCache[pick ? parseInt(pick.value, 10) || 0 : 0];
+      if (!t) return;
+      var v1 = ($("waTplVar").value || "").trim();
+      tb.disabled = true;
+      api(API_URL, "/api/admin/whatsapp/send", { method: "POST", body: JSON.stringify({ phone: phone, template: { name: t.name, lang: t.lang, variables: v1 ? [v1] : [] } }) }).then(function(d){
+        tb.disabled = false;
+        if (d && d.ok) { toast("Template sent ✓"); waOpenPhone = phone; renderWaThreads(); }
+        else if (d && d.error === "not_configured") toast("WhatsApp activates with the business number in December", true);
+        else toast("Could not send the template", true);
+      }).catch(function(){ tb.disabled = false; toast("Could not send the template", true); });
+      return;
+    }
+    var db = e.target.closest("[data-wa-draft]");
+    if (db) {
+      phone = db.getAttribute("data-wa-draft"); db.disabled = true;
+      api(API_URL, "/api/admin/whatsapp/draft", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(d){
+        db.disabled = false;
+        if (d && d.ok) renderWaDraft(phone, d);
+        else if (d && d.error === "brain_cap") toast("AI drafting is paused for today (daily budget reached)", true);
+        else toast("Could not draft a reply", true);
+      }).catch(function(){ db.disabled = false; toast("Could not draft a reply", true); });
+      return;
+    }
+    var ds = e.target.closest("[data-wa-draft-send]");
+    if (ds) {
+      phone = ds.getAttribute("data-wa-draft-send"); body = ($("waDraftText").value || "").trim(); if (!body) return;
+      ds.disabled = true;
+      api(API_URL, "/api/admin/whatsapp/send", { method: "POST", body: JSON.stringify({ phone: phone, body: body }) }).then(function(d){
+        ds.disabled = false;
+        if (d && d.ok) { toast("WhatsApp sent ✓"); waOpenPhone = phone; renderWaThreads(); }
+        else if (d && d.error === "outside_24h_window") toast("Outside the 24-hour window — only a template can be sent", true);
+        else toast("Could not send the WhatsApp message", true);
+      }).catch(function(){ ds.disabled = false; toast("Could not send the WhatsApp message", true); });
+      return;
+    }
+    var ac = e.target.closest("[data-wa-draft-accept]");
+    if (ac) {
+      phone = ac.getAttribute("data-wa-draft-accept"); ac.disabled = true;
+      api(API_URL, "/api/admin/whatsapp/draft/accept", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(d){
+        ac.disabled = false;
+        if (d && d.ok) toast("Suggestion saved to the profile ✓");
+        else if (d && d.error === "no_match") toast("No CRM profile matches this number yet", true);
+        else toast("Could not save the suggestion", true);
+      }).catch(function(){ ac.disabled = false; toast("Could not save the suggestion", true); });
+      return;
+    }
+    var dc = e.target.closest("[data-wa-draft-discard]");
+    if (dc) {
+      phone = dc.getAttribute("data-wa-draft-discard");
+      api(API_URL, "/api/admin/whatsapp/draft/discard", { method: "POST", body: JSON.stringify({ phone: phone }) }).then(function(){ var box = $("waDraftBox"); if (box) box.innerHTML = ""; waDraftState = null; toast("Draft discarded"); }).catch(function(){});
+      return;
+    }
   });
   function fillSms(c){
     var box = $("crmSms"); if (!box) return;
