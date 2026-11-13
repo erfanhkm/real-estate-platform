@@ -67,6 +67,7 @@
     var dlg = $("dlg"), current = null;
     window.openListing = function(mls){
       var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
+      try { window.__listingMls = l.mls; } catch(e){} // Pack CallTagOutcome ADD-1: the call-intent hook (accounts block) reads the open dialog's listing
       $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
       var b = $("dBadge"); b.textContent = t[statusKey(l)]; b.className = "badge" + (statusKey(l) === "active" ? "" : " " + statusKey(l));
       $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = (t.cities[l.city] || l.city) + ", BC · " + l.postal;
@@ -107,6 +108,7 @@
       try { if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open",""); } catch(e){}
     };
     $("dClose").addEventListener("click", function(){ dlg.close(); });
+    dlg.addEventListener("close", function(){ try { window.__listingMls = ""; } catch(e){} }); // Pack CallTagOutcome ADD-1
     dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
@@ -1443,6 +1445,29 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           return fetch(API + path, { method: method || "GET", headers: h, body: body ? JSON.stringify(body) : undefined })
             .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (!r.ok) throw new Error(d.error || "request"); return d; }); });
         }
+        /* Pack CallTagOutcome ADD-1 (2026-11-12): a tap on a call
+           (tel:) link while a listing is in context registers a
+           call-intent with the worker, so when this visitor then
+           actually calls, the inbound-call screen pop and the CRM
+           timeline carry that listing's tag. The listing comes
+           from the open detail dialog, or from the standalone
+           listing page's own URL; with neither in context — or
+           no signed-in session — NOTHING is sent. The worker
+           binds the intent to the phone on the signed-in
+           account, never to anything the request claims.
+           Fire-and-forget with keepalive; the tel: navigation
+           is never intercepted. */
+        document.addEventListener("click", function(e){
+          try {
+            var a = (e.target && e.target.closest) ? e.target.closest('a[href^="tel:"]') : null;
+            if (!a || !token) return;
+            var mls = "";
+            try { mls = String(window.__listingMls || ""); } catch(e2){}
+            if (!mls) { var mm = String(location.pathname || "").match(/listing-([A-Za-z0-9]+)\.html/); if (mm) mls = mm[1]; }
+            if (!mls) return;
+            fetch(API + "/api/calls/intent", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ listing: mls }) }).catch(function(){});
+          } catch(e){}
+        });
         var acctBtn = document.createElement("button");
         acctBtn.type = "button"; acctBtn.className = "navbtn"; acctBtn.id = "acctBtn";
         function paintAcctBtn(){ acctBtn.textContent = me ? ("👤 " + String(me.name || "").split(" ")[0]) : ("👤 " + tt("signIn")); }
