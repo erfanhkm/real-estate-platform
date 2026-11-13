@@ -873,6 +873,7 @@
       <div id="mtSpeed"></div>
       <div id="mtUsage"></div>
       <div id="mtAi"></div>
+      <div id="mtUsageSplit"></div>
       <div id="mtQueue"></div>
       <div class="stats">
         <div class="stat"><div class="n" id="mtChecks">–</div><div class="l">Checks passed</div></div>
@@ -1003,7 +1004,8 @@
         <label>Language <select id="puFLang"><option value="">All languages</option></select></label>
         <label class="pu-chk"><input type="checkbox" id="puFCold"> Going cold only</label>
         <span class="pu-mini" id="puPipeMeta"></span>
-      </div></div>
+      </div>
+      <div id="puTempChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div></div>
       <div id="puBoard" class="pu-board"><div class="empty">Loading…</div></div>
       <div class="hint">Drag a card to another column to change its stage — it saves immediately. Red border = going cold (Contacted 7+ days).</div>
     </section>
@@ -4718,6 +4720,7 @@
       mtBackups = d.backups || [];
       renderMaint(d.last, d.log);
       loadMtAi();
+      loadMtUsageSplit();
     }).catch(function(){});
   }
   function loadMtAi(){
@@ -4741,6 +4744,56 @@
       var br = d.brain ? '<div class="mut" style="margin-top:9px">🧠 Portal brain: <b>' + d.brain.left + " left</b> of " + d.brain.cap + " calls today (soft daily cap)" + (d.remoteBrain ? " · ai-chat served " + d.remoteBrain.used + " brain calls today" : "") + "</div>" : "";
       box.innerHTML = '<div class="card" style="margin-bottom:12px"><div class="mut" style="margin-bottom:8px">🤖 Remaining AI usage — site assistant</div><div style="display:flex;gap:18px;flex-wrap:wrap">' + bar("💬 Chats", d.chat) + bar("🔎 Web searches", d.search) + '</div>' + last + br + '<div class="mut" style="margin-top:4px">If chats hit zero, the assistant replies with a polite fallback instead of answering — the nightly maintenance email also flags it below 70 left.</div></div>';
     }).catch(function(){});
+  }
+  // Pack PortalUsageLeads (2026-11-12): the split usage sections
+  // (EH REALTY site + EH REALTY ACADEMY) from GET
+  // /api/admin/usage-split. Bars mirror the AI-usage card above:
+  // the bar shows what is LEFT, green → amber (<=25% left) → red
+  // (<=10% left). Dates in THESE rows are formatted in Vancouver
+  // time on purpose — the portal's older fmtDate renders the
+  // viewer's locale clock, and the usage rows must not inherit
+  // that ambiguity (reset texts arrive Vancouver-based).
+  function puVanTs(iso){
+    try { var d = new Date(iso); if (isNaN(d.getTime())) return ""; return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(d) + " Vancouver"; } catch (e) { return ""; }
+  }
+  function puUsageNum(m, v){
+    if (v === null || v === undefined) return "—";
+    if (m.unit === "bytes") { var us = ["B", "KB", "MB", "GB", "TB"], x = v, i = 0; while (x >= 1024 && i < us.length - 1) { x /= 1024; i++; } return (i ? x.toFixed(2) : x) + " " + us[i]; }
+    return Number(v).toLocaleString("en-CA");
+  }
+  function puUsageRow(m){
+    var right = "";
+    if (m.state === "provider-metered") right = '<span class="mut">provider-metered</span>';
+    else if (m.state === "external") right = '<span class="mut">checked by the alert job</span>';
+    else if (m.used !== null && m.used !== undefined && m.limit) right = puUsageNum(m, m.used) + " / " + puUsageNum(m, m.limit) + (m.pct !== null && m.pct !== undefined ? ' <span class="mut">(' + m.pct + '% used)</span>' : "");
+    else if (m.used !== null && m.used !== undefined) right = puUsageNum(m, m.used) + (m.unit ? " " + esc(m.unit) : "");
+    var bar = "";
+    if (m.pct !== null && m.pct !== undefined && m.limit) {
+      var left = Math.max(0, Math.min(100, 100 - m.pct));
+      var col = left <= 10 ? "#ef4444" : left <= 25 ? "#eab308" : "#22c55e";
+      bar = '<div style="height:9px;background:rgba(127,127,127,.25);border-radius:5px;overflow:hidden;margin-top:4px"><div style="height:100%;width:' + left + '%;background:' + col + '"></div></div>';
+    }
+    var ex = "";
+    if (m.extra) {
+      if (m.key === "mail_queue" && m.extra.oldestUnsentAt) ex = "Oldest unsent: " + puVanTs(m.extra.oldestUnsentAt) + ". ";
+      if (m.key === "kv_backup" && m.extra.at) ex = "Stamped " + puVanTs(m.extra.at) + " · " + Number(m.extra.keys || 0).toLocaleString("en-CA") + " keys. ";
+      if (m.key === "canary" && m.extra.at) ex = "Last run " + puVanTs(m.extra.at) + ". ";
+      if (m.key === "r2_storage") ex = Number(m.extra.objects || 0).toLocaleString("en-CA") + " objects. ";
+      if (m.key === "tutor_credits" && m.extra.perProvider) ex = "Groq " + (m.extra.perProvider.groq || 0) + " · Gemini " + (m.extra.perProvider.gemini || 0) + " · Workers AI " + (m.extra.perProvider["workers-ai"] || 0) + ". ";
+    }
+    return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><span>' + esc(m.label) + '</span><b>' + right + '</b></div>' + bar +
+      '<div class="mut" style="margin-top:3px;font-size:12px">' + ex + esc(m.resetText || "") + (m.fallback ? " · " + esc(m.fallback) : "") + "</div>" +
+      (m.note ? '<div class="mut" style="font-size:12px">' + esc(m.note) + "</div>" : "") + "</div>";
+  }
+  function loadMtUsageSplit(){
+    var box = $("mtUsageSplit"); if (!box) return;
+    api(API_URL, "/api/admin/usage-split").then(function (d) {
+      var b2 = $("mtUsageSplit"); if (!b2) return;
+      if (!d || !d.ok || !d.site || !d.academy) { b2.innerHTML = '<div class="card" style="margin-bottom:12px"><h2>Usage</h2><div class="empty">Usage split unavailable right now.</div></div>'; return; }
+      b2.innerHTML = [d.site, d.academy].map(function (sec) {
+        return '<div class="card" style="margin-bottom:12px"><h2>' + esc(sec.label) + "</h2>" + (sec.metrics || []).map(puUsageRow).join("") + "</div>";
+      }).join("");
+    }).catch(function () { var b3 = $("mtUsageSplit"); if (b3) b3.innerHTML = '<div class="card" style="margin-bottom:12px"><h2>Usage</h2><div class="empty">Usage split unavailable right now.</div></div>'; });
   }
   function runMaint(){
     var btn = $("mtRun");
@@ -5461,8 +5514,11 @@
         (V.awaitingCount ? '<div style="margin-top:8px">⏳ <b>' + V.awaitingCount + "</b> upcoming viewing(s) still unconfirmed</div>" : "");
       var H = t.hotLeads || { counts: { hot: 0, warm: 0, cold: 0 }, hot: [] };
       $("puTHot").innerHTML = puSrcChip(S.hotLeads) +
-        '<div style="margin-bottom:6px">🔥 <b>' + H.counts.hot + "</b> hot · 🌤 <b>" + H.counts.warm + "</b> warm · ❄️ <b>" + H.counts.cold + '</b> cold</div>' +
+        '<div style="margin-bottom:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button type="button" class="ghost small" data-pu-temp="hot">🔥 <b>' + H.counts.hot + '</b> hot</button><button type="button" class="ghost small" data-pu-temp="warm">🌤 <b>' + H.counts.warm + '</b> warm</button><button type="button" class="ghost small" data-pu-temp="cold">❄️ <b>' + H.counts.cold + '</b> cold</button><button type="button" class="ghost small" data-pu-temp="">All leads →</button></div>' +
         (H.hot.length ? H.hot.map(function (l) { return '<div class="pu-row"><span>' + puChip({ score: l.score, band: "hot", next: l.next }) + ' <b>' + esc(l.name || "") + '</b><br><span class="pu-mini">' + esc(l.next ? l.next.text : "") + '</span></span><button class="ghost small" data-pu-draft="' + esc(l.id) + '">✉️ Draft</button></div>'; }).join("") : '<div class="empty">No hot leads right now.</div>');
+      Array.prototype.forEach.call($("puTHot").querySelectorAll("[data-pu-temp]"), function (b) {
+        b.addEventListener("click", function () { puGoTemp(b.getAttribute("data-pu-temp")); });
+      });
       var F = t.followups || { newCount: 0, staleCount: 0, postViewingCount: 0, stale: [], post: [] };
       puAiDraftStore = [];
       $("puTFollow").innerHTML = puSrcChip(S.followups) +
@@ -5538,6 +5594,25 @@
 
   // ---------- system 3: pipeline board ----------
   var puPipeData = null;
+  var puPendingTemp = null;
+  function puGoTemp(t) {
+    puPendingTemp = t || "";
+    go("pipeline");
+    if (puPipeData) { var sel = $("puFTemp"); if (sel) sel.value = puPendingTemp; puPendingTemp = null; puRenderBoard(); }
+  }
+  function puRenderTempChips() {
+    var box = $("puTempChips"); if (!box || !puPipeData) return;
+    var bc = puPipeData.bandCounts || null;
+    var cur = ($("puFTemp") && $("puFTemp").value) || "";
+    var defs = [["", "All", bc ? bc.all : 0], ["hot", "🔥 Hot", bc ? bc.hot : 0], ["warm", "🌤️ Warm", bc ? bc.warm : 0], ["cold", "❄️ Cold", bc ? bc.cold : 0]];
+    box.innerHTML = defs.map(function (df) {
+      var on = cur === df[0];
+      return '<button type="button" class="' + (on ? "btn-spruce" : "ghost") + ' small" data-pu-chip="' + df[0] + '">' + df[1] + " " + df[2] + "</button>";
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-pu-chip]"), function (b) {
+      b.addEventListener("click", function () { var sel2 = $("puFTemp"); if (sel2) sel2.value = b.getAttribute("data-pu-chip"); puRenderBoard(); });
+    });
+  }
   function puLoadPipeline() {
     if (!token) return;
     api(API_URL, "/api/admin/pipeline").then(function (d) {
@@ -5548,6 +5623,7 @@
       $("puFSource").innerHTML = '<option value="">All sources</option>' + Object.keys(srcs).sort().map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + "</option>"; }).join("");
       $("puFLang").innerHTML = '<option value="">All languages</option>' + Object.keys(langs).sort().map(function (x) { var nm = x; NL_LANGS.forEach(function (p) { if (p[0] === x) nm = p[1]; }); return '<option value="' + esc(x) + '">' + esc(nm) + "</option>"; }).join("");
       $("puPipeMeta").textContent = puPipeData.total + " leads · scores " + fmtDate(puPipeData.scoresAt);
+      if (puPendingTemp !== null) { var pts = $("puFTemp"); if (pts) pts.value = puPendingTemp; puPendingTemp = null; }
       puRenderBoard();
       puLoadPredMap();
     }).catch(function () { $("puBoard").innerHTML = '<div class="empty">Could not load the pipeline.</div>'; });
@@ -5558,9 +5634,24 @@
   function puRenderBoard() {
     if (!puPipeData) return;
     var ft = $("puFTemp").value, fs = $("puFSource").value, fl = $("puFLang").value, fc = $("puFCold").checked;
+    puRenderTempChips();
+    if (ft) {
+      var anyT = 0;
+      puPipeData.stages.forEach(function (st2) {
+        if (st2 === "closed" || st2 === "dropped") return;
+        (puPipeData.columns[st2] || []).forEach(function (c) {
+          if (c.band !== ft) return;
+          if (fs && c.source !== fs) return;
+          if (fl && c.lang !== fl) return;
+          if (fc && !c.goingCold) return;
+          anyT++;
+        });
+      });
+      if (!anyT) { $("puBoard").innerHTML = '<div class="empty">No ' + esc(ft) + " leads right now.</div>"; return; }
+    }
     $("puBoard").innerHTML = puPipeData.stages.map(function (st) {
       var cards = (puPipeData.columns[st] || []).filter(function (c) {
-        if (ft && c.band !== ft) return false;
+        if (ft && (st === "closed" || st === "dropped" || c.band !== ft)) return false; // Pack PortalUsageLeads: Today counts closed/dropped OUT of the temperature buckets — the filter must too, or the chips would promise counts the board cannot show.
         if (fs && c.source !== fs) return false;
         if (fl && c.lang !== fl) return false;
         if (fc && !c.goingCold) return false;
