@@ -104,6 +104,8 @@
           nlShowStatus("err", t.nl_err_validation);
         } else if (data && data.error === "captcha"){
           nlShowStatus("err", t.nl_err_captcha);
+        } else if (data && data.error === "subscribe"){
+          nlShowStatus("err", t.nl_err_subscribe);
         } else {
           nlShowStatus("err", t.nl_err_generic);
         }
