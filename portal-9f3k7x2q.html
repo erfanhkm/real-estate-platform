@@ -595,6 +595,7 @@
         <button class="ghost small" id="callRefresh">Refresh</button>
       </div>
       <div id="callBanner"></div>
+      <div id="callGuardian"></div>
       <div class="card" id="callCfgCard" style="margin-bottom:12px">
         <h2>Calls setup (Twilio)</h2>
         <div class="mut">Calls and texts for the business number run through Twilio and log here. The Account SID, Auth Token and ingest secret are stored on the worker only, inside your signed-in session — sent once and never displayed again.</div>
@@ -2173,6 +2174,7 @@
       $("callBanner").innerHTML = d.configured
         ? '<div class="card" style="margin-bottom:12px">📞 Business number <b>' + esc(d.number) + '</b> (' + esc(d.provider) + ') — every call is logged here and on the caller\'s profile.</div>'
         : '<div class="card" style="margin-bottom:12px">📞 <b>Business number not connected yet</b> — it activates with the domain in December. The logging pipeline is built and tested; calls will land here and on each person\'s profile automatically.</div>';
+      renderCallGuardian(d.guardian);
       $("callCount").textContent = d.calls.length + " call" + (d.calls.length === 1 ? "" : "s");
       renderSmsThreads();
       renderWaThreads();
@@ -2181,6 +2183,7 @@
         var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#E6CB7E">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
         return '<div class="tourrow"><div>' + (c.direction === "in" ? "📥" : "📤") + ' <b>' + who + '</b> <span class="mut">' + esc(other || "") + '</span></div>' +
           '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' +
+          (c.screened ? '<span class="chip" title="Screened as likely spam — it never rang your cell">🚫 screened' + (c.screenReason ? ' · ' + esc(c.screenReason) : '') + '</span>' : '') +
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
           (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
           (c.leadId ? '<span class="chip">lead created</span>' : '') + '<button type="button" class="ghost small" data-tl-open="' + esc(String(other || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button></div>' +
@@ -2189,6 +2192,34 @@
     }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
   }
   $("callRefresh").addEventListener("click", function(){ cacheClear(); loadCalls(); });
+  // Pack TelephonyStronger (2026-11-12): the webhook health
+  // guardian banner. /api/admin/calls carries the day's
+  // unacknowledged incidents; each renders as a plain-words
+  // warning naming the problem, with an Acknowledge button
+  // (POST /api/admin/calls/guardian — clears the incident;
+  // the counters themselves stay on the day's record).
+  function renderCallGuardian(g){
+    var box = $("callGuardian"); if (!box) return;
+    var alerts = (g && g.alerts) || [];
+    if (!alerts.length) { box.innerHTML = ""; return; }
+    box.innerHTML = alerts.map(function(a){
+      var what = a.kind === "sigfail" ? "Twilio signature failures" : "Twilio webhook errors";
+      var advice = a.kind === "sigfail"
+        ? "Something is posting to the webhook with the wrong credentials. If you did not just change the Twilio setup, treat it as an attack probe and check the Twilio console."
+        : "The webhook is throwing server errors, so calls and texts may not be logging. Check the worker deployment.";
+      return '<div class="card" style="margin-bottom:12px;border-color:#b45309">⚠️ <b>' + what + ' on the ' + esc(a.family) + ' line: ' + (a.count || 0) + ' today.</b> ' + advice +
+        ' <button type="button" class="ghost small" data-guardian-ack="' + esc(a.key) + '">Acknowledge</button></div>';
+    }).join("");
+  }
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-guardian-ack]");
+    if (!b) return;
+    b.disabled = true;
+    api(API_URL, "/api/admin/calls/guardian", { method: "POST", body: JSON.stringify({ ack: b.getAttribute("data-guardian-ack") }) }).then(function(r){
+      if (r && r.ok) { toast("Alert acknowledged ✓"); loadCalls(); }
+      else { b.disabled = false; toast("Could not acknowledge the alert", true); }
+    }).catch(function(){ b.disabled = false; toast("Could not acknowledge the alert", true); });
+  });
   // Pack PortalCallsConfig (2026-11-12): the provision card for
   // cfg:calls — the Calls-workspace twin of the Academy Stripe/B2/
   // Tutor cards. Write path: POST /api/admin/config (owner-session
@@ -2352,6 +2383,21 @@
   });
   var smsOpenPhone = null, smsCache = [];
   function smsOther(m){ return m.direction === "in" ? m.from : m.to; }
+  // Pack TelephonyStronger (2026-11-12): per-message delivery
+  // state for outbound texts — Twilio status callbacks land on
+  // the record's delivery field via the shared
+  // /api/calls/twilio/msgstatus route; rendered here so the
+  // thread shows queued / sent / delivered / read / failed
+  // (with the Twilio error code) under each outbound bubble.
+  function smsDeliverySuffix(dv){
+    if (!dv || !dv.state) return "";
+    if (dv.state === "failed") return ' · <span style="color:#f87171">⚠ failed' + (dv.code ? ' (' + esc(dv.code) + ')' : '') + '</span>';
+    if (dv.state === "delivered") return " · ✓✓ delivered";
+    if (dv.state === "read") return " · ✓✓ read";
+    if (dv.state === "sent") return " · ✓ sent";
+    if (dv.state === "sending") return " · sending…";
+    return " · queued";
+  }
   function renderSmsThreads(){
     api(API_URL, "/api/admin/sms?limit=300").then(function(d){
       if (!d || !d.ok) return;
@@ -2383,7 +2429,7 @@
     $("smsThread").innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">💬 ' + esc(label) + ' <span class="mut">' + esc(phone) + '</span></div>' +
       '<div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding:2px">' + msgs.map(function(m){
         var out = m.direction === "out";
-        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
+        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + (out ? smsDeliverySuffix(m.delivery) : '') + '</div></div>';
       }).join("") + '</div>' +
       '<div style="display:flex;gap:6px;margin-top:10px"><textarea id="smsReplyText" rows="2" placeholder="Reply as the business number…" style="flex:1"></textarea><button type="button" class="ghost small" data-tl-open="' + esc(String(phone || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button><button type="button" class="btn-spruce" data-sms-send="' + esc(phone) + '">Send</button></div></div>';
     if (prevReply) { var nr = $("smsReplyText"); if (nr) nr.value = prevReply; }
@@ -2455,7 +2501,7 @@
     $("waThread").innerHTML = '<div class="card"><div style="font-weight:700;margin-bottom:8px">🟢 WhatsApp · ' + esc(label) + ' <span class="mut">' + esc(phone) + '</span></div>' +
       '<div style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding:2px">' + msgs.map(function(m){
         var out = m.direction === "out";
-        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + '</div></div>';
+        return '<div style="align-self:' + (out ? 'flex-end' : 'flex-start') + ';max-width:78%;background:' + (out ? 'rgba(198,161,91,.18)' : 'rgba(255,255,255,.06)') + ';border:1px solid rgba(127,127,127,.3);border-radius:12px;padding:7px 11px;font-size:14px">' + esc(m.body) + (m.media && m.media.length ? '<div class="mut">📎 ' + m.media.length + ' attachment' + (m.media.length > 1 ? 's' : '') + '</div>' : '') + '<div class="mut" style="font-size:11.5px;margin-top:2px">' + esc(fmtDate(m.at)) + (out ? smsDeliverySuffix(m.delivery) : '') + '</div></div>';
       }).join("") + '</div>' +
       '<div id="waDraftBox"></div>' +
       (winOpen
