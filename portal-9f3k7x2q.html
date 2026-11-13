@@ -276,7 +276,28 @@
       </div>
       <div class="pagehead">
         <div><h1>Leads</h1><div class="mut" id="leadCount"></div></div>
-        <button class="ghost small" id="refreshBtn">Refresh</button>
+        <div style="display:flex;gap:8px">
+          <button class="small" id="addLeadToggle" type="button">＋ Add lead</button>
+          <button class="ghost small" id="refreshBtn">Refresh</button>
+        </div>
+      </div>
+      <div class="card" id="addLeadCard" hidden>
+        <h2>Add a lead manually</h2>
+        <form id="addLeadForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><span class="mut">Name *</span><input type="text" id="addLeadName" required maxlength="120" autocomplete="off" placeholder="e.g. Sara Ahmadi"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Email *</span><input type="email" id="addLeadEmail" required maxlength="160" autocomplete="off" placeholder="name@example.com"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:150px"><span class="mut">Phone</span><input type="tel" id="addLeadPhone" maxlength="40" autocomplete="off" placeholder="604 555 0100"></label>
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Interest</span><select id="addLeadIntent"><option value="buyer">Buy</option><option value="seller">Sell</option><option value="renter">Rent</option><option value="investor">Invest</option></select></label>
+          <label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Stage</span><select id="addLeadStage"><option value="new">New</option><option value="contacted">Contacted</option><option value="viewing">Viewing</option><option value="offer">Offer</option><option value="closed">Closed</option><option value="dropped">Dropped</option></select></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><span class="mut">Areas</span><input type="text" id="addLeadAreas" maxlength="80" autocomplete="off" placeholder="Burnaby, Coquitlam"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;width:150px"><span class="mut">Budget</span><input type="text" id="addLeadBudget" maxlength="40" autocomplete="off" placeholder="$750k–$1M"></label>
+          <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">First note</span><input type="text" id="addLeadNote" maxlength="2000" autocomplete="off" placeholder="Where this lead came from, what they want…"></label>
+          <button type="submit" id="addLeadSubmit">Add lead</button>
+          <button type="button" class="ghost" id="addLeadCancel">Cancel</button>
+        </form>
+        <div class="hint">Source is recorded as <b>manual</b>. If the email already belongs to a lead or a registered user, nothing is duplicated — you will be offered that profile instead.</div>
+        <div id="addLeadErr" style="color:#e5484d;margin-top:8px" hidden></div>
+        <div id="addLeadExists" style="margin-top:8px" hidden></div>
       </div>
       <div class="filters">
         <input type="search" id="leadSearch" placeholder="Search name, email, city…">
@@ -3818,6 +3839,65 @@
 
   // ---------- leads ----------
   $("refreshBtn").addEventListener("click", function(){ cacheClear(); loadLeads(); });
+  /* Pack PortalAddLead (2026-11-12): manual lead creation — the portal
+     had no lead-creation control at all. Submits to the owner-session
+     POST /api/admin/leads (worker reuses the public lead sanitiser;
+     source is fixed 'manual' server-side). On success the new lead is
+     merged into the table and its detail opens; on a duplicate email
+     the worker answers 409 already_exists and we offer the existing
+     profile instead of creating a copy. */
+  $("addLeadToggle").addEventListener("click", function(){
+    var c = $("addLeadCard"); c.hidden = !c.hidden;
+    if (!c.hidden) $("addLeadName").focus();
+  });
+  $("addLeadCancel").addEventListener("click", function(){ $("addLeadCard").hidden = true; });
+  $("addLeadForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var errBox = $("addLeadErr"), exBox = $("addLeadExists");
+    errBox.hidden = true; exBox.hidden = true;
+    var payload = {
+      name: $("addLeadName").value, email: $("addLeadEmail").value, phone: $("addLeadPhone").value,
+      intent: $("addLeadIntent").value, stage: $("addLeadStage").value,
+      city: $("addLeadAreas").value, budget: $("addLeadBudget").value, note: $("addLeadNote").value
+    };
+    if (!payload.name.trim() || !payload.email.trim()) { errBox.textContent = "Name and email are required."; errBox.hidden = false; return; }
+    var btn = $("addLeadSubmit"); btn.disabled = true;
+    api(API_URL, "/api/admin/leads", { method: "POST", body: JSON.stringify(payload) }).then(function(r){
+      btn.disabled = false;
+      if (r && r.ok && r.lead) {
+        toast("Lead added — " + r.lead.name);
+        $("addLeadCard").hidden = true;
+        $("addLeadForm").reset(); $("addLeadStage").value = "new"; $("addLeadIntent").value = "buyer";
+        leads = [r.lead].concat(leads.filter(function(l){ return l.id !== r.lead.id; }));
+        renderLeads(); loadOverview();
+        openDetail(r.lead.id);
+        loadLeads();
+        return;
+      }
+      if (r && r.error === "already_exists" && r.existing) {
+        var ex = r.existing;
+        exBox.innerHTML = "<span>Already exists — a " + esc(ex.type === "user" ? "registered user" : "lead") + " with this email is on file: <b>" + esc(ex.name || ex.email) + "</b> (" + esc(ex.email) + ").</span> ";
+        var ob = document.createElement("button");
+        ob.type = "button"; ob.className = "ghost small"; ob.textContent = "Open that profile";
+        ob.addEventListener("click", function(){
+          $("addLeadCard").hidden = true;
+          if (ex.type === "lead" && ex.id) {
+            if (leads.some(function(l){ return l.id === ex.id; })) openDetail(ex.id);
+            else { loadLeads(); toast("That lead is in the table — click it to open"); }
+          } else {
+            crmOpen = ex.email; go("crm");
+          }
+        });
+        exBox.appendChild(ob);
+        exBox.hidden = false;
+        return;
+      }
+      errBox.textContent = (r && r.error === "banned") ? "That email is banned — the lead was not created."
+        : (r && r.error === "validation") ? "Please check the fields: a valid name, email and phone are required."
+        : "Could not add the lead. Please try again.";
+      errBox.hidden = false;
+    }).catch(function(){ btn.disabled = false; errBox.textContent = "Could not reach the server."; errBox.hidden = false; });
+  });
   $("stageFilter").addEventListener("change", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
   $("intentFilter").addEventListener("change", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
   $("leadSearch").addEventListener("input", function(){ leadPage = 1; leadSel = {}; renderLeads(); });
