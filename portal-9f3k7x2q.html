@@ -1887,12 +1887,12 @@
     var orig = btn ? btn.textContent : "";
     if (btn) { btn.disabled = true; btn.textContent = "Copying…"; }
     var restore = function(){ if (btn) { btn.disabled = false; btn.textContent = orig || "Copy invite link"; } };
-    api(ACADEMY_API_URL, "/api/admin/academy/student-invite-link", { method: "POST", body: JSON.stringify({ email: email }) }).then(function(d){
+    api(ACADEMY_API_URL, "/api/admin/academy/student-invite-link", { method: "POST", timeoutMs: 30000, body: JSON.stringify({ email: email }) }).then(function(d){
       restore();
       if (!d || d.error || !d.link) { toast("Could not create the invite link" + (d && d.error ? " — " + d.error : ""), true); return; }
       var fallback = function(){ window.prompt("Copy the invite link for " + email + ":", d.link); };
       var showLink = function(){ try { var old = document.getElementById("acInviteLinkBox"); if (old) old.remove(); var box = document.createElement("div"); box.id = "acInviteLinkBox"; box.style.cssText = "margin:8px 0;padding:8px 10px;border:1px solid #C9A24B;border-radius:8px;font-size:12px;word-break:break-all;background:#161513;color:#FAFAF8"; box.textContent = "Invite link for " + email + ": " + d.link; (btn && btn.parentNode ? btn.parentNode : document.body).appendChild(box); } catch (e) {} };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(d.link).then(function(){ toast("Invite link copied ✓", false); showLink(); }, fallback);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(d.link).then(function(){ toast("Invite link copied ✓", false); showLink(); }, function(){ showLink(); fallback(); });
       else { showLink(); fallback(); }
     }).catch(function(){ restore(); toast("Could not create the invite link — network error", true); });
   }
