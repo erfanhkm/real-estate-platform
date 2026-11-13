@@ -211,6 +211,7 @@
       <button class="navbtn sub" data-nav="maintenance"><span class="ic">🛠</span>Maintenance</button>
       <button class="navbtn sub" data-nav="rules"><span class="ic">⚙️</span>Automation rules</button>
       <button class="navbtn sub" data-nav="mailq"><span class="ic">📥</span>Held mail</button>
+      <button class="navbtn sub" data-nav="pastclients"><span class="ic">💛</span>Past clients</button>
     </div>
     <div class="sp"></div>
     <a class="navbtn" href="https://ehrealtybc.com/" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
@@ -713,6 +714,53 @@
       <div id="nlGroups"></div>
     </section>
 
+    <!-- PAST CLIENTS / PAST-CLIENT CLUB (Pack SystemPastClients) -->
+    <section id="page-pastclients" hidden>
+      <div class="pagehead">
+        <div><h1>Past clients</h1><div class="mut">The Past-Client Club. The system PREPARES purchase-anniversary messages and yearly equity updates and lands them in Held mail for your review — nothing is ever sent from here, and no client gets more than one prepared touch per 60 days. Equity figures come from the same valuation engine as the public tool; when it cannot produce an honest estimate, the client is flagged “needs data” instead of being sent an invented number.</div></div>
+        <button class="ghost small" id="pcRefresh">Refresh</button>
+      </div>
+      <div class="card">
+        <h2>💛 Past-Client Club</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+          <button class="ghost small" id="pcRunBtn">Run touchpoint check now</button>
+          <span class="mut">Preparation also runs with the daily automations.</span>
+        </div>
+        <div id="pcList"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h2>➕ Add a past client</h2>
+        <form id="pcAddForm">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px"><span class="mut">Full name</span><input type="text" id="pcName" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px"><span class="mut">Email</span><input type="email" id="pcEmail" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:150px"><span class="mut">Phone</span><input type="text" id="pcPhone" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:120px"><span class="mut">Language</span>
+              <select id="pcLang"><option value="en">English</option><option value="fa">فارسی</option><option value="hi">हिन्दी</option><option value="zh">中文</option><option value="es">Español</option></select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:150px"><span class="mut">They…</span>
+              <select id="pcSide"><option value="bought">Bought a home</option><option value="sold">Sold a home</option></select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:150px"><span class="mut">Closing date</span><input type="date" id="pcClosingDate"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:160px"><span class="mut">Price at closing (CAD)</span><input type="number" id="pcClosingPrice" min="0" step="1000"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Property address</span><input type="text" id="pcAddress" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:140px"><span class="mut">City</span><input type="text" id="pcCity" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:150px"><span class="mut">Property type</span><input type="text" id="pcType" placeholder="condo, townhouse, house…" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:110px"><span class="mut">Postal code</span><input type="text" id="pcPostal" autocomplete="off"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:100px"><span class="mut">Sqft</span><input type="number" id="pcSqft" min="0" step="10"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:80px"><span class="mut">Beds</span><input type="number" id="pcBeds" min="0" step="1"></label>
+            <label style="display:flex;flex-direction:column;gap:4px;min-width:80px"><span class="mut">Baths</span><input type="number" id="pcBaths" min="0" step="0.5"></label>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:4px;margin-top:8px"><span class="mut">Notes</span><textarea id="pcNotes" rows="2"></textarea></label>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="pcTest" style="width:auto"> Test record (the name is labelled “ZZ TEST”)</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+            <button type="submit" id="pcAddBtn">Add past client</button>
+            <span class="err" id="pcAddErr"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+
     <!-- HELD MAIL / OUTBOX (Pack PMV3) -->
     <section id="page-mailq" hidden>
       <div class="pagehead">
@@ -1184,6 +1232,101 @@
     if (g.market === false) parts.push("market contact — never auto-releases");
     return '<div class="pu-mini">Agent gates: ' + esc(parts.join(" · ")) + " → " + (rec.agentEmail.released ? "<b>RELEASED to mailer</b>" : "<b>HELD</b>") + (rec.critic ? " · critic: " + esc(rec.critic.status || "") : "") + "</div>";
   }
+  /* ===== Past-Client Club (Pack SystemPastClients) =====
+     The view over the worker's pclient: records + the touchpoint
+     engine's computed state. This page only READS and manages
+     records; preparation happens in the worker's automations and the
+     prepared drafts live in Held mail — there is deliberately no
+     send or release control here. */
+  var pcClients = [];
+  function pcMoneyFmt(n){ return "$" + Math.round(Number(n) || 0).toLocaleString("en-CA"); }
+  function pcNextLabel(nt){
+    if (!nt) return "—";
+    if (nt.state === "paused") return "⏸ Paused";
+    if (nt.state === "bad_date") return "⚠ Closing date missing";
+    if (nt.state === "due") return "🔔 Due now — " + (nt.type === "anniversary" ? "anniversary" : "equity update");
+    return (nt.type === "anniversary" ? "🎂 Anniversary" : "📈 Equity update") + " · " + esc(nt.date);
+  }
+  function loadPastClients(){
+    var box = $("pcList"); if (!box) return;
+    api(API_URL, "/api/admin/past-clients", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load past clients.</div>'; return; }
+      pcClients = d.clients || [];
+      renderPastClients();
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load past clients.</div>'; });
+  }
+  function renderPastClients(){
+    var box = $("pcList"); if (!box) return;
+    if (!pcClients.length) { box.innerHTML = '<div class="empty">No past clients yet. Add the first one below — anniversary and equity drafts will be prepared for them automatically and held for your review.</div>'; return; }
+    var h = '<table class="tbl"><thead><tr><th>Client</th><th>Property</th><th>Closing</th><th>Equity</th><th>Next touch</th><th>Last prepared</th><th></th></tr></thead><tbody>';
+    pcClients.forEach(function(c){
+      var p = c.property || {};
+      var prop = esc(((p.address || "") + (p.city ? ", " + p.city : "")).trim() || "—") + (p.type ? ' <span class="mut">(' + esc(p.type) + (p.sqft ? ", " + esc(p.sqft) + " sqft" : "") + ')</span>' : "");
+      var eq = '<span class="mut">—</span>';
+      if (c.equityState === "ready" && c.equityEstimate) eq = '<span class="ok">✓ ' + pcMoneyFmt(c.equityEstimate.low) + " – " + pcMoneyFmt(c.equityEstimate.high) + '</span><div class="mut">as of ' + esc(c.equityEstimate.at || "") + '</div>';
+      else if (c.equityState === "needs_data") eq = '<span class="warn">⚠ Needs data</span>';
+      else if (c.equityState === "suppressed") eq = '<span class="mut">Suppressed (DNC / ban)</span>';
+      var last = (c.touches && c.touches.lastPreparedAt) ? esc(String(c.touches.lastPreparedAt).slice(0, 10)) + (c.touches.lastType ? ' <span class="mut">(' + esc(c.touches.lastType) + ')</span>' : "") : '<span class="mut">never</span>';
+      h += '<tr' + (c.paused ? ' style="opacity:.55"' : "") + '><td><b>' + esc(c.name || "") + '</b>' + (c.test ? ' <span class="chip">TEST</span>' : "") + '<div class="mut">' + esc(c.email || "") + (c.phone ? " · " + esc(c.phone) : "") + '</div>' + (c.notes ? '<div class="mut">' + esc(c.notes) + '</div>' : "") + '</td>'
+        + '<td>' + prop + '<div class="mut">' + (c.side === "sold" ? "Sold" : "Bought") + '</div></td>'
+        + '<td>' + esc(c.closingDate || "") + '<div class="mut">' + pcMoneyFmt(c.closingPrice) + '</div></td>'
+        + '<td>' + eq + '</td>'
+        + '<td>' + pcNextLabel(c.nextTouch) + '</td>'
+        + '<td>' + last + '</td>'
+        + '<td><button type="button" class="ghost small" data-pc-pause="' + esc(c.id) + '">' + (c.paused ? "Resume" : "Pause") + '</button></td></tr>';
+    });
+    h += '</tbody></table>';
+    box.innerHTML = h;
+  }
+  var pcListBox = $("pcList");
+  if (pcListBox) pcListBox.addEventListener("click", function(e){
+    var b = e.target.closest("[data-pc-pause]"); if (!b) return;
+    var id = b.getAttribute("data-pc-pause");
+    var c = null; pcClients.forEach(function(x){ if (x.id === id) c = x; });
+    if (!c) return;
+    b.disabled = true;
+    api(API_URL, "/api/admin/past-clients/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify({ paused: !c.paused }) }).then(function(r){
+      if (r && r.ok) { toast(c.paused ? "Client resumed — touches will be prepared again" : "Client paused — no touches will be prepared"); loadPastClients(); return; }
+      toast("Could not update the client", true); loadPastClients();
+    }).catch(function(){ toast("Could not update the client — network error", true); loadPastClients(); });
+  });
+  var pcRefreshBtn = $("pcRefresh");
+  if (pcRefreshBtn) pcRefreshBtn.addEventListener("click", function(){ loadPastClients(); });
+  var pcRunBtn = $("pcRunBtn");
+  if (pcRunBtn) pcRunBtn.addEventListener("click", function(){
+    pcRunBtn.disabled = true; pcRunBtn.textContent = "Checking…";
+    api(API_URL, "/api/admin/followups/run", { method: "POST", body: "{}" }).then(function(r){
+      pcRunBtn.disabled = false; pcRunBtn.textContent = "Run touchpoint check now";
+      var pc = r && r.pastClients;
+      if (pc) toast("Touchpoint check done — " + (pc.drafts || 0) + " draft(s) prepared, " + (pc.needsData || 0) + " need data. Drafts are waiting in Held mail.");
+      else toast("Touchpoint check ran", false);
+      loadPastClients();
+    }).catch(function(){ pcRunBtn.disabled = false; pcRunBtn.textContent = "Run touchpoint check now"; toast("Touchpoint check failed — network error", true); });
+  });
+  var pcAddForm = $("pcAddForm");
+  if (pcAddForm) pcAddForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var err = $("pcAddErr"); if (err) err.textContent = "";
+    var name = ($("pcName").value || "").trim();
+    var email = ($("pcEmail").value || "").trim();
+    var closingDate = $("pcClosingDate").value || "";
+    var closingPrice = Number($("pcClosingPrice").value || 0);
+    if (!name || !email || !closingDate || !(closingPrice > 0)) { if (err) err.textContent = "Name, email, closing date and price at closing are required."; return; }
+    var num = function(id){ var v = Number(($(id).value || "").trim()); return isFinite(v) && v > 0 ? v : 0; };
+    var payload = {
+      name: name, email: email, phone: ($("pcPhone").value || "").trim(), lang: $("pcLang").value,
+      side: $("pcSide").value, closingDate: closingDate, closingPrice: closingPrice,
+      property: { address: ($("pcAddress").value || "").trim(), city: ($("pcCity").value || "").trim(), type: ($("pcType").value || "").trim(), postal: ($("pcPostal").value || "").trim(), sqft: num("pcSqft"), beds: num("pcBeds"), baths: num("pcBaths") },
+      notes: ($("pcNotes").value || "").trim(), test: $("pcTest").checked === true
+    };
+    var btn = $("pcAddBtn"); if (btn) { btn.disabled = true; btn.textContent = "Adding…"; }
+    api(API_URL, "/api/admin/past-clients", { method: "POST", body: JSON.stringify(payload) }).then(function(r){
+      if (btn) { btn.disabled = false; btn.textContent = "Add past client"; }
+      if (r && r.ok) { toast("Past client added ✓"); pcAddForm.reset(); loadPastClients(); return; }
+      if (err) err.textContent = "Could not add — check the fields (" + ((r && r.error) || "error") + ").";
+    }).catch(function(){ if (btn) { btn.disabled = false; btn.textContent = "Add past client"; } if (err) err.textContent = "Could not add — network error."; });
+  });
+
   function loadMailq(){
     var box = $("mqBody"); if (!box) return;
     api(API_URL, "/api/admin/mailq").then(function(d){
@@ -1913,10 +2056,10 @@
     if (page === "workspace") { wsOpen(); return; }
     if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq","academy"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq","academy","pastclients"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
-    if (["site", "pipeline", "maintenance", "rules", "mailq"].indexOf(page) !== -1) navOthersOpen(true);
+    if (["site", "pipeline", "maintenance", "rules", "mailq", "pastclients"].indexOf(page) !== -1) navOthersOpen(true);
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
       var on = b.getAttribute("data-nav") === navKey;
@@ -1944,6 +2087,7 @@
     if (page === "maintenance") loadMaint();
     if (page === "calls") { loadCalls(); loadCallsConfig(); }
     if (page === "mailq") loadMailq();
+    if (page === "pastclients") loadPastClients();
     if (page === "academy") { if (acLoadedOnce) cacheClear(); acLoadedOnce = true; loadAcademy(); }
     wsSync(page);
   }
