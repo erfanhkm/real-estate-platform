@@ -595,6 +595,11 @@
         <button class="ghost small" id="callRefresh">Refresh</button>
       </div>
       <div id="callBanner"></div>
+      <div class="card" id="callCfgCard" style="margin-bottom:12px">
+        <h2>Calls setup (Twilio)</h2>
+        <div class="mut">Calls and texts for the business number run through Twilio and log here. The Account SID, Auth Token and ingest secret are stored on the worker only, inside your signed-in session — sent once and never displayed again.</div>
+        <div id="callCfgBody" style="margin-top:10px"><div class="empty">Loading…</div></div>
+      </div>
       <div id="callList"></div>
       <div class="pagehead" style="margin-top:24px"><div><h1 style="font-size:20px">Messages</h1><div class="mut" id="smsCount"></div></div></div>
       <div id="smsThreads"></div>
@@ -1932,7 +1937,7 @@
     if (page === "viewings") loadViewings();
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
-    if (page === "calls") loadCalls();
+    if (page === "calls") { loadCalls(); loadCallsConfig(); }
     if (page === "mailq") loadMailq();
     if (page === "academy") { if (acLoadedOnce) cacheClear(); acLoadedOnce = true; loadAcademy(); }
     wsSync(page);
@@ -2179,6 +2184,75 @@
     }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
   }
   $("callRefresh").addEventListener("click", function(){ cacheClear(); loadCalls(); });
+  // Pack PortalCallsConfig (2026-11-12): the provision card for
+  // cfg:calls — the Calls-workspace twin of the Academy Stripe/B2/
+  // Tutor cards. Write path: POST /api/admin/config (owner-session
+  // only; the key 'calls' is in CFG_KEYS; whole-object replace,
+  // <=8,192 B; the write is audit-logged with no values). Read-back:
+  // the config existence probe — GET ?key=calls returns only
+  // {value:{configured:true}} or value:null — so this card renders
+  // status from that boolean alone, pre-fills nothing, and never
+  // renders a stored value. The Auth Token and ingest secret inputs
+  // are cleared the moment the form submits (the B2 card posture)
+  // and the local copies are dropped again when the request settles.
+  function loadCallsConfig(){
+    var box = $("callCfgBody"); if (!box) return;
+    api(API_URL, "/api/admin/config?key=calls", { fresh: true }).then(function(d){
+      if (!d || !d.ok) { box.innerHTML = '<div class="empty">Could not load calls setup status.</div>'; return; }
+      renderCallsConfig(!!(d.value && d.value.configured));
+    }).catch(function(){ box.innerHTML = '<div class="empty">Could not load calls setup status.</div>'; });
+  }
+  function renderCallsConfig(configured){
+    var box = $("callCfgBody"); if (!box) return;
+    var h = '<div class="pu-mini">Calls setup: ' + (configured ? "✓ stored" : "✗ not stored") + "</div>";
+    if (configured) h += '<div class="ok" style="margin-top:8px">Configured ✓ — the business number is connected and calls/texts log here.</div>';
+    h += '<form id="callCfgForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;min-width:140px"><span class="mut">Provider</span><select id="callCfgProvider"><option value="twilio" selected>Twilio</option></select></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px"><span class="mut">Business number (Twilio)</span><input type="text" id="callCfgNumber" autocomplete="off" spellcheck="false" placeholder="+1…"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px"><span class="mut">Forward-to number (your cell)</span><input type="text" id="callCfgForwardTo" autocomplete="off" spellcheck="false" placeholder="+1…"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Twilio Account SID</span><input type="text" id="callCfgSid" autocomplete="off" spellcheck="false" placeholder="AC…"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Twilio Auth Token</span><input type="password" id="callCfgToken" autocomplete="off" spellcheck="false" placeholder="Paste the Auth Token"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Ingest secret</span><input type="password" id="callCfgSecret" autocomplete="off" spellcheck="false" placeholder="Any random word of your own"></label>' +
+      '<button type="submit" id="callCfgSave">' + (configured ? "Save / replace calls setup" : "Save calls setup") + "</button></form>" +
+      '<div class="hint">One save stores the whole setup and replaces any previous one. The SID and Auth Token travel only from this page to the worker inside your signed-in session — never through chat — and are never shown again. Leave the ingest secret blank to keep the generic ingest routes off.</div>';
+    if (configured) {
+      h += '<div style="margin-top:10px"><button type="button" class="ghost small" id="callCfgClear">Clear / reset calls setup</button></div>' +
+        '<div class="hint">Reset stores an EMPTY setup: every call/text route goes back to inert and the banner above flips to "not connected yet". The status line above reads the stored record, so it can still show as stored (empty) after a reset — the banner and the routes are the live truth.</div>';
+    }
+    box.innerHTML = h;
+    var f = $("callCfgForm");
+    if (f) f.addEventListener("submit", function(e){
+      e.preventDefault();
+      var prov = ($("callCfgProvider").value || "twilio");
+      var num = ($("callCfgNumber").value || "").trim();
+      var fwd = ($("callCfgForwardTo").value || "").trim();
+      var sid = ($("callCfgSid").value || "").trim();
+      var tokInp = $("callCfgToken"); var tok = (tokInp.value || "").trim(); tokInp.value = ""; // cleared immediately on submit — never kept client-side
+      var secInp = $("callCfgSecret"); var sec = (secInp.value || "").trim(); secInp.value = ""; // same posture
+      if (!num || !fwd || !sid || !tok) { toast("Fill in the business number, forward-to number, Account SID and Auth Token first", true); return; }
+      var btn = $("callCfgSave"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+      var value = { provider: prov, number: num, forwardTo: fwd, secret: sec, twilioAccountSid: sid, twilioAuthToken: tok };
+      api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "calls", value: value }) }).then(function(r){
+        tok = ""; sec = "";
+        if (r && r.ok) { toast("Calls setup saved ✓"); loadCallsConfig(); loadCalls(); return; }
+        toast("Could not save the calls setup" + (r && r.error ? " — " + r.error : ""), true); loadCallsConfig();
+      }).catch(function(){ tok = ""; sec = ""; toast("Could not save the calls setup — network error", true); loadCallsConfig(); });
+    });
+    var cb = $("callCfgClear");
+    if (cb) cb.addEventListener("click", function(){
+      // Inline two-step confirm (no native confirm() dialog — the
+      // automated browser dismisses those, and an inline arm is
+      // clearer anyway; same pattern as the B2 Replace button):
+      // first click arms for 6s, second click clears.
+      if (cb.dataset.armed !== "1") { cb.dataset.armed = "1"; cb.textContent = "Click again to clear the calls setup"; setTimeout(function(){ if (cb.dataset.armed === "1" && !cb.disabled) { cb.dataset.armed = ""; cb.textContent = "Clear / reset calls setup"; } }, 6000); return; }
+      cb.disabled = true; cb.textContent = "Clearing…";
+      api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "calls", value: {} }) }).then(function(r){
+        if (r && r.ok) { toast("Calls setup cleared — the number is off"); renderCallsConfig(false); loadCalls(); return; }
+        toast("Could not clear the calls setup" + (r && r.error ? " — " + r.error : ""), true); loadCallsConfig();
+      }).catch(function(){ toast("Could not clear the calls setup — network error", true); loadCallsConfig(); });
+    });
+  }
+
   $("callList").addEventListener("click", function(e){
     var ld = e.target.closest("[data-call-lead]");
     if (ld) {
