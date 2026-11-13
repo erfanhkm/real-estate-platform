@@ -1,113 +1,3 @@
-    /* ---------- listing cards ---------- */
-    function monthlyCost(l){
-      // Self-contained on purpose: paymentFor() lives in the calculator module,
-      // which is not present on every page this card/dialog code ships to.
-      var principal = l.price * 0.8;
-      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
-      var mort = principal * r / (1 - Math.pow(1 + r, -n));
-      var strata = l.strata || 0;
-      var tax = (l.tax || 0) / 12;
-      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
-      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
-    }
-    function cardHTML(l, why){
-      var t = T();
-      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
-        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
-      var preHTML = "";
-      if (l.pt === "presale"){
-        var pbits = [];
-        if (l.project) pbits.push(esc(l.project));
-        if (l.developer) pbits.push(esc(l.developer));
-        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
-          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
-      }
-      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
-      var cmpBtn = "";
-      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
-        var cOn = cmpSel.indexOf(l.mls) !== -1;
-        var cMax = !cOn && cmpSel.length >= 4;
-        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
-      }
-      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
-        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
-    }
-    function filteredListings(){
-      var q = $("q").value.trim().toLowerCase(), city = $("fCity").value, type = $("fType").value,
-          price = $("fPrice").value, beds = parseInt($("fBeds").value||"0",10), sort = $("fSort").value;
-      var out = LISTINGS.filter(function(l){
-        if (city && l.city !== city) return false;
-        if (type && l.type !== type) return false;
-        if (price && l.price > parseInt(price,10)) return false;
-        if (l.beds < beds) return false;
-        if (q){ var hay = (l.street+" "+l.city+" "+l.mls+" "+(l.postal||"")+" "+(l.project||"")+" "+(l.developer||"")+" "+["en","fa","hi","zh","es"].map(function(L){ var cc = I18N[L] && I18N[L].cities; return cc ? (cc[l.city] || "") : ""; }).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
-        if (document.getElementById("fPresale") && document.getElementById("fPresale").checked && l.pt !== "presale") return false;
-        return true;
-      });
-      if (sort === "price-asc") out.sort(function(a,b){return a.price-b.price;});
-      if (sort === "price-desc") out.sort(function(a,b){return b.price-a.price;});
-      if (sort === "newest") out.sort(function(a,b){return b.listed.localeCompare(a.listed);});
-      if (sort === "dom") out.sort(function(a,b){return domOf(b)-domOf(a);});
-      return out;
-    }
-    function renderListings(){
-      var list = filteredListings(), t = T();
-      $("resultCount").textContent = fill(t.results, {n: list.length});
-      $("grid").innerHTML = list.length ? list.map(function(l){ try { return cardHTML(l, null); } catch(e){ return ""; } }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
-    }
-
-    /* ---------- detail dialog ---------- */
-    var dlg = $("dlg"), current = null;
-    window.openListing = function(mls){
-      var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
-      $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
-      var b = $("dBadge"); b.textContent = t[statusKey(l)]; b.className = "badge" + (statusKey(l) === "active" ? "" : " " + statusKey(l));
-      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = (t.cities[l.city] || l.city) + ", BC · " + l.postal;
-      function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
-      $("dKv").innerHTML =
-        kv(t.m_type, t["type_"+l.type] || l.type) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
-        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString("en-US")+" "+t.sqft : t.na_ap) +
-        kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
-        kv(t.m_strata, l.strata ? fmt(l.strata) : t.na_ap) + kv(t.m_dom, domOf(l)) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
-      var mc = monthlyCost(l);
-      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#fbf6e9;border:1px solid #e7d9b4;border-radius:12px;padding:12px 14px;color:#2a251c">' +
-        '<div style="font-weight:700;margin-bottom:6px;color:#0b0b0b">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px">' +
-        '<span>' + esc(t.mc_mort) + '</span><b>' + fmt(Math.round(mc.mort)) + '</b>' +
-        (mc.strata ? '<span>' + esc(t.m_strata) + '</span><b>' + fmt(mc.strata) + '</b>' : "") +
-        '<span>' + esc(t.mc_tax) + '</span><b>' + fmt(Math.round(mc.tax)) + '</b>' +
-        '<span>' + esc(t.mc_heat) + '</span><b>' + fmt(mc.heat) + '</b></div>' +
-        '<div style="font-size:12px;color:#6e685b;margin-top:6px">' + esc(t.mc_note) + '</div></div>';
-      $("dFeat").innerHTML = l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("");
-      if (l.pt === "presale"){
-        var pchips = [];
-        if (l.project) pchips.push("🏗️ " + esc(l.project));
-        if (l.completion) pchips.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pchips.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        if (l.assignment && l.originalPrice && l.price < l.originalPrice) pchips.push("💎 " + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig));
-        else if (l.assignment) pchips.push(esc(t.assignment_ok));
-        if (pchips.length) $("dFeat").innerHTML += pchips.map(function(x){ return "<span>" + x + "</span>"; }).join("");
-      }
-      $("dDesc").textContent = l.desc[lang] || l.desc.en;
-      $("dAsk").href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.ask_subject, {mls: l.mls, addr: l.street + ", " + l.city}));
-      $("dTour").style.display = "none"; // Pack PortalAddLeadViewingFix (2026-11-12): was the `hidden` property — .btn{display:inline-block} in the page CSS defeats the UA [hidden] rule, so the button stayed VISIBLE on listings with no tour at all, and clicking it closed the dialog then silently did nothing (getTour -> null). Inline display toggling cannot be defeated by the class rule.
-      if (typeof getTour === "function") getTour(l.mls, function(tour){
-        if (tour && tour.enabled && Array.isArray(tour.rooms) && tour.rooms.length && current === l) $("dTour").style.display = "";
-      });
-      $("dTour").onclick = function(){ openTour(l.mls); };
-      var tourCloseEl = $("tourClose"); if (tourCloseEl) tourCloseEl.onclick = closeTour;
-      try { if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open",""); } catch(e){}
-    };
-    $("dClose").addEventListener("click", function(){ dlg.close(); });
-    dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -986,90 +876,636 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
-    /* ---------- compare homes (reads only the LISTINGS data above) ---------- */
-    var cmpSel = (function(){ // Pack PortalAddLeadViewingFix rider (2026-11-12): was a hard-coded [LISTINGS[0], LISTINGS[1]] pre-seed on every load, discarding the visitor's own selection; the tray now starts EMPTY and persists the visitor's picks in localStorage
-      try { var saved = JSON.parse(localStorage.getItem("erfan-cmp") || "[]"); if (Array.isArray(saved)) return saved.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); }).slice(0, 4); } catch(e){}
-      return [];
-    })();
-    function cmpSave(){ try { localStorage.setItem("erfan-cmp", JSON.stringify(cmpSel)); } catch(e){} }
-    function cmpRows(t){
-      return [
-        ["cmp_photo", function(l){ return '<img class="cmp-img" src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />'; }],
-        ["m_price", function(l){ return "<b>"+fmt(l.price)+"</b>"; }],
-        ["cmp_ppsf", function(l){ return l.sqft ? fmt(Math.round(l.price / l.sqft)) : "—"; }],
-        ["cmp_address", function(l){ return esc(l.street); }],
-        ["f_city", function(l){ return esc(t.cities[l.city] || l.city); }],
-        ["m_type", function(l){ return esc(t["type_"+l.type]); }],
-        ["d_beds", function(l){ return String(l.beds); }],
-        ["m_baths", function(l){ return String(l.baths); }],
-        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
-        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
-        ["m_year", function(l){ return l.year ? String(l.year) : "—"; }],
-        ["m_strata", function(l){ return l.strata ? fmt(l.strata) : "—"; }],
-        ["m_parking", function(l){ return esc(t["parking_"+l.parking]) + fill(t.stalls, {n: l.stalls}); }],
-        ["cmp_status", function(l){ return esc(t[statusKey(l)]); }],
-        ["m_dom", function(l){ return String(domOf(l)); }],
-        ["m_mls", function(l){ return esc(l.mls); }],
-        ["m_features", function(l){ return '<div class="chips">'+l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("")+"</div>"; }]
-      ];
+    /* ---------- seller tools: home-prep checklist + listing-description draft ---------- */
+    var CHECKLIST = [
+      {cat:"ext", items:["ext1","ext2","ext3","ext4","ext5"]},
+      {cat:"dec", items:["dec1","dec2","dec3","dec4","dec5"]},
+      {cat:"rep", items:["rep1","rep2","rep3","rep4","rep5"]},
+      {cat:"cln", items:["cln1","cln2","cln3","cln4","cln5"]},
+      {cat:"stg", items:["stg1","stg2","stg3","stg4","stg5"]},
+      {cat:"pho", items:["pho1","pho2","pho3","pho4","pho5"]}
+    ];
+    var prepDone = {};
+    try { var pd = JSON.parse(localStorage.getItem("erfan-re-prep") || "{}"); if (pd && typeof pd === "object") prepDone = pd; } catch(e){}
+    function savePrep(){ try { localStorage.setItem("erfan-re-prep", JSON.stringify(prepDone)); } catch(e){} }
+    function countChk(){
+      var total = 0, done = 0;
+      CHECKLIST.forEach(function(g){ g.items.forEach(function(key){ total++; if (prepDone[key]) done++; }); });
+      return {total: total, done: done};
     }
-    function renderCompare(){
-      var t = T();
-      $("cmpPicker").innerHTML = LISTINGS.map(function(l){
-        var on = cmpSel.indexOf(l.mls) !== -1;
-        var maxed = !on && cmpSel.length >= 4;
-        return '<div class="cmp-pick'+(on ? " on" : "")+'"><img src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-          '<div class="cmp-pick-body"><div class="cmp-price">'+fmt(l.price)+'</div><div class="cmp-addr">'+esc(l.street)+'</div>' +
-          '<div class="cmp-meta">'+esc(t.cities[l.city] || l.city)+" · "+l.beds+" "+esc(t.beds)+" · "+l.baths+" "+esc(t.baths)+'</div>' +
-          '<button type="button" class="btn '+(on ? "btn-line" : "btn-spruce")+' cmp-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(on ? "true" : "false")+'"'+(maxed ? " disabled" : "")+">"+esc(on ? t.cmp_remove : t.cmp_add)+"</button>" +
-          "</div></div>";
-      }).join("");
-      $("cmpPicker").querySelectorAll(".cmp-toggle").forEach(function(btn){
-        btn.addEventListener("click", function(){
-          var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
-          if (i !== -1) cmpSel.splice(i, 1);
-          else if (cmpSel.length < 4) cmpSel.push(mls);
-          renderCompare(); syncCmpCardButtons();
+    function updateChkProgress(){
+      var t = T(), c = countChk();
+      $("chkProgress").textContent = fill(t.chk_progress, {d: c.done, n: c.total});
+      $("chkBar").style.width = (c.total ? c.done / c.total * 100 : 0) + "%";
+    }
+    function renderChecklist(){
+      var t = T(), html = "";
+      CHECKLIST.forEach(function(g){
+        html += '<div class="chk-cat"><h4>' + esc(t["cat_" + g.cat]) + "</h4>";
+        g.items.forEach(function(key){
+          var on = !!prepDone[key];
+          html += '<label class="chk-item' + (on ? " done" : "") + '"><input type="checkbox" data-chk="' + key + '"' + (on ? " checked" : "") + ' /><span>' + esc(t[key]) + "</span></label>";
         });
+        html += "</div>";
       });
-      cmpSel = cmpSel.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); });
-      cmpSave(); // Pack PortalAddLeadViewingFix rider: renderCompare runs after every selection mutation (picker toggle, card toggle, clear), so persisting here covers all paths
-      var sel = LISTINGS.filter(function(l){ return cmpSel.indexOf(l.mls) !== -1; });
-      $("cmpCount").textContent = fill(t.cmp_count, {n: sel.length});
-      if (sel.length < 2){
-        $("cmpTableWrap").innerHTML = '<div class="empty">'+esc(t.cmp_need)+"</div>";
+      $("chkCats").innerHTML = html;
+      updateChkProgress();
+    }
+    $("chkCats").addEventListener("change", function(e){
+      var inp = e.target;
+      if (!inp.getAttribute || !inp.getAttribute("data-chk")) return;
+      var key = inp.getAttribute("data-chk");
+      if (inp.checked) prepDone[key] = true; else delete prepDone[key];
+      savePrep();
+      var lbl = inp.closest("label"); if (lbl) lbl.classList.toggle("done", inp.checked);
+      updateChkProgress();
+    });
+    $("chkResetBtn").addEventListener("click", function(){ prepDone = {}; savePrep(); renderChecklist(); });
+    function buildChkReport(){
+      var t = T(), c = countChk();
+      var html = '<div class="rp-wrap"><div class="rp-brand">' + esc((window.__portalSettings && window.__portalSettings.brand) || "EH REALTY") + '</div>'
+        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
+        + '<h1 class="rp-title">' + esc(t.chk_title) + "</h1>"
+        + '<p class="rp-meta">' + esc(fill(t.chk_progress, {d: c.done, n: c.total})) + "</p>";
+      CHECKLIST.forEach(function(g){
+        html += '<h2 class="rp-h">' + esc(t["cat_" + g.cat]) + '</h2><ul class="chk-print-list">';
+        g.items.forEach(function(key){ html += "<li>" + (prepDone[key] ? "☑ " : "☐ ") + esc(t[key]) + "</li>"; });
+        html += "</ul>";
+      });
+      html += "</div>";
+      var root = $("chkReport");
+      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
+      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
+      root.innerHTML = html;
+    }
+    $("chkPrintBtn").addEventListener("click", function(){
+      buildChkReport();
+      document.body.classList.add("print-chk");
+      window.print();
+    });
+    window.addEventListener("afterprint", function(){ document.body.classList.remove("print-chk"); });
+
+    /* listing-description draft: template assembly from the visitor's own inputs only */
+    var dgVals = null;
+    function cleanTail(s){ return s.replace(/[\s.。।,，、;؛]+$/, "").trim(); }
+    var DRAFT_BUILD = {
+      en: function(v, type){
+        var head = [];
+        if (v.beds) head.push(v.beds + "-bedroom");
+        if (v.baths) head.push(v.baths + "-bathroom");
+        var s = "This " + (head.length ? head.join(", ") + " " : "") + type.toLowerCase();
+        if (v.sqft) s += " offers " + Number(v.sqft).toLocaleString("en-US") + " sq ft of interior living space";
+        s += ".";
+        if (v.features) s += " Key features: " + v.features + ".";
+        if (v.nb) s += " Neighbourhood highlights: " + v.nb + ".";
+        if (v.notes) s += " " + v.notes;
+        return s;
+      },
+      fa: function(v, type){
+        var seg = [];
+        if (v.beds) seg.push(v.beds + " اتاق خواب");
+        if (v.baths) seg.push(v.baths + " حمام");
+        var s = "این " + type;
+        if (seg.length && v.sqft) s += " دارای " + seg.join(" و ") + " است و زیربنای آن " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع است.";
+        else if (seg.length) s += " دارای " + seg.join(" و ") + " است.";
+        else if (v.sqft) s += " زیربنای " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع دارد.";
+        else s += " برای فروش عرضه شده است.";
+        if (v.features) s += " امکانات کلیدی: " + v.features + ".";
+        if (v.nb) s += " نکات برجسته‌ی محله: " + v.nb + ".";
+        if (v.notes) s += " " + v.notes;
+        return s;
+      },
+      hi: function(v, type){
+        var seg = [];
+        if (v.beds) seg.push(v.beds + " बेडरूम");
+        if (v.baths) seg.push(v.baths + " बाथरूम");
+        var s = "यह " + type;
+        if (seg.length) s += " " + seg.join(" और ") + " के साथ आता है";
+        if (v.sqft) s += (seg.length ? " और" : "") + " इसका आंतरिक क्षेत्र " + Number(v.sqft).toLocaleString("en-US") + " वर्ग फुट है";
+        s += "।";
+        if (v.features) s += " मुख्य विशेषताएँ: " + v.features + "।";
+        if (v.nb) s += " इलाके की मुख्य बातें: " + v.nb + "।";
+        if (v.notes) s += " " + v.notes;
+        return s;
+      },
+      zh: function(v, type){
+        var seg = [];
+        if (v.beds) seg.push(v.beds + " 间卧室");
+        if (v.baths) seg.push(v.baths + " 间浴室");
+        var s = "这套" + type;
+        if (seg.length) s += "设有" + seg.join("和");
+        if (v.sqft) s += (seg.length ? "," : "") + "室内面积为 " + Number(v.sqft).toLocaleString("en-US") + " 平方英尺";
+        s += "。";
+        if (v.features) s += "主要特色:" + v.features + "。";
+        if (v.nb) s += "社区亮点:" + v.nb + "。";
+        if (v.notes) s += v.notes;
+        return s;
+      }
+    };
+    function buildDraftText(){
+      if (!dgVals) return "";
+      var v = dgVals;
+      if (v.sqft && isNaN(Number(v.sqft))) v = { type: v.type, beds: v.beds, baths: v.baths, sqft: "", features: v.features, nb: v.nb, notes: v.notes };
+      var type = T()["type_" + v.type] || v.type;
+      return (DRAFT_BUILD[lang] || DRAFT_BUILD.en)(v, type);
+    }
+    function renderDraft(){
+      if (!dgVals){ $("dgBody").textContent = T().dg_placeholder; $("dgCopyBtn").disabled = true; return; }
+      $("dgBody").textContent = buildDraftText();
+      $("dgCopyBtn").disabled = false;
+    }
+    $("dgForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      dgVals = {
+        type: $("dgType").value,
+        beds: $("dgBeds").value.trim() === "0" ? "" : $("dgBeds").value.trim(),
+        baths: $("dgBaths").value.trim() === "0" ? "" : $("dgBaths").value.trim(),
+        sqft: $("dgSqft").value.trim(),
+        features: cleanTail($("dgFeatures").value.trim()),
+        nb: cleanTail($("dgNb").value.trim()),
+        notes: cleanTail($("dgNotes").value.trim())
+      };
+      renderDraft();
+      $("dgOut").scrollIntoView({behavior: "smooth", block: "nearest"});
+    });
+    function copyFallback(text){
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch(e){}
+      ta.remove();
+    }
+    $("dgCopyBtn").addEventListener("click", function(){
+      if (!dgVals) return;
+      var text = buildDraftText(), btn = this;
+      function done(){ btn.textContent = T().dg_copied; setTimeout(function(){ btn.textContent = T().dg_copy; }, 1800); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ copyFallback(text); done(); });
+      else { copyFallback(text); done(); }
+    });
+    function renderSellerTools(){
+      keep($("dgType"), function(sel){ ["condo","townhouse","house"].forEach(function(tp){ opt(sel, tp, T()["type_" + tp]); }); }, "condo");
+      renderChecklist();
+      renderDraft();
+      renderValuation();
+    }
+
+    /* home valuation: the form posts the visitor's own home facts to the
+       advisor worker, which derives the estimate ONLY from catalog
+       comparables and stores a seller lead (source "home-valuation").
+       This page never computes a price itself — it only displays what
+       the worker returns. */
+    var hvLast = null; // last accepted answer { est, inputs }, re-painted on language change (F-07)
+    var hvErr = null;  // last submit error as an i18n key, so a language switch repaints it translated (F-07 M1)
+    var hvBusy = false;
+    var HV_FIELD_ERR = { sqft: "hv_err_sqft", email: "hv_err_email", phone: "hv_err_phone", beds: "hv_err_beds", baths: "hv_err_baths" };
+    function hvTsToken(){
+      var tok = "";
+      var r = document.querySelector('#hvForm input[name="cf-turnstile-response"]');
+      if (r) tok = r.value || "";
+      /* fallback: ask ONLY this form's own widget — the no-argument call can
+         return another form's token (F-07 shared-captcha bug) */
+      if (!tok && window.turnstile && turnstile.getResponse) { var el = document.querySelector("#hvForm .cf-turnstile"); if (el) { try { tok = turnstile.getResponse(el) || ""; } catch(e){} } }
+      return tok;
+    }
+    function hvTsReset(){
+      if (!(window.turnstile && turnstile.reset)) return;
+      var el = document.querySelector("#hvForm .cf-turnstile");
+      try { if (el) turnstile.reset(el); } catch(e){}
+    }
+    /* F-07 M4: Persian / Arabic-Indic / Devanagari / full-width digits and
+       thousands separators never reach the worker — its validators expect
+       ASCII, and type=number inputs silently swallowed them before */
+    function hvNormDigits(v){
+      return String(v == null ? "" : v)
+        .replace(/[\u06F0-\u06F9]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); })
+        .replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); })
+        .replace(/[\u0966-\u096F]/g, function(c){ return String(c.charCodeAt(0) - 0x966); })
+        .replace(/[\uFF10-\uFF19]/g, function(c){ return String(c.charCodeAt(0) - 0xFF10); })
+        .replace(/\u066B/g, ".").replace(/[,\s\u066C]/g, "");
+    }
+    /* F-07 Core: an estimate is DISPLAYED only when it passes the contract —
+       finite positive bounds, high >= low, at least one comparable, and the
+       authoritative manual flag honoured (the honeypot/manual shape
+       {estimate:null, manual:true} included). Anything else renders the
+       manual-review message — never "$0 – $0" or "$NaN". */
+    function hvEstimateOk(d){
+      var e = d && d.estimate;
+      if (!e || d.manual) return null;
+      var lo = Number(e.low), hi = Number(e.high), n = Number(e.comps);
+      if (e.low == null || e.high == null || !isFinite(lo) || !isFinite(hi) || !(lo > 0) || hi < lo || !(n >= 1)) return null;
+      return { low: lo, high: hi, comps: n, basis: e.basis === "ppsf" ? "ppsf" : "price", confidence: e.confidence || "low" };
+    }
+    function hvMoney(v){
+      /* a missing figure renders as "—", never as $0 (PR-02 M1: the
+         report worker returns null totals when a part is missing, and
+         Intl.format(null) would otherwise print a fabricated $0) */
+      if (v === null || v === undefined || v === "" || typeof v === "boolean") return "—";
+      var n = Number(v);
+      if (!isFinite(n)) return "—";
+      var tag = ({ en: "en-CA", fa: "fa-IR", hi: "hi-IN", zh: "zh-CN", es: "es-CA" })[lang] || "en-CA";
+      try { return new Intl.NumberFormat(tag, { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(n); }
+      catch(e){ return "$" + n.toLocaleString("en-US"); }
+    }
+    function renderValuation(){
+      if (!$("hvForm")) return;
+      /* empty placeholder option on BOTH selects (F-07): nothing is silently
+         pre-selected, so the city/type actually submitted is the visitor's */
+      keep($("hvCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
+      keep($("hvType"), function(sel){ opt(sel, "", T().hv_choose); ["condo","townhouse","house","duplex","apartment"].forEach(function(tp){ opt(sel, tp, T()["type_" + tp] || tp); }); });
+      if (hvLast || hvErr) paintValuation();
+    }
+    function paintValuation(){
+      var t = T(), out = $("hvOut");
+      if (!out) return;
+      if (hvErr) { out.innerHTML = '<p class="note" role="alert" style="font-weight:600;color:#b3261e">' + esc(t[hvErr] || t.hv_err) + "</p>"; return; }
+      if (!hvLast) { out.innerHTML = ""; return; }
+      if (hvLast.est) {
+        var e = hvLast.est, inp = hvLast.inputs || {}, isPrice = e.basis === "price";
+        /* echo WHAT the estimate describes, so it is verifiable (F-07) */
+        var echo = fill(t.hv_for, { addr: inp.address || "", city: (t.cities && t.cities[inp.city]) || inp.city || "", type: t["type_" + inp.type] || inp.type || "" });
+        if (inp.sqft != null) echo += fill(t.hv_for_sqft, { sqft: Number(inp.sqft).toLocaleString("en-US") });
+        var based = isPrice
+          ? (e.comps === 1 ? t.hv_based_price_one : fill(t.hv_based_price, { n: e.comps }))
+          : (e.comps === 1 ? t.hv_based_one : fill(t.hv_based, { n: e.comps }));
+        out.innerHTML = '<div class="out"><p class="note" style="margin-bottom:8px">' + esc(echo) + '</p><div class="row hero-row"><span>' + esc(isPrice ? t.hv_range_price : t.hv_range) + '</span><b dir="ltr" style="unicode-bidi:isolate">' + esc(hvMoney(e.low)) + " – " + esc(hvMoney(e.high)) + "</b></div>" +
+          '<p class="note" style="margin-top:10px">' + esc(based) + (e.confidence === "low" ? " " + esc(t.hv_limited) : "") + " " + esc(t.hv_note) + "</p></div>";
+      } else {
+        out.innerHTML = '<div class="out"><p class="note" style="font-weight:600;color:var(--ink)">' + esc(t.hv_manual) + "</p></div>";
+      }
+    }
+    if ($("hvForm")) $("hvForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      if (hvBusy) return; // in-flight double submit is a no-op (the button is disabled too)
+      var t = T(), out = $("hvOut");
+      function fail(key){ hvErr = key; hvLast = null; paintValuation(); }
+      var name = $("hvName").value.trim(), email = $("hvEmail").value.trim();
+      var phone = hvNormDigits($("hvPhone").value).trim();
+      var address = $("hvAddress").value.trim(), city = $("hvCity").value, type = $("hvType").value;
+      var sqftRaw = hvNormDigits($("hvSqft").value).trim(), bedsRaw = hvNormDigits($("hvBeds").value).trim(), bathsRaw = hvNormDigits($("hvBaths").value).trim();
+      if (!name || !address || !city || !type) { fail("hv_err_fields"); return; }
+      if (!email && !phone) { fail("hv_err_contact"); return; }
+      var tok = hvTsToken();
+      if (!tok) { fail("hv_err_captcha"); return; }
+      hvBusy = true; hvLast = null; hvErr = null; if (out) out.innerHTML = "";
+      var btn = $("hvBtn");
+      btn.disabled = true; btn.textContent = t.hv_sending;
+      var ctrl = ("AbortController" in window) ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ try { ctrl.abort(); } catch(e2){} }, 20000) : null;
+      /* the HTTP status is checked BEFORE the body is trusted (F-07 M1): a
+         proxy 429 with a non-JSON body still reads as the rate-limit message */
+      fetch("https://advisor-api.erfanbillion.workers.dev/api/valuation", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        signal: ctrl ? ctrl.signal : undefined,
+        body: JSON.stringify({
+          name: name, email: email, phone: phone || null, address: address, city: city, type: type,
+          beds: bedsRaw === "" ? null : Number(bedsRaw), baths: bathsRaw === "" ? null : Number(bathsRaw), sqft: sqftRaw === "" ? null : Number(sqftRaw),
+          lang: lang, turnstileToken: tok, hp: $("hvHoney").value
+        })
+      }).then(function(res){
+        return res.json().catch(function(){ return {}; }).then(function(d){ return { status: res.status, d: d || {} }; });
+      }).then(function(r){
+        if (timer) clearTimeout(timer);
+        hvBusy = false; btn.disabled = false; btn.textContent = T().hv_btn; hvTsReset();
+        var d = r.d;
+        if (r.status === 429 || d.error === "rate_limit") { fail("hv_err_rate"); return; }
+        if (d.ok) {
+          hvErr = null;
+          hvLast = { est: hvEstimateOk(d), inputs: { address: address, city: city, type: type, sqft: sqftRaw === "" ? null : Number(sqftRaw) } };
+          paintValuation();
+        }
+        else if (d.error === "captcha") fail("hv_err_captcha");
+        else if (d.error === "validation") fail(HV_FIELD_ERR[d.field] || "hv_err_fields");
+        else if (d.error === "bad_sqft" || d.code === "bad_sqft") fail("hv_err_sqft");
+        else fail("hv_err");
+      }).catch(function(){
+        if (timer) clearTimeout(timer);
+        hvBusy = false; btn.disabled = false; btn.textContent = T().hv_btn; hvTsReset(); fail("hv_err");
+      });
+    });
+
+
+    /* ---------- property & neighbourhood report (2026-11-01) ----------
+       Postal code -> /api/report/neighbourhood (census snapshot, nearest
+       schools, Vancouver crime context); optional address ->
+       /api/report/property (Vancouver public record, POSTed so the
+       address stays out of URLs and logs). Sold history and title
+       search are built-but-gated until licensing (see the gated cards
+       rendered below and files/post-licensing-activation.md).
+       Pack H (2026-11-02, PR-02 verdict): parallel fetches with a 12s
+       timeout and per-part failure states, per-source status rendering
+       (the Pack G contract), null-safe figures, strata median and
+       truncated states, a response-aware title button, live gate-state
+       copy, and digit-normalised postal input. */
+    var PR_API = "https://advisor-api.erfanbillion.workers.dev";
+    var PR_LINK_HOSTS = ["www.bcassessment.ca", "maps.ltsa.ca", "www.walkscore.com", "ltsa.ca"];
+    var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false, prTitleBusy = false, prTitleGen = 0;
+    function prMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
+    function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
+    function prMoney(v){ if (prMissing(v)) return "—"; var n = Number(v); return isFinite(n) ? hvMoney(n) : "—"; }
+    function prPct(v){ if (prMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? (Math.round(x * 10) / 10) + "%" : "—"; }
+    /* scoped safe fill (PR-02 L2): single-pass, a missing key becomes ""
+       instead of the shared fill()'s "," artefact; the site-wide fill()
+       itself is deliberately untouched */
+    function prFill(tpl, obj){
+      return String(tpl === null || tpl === undefined ? "" : tpl).replace(/\{(\w+)\}/g, function(m, k){
+        var v = obj ? obj[k] : null;
+        return (v === null || v === undefined) ? "" : String(v);
+      });
+    }
+    /* report links are worker constants, but esc() alone is not a URL
+       check (PR-02 L1): only https on a known host survives */
+    function prSafeUrl(u){
+      var s = String(u || "");
+      if (!/^https:\/\//i.test(s)) return "";
+      try { var pu = new URL(s); if (PR_LINK_HOSTS.indexOf(pu.hostname.toLowerCase()) === -1) return ""; if (pu.username || pu.password || pu.port) return ""; return pu.href; } catch (e) { return ""; }
+    }
+    /* postal input normalisation (PR-02 M7): Persian / Arabic-Indic /
+       Devanagari / full-width digits via hvNormDigits, full-width
+       letters folded to ASCII, then the Canadian shape is checked
+       client-side so a typo never spends a rate-limited request */
+    function prNormPostalInput(raw){
+      var s = hvNormDigits(raw === null || raw === undefined ? "" : String(raw));
+      s = s.replace(/[Ａ-Ｚａ-ｚ]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+      s = s.toUpperCase().replace(/[\s-]+/g, "");
+      if (!/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(s)) return "";
+      return s.slice(0, 3) + " " + s.slice(3);
+    }
+    /* address digit normalisation (PH-01 L8): the same digit ranges
+       as hvNormDigits but WITHOUT its whitespace/comma strip, which
+       exists for valuation figures — a street address keeps its
+       spaces ("3742 W 10th Ave", never "3742W10thAve") */
+    function prNormAddrDigits(v){
+      return String(v == null ? "" : v)
+        .replace(/[\u06F0-\u06F9]/g, function(c){ return String(c.charCodeAt(0) - 0x6F0); })
+        .replace(/[\u0660-\u0669]/g, function(c){ return String(c.charCodeAt(0) - 0x660); })
+        .replace(/[\u0966-\u096F]/g, function(c){ return String(c.charCodeAt(0) - 0x966); })
+        .replace(/[\uFF10-\uFF19]/g, function(c){ return String(c.charCodeAt(0) - 0xFF10); })
+        .replace(/\u066B/g, ".");
+    }
+    /* fetch with a 12s ceiling that NEVER rejects (PR-02 H2): callers
+       branch on {status, d} per part, so one part's failure can neither
+       discard the other part's data nor lock the form */
+    function prFetch(url, opts){
+      var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      var tm = ac ? setTimeout(function(){ try { ac.abort(); } catch (e) {} }, 12000) : null;
+      var o = {};
+      if (opts) for (var k in opts) o[k] = opts[k];
+      if (ac) o.signal = ac.signal;
+      var fp; try { fp = fetch(url, o); } catch (e) { fp = Promise.reject(e); }
+      return fp.then(function(r){
+        return r.json().catch(function(){ return null; }).then(function(d){ return { status: r.status, d: d }; });
+      }).catch(function(){ return { status: 0, d: null }; }).then(function(x){ if (tm) clearTimeout(tm); return x; });
+    }
+    function prRow(label, val){ return '<div class="row"><span>' + esc(label) + '</span><b dir="ltr" style="unicode-bidi:isolate">' + esc(val) + "</b></div>"; }
+    function buildPrCity(){
+      if (!$("prCity")) return;
+      keep($("prCity"), function(sel){ opt(sel, "", T().hv_choose); var cs = CITIES.slice(); LISTINGS.forEach(function(l){ if (l.city && cs.indexOf(l.city) === -1) cs.push(l.city); }); var vi = cs.indexOf("Vancouver"); if (vi > 0) { cs.splice(vi, 1); cs.unshift("Vancouver"); } cs.forEach(function(c){ opt(sel, c, T().cities[c] || c); }); });
+    }
+    function prGatedHTML(){
+      var t = T();
+      /* the gated copy renders by the worker's LIVE gate state (PR-02
+         M5): until the status fetch lands the gated wording shows; a
+         flag-on-but-unconfigured answer shows the neutral pending line */
+      var pending = !!(prGates && prGates.gated === false);
+      var soldTxt = pending ? t.pr_gated_pending : t.pr_sold_gated;
+      var titleTxt = pending ? t.pr_gated_pending : t.pr_title_gated;
+      var tbOff = (prTitleBusy || (prTitleKey && prTitleKey !== "pr_err" && prTitleKey !== "pr_err_rate" && prTitleKey !== "pr_title_err")) ? " disabled" : "";
+      return '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_sold_title) + '</h4><p class="note" style="margin-top:6px">' + esc(soldTxt) + "</p>" +
+        '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_title_title) + '</h4><p class="note" style="margin-top:6px">' + esc(titleTxt) + "</p>" +
+        '<div style="margin-top:10px"><button class="btn btn-line" type="button" id="prTitleBtn"' + tbOff + '>' + esc(t.pr_title_btn) + '</button></div><p class="note" id="prTitleOut" style="margin-top:8px">' + (prTitleKey ? esc(t[prTitleKey] || "") : "") + "</p>";
+    }
+    function prLoadGates(){
+      if (prGates || prGatesBusy) return;
+      prGatesBusy = true;
+      prFetch(PR_API + "/api/report/sold-history").then(function(r){
+        prGatesBusy = false;
+        if (r.d && r.d.ok) { prGates = r.d; if (prLast) { try { paintReport(); } catch (e) { console.error(e); } } }
+      });
+    }
+    function paintReport(){
+      var t = T(), out = $("prOut");
+      if (!out) return;
+      out.setAttribute("aria-busy", "false");
+      if (prErrKey) { out.innerHTML = '<p class="note" style="font-weight:600;color:#b3261e">' + esc(t[prErrKey] || t.pr_err) + "</p>"; return; }
+      if (!prLast) { out.innerHTML = ""; return; }
+      var h = prLast.hood, p = prLast.prop, html = "";
+      if (h && h.ok && h.inArea === false) {
+        out.innerHTML = '<div class="out"><p class="note" style="font-weight:600;color:var(--ink)">' + esc(t.pr_out_area) + "</p></div>";
         return;
       }
-      var html = '<div class="tbl-scroll"><table class="cmp-table"><thead><tr><th scope="col">'+esc(t.cmp_home)+"</th>" +
-        sel.map(function(l){ return '<th scope="col">'+esc(l.street)+'<div class="mls">'+esc(t.cities[l.city] || l.city)+" · MLS® "+esc(l.mls)+"</div></th>"; }).join("") +
-        "</tr></thead><tbody>";
-      cmpRows(t).forEach(function(row){
-        html += '<tr><th scope="row">'+esc(t[row[0]])+"</th>" +
-          sel.map(function(l){ return '<td data-th="'+esc(l.street)+'">'+row[1](l)+"</td>"; }).join("") + "</tr>";
+      if (h && h.ok) {
+        var src = h.sources || {};
+        html += '<div class="out"><h4 id="prFirstHead" tabindex="-1" style="font-size:17px">' + esc(prFill(t.pr_hood_title, { fsa: h.fsa })) + (h.area ? " — <bdi>" + esc(h.area) + "</bdi>" : "") + "</h4>";
+        if (h.approximate) html += '<p class="note" style="margin-top:6px">' + esc(t.pr_approx) + "</p>";
+        var c = h.census;
+        if (c) {
+          html += '<div style="margin-top:10px">';
+          html += prRow(t.pr_pop, prNum(c.pop));
+          if (c.dwellings != null) html += prRow(t.pr_dwell, prNum(c.dwellings));
+          if (c.medianHouseholdIncome != null) html += prRow(t.pr_income, prMoney(c.medianHouseholdIncome));
+          if (c.avgHouseholdSize != null) html += prRow(t.pr_hhsize, prNum(c.avgHouseholdSize));
+          if (c.medianAge != null) html += prRow(t.pr_medage, prNum(c.medianAge));
+          if (c.pctUnder15 != null) html += prRow(t.pr_age_child, prPct(c.pctUnder15));
+          if (c.pct65plus != null) html += prRow(t.pr_age_senior, prPct(c.pct65plus));
+          if (c.pctOwner != null) html += prRow(t.pr_owner, prPct(c.pctOwner));
+          if (c.pctRenter != null) html += prRow(t.pr_renter, prPct(c.pctRenter));
+          if (c.pctSingleDetached != null) html += prRow(t.pr_detached, prPct(c.pctSingleDetached));
+          if (c.pctEnglishAtHome != null) html += prRow(t.pr_eng_home, prPct(c.pctEnglishAtHome));
+          if (c.pctNonOfficialAtHome != null) html += prRow(t.pr_nonoff_home, prPct(c.pctNonOfficialAtHome));
+          html += '</div><p class="note" style="margin-top:8px">' + esc(prFill(t.pr_src_census, { fsa: h.fsa })) + "</p>";
+        } else {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_census_na) + "</p>";
+        }
+        html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_schools_title) + "</h4>";
+        if (src.schools === "unavailable") {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_unavailable) + "</p>";
+        } else if (h.schools && h.schools.length) {
+          html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
+          h.schools.forEach(function(s){
+            var lv = t["pr_school_" + String(s.level || "").toLowerCase()] || "";
+            var kd = s.kind === "independent" ? t.pr_school_ind : (s.kind === "public" ? t.pr_school_pub : (s.kind === "other" ? t.pr_school_other : ""));
+            html += "<li><bdi>" + esc(s.name) + "</bdi>" + (s.city ? " (<bdi>" + esc(s.city) + "</bdi>)" : "") + ' — <b dir="ltr">' + esc(prNum(s.km)) + "</b> " + esc(t.pr_km) + (lv ? " · " + esc(lv) : "") + (kd ? " · " + esc(kd) : "") + "</li>";
+          });
+          html += "</ul>";
+        } else {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_none) + "</p>";
+        }
+        if (src.schools !== "unavailable") html += '<p class="note" style="margin-top:6px">' + esc(t.pr_schools_src) + "</p>";
+        html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_safety_title) + "</h4>";
+        if (h.safety) {
+          html += '<p class="note" style="margin-top:6px;color:var(--ink)">' + esc(prFill(t.pr_safety_body, { n: prNum(h.safety.incidents), area: h.safety.neighbourhood, year: h.safety.year, total: prNum(h.safety.cityTotal) })) + '</p><p class="note">' + esc(t.pr_safety_src) + "</p>";
+        } else if (src.safety === "unavailable") {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_unavailable) + "</p>";
+        } else {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_safety_na) + "</p>";
+        }
+        html += "</div>";
+      }
+      if (p && p.failed) {
+        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + '</h4><p class="note" style="margin-top:6px">' + esc(p.failed === "rate" ? t.pr_err_rate : t.pr_prop_unavailable) + "</p></div>";
+      } else if (p) {
+        html += '<div class="out" style="margin-top:14px">';
+        html += '<h4 style="font-size:17px">' + esc(prFill(t.pr_card_title, { addr: prLast.address })) + "</h4>";
+        if (p.supported && p.found && p.card) {
+          var cd = p.card;
+          html += '<div style="margin-top:10px">';
+          if (cd.kind === "strata") {
+            if (cd.truncated) {
+              /* a possibly-incomplete set shows the truncation state —
+                 no subset range or median presented as complete */
+              html += '<p class="note" style="color:var(--ink)">' + esc(t.pr_card_truncated) + "</p>";
+            } else {
+              html += '<p class="note" style="color:var(--ink)">' + esc(prFill(t.pr_card_strata, { n: prNum(cd.units) })) + "</p>";
+              html += prRow(t.pr_card_range, prMoney(cd.rangeLow) + " – " + prMoney(cd.rangeHigh));
+              html += prRow(prFill(t.pr_card_median, { year: cd.assessedYear }), prMoney(cd.medianTotal));
+            }
+          } else if (cd.kind === "single") {
+            html += prRow(t.pr_card_land, prMoney(cd.land));
+            html += prRow(t.pr_card_building, prMoney(cd.building));
+            html += prRow(prFill(t.pr_card_total, { year: cd.assessedYear }), prMoney(cd.total));
+            if (cd.taxLevy != null) html += prRow(t.pr_card_levy, prMoney(cd.taxLevy));
+            if (cd.pid) html += prRow(t.pr_card_pid, cd.pid);
+          } else {
+            html += '<p class="note">' + esc(t.pr_prop_unavailable) + "</p>";
+          }
+          if (cd.yearBuilt) html += prRow(t.pr_card_built, String(cd.yearBuilt));
+          if (cd.zoning) html += prRow(t.pr_card_zoning, cd.zoning);
+          html += '</div><p class="note" style="margin-top:8px">' + esc(t.pr_card_note) + '</p><p class="note">' + esc(t.pr_card_src) + "</p>";
+          html += '<h4 style="font-size:17px;margin-top:16px">' + esc(t.pr_permits_title) + "</h4>";
+          if (p.sources && p.sources.permits === "unavailable") {
+            html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_unavailable) + "</p>";
+          } else if (p.permits && p.permits.length) {
+            html += '<ul style="margin:8px 0 0;padding-inline-start:20px">';
+            p.permits.forEach(function(pm){ html += "<li>" + esc(pm.number) + " · " + esc(pm.date) + (pm.category ? " · " + esc(pm.category) : "") + (pm.typeOfWork ? " · " + esc(pm.typeOfWork) : "") + "</li>"; });
+            html += "</ul>";
+          } else {
+            html += '<p class="note" style="margin-top:6px">' + esc(t.pr_permits_none) + "</p>";
+          }
+        } else if (p.supported && p.found) {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_unavailable) + "</p>";
+        } else if (p.supported) {
+          var psrc = p.sources || {};
+          html += '<p class="note" style="margin-top:6px">' + esc(psrc.parcels === "ambiguous" ? t.pr_prop_ambiguous : ((psrc.parcels === "unavailable" || psrc.geocode === "unavailable") ? t.pr_prop_unavailable : t.pr_prop_notfound)) + "</p>";
+        } else {
+          html += '<p class="note" style="margin-top:6px">' + esc(t.pr_prop_na) + "</p>";
+        }
+        html += "</div>";
+      }
+      var links = (p && p.links) || (h && h.links) || null;
+      if (links) {
+        var lk = [["bca", t.pr_link_bca], ["parcel", t.pr_link_parcel], ["walkscore", t.pr_link_walkscore], ["ltsa", t.pr_link_ltsa]], lhtml = "", lfirst = true;
+        lk.forEach(function(pair){
+          var u = prSafeUrl(links[pair[0]]);
+          if (!u) return;
+          lhtml += '<p class="note"' + (lfirst ? ' style="margin-top:8px"' : "") + '><a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(pair[1]) + "</a></p>";
+          lfirst = false;
+        });
+        if (lhtml) html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_links_title) + "</h4>" + lhtml + "</div>";
+      }
+      if (prLast.address) {
+        html += '<div class="out" style="margin-top:14px"><h4 style="font-size:17px">' + esc(t.pr_est_title) + '</h4><p class="note" style="margin-top:6px">' + esc(t.pr_est_body) + '</p><div style="margin-top:10px"><button class="btn btn-spruce" type="button" id="prEstBtn">' + esc(t.pr_est_btn) + "</button></div></div>";
+      }
+      html += '<div class="out" style="margin-top:14px"><p class="note">' + esc(t.pr_gated_note) + "</p>" + prGatedHTML() + "</div>";
+      out.innerHTML = html;
+      if (prFocusPending) {
+        prFocusPending = false;
+        var fh = $("prFirstHead");
+        if (fh) { try { fh.focus({ preventScroll: true }); } catch (e) {} }
+      }
+      var tb = $("prTitleBtn");
+      if (tb) tb.addEventListener("click", function(){
+        if (prTitleBusy) return;
+        prTitleBusy = true;
+        tb.disabled = true;
+        var gen = prTitleGen;
+        prFetch(PR_API + "/api/report/title-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).then(function(r){
+          if (gen !== prTitleGen) return; /* a newer report superseded this request (PH-01 L3) — a stale response must not clear the newer request's busy flag (PH-verify L1) */
+          prTitleBusy = false;
+          var d = r.d || {};
+          /* every branch is explicit and the chain ends in an error
+             (PH-01 M1): success wording exists only for placed ===
+             true, the gated state shows the gated copy, and anything
+             unrecognised is pr_title_err — never a default success */
+          var key;
+          if (r.status === 429) key = "pr_err_rate";
+          else if (!d.ok) key = "pr_title_err";
+          else if (d.placed === true) key = "pr_title_placed";
+          else if (d.gated === true) key = "pr_title_sent"; /* the gated click placed nothing — the honest no-order line (PH-verify H1); the card explainer carries pr_title_gated */
+          else if (d.gated === false && d.state === "not_configured") key = "pr_title_unavailable";
+          else key = "pr_title_err";
+          prTitleKey = key;
+          var o = $("prTitleOut");
+          if (o) o.textContent = T()[key] || "";
+          var b2 = $("prTitleBtn");
+          if (b2) b2.disabled = (key !== "pr_err" && key !== "pr_err_rate" && key !== "pr_title_err");
+        });
       });
-      html += "</tbody></table></div>";
-      $("cmpTableWrap").innerHTML = html;
+      var eb = $("prEstBtn");
+      if (eb) eb.addEventListener("click", function(){
+        var f = $("hvForm"); if (!f) return;
+        /* clear the previous estimate first (PR-02 M6): a stale figure
+           must never sit next to the new address, and it repaints on
+           language switches so hvLast goes too */
+        hvLast = null; hvErr = null;
+        var ho = $("hvOut"); if (ho) ho.innerHTML = "";
+        var ha = $("hvAddress");
+        if (ha && prLast.address && !ha.value.trim()) ha.value = prLast.address; /* never overwrite what the visitor typed */
+        var cityGuess = prLast.city || (prLast.hood && prLast.hood.cityName) || "";
+        var hc = $("hvCity"), matched = false;
+        if (hc && cityGuess) { for (var i = 0; i < hc.options.length; i++) if (hc.options[i].value === cityGuess) { hc.value = cityGuess; matched = true; break; } }
+        if (hc && !matched) hc.value = ""; /* placeholder, not a stale city */
+        var reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+        f.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+        var ht = (hc && !hc.value) ? hc : $("hvType");
+        if (ht) try { ht.focus({ preventScroll: true }); } catch (e) {}
+      });
     }
-    $("cmpClear").addEventListener("click", function(){ cmpSel = []; renderCompare(); syncCmpCardButtons(); });
-    /* keep the Add-to-comparison buttons on the listing cards in sync with the picker */
-    function syncCmpCardButtons(){
+    if ($("prForm")) $("prForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      if (prBusy) return;
       var t = T();
-      document.querySelectorAll(".cmp-card-toggle").forEach(function(btn){
-        var mls = btn.getAttribute("data-mls"), on = cmpSel.indexOf(mls) !== -1;
-        btn.className = "btn " + (on ? "btn-line" : "btn-spruce") + " cmp-card-toggle";
-        btn.setAttribute("aria-pressed", on ? "true" : "false");
-        btn.textContent = on ? t.cmp_remove : t.cmp_add;
-        if (!on && cmpSel.length >= 4) btn.setAttribute("disabled", ""); else btn.removeAttribute("disabled");
-      });
-    }
-    document.addEventListener("click", function(e){
-      var btn = e.target && e.target.closest ? e.target.closest(".cmp-card-toggle") : null;
-      if (!btn) return;
-      var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
-      if (i !== -1) cmpSel.splice(i, 1);
-      else if (cmpSel.length < 4) cmpSel.push(mls);
-      renderCompare(); syncCmpCardButtons();
+      var pc = prNormPostalInput($("prPostal").value);
+      var address = prNormAddrDigits($("prAddress").value);
+      address = (address.toWellFormed ? address.toWellFormed() : address).trim();
+      address = [...address].slice(0, 140).join("");
+      var citySel = $("prCity").value;
+      if (!pc) { prErrKey = "pr_err_postal"; prLast = null; paintReport(); return; }
+      if (address && !citySel) { prErrKey = "pr_err_city"; prLast = null; paintReport(); return; }
+      prBusy = true; prErrKey = null; prLast = null; prTitleKey = null; prTitleGen++; prTitleBusy = false;
+      var btn = $("prBtn"); btn.disabled = true; btn.textContent = t.pr_loading;
+      var out0 = $("prOut"); if (out0) { out0.setAttribute("aria-busy", "true"); out0.innerHTML = '<p class="note">' + esc(t.pr_loading) + "</p>"; }
+      /* both requests fire together (PR-02 H2) and each part keeps its
+         own outcome; the property request is skipped only when the
+         code cannot be in BC at all (a non-V FSA), and its answer is
+         discarded when the hood answer says out-of-area */
+      var hoodP = prFetch(PR_API + "/api/report/neighbourhood?pc=" + encodeURIComponent(pc.replace(/\s+/g, "")));
+      var propP = (address && pc.charAt(0) === "V") ? prFetch(PR_API + "/api/report/property", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: address, city: citySel }) }) : null;
+      Promise.all([hoodP, propP]).then(function(rs){
+        prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn;
+        var r1 = rs[0];
+        if (!(r1.status === 200 && r1.d && r1.d.ok)) {
+          prErrKey = r1.status === 429 ? "pr_err_rate" : (r1.status === 400 ? "pr_err_postal" : "pr_err");
+          prLast = null; paintReport(); return;
+        }
+        var hood = r1.d, prop = null;
+        if (propP && hood.inArea !== false) {
+          var r2 = rs[1];
+          prop = (r2.status === 200 && r2.d && r2.d.ok) ? r2.d : { failed: r2.status === 429 ? "rate" : "err" };
+        }
+        prLast = { hood: hood, prop: prop, address: address, city: citySel };
+        prFocusPending = true;
+        try { paintReport(); }
+        catch (err) { console.error(err); var o = $("prOut"); if (o) { o.setAttribute("aria-busy", "false"); o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } }
+        prLoadGates();
+      }).catch(function(err){ console.error(err); prBusy = false; btn.disabled = false; btn.textContent = T().pr_btn; prErrKey = "pr_err"; prLast = null; try { paintReport(); } catch (e) { console.error(e); } });
     });
+    /* language switches repaint the last report in the new language;
+       the langSel change listener below calls this hook (PR-02 L4) */
+    window.__prRepaint = function(){ buildPrCity(); if (prLast || prErrKey) { try { paintReport(); } catch (e) { console.error(e); var o = $("prOut"); if (o) o.innerHTML = '<p class="note">' + esc(T().pr_render_err) + "</p>"; } } };
+    var prLangSel = $("langSel");
+    if (prLangSel) prLangSel.addEventListener("change", function(){ setTimeout(function(){ if (window.__prRepaint) window.__prRepaint(); }, 0); });
+    buildPrCity();
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -1079,19 +1515,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      keep($("fCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("fType"), function(sel){ buildTypeSelect(sel); });
-      keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
-      keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
-      keep($("fSort"), function(sel){ buildSortSelect(sel); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderListings(); renderAssistantLang(); renderCompare();
-      if (dlg.open && current){ window.__langSwitch = true; try { openListing(current.mls); } catch (e) {} window.__langSwitch = false; }
+      renderAssistantLang(); renderSellerTools();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["q","fCity","fType","fPrice","fBeds","fSort","fPresale"].forEach(function(id){ var el = $(id); if (!el) return; el.addEventListener("input", renderListings); el.addEventListener("change", renderListings); }); // Pack PortalAddLeadViewingFix rider (2026-11-12): fPresale was missing from this wiring — the filteredListings() predicate checked it, but ticking "Presales only" fired no re-render, so the filter looked dead
-    $("resetBtn").addEventListener("click", function(){ $("q").value = ""; $("fCity").value = ""; $("fType").value = ""; $("fPrice").value = ""; $("fBeds").value = "0"; $("fSort").value = "featured"; if ($("fPresale")) $("fPresale").checked = false; renderListings(); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1290,10 +1718,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested — we'll confirm your time shortly.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", vwPending: "Awaiting confirmation", vwConfirmed: "Confirmed", vwCancelled: "Cancelled", vwDone: "Completed", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد — به‌زودی زمان بازدیدت رو تأیید می‌کنیم.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", vwPending: "در انتظار تأیید", vwConfirmed: "تأیید شده", vwCancelled: "لغو شده", vwDone: "انجام شده", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। हम जल्द ही आपके समय की पुष्टि करेंगे।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", vwPending: "पुष्टि की प्रतीक्षा में", vwConfirmed: "पुष्टि हो गई", vwCancelled: "रद्द", vwDone: "पूर्ण", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，我们会尽快确认您的时间。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", vwPending: "等待确认", vwConfirmed: "已确认", vwCancelled: "已取消", vwDone: "已完成", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
     es:{
      "account": "Cuenta",
      "signIn": "Iniciar sesión",
@@ -1316,7 +1744,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "remove": "Eliminar",
      "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
      "noSearches": "Aún no tienes búsquedas guardadas.",
-     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "viewingDone": "Visita solicitada — confirmaremos tu hora en breve.",
      "errGeneric": "Algo salió mal — inténtalo de nuevo.",
      "captchaErr": "Completa la verificación de seguridad.",
      "errCreds": "El correo electrónico o la contraseña son incorrectos.",
@@ -1343,6 +1771,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "profSaved": "Perfil guardado.",
      "myViewings": "Mis visitas",
      "noViewings": "Aún no tienes visitas reservadas.",
+     "vwPending": "En espera de confirmación",
+     "vwConfirmed": "Confirmada",
+     "vwCancelled": "Cancelada",
+     "vwDone": "Completada",
      "recent": "Vistos recientemente",
      "priceDrop": "Bajada de precio",
      "cancelBooking": "Cancelar reserva",
@@ -1595,6 +2027,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
               .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
+          function vwStatusLabel(s){ var m = { new: tt("vwPending"), confirmed: tt("vwConfirmed"), cancelled: tt("vwCancelled"), done: tt("vwDone") }; return m[s] || s; }
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
@@ -1605,7 +2038,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(vwStatusLabel(v.status)) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;
@@ -1767,20 +2200,6 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             });
           });
         }
-        /* Pack PortalAddLeadViewingFix (2026-11-12): deep link from the
-           static per-listing pages — listings.html#viewing=<MLS> opens
-           that listing's booking form directly, through the SAME
-           showViewing() path the dialog's Book button takes (per-listing
-           Availability overrides included). The hash form (not a query
-           string) is deliberate: build-seo's rewriteLinks already
-           rewrites "listings.html#" hrefs into each language variant,
-           so fa/hi/zh/es listing pages land on their own language's
-           listings page with the parameter intact. Unknown ids are
-           ignored (the plain listings page just renders). */
-        try {
-          var dlMatch = /(?:^#|&)viewing=([A-Za-z0-9-]+)/.exec(location.hash || "");
-          if (dlMatch && LISTINGS.some(function(x){ return x.mls === dlMatch[1]; })) { curMls = dlMatch[1]; showViewing(dlMatch[1]); }
-        } catch(e){}
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();

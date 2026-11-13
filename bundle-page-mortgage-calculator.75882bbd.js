@@ -1,92 +1,38 @@
-    /* ---------- lead form + CRM ---------- */
-    function buildLeadSelects(){
-      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
-      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
-      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
+    /* ---------- mortgage calculator ---------- */
+    function buildCalcSelects(){
+      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
+      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
+      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
     }
-    function renderCRM(){
-      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
-      var t = T();
-      $("crmBody").innerHTML = LEADS.map(function(ld){
-        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
-        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
-          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
-          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
-          td(t.th_budget, esc(t[ld.budget] || "—")) +
-          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
-          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
-      }).join("");
+    function paymentFor(principal, annualPct, years, perYear){
+      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
+      if (r <= 0) return principal / n;
+      return principal * r / (1 - Math.pow(1 + r, -n));
     }
-    function leadTsToken(){
-      var tok = "";
-      var r = document.querySelector('#leadForm input[name="cf-turnstile-response"]');
-      if (r) tok = r.value || "";
-      if (!tok && window.turnstile && turnstile.getResponse) { try { tok = turnstile.getResponse() || ""; } catch(e){} }
-      return tok;
-    }
-    function tsResetIn(formSel){
-      if (!(window.turnstile && turnstile.reset)) return;
-      var el = document.querySelector(formSel + " .cf-turnstile");
-      try { if (el) turnstile.reset(el); } catch(e){}
-    }
-    $("leadForm").addEventListener("submit", function(e){
-      e.preventDefault(); var t = T();
-      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
-          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
-          msg = $("lMsg").value.trim(), plang = $("lLang").value;
-      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
-      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
-      renderCRM();
-      var toast = $("leadToast");
-      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
-      function mailtoFallback(){
-        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
-          city: city ? (t.cities[city] || city) : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
-        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body.length > 1600 ? body.slice(0, 1600) + "…" : body);
-        showToast(t.l_fallback);
+    function calc(){
+      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
+          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
+          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
+      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
+      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
+      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
+      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
+      var premium = base * premRate, principal = base + premium;
+      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
+      $("payLabel").textContent = t["pay_" + freq];
+      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
+      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
+      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
+      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
+      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
+      var cw = $("calcWarn");
+      if (cw) {
+        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
+        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
+        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
+        else cw.style.display = "none";
       }
-      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
-      btn.disabled = true; btn.textContent = t.l_sending;
-      var payload = {
-        name: name, email: email, phone: phone || "—",
-        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
-        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
-        _subject: "New lead — EH REALTY website",
-        _template: "table", _captcha: "false",
-        _honey: $("lHoney").value
-      };
-      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
-      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
-      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
-      try {
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
-          signal: leadCtl ? leadCtl.signal : undefined
-        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
-      } catch(e){}
-      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
-      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
-      fetch("https://formsubmit.co/ajax/" + EMAIL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify(payload),
-        signal: fsCtl ? fsCtl.signal : undefined
-      }).then(function(res){
-        if (!res.ok) throw new Error("FormSubmit send failed");
-        return res.json();
-      }).then(function(data){
-        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
-        showToast(t.l_success);
-      }).catch(function(){
-        mailtoFallback();
-      }).then(function(){
-        if (fsTimer) clearTimeout(fsTimer);
-        tsResetIn("#leadForm");
-        btn.disabled = false; btn.textContent = btnLabel;
-      });
-    });
+    }
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
     /* ---------- AI tools dropdown ---------- */
@@ -974,13 +920,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      buildLeadSelects();
-      $("lLang").value = lang;
+      buildCalcSelects();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderCRM(); renderAssistantLang();
+      calc(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
+    ["cPrice","cDown","cRate","cAmort","cFreq"].forEach(function(id){ $(id).addEventListener("input", calc); $(id).addEventListener("change", calc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1179,10 +1125,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested — we'll confirm your time shortly.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", vwPending: "Awaiting confirmation", vwConfirmed: "Confirmed", vwCancelled: "Cancelled", vwDone: "Completed", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد — به‌زودی زمان بازدیدت رو تأیید می‌کنیم.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", vwPending: "در انتظار تأیید", vwConfirmed: "تأیید شده", vwCancelled: "لغو شده", vwDone: "انجام شده", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। हम जल्द ही आपके समय की पुष्टि करेंगे।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", vwPending: "पुष्टि की प्रतीक्षा में", vwConfirmed: "पुष्टि हो गई", vwCancelled: "रद्द", vwDone: "पूर्ण", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，我们会尽快确认您的时间。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", vwPending: "等待确认", vwConfirmed: "已确认", vwCancelled: "已取消", vwDone: "已完成", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
     es:{
      "account": "Cuenta",
      "signIn": "Iniciar sesión",
@@ -1205,7 +1151,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "remove": "Eliminar",
      "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
      "noSearches": "Aún no tienes búsquedas guardadas.",
-     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "viewingDone": "Visita solicitada — confirmaremos tu hora en breve.",
      "errGeneric": "Algo salió mal — inténtalo de nuevo.",
      "captchaErr": "Completa la verificación de seguridad.",
      "errCreds": "El correo electrónico o la contraseña son incorrectos.",
@@ -1232,6 +1178,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "profSaved": "Perfil guardado.",
      "myViewings": "Mis visitas",
      "noViewings": "Aún no tienes visitas reservadas.",
+     "vwPending": "En espera de confirmación",
+     "vwConfirmed": "Confirmada",
+     "vwCancelled": "Cancelada",
+     "vwDone": "Completada",
      "recent": "Vistos recientemente",
      "priceDrop": "Bajada de precio",
      "cancelBooking": "Cancelar reserva",
@@ -1484,6 +1434,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
               .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
+          function vwStatusLabel(s){ var m = { new: tt("vwPending"), confirmed: tt("vwConfirmed"), cancelled: tt("vwCancelled"), done: tt("vwDone") }; return m[s] || s; }
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
@@ -1494,7 +1445,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(vwStatusLabel(v.status)) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;

@@ -1,151 +1,115 @@
-    /* ---------- mortgage calculator ---------- */
-    function buildCalcSelects(){
-      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
-      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
-      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
+    /* ---------- listing cards ---------- */
+    function monthlyCost(l){
+      // Self-contained on purpose: paymentFor() lives in the calculator module,
+      // which is not present on every page this card/dialog code ships to.
+      var principal = l.price * 0.8;
+      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
+      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
+      var mort = principal * r / (1 - Math.pow(1 + r, -n));
+      var strata = l.strata || 0;
+      var tax = (l.tax || 0) / 12;
+      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
+      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
     }
-    function paymentFor(principal, annualPct, years, perYear){
-      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
-      if (r <= 0) return principal / n;
-      return principal * r / (1 - Math.pow(1 + r, -n));
-    }
-    function calc(){
-      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
-          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
-          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
-      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
-      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
-      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
-      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
-      var premium = base * premRate, principal = base + premium;
-      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
-      $("payLabel").textContent = t["pay_" + freq];
-      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
-      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
-      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
-      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
-      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
-      var cw = $("calcWarn");
-      if (cw) {
-        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
-        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
-        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
-        else cw.style.display = "none";
+    function cardHTML(l, why){
+      var t = T();
+      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
+        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
+        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
+      var preHTML = "";
+      if (l.pt === "presale"){
+        var pbits = [];
+        if (l.project) pbits.push(esc(l.project));
+        if (l.developer) pbits.push(esc(l.developer));
+        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
+        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
+          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
       }
+      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
+      var cmpBtn = "";
+      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
+        var cOn = cmpSel.indexOf(l.mls) !== -1;
+        var cMax = !cOn && cmpSel.length >= 4;
+        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
+      }
+      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
+        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
+    function filteredListings(){
+      var q = $("q").value.trim().toLowerCase(), city = $("fCity").value, type = $("fType").value,
+          price = $("fPrice").value, beds = parseInt($("fBeds").value||"0",10), sort = $("fSort").value;
+      var out = LISTINGS.filter(function(l){
+        if (city && l.city !== city) return false;
+        if (type && l.type !== type) return false;
+        if (price && l.price > parseInt(price,10)) return false;
+        if (l.beds < beds) return false;
+        if (q){ var hay = (l.street+" "+l.city+" "+l.mls+" "+(l.postal||"")+" "+(l.project||"")+" "+(l.developer||"")+" "+["en","fa","hi","zh","es"].map(function(L){ var cc = I18N[L] && I18N[L].cities; return cc ? (cc[l.city] || "") : ""; }).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+        if (document.getElementById("fPresale") && document.getElementById("fPresale").checked && l.pt !== "presale") return false;
+        return true;
+      });
+      if (sort === "price-asc") out.sort(function(a,b){return a.price-b.price;});
+      if (sort === "price-desc") out.sort(function(a,b){return b.price-a.price;});
+      if (sort === "newest") out.sort(function(a,b){return b.listed.localeCompare(a.listed);});
+      if (sort === "dom") out.sort(function(a,b){return domOf(b)-domOf(a);});
+      return out;
+    }
+    function renderListings(){
+      var list = filteredListings(), t = T();
+      $("resultCount").textContent = fill(t.results, {n: list.length});
+      $("grid").innerHTML = list.length ? list.map(function(l){ try { return cardHTML(l, null); } catch(e){ return ""; } }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
+    }
+
+    /* ---------- detail dialog ---------- */
+    var dlg = $("dlg"), current = null;
+    window.openListing = function(mls){
+      var l = LISTINGS.filter(function(x){ return x.mls === mls; })[0]; if (!l) return; current = l; var t = T();
+      $("dImg").src = l.photo; $("dImg").alt = l.street + ", " + l.city;
+      var b = $("dBadge"); b.textContent = t[statusKey(l)]; b.className = "badge" + (statusKey(l) === "active" ? "" : " " + statusKey(l));
+      $("dPrice").textContent = fmt(l.price); $("dAddr").textContent = l.street; $("dCity").textContent = (t.cities[l.city] || l.city) + ", BC · " + l.postal;
+      function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
+      $("dKv").innerHTML =
+        kv(t.m_type, t["type_"+l.type] || l.type) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
+        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString("en-US")+" "+t.sqft : t.na) +
+        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString("en-US")+" "+t.sqft : t.na_ap) +
+        kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
+        kv(t.m_strata, l.strata ? fmt(l.strata) : t.na_ap) + kv(t.m_dom, domOf(l)) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
+      var mc = monthlyCost(l);
+      $("dMonthly").innerHTML = '<div style="margin-top:14px;background:#fbf6e9;border:1px solid #e7d9b4;border-radius:12px;padding:12px 14px;color:#2a251c">' +
+        '<div style="font-weight:700;margin-bottom:6px;color:#0b0b0b">💰 ' + esc(t.mc_title) + ': ≈ ' + fmt(Math.round(mc.total)) + '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:14px">' +
+        '<span>' + esc(t.mc_mort) + '</span><b>' + fmt(Math.round(mc.mort)) + '</b>' +
+        (mc.strata ? '<span>' + esc(t.m_strata) + '</span><b>' + fmt(mc.strata) + '</b>' : "") +
+        '<span>' + esc(t.mc_tax) + '</span><b>' + fmt(Math.round(mc.tax)) + '</b>' +
+        '<span>' + esc(t.mc_heat) + '</span><b>' + fmt(mc.heat) + '</b></div>' +
+        '<div style="font-size:12px;color:#6e685b;margin-top:6px">' + esc(t.mc_note) + '</div></div>';
+      $("dFeat").innerHTML = l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("");
+      if (l.pt === "presale"){
+        var pchips = [];
+        if (l.project) pchips.push("🏗️ " + esc(l.project));
+        if (l.completion) pchips.push(esc(t.completion) + " " + esc(l.completion));
+        if (l.depositPct) pchips.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
+        if (l.assignment && l.originalPrice && l.price < l.originalPrice) pchips.push("💎 " + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig));
+        else if (l.assignment) pchips.push(esc(t.assignment_ok));
+        if (pchips.length) $("dFeat").innerHTML += pchips.map(function(x){ return "<span>" + x + "</span>"; }).join("");
+      }
+      $("dDesc").textContent = l.desc[lang] || l.desc.en;
+      $("dAsk").href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.ask_subject, {mls: l.mls, addr: l.street + ", " + l.city}));
+      $("dTour").style.display = "none"; // Pack PortalAddLeadViewingFix (2026-11-12): was the `hidden` property — .btn{display:inline-block} in the page CSS defeats the UA [hidden] rule, so the button stayed VISIBLE on listings with no tour at all, and clicking it closed the dialog then silently did nothing (getTour -> null). Inline display toggling cannot be defeated by the class rule.
+      if (typeof getTour === "function") getTour(l.mls, function(tour){
+        if (tour && tour.enabled && Array.isArray(tour.rooms) && tour.rooms.length && current === l) $("dTour").style.display = "";
+      });
+      $("dTour").onclick = function(){ openTour(l.mls); };
+      var tourCloseEl = $("tourClose"); if (tourCloseEl) tourCloseEl.onclick = closeTour;
+      try { if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open",""); } catch(e){}
+    };
+    $("dClose").addEventListener("click", function(){ dlg.close(); });
+    dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    /* ---------- investor analysis ---------- */
-    function investCalc(){
-      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
-          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
-          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
-      var effRent = rent * (1 - vac / 100), opex = tax + strata + ins + maint;
-      var noiYr = (effRent - opex) * 12, cf = effRent - opex - P;
-      var cap = price > 0 ? noiYr / price * 100 : 0, coc = down > 0 ? cf * 12 / down * 100 : 0;
-      var cfEl = $("ivCf"); cfEl.textContent = fmt(cf); cfEl.className = cf < 0 ? "neg" : "";
-      $("ivNoi").textContent = fmt(noiYr);
-      $("ivCap").textContent = cap.toFixed(2) + "%";
-      var cocEl = $("ivCoc"); cocEl.textContent = coc.toFixed(2) + "%"; cocEl.className = coc < 0 ? "neg" : "";
-      $("ivCashIn").textContent = fmt(down);
-    }
-    /* ---------- investor report export (print view + downloadable HTML) ---------- */
-    var RP_LOCALES = {en:"en-CA", fa:"fa-IR-u-ca-gregory", hi:"hi-IN", zh:"zh-CN", es:"es"};
-    var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
-    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#15130e;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
-      + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
-      + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
-      + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
-      + "h1,h2{font-family:Georgia,serif}"
-      + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
-      + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
-      + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
-      + ".rp-wrap{max-width:720px;margin:0 auto;color:#15130e}"
-      + ".rp-brand{font-size:20px;font-weight:800;color:#0b0b0b}"
-      + ".rp-brandsub{color:#6e685b;font-size:13.5px;margin-top:2px}"
-      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0b0b0b}"
-      + ".rp-meta{color:#6e685b;font-size:14px;margin:0 0 6px}"
-      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0b0b0b}"
-      + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
-      + ".rp-table th{text-align:start;font-weight:600;color:#3a362c;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
-      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
-      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#6e685b;border:1px solid #e4dfd3;border-radius:9px;padding:12px 14px}"
-      + ".rp-foot{margin-top:16px;font-size:14.5px}"
-      + ".rp-foot a{color:#0b0b0b;font-weight:700}";
-    function reportData(){
-      var t = T();
-      try { investCalc(); } catch(e){}
-      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
-          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
-          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
-      var down = price * downPct / 100, L = Math.max(0, price - down);
-      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0; /* same payment investCalc uses internally */
-      return {
-        inputs: [
-          [t.iv_price, fmt(price)],
-          [t.iv_down, downPct + "%"],
-          [t.iv_rate, rate + "%"],
-          [t.iv_amort, amort + " " + t.rp_years],
-          [t.iv_rent, fmt(rent)],
-          [t.iv_tax, fmt(tax)],
-          [t.iv_strata, fmt(strata)],
-          [t.iv_ins, fmt(ins)],
-          [t.iv_maint, fmt(maint)],
-          [t.iv_vac, vac + "%"]
-        ],
-        outputs: [
-          [t.rp_pay, fmt(P)],
-          [t.iv_cf, $("ivCf").textContent],
-          [t.iv_noi, $("ivNoi").textContent],
-          [t.iv_cap, $("ivCap").textContent],
-          [t.iv_coc, $("ivCoc").textContent],
-          [t.iv_cashin, $("ivCashIn").textContent]
-        ]
-      };
-    }
-    function rpTable(rows){
-      return '<table class="rp-table"><tbody>' + rows.map(function(r){
-        return '<tr><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>";
-      }).join("") + "</tbody></table>";
-    }
-    function reportHTML(){
-      var t = T(), d = reportData();
-      var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
-      return '<div class="rp-wrap">'
-        + '<div class="rp-brand">EH REALTY</div>'
-        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
-        + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
-        + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
-        + '<h2 class="rp-h">' + esc(t.rp_inputs) + "</h2>" + rpTable(d.inputs)
-        + '<h2 class="rp-h">' + esc(t.rp_outputs) + "</h2>" + rpTable(d.outputs)
-        + '<p class="rp-disc">' + esc(t.rp_disclaimer) + "</p>"
-        + '<p class="rp-foot">' + esc(t.rp_contact) + ' <a href="mailto:' + EMAIL + '">' + EMAIL + "</a></p>"
-        + "</div>";
-    }
-    function buildReport(){
-      var root = $("ivReport");
-      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
-      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
-      root.innerHTML = reportHTML();
-    }
-    function downloadReport(){
-      var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
-      var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
-        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
-        + "<title>" + esc(T().rp_title) + " — EH REALTY</title>"
-        + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
-      var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url; a.download = "investment-analysis-report-" + lang + ".html";
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
-    }
-    $("ivPrintBtn").addEventListener("click", function(){ buildReport(); window.print(); });
-    $("ivDownloadBtn").addEventListener("click", downloadReport);
-    window.addEventListener("beforeprint", buildReport);
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -1022,6 +986,90 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
+    /* ---------- compare homes (reads only the LISTINGS data above) ---------- */
+    var cmpSel = (function(){ // Pack PortalAddLeadViewingFix rider (2026-11-12): was a hard-coded [LISTINGS[0], LISTINGS[1]] pre-seed on every load, discarding the visitor's own selection; the tray now starts EMPTY and persists the visitor's picks in localStorage
+      try { var saved = JSON.parse(localStorage.getItem("erfan-cmp") || "[]"); if (Array.isArray(saved)) return saved.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); }).slice(0, 4); } catch(e){}
+      return [];
+    })();
+    function cmpSave(){ try { localStorage.setItem("erfan-cmp", JSON.stringify(cmpSel)); } catch(e){} }
+    function cmpRows(t){
+      return [
+        ["cmp_photo", function(l){ return '<img class="cmp-img" src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />'; }],
+        ["m_price", function(l){ return "<b>"+fmt(l.price)+"</b>"; }],
+        ["cmp_ppsf", function(l){ return l.sqft ? fmt(Math.round(l.price / l.sqft)) : "—"; }],
+        ["cmp_address", function(l){ return esc(l.street); }],
+        ["f_city", function(l){ return esc(t.cities[l.city] || l.city); }],
+        ["m_type", function(l){ return esc(t["type_"+l.type]); }],
+        ["d_beds", function(l){ return String(l.beds); }],
+        ["m_baths", function(l){ return String(l.baths); }],
+        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
+        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
+        ["m_year", function(l){ return l.year ? String(l.year) : "—"; }],
+        ["m_strata", function(l){ return l.strata ? fmt(l.strata) : "—"; }],
+        ["m_parking", function(l){ return esc(t["parking_"+l.parking]) + fill(t.stalls, {n: l.stalls}); }],
+        ["cmp_status", function(l){ return esc(t[statusKey(l)]); }],
+        ["m_dom", function(l){ return String(domOf(l)); }],
+        ["m_mls", function(l){ return esc(l.mls); }],
+        ["m_features", function(l){ return '<div class="chips">'+l.features.map(function(f){ return "<span>"+esc(t.features[f]||f)+"</span>"; }).join("")+"</div>"; }]
+      ];
+    }
+    function renderCompare(){
+      var t = T();
+      $("cmpPicker").innerHTML = LISTINGS.map(function(l){
+        var on = cmpSel.indexOf(l.mls) !== -1;
+        var maxed = !on && cmpSel.length >= 4;
+        return '<div class="cmp-pick'+(on ? " on" : "")+'"><img src="'+esc(l.photo)+'" alt="'+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
+          '<div class="cmp-pick-body"><div class="cmp-price">'+fmt(l.price)+'</div><div class="cmp-addr">'+esc(l.street)+'</div>' +
+          '<div class="cmp-meta">'+esc(t.cities[l.city] || l.city)+" · "+l.beds+" "+esc(t.beds)+" · "+l.baths+" "+esc(t.baths)+'</div>' +
+          '<button type="button" class="btn '+(on ? "btn-line" : "btn-spruce")+' cmp-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(on ? "true" : "false")+'"'+(maxed ? " disabled" : "")+">"+esc(on ? t.cmp_remove : t.cmp_add)+"</button>" +
+          "</div></div>";
+      }).join("");
+      $("cmpPicker").querySelectorAll(".cmp-toggle").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
+          if (i !== -1) cmpSel.splice(i, 1);
+          else if (cmpSel.length < 4) cmpSel.push(mls);
+          renderCompare(); syncCmpCardButtons();
+        });
+      });
+      cmpSel = cmpSel.filter(function(m){ return LISTINGS.some(function(l){ return l.mls === m; }); });
+      cmpSave(); // Pack PortalAddLeadViewingFix rider: renderCompare runs after every selection mutation (picker toggle, card toggle, clear), so persisting here covers all paths
+      var sel = LISTINGS.filter(function(l){ return cmpSel.indexOf(l.mls) !== -1; });
+      $("cmpCount").textContent = fill(t.cmp_count, {n: sel.length});
+      if (sel.length < 2){
+        $("cmpTableWrap").innerHTML = '<div class="empty">'+esc(t.cmp_need)+"</div>";
+        return;
+      }
+      var html = '<div class="tbl-scroll"><table class="cmp-table"><thead><tr><th scope="col">'+esc(t.cmp_home)+"</th>" +
+        sel.map(function(l){ return '<th scope="col">'+esc(l.street)+'<div class="mls">'+esc(t.cities[l.city] || l.city)+" · MLS® "+esc(l.mls)+"</div></th>"; }).join("") +
+        "</tr></thead><tbody>";
+      cmpRows(t).forEach(function(row){
+        html += '<tr><th scope="row">'+esc(t[row[0]])+"</th>" +
+          sel.map(function(l){ return '<td data-th="'+esc(l.street)+'">'+row[1](l)+"</td>"; }).join("") + "</tr>";
+      });
+      html += "</tbody></table></div>";
+      $("cmpTableWrap").innerHTML = html;
+    }
+    $("cmpClear").addEventListener("click", function(){ cmpSel = []; renderCompare(); syncCmpCardButtons(); });
+    /* keep the Add-to-comparison buttons on the listing cards in sync with the picker */
+    function syncCmpCardButtons(){
+      var t = T();
+      document.querySelectorAll(".cmp-card-toggle").forEach(function(btn){
+        var mls = btn.getAttribute("data-mls"), on = cmpSel.indexOf(mls) !== -1;
+        btn.className = "btn " + (on ? "btn-line" : "btn-spruce") + " cmp-card-toggle";
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.textContent = on ? t.cmp_remove : t.cmp_add;
+        if (!on && cmpSel.length >= 4) btn.setAttribute("disabled", ""); else btn.removeAttribute("disabled");
+      });
+    }
+    document.addEventListener("click", function(e){
+      var btn = e.target && e.target.closest ? e.target.closest(".cmp-card-toggle") : null;
+      if (!btn) return;
+      var mls = btn.getAttribute("data-mls"), i = cmpSel.indexOf(mls);
+      if (i !== -1) cmpSel.splice(i, 1);
+      else if (cmpSel.length < 4) cmpSel.push(mls);
+      renderCompare(); syncCmpCardButtons();
+    });
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -1031,12 +1079,19 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
+      keep($("fCity"), function(sel){ buildCitySelect(sel, true); });
+      keep($("fType"), function(sel){ buildTypeSelect(sel); });
+      keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
+      keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
+      keep($("fSort"), function(sel){ buildSortSelect(sel); });
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      investCalc(); renderAssistantLang(); buildReport();
+      renderListings(); renderAssistantLang(); renderCompare();
+      if (dlg.open && current){ window.__langSwitch = true; try { openListing(current.mls); } catch (e) {} window.__langSwitch = false; }
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
-    ["ivPrice","ivDown","ivRate","ivAmort","ivRent","ivTax","ivStrata","ivIns","ivMaint","ivVac"].forEach(function(id){ $(id).addEventListener("input", investCalc); $(id).addEventListener("change", investCalc); });
+    ["q","fCity","fType","fPrice","fBeds","fSort","fPresale"].forEach(function(id){ var el = $(id); if (!el) return; el.addEventListener("input", renderListings); el.addEventListener("change", renderListings); }); // Pack PortalAddLeadViewingFix rider (2026-11-12): fPresale was missing from this wiring — the filteredListings() predicate checked it, but ticking "Presales only" fired no re-render, so the filter looked dead
+    $("resetBtn").addEventListener("click", function(){ $("q").value = ""; $("fCity").value = ""; $("fType").value = ""; $("fPrice").value = ""; $("fBeds").value = "0"; $("fSort").value = "featured"; if ($("fPresale")) $("fPresale").checked = false; renderListings(); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1235,10 +1290,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested — we'll confirm your time shortly.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", vwPending: "Awaiting confirmation", vwConfirmed: "Confirmed", vwCancelled: "Cancelled", vwDone: "Completed", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد — به‌زودی زمان بازدیدت رو تأیید می‌کنیم.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", vwPending: "در انتظار تأیید", vwConfirmed: "تأیید شده", vwCancelled: "لغو شده", vwDone: "انجام شده", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। हम जल्द ही आपके समय की पुष्टि करेंगे।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", vwPending: "पुष्टि की प्रतीक्षा में", vwConfirmed: "पुष्टि हो गई", vwCancelled: "रद्द", vwDone: "पूर्ण", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，我们会尽快确认您的时间。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", vwPending: "等待确认", vwConfirmed: "已确认", vwCancelled: "已取消", vwDone: "已完成", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
     es:{
      "account": "Cuenta",
      "signIn": "Iniciar sesión",
@@ -1261,7 +1316,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "remove": "Eliminar",
      "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
      "noSearches": "Aún no tienes búsquedas guardadas.",
-     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "viewingDone": "Visita solicitada — confirmaremos tu hora en breve.",
      "errGeneric": "Algo salió mal — inténtalo de nuevo.",
      "captchaErr": "Completa la verificación de seguridad.",
      "errCreds": "El correo electrónico o la contraseña son incorrectos.",
@@ -1288,6 +1343,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "profSaved": "Perfil guardado.",
      "myViewings": "Mis visitas",
      "noViewings": "Aún no tienes visitas reservadas.",
+     "vwPending": "En espera de confirmación",
+     "vwConfirmed": "Confirmada",
+     "vwCancelled": "Cancelada",
+     "vwDone": "Completada",
      "recent": "Vistos recientemente",
      "priceDrop": "Bajada de precio",
      "cancelBooking": "Cancelar reserva",
@@ -1540,6 +1599,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
               .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
+          function vwStatusLabel(s){ var m = { new: tt("vwPending"), confirmed: tt("vwConfirmed"), cancelled: tt("vwCancelled"), done: tt("vwDone") }; return m[s] || s; }
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
@@ -1550,7 +1610,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(vwStatusLabel(v.status)) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;
@@ -1712,6 +1772,20 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             });
           });
         }
+        /* Pack PortalAddLeadViewingFix (2026-11-12): deep link from the
+           static per-listing pages — listings.html#viewing=<MLS> opens
+           that listing's booking form directly, through the SAME
+           showViewing() path the dialog's Book button takes (per-listing
+           Availability overrides included). The hash form (not a query
+           string) is deliberate: build-seo's rewriteLinks already
+           rewrites "listings.html#" hrefs into each language variant,
+           so fa/hi/zh/es listing pages land on their own language's
+           listings page with the parameter intact. Unknown ids are
+           ignored (the plain listings page just renders). */
+        try {
+          var dlMatch = /(?:^#|&)viewing=([A-Za-z0-9-]+)/.exec(location.hash || "");
+          if (dlMatch && LISTINGS.some(function(x){ return x.mls === dlMatch[1]; })) { curMls = dlMatch[1]; showViewing(dlMatch[1]); }
+        } catch(e){}
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();

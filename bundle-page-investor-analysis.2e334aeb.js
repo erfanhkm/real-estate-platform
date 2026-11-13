@@ -1,121 +1,151 @@
-    function monthlyCost(l){
-      // Self-contained on purpose: paymentFor() lives in the calculator module,
-      // which is not present on every page this card/dialog code ships to.
-      var principal = l.price * 0.8;
-      var rate = parseFloat(window.__portalRate); if (!(rate > 0 && rate < 25)) rate = 4.79;
-      var r = Math.pow(1 + rate / 200, 2 / 12) - 1, n = 25 * 12;
-      var mort = principal * r / (1 - Math.pow(1 + r, -n));
-      var strata = l.strata || 0;
-      var tax = (l.tax || 0) / 12;
-      var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
-      return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
+    /* ---------- mortgage calculator ---------- */
+    function buildCalcSelects(){
+      keep($("cDown"), function(sel){ [5,10,15,20,25,35].forEach(function(p){ opt(sel, String(p), p + "%"); }); }, "20");
+      keep($("cAmort"), function(sel){ [5,10,15,20,25,30].forEach(function(y){ opt(sel, String(y), String(y)); }); }, "25");
+      keep($("cFreq"), function(sel){ [["monthly","freq_monthly"],["biweekly","freq_biweekly"],["weekly","freq_weekly"]].forEach(function(p){ opt(sel, p[0], T()[p[1]]); }); });
     }
-    function cardHTML(l, why){
-      var t = T();
-      var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
-        (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
-      var preHTML = "";
-      if (l.pt === "presale"){
-        var pbits = [];
-        if (l.project) pbits.push(esc(l.project));
-        if (l.developer) pbits.push(esc(l.developer));
-        if (l.completion) pbits.push(esc(t.completion) + " " + esc(l.completion));
-        if (l.depositPct) pbits.push(esc(t.deposit) + " " + esc(l.depositPct) + "%" + (l.depositStruct ? " (" + esc(l.depositStruct) + ")" : ""));
-        preHTML = '<div style="margin-top:6px;font-size:13.5px;color:#96762f">' + pbits.join(" · ") + "</div>" +
-          ((l.assignment && l.originalPrice && l.price < l.originalPrice) ? '<div style="font-size:13.5px;color:#0e7a4f;font-weight:600">💎 ' + fmt(l.originalPrice - l.price) + " " + esc(t.under_orig) + "</div>" : (l.assignment ? '<div class="mut" style="font-size:13px">' + esc(t.assignment_ok) + "</div>" : ""));
+    function paymentFor(principal, annualPct, years, perYear){
+      var r = Math.pow(1 + annualPct/200, 2/perYear) - 1, n = years * perYear;
+      if (r <= 0) return principal / n;
+      return principal * r / (1 - Math.pow(1 + r, -n));
+    }
+    function calc(){
+      var price = parseFloat($("cPrice").value) || 0, downPct = parseFloat($("cDown").value) || 20,
+          rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
+          freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
+      var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
+      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
+      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
+      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
+      var premium = base * premRate, principal = base + premium;
+      var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
+      $("payLabel").textContent = t["pay_" + freq];
+      $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
+      $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
+      $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
+      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
+      $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
+      var cw = $("calcWarn");
+      if (cw) {
+        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
+        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
+        else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
+        else cw.style.display = "none";
       }
-      var whyHTML = why ? '<div class="why">'+why.map(function(w){return "<span>"+esc(w)+"</span>";}).join("")+"</div>" : "";
-      var cmpBtn = "";
-      if (typeof cmpSel !== "undefined" && typeof renderCompare === "function"){
-        var cOn = cmpSel.indexOf(l.mls) !== -1;
-        var cMax = !cOn && cmpSel.length >= 4;
-        cmpBtn = '<button type="button" class="btn '+(cOn ? "btn-line" : "btn-spruce")+' cmp-card-toggle" data-mls="'+esc(l.mls)+'" aria-pressed="'+(cOn ? "true" : "false")+'" style="padding:8px 15px;font-size:14.5px"'+(cMax ? " disabled" : "")+">"+esc(cOn ? t.cmp_remove : t.cmp_add)+"</button>";
-      }
-      return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
-        '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
-        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
-        '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
-    /* ---------- newsletter signup ---------- */
-    var NL_URL = "https://newsletter-signup.erfanbillion.workers.dev";
-    function nlShowStatus(kind, text){
-      var st = $("nlStatus");
-      st.textContent = text;
-      st.className = "nl-status show " + kind;
-      st.scrollIntoView({behavior:"smooth", block:"nearest"});
-    }
-    function nlMarkInvalid(ids){
-      ids.forEach(function(id){ var el = $(id); if (el) el.classList.add("invalid"); });
-    }
-    function nlResetTurnstile(){ tsResetIn("#nlForm"); }
-    ["nlFirst","nlLast","nlEmail","nlLang"].forEach(function(id){
-      $(id).addEventListener("input", function(){ this.classList.remove("invalid"); });
-      $(id).addEventListener("change", function(){ this.classList.remove("invalid"); });
-    });
-    $("nlForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      var t = T();
-      var firstName = $("nlFirst").value.trim(), lastName = $("nlLast").value.trim(),
-          email = $("nlEmail").value.trim(), language = $("nlLang").value;
-      ["nlFirst","nlLast","nlEmail","nlLang"].forEach(function(id){ $(id).classList.remove("invalid"); });
-      var bad = [];
-      if (!firstName) bad.push("nlFirst");
-      if (!lastName) bad.push("nlLast");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) bad.push("nlEmail");
-      if (bad.length){ nlMarkInvalid(bad); nlShowStatus("err", t.nl_err_validation); return; }
-      var token = "";
-      var resp = document.querySelector('#nlForm input[name="cf-turnstile-response"]');
-      if (resp) token = resp.value || "";
-      if (!token && window.turnstile && turnstile.getResponse) { try { token = turnstile.getResponse() || ""; } catch(e){} }
-      if (!token){ nlShowStatus("err", t.nl_err_captcha); return; }
-      var btn = $("nlSubmit"), btnLabel = btn.textContent;
-      btn.disabled = true; btn.textContent = t.nl_sending;
-      fetch(NL_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify({firstName: firstName, lastName: lastName, email: email, language: language, turnstileToken: token})
-      }).then(function(res){
-        return res.json().catch(function(){ return null; });
-      }).then(function(data){
-        if (data && data.ok){
-          nlShowStatus("ok", t.nl_success);
-          /* mirror the subscriber into the admin portal list (fire-and-forget) */
-          try {
-            fetch("https://advisor-api.erfanbillion.workers.dev/api/newsletter/subscribe", {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({name: (firstName + " " + lastName).trim(), email: email, lang: language})
-            }).catch(function(){});
-          } catch(e){}
-          $("nlForm").reset();
-          $("nlLang").value = lang;
-        } else if (data && data.error === "validation"){
-          var map = {firstName:"nlFirst", lastName:"nlLast", email:"nlEmail", language:"nlLang"}, ids = [];
-          if (data.fields && data.fields.length) data.fields.forEach(function(f){ if (map[f]) ids.push(map[f]); });
-          if (!ids.length){
-            if (!firstName) ids.push("nlFirst");
-            if (!lastName) ids.push("nlLast");
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ids.push("nlEmail");
-          }
-          if (!ids.length) ids = ["nlFirst","nlLast","nlEmail"];
-          nlMarkInvalid(ids);
-          nlShowStatus("err", t.nl_err_validation);
-        } else if (data && data.error === "captcha"){
-          nlShowStatus("err", t.nl_err_captcha);
-        } else {
-          nlShowStatus("err", t.nl_err_generic);
-        }
-      }).catch(function(){
-        nlShowStatus("err", t.nl_err_generic);
-      }).then(function(){
-        btn.disabled = false; btn.textContent = btnLabel;
-        nlResetTurnstile();
-      });
-    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
+    /* ---------- investor analysis ---------- */
+    function investCalc(){
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
+      var down = price * downPct / 100, L = Math.max(0, price - down);
+      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0;
+      var effRent = rent * (1 - vac / 100), opex = tax + strata + ins + maint;
+      var noiYr = (effRent - opex) * 12, cf = effRent - opex - P;
+      var cap = price > 0 ? noiYr / price * 100 : 0, coc = down > 0 ? cf * 12 / down * 100 : 0;
+      var cfEl = $("ivCf"); cfEl.textContent = fmt(cf); cfEl.className = cf < 0 ? "neg" : "";
+      $("ivNoi").textContent = fmt(noiYr);
+      $("ivCap").textContent = cap.toFixed(2) + "%";
+      var cocEl = $("ivCoc"); cocEl.textContent = coc.toFixed(2) + "%"; cocEl.className = coc < 0 ? "neg" : "";
+      $("ivCashIn").textContent = fmt(down);
+    }
+    /* ---------- investor report export (print view + downloadable HTML) ---------- */
+    var RP_LOCALES = {en:"en-CA", fa:"fa-IR-u-ca-gregory", hi:"hi-IN", zh:"zh-CN", es:"es"};
+    var RP_LANGNAMES = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+    var RP_CSS = "body{margin:0;padding:36px 20px;background:#fff;color:#15130e;font-family:'Source Sans 3',system-ui,'Segoe UI',Tahoma,sans-serif;line-height:1.55}"
+      + "html[lang='fa'] body{font-family:'Vazirmatn',Tahoma,sans-serif}"
+      + "html[lang='hi'] body{font-family:'Noto Sans Devanagari',system-ui,sans-serif}"
+      + "html[lang='zh-CN'] body{font-family:'Noto Sans SC',system-ui,sans-serif}"
+      + "h1,h2{font-family:Georgia,serif}"
+      + "html[lang='fa'] h1,html[lang='fa'] h2{font-family:'Vazirmatn',sans-serif}"
+      + "html[lang='hi'] h1,html[lang='hi'] h2{font-family:'Noto Sans Devanagari',sans-serif}"
+      + "html[lang='zh-CN'] h1,html[lang='zh-CN'] h2{font-family:'Noto Serif SC',serif}"
+      + ".rp-wrap{max-width:720px;margin:0 auto;color:#15130e}"
+      + ".rp-brand{font-size:20px;font-weight:800;color:#0b0b0b}"
+      + ".rp-brandsub{color:#6e685b;font-size:13.5px;margin-top:2px}"
+      + ".rp-title{font-size:27px;margin:16px 0 4px;color:#0b0b0b}"
+      + ".rp-meta{color:#6e685b;font-size:14px;margin:0 0 6px}"
+      + ".rp-h{font-size:18px;margin:22px 0 8px;color:#0b0b0b}"
+      + ".rp-table{width:100%;border-collapse:collapse;font-size:15px}"
+      + ".rp-table th{text-align:start;font-weight:600;color:#3a362c;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-table td{text-align:end;font-weight:700;padding:8px 10px;border-bottom:1px solid #e4dfd3}"
+      + ".rp-disc{margin-top:22px;font-size:13.5px;color:#6e685b;border:1px solid #e4dfd3;border-radius:9px;padding:12px 14px}"
+      + ".rp-foot{margin-top:16px;font-size:14.5px}"
+      + ".rp-foot a{color:#0b0b0b;font-weight:700}";
+    function reportData(){
+      var t = T();
+      try { investCalc(); } catch(e){}
+      var price = numVal("ivPrice", 650000), downPct = numVal("ivDown", 20), rate = numVal("ivRate", 4.79),
+          amort = Math.max(1, numVal("ivAmort", 25)), rent = numVal("ivRent", 2400), tax = numVal("ivTax", 300),
+          strata = numVal("ivStrata", 320), ins = numVal("ivIns", 90), maint = numVal("ivMaint", 100), vac = numVal("ivVac", 5);
+      var down = price * downPct / 100, L = Math.max(0, price - down);
+      var P = L > 0 ? paymentFor(L, rate, amort, 12) : 0; /* same payment investCalc uses internally */
+      return {
+        inputs: [
+          [t.iv_price, fmt(price)],
+          [t.iv_down, downPct + "%"],
+          [t.iv_rate, rate + "%"],
+          [t.iv_amort, amort + " " + t.rp_years],
+          [t.iv_rent, fmt(rent)],
+          [t.iv_tax, fmt(tax)],
+          [t.iv_strata, fmt(strata)],
+          [t.iv_ins, fmt(ins)],
+          [t.iv_maint, fmt(maint)],
+          [t.iv_vac, vac + "%"]
+        ],
+        outputs: [
+          [t.rp_pay, fmt(P)],
+          [t.iv_cf, $("ivCf").textContent],
+          [t.iv_noi, $("ivNoi").textContent],
+          [t.iv_cap, $("ivCap").textContent],
+          [t.iv_coc, $("ivCoc").textContent],
+          [t.iv_cashin, $("ivCashIn").textContent]
+        ]
+      };
+    }
+    function rpTable(rows){
+      return '<table class="rp-table"><tbody>' + rows.map(function(r){
+        return '<tr><th scope="row">' + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>";
+      }).join("") + "</tbody></table>";
+    }
+    function reportHTML(){
+      var t = T(), d = reportData();
+      var dateStr = new Date().toLocaleDateString(RP_LOCALES[lang] || "en-CA", {year:"numeric", month:"long", day:"numeric"});
+      return '<div class="rp-wrap">'
+        + '<div class="rp-brand">EH REALTY</div>'
+        + '<div class="rp-brandsub">' + esc(t.brand_sub) + "</div>"
+        + '<h1 class="rp-title">' + esc(t.rp_title) + "</h1>"
+        + '<p class="rp-meta">' + esc(t.rp_date) + ": " + esc(dateStr) + " · " + esc(t.rp_language) + ": " + esc(RP_LANGNAMES[lang] || lang) + "</p>"
+        + '<h2 class="rp-h">' + esc(t.rp_inputs) + "</h2>" + rpTable(d.inputs)
+        + '<h2 class="rp-h">' + esc(t.rp_outputs) + "</h2>" + rpTable(d.outputs)
+        + '<p class="rp-disc">' + esc(t.rp_disclaimer) + "</p>"
+        + '<p class="rp-foot">' + esc(t.rp_contact) + ' <a href="mailto:' + EMAIL + '">' + EMAIL + "</a></p>"
+        + "</div>";
+    }
+    function buildReport(){
+      var root = $("ivReport");
+      root.setAttribute("dir", lang === "fa" ? "rtl" : "ltr");
+      root.setAttribute("lang", lang === "zh" ? "zh-CN" : lang);
+      root.innerHTML = reportHTML();
+    }
+    function downloadReport(){
+      var dir = lang === "fa" ? "rtl" : "ltr", htmlLang = lang === "zh" ? "zh-CN" : lang;
+      var doc = "<!doctype html>\n<html lang=\"" + htmlLang + "\" dir=\"" + dir + "\"><head><meta charset=\"utf-8\" />"
+        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+        + "<title>" + esc(T().rp_title) + " — EH REALTY</title>"
+        + "<style>" + RP_CSS + "</style></head><body>" + reportHTML() + "</body></html>";
+      var blob = new Blob([doc], {type:"text/html;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "investment-analysis-report-" + lang + ".html";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    }
+    $("ivPrintBtn").addEventListener("click", function(){ buildReport(); window.print(); });
+    $("ivDownloadBtn").addEventListener("click", downloadReport);
+    window.addEventListener("beforeprint", buildReport);
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -992,673 +1022,6 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var a = e.target && e.target.closest ? e.target.closest("a[href^='#']") : null;
       if (a) setAi(false);
     });
-    /* ---------- market pulse ---------- */
-    var MP_API = "https://advisor-api.erfanbillion.workers.dev";
-    var mpStats = undefined, mpRates = undefined;
-    /* Pack J (MP-02 H4): per-part transport-failure state. A failed part
-       stores a failure sentinel (MP_STATS_FAILED for stats,
-       { ok: false } for rates) so its renderers show the baked tiles /
-       unavailable state, and retries after a 30s backoff — per part
-       since Pack PJ (PJ-01 L1): mpRetryAtStats / mpRetryAtRates.
-       Pack PJ2 (PJ-verify M2): the stats sentinel is a module-private
-       object compared BY IDENTITY — a real payload carrying its own
-       failed: true field is data now, never the sentinel. */
-    var MP_STATS_FAILED = { failed: true };
-    var mpStatsFailed = false, mpRatesFailed = false, mpLoading = false, mpRetryAtStats = 0, mpRetryAtRates = 0;
-    /* Pack PJ2: charts-only redraw state — whether the stats tiles
-       rendered (the chart stage follows the tiles) and the last
-       content width each chart mount was drawn at. */
-    var mpStatsHasTiles = false, mpChartSeenW = {};
-    function mpWidthChanged(mount){ if (!mount || !mount.id) return false; var w = mount.clientWidth || 0; if (mpChartSeenW[mount.id] === w) return false; mpChartSeenW[mount.id] = w; return true; }
-    function mpSafe(fn){ try { fn(); } catch (e) {} }
-    /* Pack J (MP-02 M5): missing means null/undefined/empty — a real 0 is data.
-       Pack PJ (PJ-01 L3): whitespace-only strings and arrays are missing too. */
-    function mpMissing(v){ return v === null || v === undefined || typeof v === "boolean" || Array.isArray(v) || (typeof v === "string" && v.trim() === ""); }
-    /* Pack PJ (PJ-01 L2): negatives render "-$1,234" (never "$-1,234")
-       and a rounded -0 renders "$0" / "0.00%" (never "-0.00%"). */
-    function mpMoney(n){ if (mpMissing(n)) return "—"; var v = Number(n); if (!isFinite(v)) return "—"; var r = Math.round(v); return r === 0 ? "$0" : (r < 0 ? "-$" : "$") + Math.abs(r).toLocaleString("en-US"); }
-    function mpPct(v, dec){ if (mpMissing(v)) return "—"; var x = Number(v); if (!isFinite(x)) return "—"; var d = dec == null ? 2 : dec; var n = Number(x.toFixed(d)); return (n === 0 ? 0 : n).toFixed(d) + "%"; }
-    /* Pack PJ (PJ-02 M3): the one numeric gate for stored/live figures —
-       null/undefined/boolean/array/whitespace-string are absent; any
-       other value is coerced with Number() and must be finite. Callers
-       render the COERCED number, never the raw stored value. */
-    function mpNum(v){
-      if (v === null || v === undefined || typeof v === "boolean" || Array.isArray(v)) return null;
-      if (typeof v === "string" && v.trim() === "") return null;
-      var n = Number(v);
-      return isFinite(n) ? n : null;
-    }
-    function mpDeltaHtml(v){
-      if (mpMissing(v)) return "";
-      var x = Number(v); if (!isFinite(x)) return "";
-      var r = Math.round(x * 10) / 10; /* sign is chosen AFTER 1dp rounding: -0.04 renders "0.0%", never "-0.0%" */
-      var cls = r < 0 ? "mp-down" : (r > 0 ? "mp-up" : "");
-      return '<span class="' + cls + '" dir="ltr" style="unicode-bidi:isolate">' + (r > 0 ? "+" : (r < 0 ? "−" : "")) + Math.abs(r).toFixed(1) + "%</span>";
-    }
-    function mpDeltaSub(v){ var d = mpDeltaHtml(v); return d ? d + " " + esc(T().mp_yoy || "YoY") : ""; }
-    function mpMonthLabel(ym, short){
-      var parts = String(ym || "").split("-");
-      var names = String(T().mp_months || "").split("|");
-      var m = names[parseInt(parts[1], 10) - 1] || parts[1] || "";
-      return short ? m : (m + " " + (parts[0] || "")).trim();
-    }
-    /* Pack J (MP-02 M1/M4): the dataset's month objects, null-safe, newest first.
-       Pack PJ (PJ-01 M5 + PJ-02 M5): newest-first is now ENFORCED here —
-       invalid month strings are dropped, duplicates by month removed
-       (first wins), and the rest sorted DESC; every consumer inherits. */
-    function mpMonths(){
-      if (!mpStats || !Array.isArray(mpStats.months)) return [];
-      var seen = {}, out = [];
-      mpStats.months.forEach(function (m) {
-        if (!m || typeof m !== "object") return;
-        if (typeof m.month !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(m.month)) return;
-        if (seen[m.month]) return;
-        seen[m.month] = 1;
-        out.push(m);
-      });
-      out.sort(function (a, b) { return a.month < b.month ? 1 : (a.month > b.month ? -1 : 0); });
-      return out;
-    }
-    function mpLatestWith(block){
-      var ms = mpMonths();
-      for (var i = 0; i < ms.length; i++) { if (ms[i][block]) return ms[i]; }
-      return null;
-    }
-    /* Pack PI (PI-04 M2): the snapshot is a fallback, not a time
-       machine — a rates block older than ~2 months is omitted rather
-       than shown beside live tiles with no age warning, and snapshot
-       values must be real numbers (a stored string or NaN is absent,
-       not a tile). Pack PJ (PJ-01 M6): a FUTURE month is rejected
-       too — the client twin of the worker-side future bound. */
-    function mpSnapRates(){
-      var m = mpLatestWith("rates");
-      if (!m) return null;
-      var now = new Date();
-      var cur = now.getFullYear() * 12 + now.getMonth();
-      var parts = String(m.month || "").split("-");
-      var sm = (+parts[0]) * 12 + ((+parts[1] || 1) - 1);
-      if (!isFinite(sm) || sm > cur || cur - sm > 2) return null;
-      return m.rates || null;
-    }
-    function mpSnapNum(v){ return (typeof v === "number" && isFinite(v)) ? v : null; }
-    /* Pack PJ (PJ-03 leftover): plain text by contract — its only
-       consumer is mpRateTile, which escapes its srcText. Do NOT escape
-       here; that would double-escape. */
-    function mpSnapSrc(dateVal){
-      var s = T().mp_snapshot || "Snapshot";
-      return dateVal ? s + " · " + dateVal : s;
-    }
-    /* Pack J (MP-02 H1/L1): retrieval dates are shown in Pacific time. */
-    function mpVanDate(iso){
-      /* Pack PJ2 (PJ-verify M1): a date-only string is a calendar
-         date, not an instant — validate it with a Date.UTC round
-         trip and return it AS-IS. (Pack PJ parsed it as the viewer's
-         local noon and re-rendered it in Pacific time, which shifted
-         it a day EARLY for viewers east of about UTC+4 — the HI/ZH
-         audiences that fix was for.) An invalid calendar date is no
-         date at all (""). Full timestamps still render in Pacific. */
-      var s = String(iso || "").trim(); /* Pack PJ2b: trim before the date-only test, so a padded " 2026-10-30 " still takes the calendar path */
-      var dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-      if (dm) {
-        var uy = +dm[1], umo = +dm[2], ud = +dm[3];
-        var u = new Date(Date.UTC(uy, umo - 1, ud));
-        return (u.getUTCFullYear() === uy && u.getUTCMonth() === umo - 1 && u.getUTCDate() === ud) ? s : "";
-      }
-      var d = new Date(s);
-      if (isNaN(d.getTime())) return s.slice(0, 10);
-      try { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Vancouver", year: "numeric", month: "2-digit", day: "2-digit" }).format(d); }
-      catch (e) { return d.toISOString().slice(0, 10); }
-    }
-    /* Pack J (MP-02 M3): charts size to their container (300-640), so SVG
-       text renders at true size on phones instead of being scaled down. */
-    function mpChartWidth(mount){
-      var w = mount && mount.clientWidth ? mount.clientWidth : 0;
-      /* Pack PJ (PJ-02 L1): clientWidth includes horizontal padding —
-         the SVG draws in the CONTENT box, so subtract it when the
-         computed style is available. (PJ-01 M3: a chart first rendered
-         while hidden keeps the 640 fallback until a resize or a
-         tab-return re-render — see mpRenderCharts.) */
-      if (w && typeof getComputedStyle === "function") {
-        try {
-          var cs = getComputedStyle(mount);
-          var pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0;
-          if (pl + pr > 0 && w - pl - pr > 0) w = w - pl - pr;
-        } catch (e) {}
-      }
-      if (!w) w = 640;
-      return Math.max(300, Math.min(640, w));
-    }
-    /* Pack J (MP-02 H4): every MP fetch goes through here — 10s timeout,
-       any transport/parse failure resolves null (never rejects, never hangs). */
-    function mpGet(path){
-      return new Promise(function (resolve) {
-        var settled = false;
-        function fin(j){ if (!settled) { settled = true; resolve(j); } }
-        /* Pack PJ (PJ-01 M1): the executor body is guarded — a
-           synchronous throw (a missing fetch, a hostile stub) resolves
-           null like any other transport failure, so the caller's
-           completion callback always runs and mpLoading never sticks. */
-        try {
-          var ac = (typeof AbortController !== "undefined") ? new AbortController() : null;
-          var tm = setTimeout(function () { if (ac) { try { ac.abort(); } catch (e) {} } fin(null); }, 10000);
-          fetch(MP_API + path, ac ? { signal: ac.signal } : undefined)
-            .then(function (r) { return r.json(); })
-            .then(function (j) { clearTimeout(tm); fin(j || null); })
-            .catch(function () { clearTimeout(tm); fin(null); });
-        } catch (e) { fin(null); }
-      });
-    }
-    /* Pack PJ2 (PJ-verify L5): a source-less block yields just the
-       month label — no leading " · " separator. */
-    function mpSrcLine(block, ym){ if (!block) return ""; var lbl = esc(mpMonthLabel(ym)); var src = block.source ? esc(block.source) : ""; return src ? src + " · " + lbl : lbl; }
-    function mpTile(labelKey, value, subHtml, srcHtml){
-      return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
-        '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
-        (subHtml ? '<p class="mp-sub">' + subHtml + "</p>" : "") +
-        (srcHtml ? '<p class="mp-src">' + srcHtml + "</p>" : "") + "</article>";
-    }
-    function mpDrawBars(mount, figList, monthsDesc, board){
-      if (!mount) return;
-      if (mount.id) mpChartSeenW[mount.id] = mount.clientWidth || 0; /* Pack PJ2: the charts-only redraw keys off this */
-      var t = T();
-      /* Pack J (MP-02 M1/M2): only months carrying this board's type data
-         count; the series is capped to the last 6 of them per board, and
-         the figure list below reads the newest of those months. */
-      var withBoard = (monthsDesc || []).filter(function (m) { return m && typeof m === "object" && m[board] && m[board].types; });
-      var months = withBoard.slice(0, 6).reverse(); // oldest first; bars read as a series when more months arrive
-      /* Pack PJ (PI close L5a): the boards' stored type sets are
-         detached / townhouse / apartment. A condo type is validated
-         and stored server-side but intentionally not charted here. */
-      var typeKeys = ["detached", "townhouse", "apartment"];
-      var rawRows = [], max = 0;
-      /* Pack PJ (PJ-02 M1 + L4): chart rows pass the mpNum gate — the
-         coerced number drives the max, the bar width and the label; a
-         non-numeric or non-positive price is skipped, never compared
-         as a string (numeric strings used to overflow lexically). */
-      typeKeys.forEach(function (tk) {
-        months.forEach(function (m) {
-          var blk = m[board], tb = blk && blk.types && blk.types[tk];
-          var price = tb ? mpNum(tb.price) : null;
-          if (price !== null && price > 0) { rawRows.push({ tk: tk, month: m.month, price: price }); if (price > max) max = price; }
-        });
-      });
-      /* Pack PJ (PJ-02 L12): no rows leaves a short per-board empty
-         note in the mount instead of a silent clear. */
-      if (!rawRows.length) { mount.innerHTML = '<p class="mp-src">' + esc(t.mp_no_data) + "</p>"; if (figList) figList.innerHTML = ""; return; }
-      /* Pack PJ2 (PJ-verify L6): "latest" is the newest month with at
-         least one VALID row — a newest month whose prices are all junk
-         used to highlight nothing and leave the figure list carrying
-         only its month line. */
-      var latestMonth = null;
-      for (var li = months.length - 1; li >= 0; li--) { if (rawRows.some(function (r) { return r.month === months[li].month; })) { latestMonth = months[li]; break; } }
-      var rows = rawRows.map(function (r) { return { tk: r.tk, month: r.month, price: r.price, latest: !!latestMonth && r.month === latestMonth.month }; });
-      /* Pack J (MP-02 M2/M3): container-sized viewBox; wider label column
-         (short month suffix + smaller label font on narrow containers) so
-         "Type · Month Year" labels no longer clip at the left edge. */
-      var W = mpChartWidth(mount), small = W < 520;
-      /* Pack PJ (PJ-02 H1 + M6): in the WIDE layout the latest
-         month's bars always carry the FULL month label (it used to
-         drop entirely when only one month was charted); a full label
-         longer than 18 chars falls back to the short month suffix so
-         it cannot clip at the left edge. Pack PJ2: the labels are
-         computed BEFORE the geometry so labelW can be sized from the
-         longest of them (PJ-verify H1). Pack PJ2c: in the SMALL
-         layout the bar labels are the TYPE NAME ONLY — no month
-         suffix on any group (see the PJ2c note at the shorten pass
-         below); the month is named by the heading note above the
-         charts, the per-board figure source lines and the chart's
-         aria-label. */
-      rows.forEach(function (r) {
-        var typeName = t["mp_" + r.tk] || r.tk;
-        var suffix = "";
-        if (!small) {
-          if (r.latest) suffix = mpMonthLabel(r.month, false);
-          else if (months.length > 1) suffix = ((typeName + " · " + mpMonthLabel(r.month, false)).length > 18) ? mpMonthLabel(r.month, true) : mpMonthLabel(r.month, false);
-        }
-        r.lbl = typeName + (suffix ? " · " + suffix : "");
-      });
-      /* Pack PJ2b (PJ close H1): shorten instead of clamp. The cap
-         is computed FIRST; when the latest group's full-month label
-         (est. chars x 6.4) cannot fit the text space the cap leaves
-         (capW - 8), the latest labels fall back to the SHORT month
-         like the other groups — the full month stays in the figure
-         source line below and in the chart's aria-label. labelW is
-         then sized from the labels actually drawn, so it never has
-         to choose between clipping a label and starving the bars.
-         Pack PJ2c: a real-browser measurement (headless Chromium,
-         production payloads) showed the ES short-month labels STILL
-         clipped at 320/360/390px — real glyph widths exceed the
-         chars x 6.4 estimate — so the small layout no longer puts
-         any month on the bars at all (type name only, above), and
-         this shorten pass now only guards the wide layout. */
-      var capW = Math.floor(W * 0.46), baseW = small ? 132 : 168;
-      var latestEst = 0;
-      rows.forEach(function (r) { if (r.latest && r.lbl.length * 6.4 > latestEst) latestEst = r.lbl.length * 6.4; });
-      if (latestEst > capW - 8) {
-        rows.forEach(function (r) {
-          if (!r.latest) return;
-          var typeName = t["mp_" + r.tk] || r.tk;
-          var sfx = mpMonthLabel(r.month, true);
-          r.lbl = typeName + (sfx ? " · " + sfx : "");
-        });
-      }
-      var longestLbl = 0;
-      rows.forEach(function (r) { if (r.lbl.length > longestLbl) longestLbl = r.lbl.length; });
-      /* Pack PJ2 (PJ-verify H1): labelW is sized from the LONGEST
-         rendered label (est. 6.4px per char + padding), floored at
-         the old fixed widths and capped at 46% of the chart so the
-         bars keep room — the latest bar's full-month label is the
-         longest and used to clip at the left edge on phones (the
-         PJ-02 M6 problem returning through the PJ-02 H1 fix).
-         Pack PJ2b: the longest is measured after the shorten pass
-         above, on the labels actually drawn. */
-      var labelW = Math.round(Math.min(Math.max(baseW, longestLbl * 6.4 + 16), capW)), valW = small ? 92 : 118, barH = 20, gap = 8, groupGap = 16;
-      var height = 8, y = 8, parts = [];
-      rows.forEach(function (r, i) { if (i && rows[i - 1].tk !== r.tk) height += groupGap; height += barH + gap; });
-      var x0 = labelW, x1 = W - valW;
-      rows.forEach(function (r, i) {
-        if (i && rows[i - 1].tk !== r.tk) y += groupGap;
-        var w = Math.max(2, (x1 - x0) * r.price / max);
-        parts.push('<text x="' + (labelW - 8) + '" y="' + (y + barH - 6) + '" text-anchor="end" font-size="' + (small ? "11.5" : "12.5") + '" fill="var(--muted)">' + esc(r.lbl) + "</text>");
-        parts.push('<rect x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + barH + '" rx="4" fill="' + (r.latest ? "var(--spruce)" : "var(--brass)") + '"></rect>');
-        parts.push('<text x="' + (x0 + w + 8) + '" y="' + (y + barH - 6) + '" font-size="13" font-weight="700" fill="var(--ink)">' + esc(mpMoney(r.price)) + "</text>");
-        y += barH + gap;
-      });
-      mount.innerHTML = '<svg viewBox="0 0 ' + W + " " + height + '" role="img" style="direction:ltr" aria-label="' + esc((board === "gvr" ? t.mp_chart_gvr : t.mp_chart_fvreb) + (latestMonth ? " · " + mpMonthLabel(latestMonth.month, false) : "")) + '">' /* Pack PJ2b: the aria-label always names the full latest month, even when the drawn latest labels were shortened */ + parts.join("") + "</svg>";
-      if (figList) {
-        var latest = (latestMonth && latestMonth[board]) || {};
-        figList.innerHTML = typeKeys.map(function (tk) {
-          var tb = latest.types && latest.types[tk]; if (!tb) return "";
-          var price = mpNum(tb.price); if (price === null || price <= 0) return "";
-          return "<li><span>" + esc(t["mp_" + tk] || tk) + "</span><b>" + esc(mpMoney(price)) + (tb.yoyPct != null ? " " + mpDeltaHtml(tb.yoyPct) : "") + "</b></li>";
-        }).join("");
-        /* Pack PJ (PJ-02 H1): the figure list names its own month —
-           the newest month carrying this board's types — so the
-           figures never silently predate the heading note. */
-        if (latestMonth && latestMonth[board]) figList.innerHTML += '<li class="mp-figsrc">' + mpSrcLine(latestMonth[board], latestMonth.month) + "</li>";
-      }
-    }
-    function mpDrawPolicy(series){
-      var mount = $("mpChartPolicy"); if (!mount) return;
-      if (mount.id) mpChartSeenW[mount.id] = mount.clientWidth || 0; /* Pack PJ2: the charts-only redraw keys off this */
-      var t = T();
-      /* Pack PJ (PJ-03 L1): a non-array series is invalid input —
-         clear the mount rather than throw and leave a stale chart. */
-      if (!Array.isArray(series) || series.length < 2) { mount.innerHTML = ""; return; }
-      /* Pack J (MP-02 M4): drop malformed points instead of poisoning the scale.
-         Pack PJ (PJ-03 M5): a point needs a real date, and the series
-         is plotted in ascending date order — a descending series used
-         to highlight the OLDEST point as current. */
-      var ptsIn = series.filter(function (p) { return p && typeof p[0] === "string" && /^\d{4}-\d{2}-\d{2}/.test(p[0]) && !mpMissing(p[1]) && isFinite(Number(p[1])); });
-      ptsIn.sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); });
-      if (ptsIn.length < 2) { mount.innerHTML = ""; return; }
-      /* Pack J (MP-02 L4/M3): container-sized viewBox, padT 26 so the
-         endpoint value never clips, and the axis labels/gridlines show the
-         REAL data extremes (the scale may still pad a flat series). */
-      var W = mpChartWidth(mount), H = 190, padL = 44, padR = 14, padT = 26, padB = 26;
-      var vals = ptsIn.map(function (p) { return Number(p[1]); });
-      var rawMn = Math.min.apply(null, vals), rawMx = Math.max.apply(null, vals);
-      var mn = rawMn, mx = rawMx;
-      if (mx - mn < 0.5) { var mid = (mx + mn) / 2; mn = mid - 0.25; mx = mid + 0.25; }
-      var iw = W - padL - padR, ih = H - padT - padB;
-      function X(i) { return padL + iw * i / (ptsIn.length - 1); }
-      function Y(v) { return padT + ih * (1 - (v - mn) / (mx - mn)); }
-      /* Pack PJ2 (PJ-verify ruling 2): the policy rate is a step
-         function — the line steps AFTER each change point instead of
-         ramping diagonally between them (a ramp implies a gradual
-         move that never happened). X stays INDEX-spaced: the worker
-         sends rate-change dates only, and true date spacing would
-         compress long flat stretches illegibly — a conscious,
-         recorded deviation; the series IS date-sorted above. */
-      var step = "M " + X(0).toFixed(1) + "," + Y(Number(ptsIn[0][1])).toFixed(1);
-      for (var si = 1; si < ptsIn.length; si++) step += " H " + X(si).toFixed(1) + " V " + Y(Number(ptsIn[si][1])).toFixed(1);
-      var last = ptsIn[ptsIn.length - 1], first = ptsIn[0];
-      var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" style="direction:ltr" aria-label="' + esc(t.mp_policy_caption) + '">';
-      s += '<line x1="' + padL + '" y1="' + Y(rawMx) + '" x2="' + (W - padR) + '" y2="' + Y(rawMx) + '" stroke="var(--line)"></line>';
-      s += '<line x1="' + padL + '" y1="' + Y(rawMn) + '" x2="' + (W - padR) + '" y2="' + Y(rawMn) + '" stroke="var(--line)"></line>';
-      s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMx) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMx.toFixed(2) + "%</text>";
-      s += '<text x="' + (padL - 6) + '" y="' + (Y(rawMn) + 4) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + rawMn.toFixed(2) + "%</text>";
-      s += '<path d="' + step + '" fill="none" stroke="var(--brass)" stroke-width="2.5"></path>';
-      s += '<circle cx="' + X(ptsIn.length - 1) + '" cy="' + Y(Number(last[1])) + '" r="4" fill="var(--spruce)"></circle>';
-      s += '<text x="' + X(ptsIn.length - 1) + '" y="' + (Y(Number(last[1])) - 10) + '" text-anchor="end" font-size="13" font-weight="700" fill="var(--ink)">' + Number(last[1]).toFixed(2) + "%</text>";
-      s += '<text x="' + padL + '" y="' + (H - 6) + '" font-size="11.5" fill="var(--muted)">' + esc(first[0]) + "</text>";
-      s += '<text x="' + (W - padR) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11.5" fill="var(--muted)">' + esc(last[0]) + "</text>";
-      mount.innerHTML = s + "</svg>" + '<p class="mp-src" style="margin-top:6px">' + esc(t.mp_policy_caption) + "</p>";
-    }
-    /* Pack PJ2 (PJ-verify M2): the chart stage of mpRenderStats, split
-       out so the resize / tab-return / ResizeObserver path can redraw
-       ONLY the charts — it never rebuilds tiles, the note or the
-       sources (Pack PJ's mpRenderCharts claimed that but called the
-       full mpRenderStats). */
-    function mpDrawStatsCharts(months){
-      mpDrawBars($("mpChartGvr"), $("mpFigGvr"), months, "gvr");
-      mpDrawBars($("mpChartFvreb"), $("mpFigFvreb"), months, "fvreb");
-    }
-    function mpClearStatsCharts(){
-      ["mpChartGvr", "mpChartFvreb", "mpFigGvr", "mpFigFvreb"].forEach(function (id) { var el = $(id); if (el) el.innerHTML = ""; });
-    }
-    function mpRedrawStatsCharts(){
-      if (!mpStats || mpStats === MP_STATS_FAILED) return;
-      var months = mpMonths();
-      if (!months.length || !mpStatsHasTiles) { mpClearStatsCharts(); return; }
-      mpSafe(function () { mpDrawStatsCharts(months); });
-    }
-    function mpRenderStats(){
-      var box = $("mpKpis"); if (!box) return;
-      var t = T();
-      if (mpStats === undefined) return; /* Pack J (MP-02 H4): still loading — the baked tiles stay */
-      if (mpStats === MP_STATS_FAILED) {
-        /* Pack J (MP-02 H4): transport failure — the baked tiles stay and
-           the note says the figures could not be refreshed (never the
-           "no data" state, which is reserved for a loaded-but-empty set). */
-        var fn = $("mpMonthNote"); if (fn) fn.textContent = t.mp_stats_unavailable;
-        return;
-      }
-      var months = mpMonths();
-      if (!months.length) {
-        box.innerHTML = '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
-        var sc0 = $("mpSources"); if (sc0) sc0.innerHTML = "";
-        mpClearStatsCharts();
-        var nn = $("mpMonthNote"); if (nn) nn.textContent = t.mp_no_data;
-        return;
-      }
-      /* Pack J (MP-02 M1): every tile reads the newest month that carries
-         its own block; each tile's source line names that month, and the
-         heading note claims a single month only when all tiles share it.
-         Pack PJ (PJ-02 M4): block-level selection is DELIBERATE — a tile
-         never falls back field-by-field, so a figure is never shown from
-         an older month than the newest month carrying its block. */
-      var bcM = mpLatestWith("bc"), gvM = mpLatestWith("gvr"), fvM = mpLatestWith("fvreb"), caM = mpLatestWith("canada");
-      var usedMonths = {}, usedBlocks = [];
-      /* Pack PJ (PJ-02 L5): use() ignores a month object without a
-         valid month string (mpMonths already guarantees one). */
-      function use(mo, blk){
-        if (mo && typeof mo.month === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(mo.month)) usedMonths[mo.month] = 1;
-        if (blk) usedBlocks.push(blk);
-      }
-      var tiles = "";
-      /* Pack PJ (PJ-02 L2): the three render stages (tiles+note /
-         charts / sources) run in separate mpSafe calls — a failure in
-         one never takes the others down. */
-      mpSafe(function () {
-        /* Pack PJ (PJ-02 M3 + L7): one mpNum gate for all five tiles —
-           the coerced number renders (sales rounded, months-of-
-           inventory at 1dp), and a gated-out tile does NOT call use():
-           it claims no month and lists no source. */
-        var bcSales = bcM ? mpNum(bcM.bc.sales) : null;
-        if (bcM && bcSales !== null) { use(bcM, bcM.bc); tiles += mpTile("mp_kpi_bc_sales", Math.round(bcSales).toLocaleString("en-US"), mpDeltaSub(bcM.bc.salesYoyPct), mpSrcLine(bcM.bc, bcM.month)); }
-        var gvBench = gvM ? mpNum(gvM.gvr.benchmark) : null;
-        if (gvM && gvBench !== null) { use(gvM, gvM.gvr); tiles += mpTile("mp_kpi_gvr_bench", mpMoney(gvBench), mpDeltaSub(gvM.gvr.benchmarkYoyPct), mpSrcLine(gvM.gvr, gvM.month)); }
-        var fvBench = fvM ? mpNum(fvM.fvreb.benchmark) : null;
-        if (fvM && fvBench !== null) { use(fvM, fvM.fvreb); tiles += mpTile("mp_kpi_fvreb_bench", mpMoney(fvBench), mpDeltaSub(fvM.fvreb.benchmarkYoyPct), mpSrcLine(fvM.fvreb, fvM.month)); }
-        var gvSalr = gvM ? mpNum(gvM.gvr.salesToActivePct) : null;
-        if (gvM && gvSalr !== null) { use(gvM, gvM.gvr); tiles += mpTile("mp_kpi_salr", mpPct(gvSalr, 1), esc(t.mp_salr_sub), mpSrcLine(gvM.gvr, gvM.month)); }
-        var caInv = caM ? mpNum(caM.canada.monthsInventory) : null;
-        if (caM && caInv !== null) { use(caM, caM.canada); tiles += mpTile("mp_kpi_moi", caInv.toFixed(1), esc(t.mp_moi_sub), mpSrcLine(caM.canada, caM.month)); }
-        box.innerHTML = tiles || '<p class="note mp-nodata">' + esc(t.mp_no_data) + "</p>";
-        /* Pack PJ (PJ-02 L3): no tiles -> the note says no data (never
-           the "latest data" claim) and the charts stage is skipped. */
-        var mKeys = Object.keys(usedMonths);
-        var note = $("mpMonthNote");
-        if (note) note.textContent = !tiles ? t.mp_no_data : (mKeys.length === 1 ? fill(t.mp_data_for, { month: mpMonthLabel(mKeys[0]) }) : t.mp_data_latest);
-      });
-      /* Pack PJ2 (PJ-verify M2 + L7): the tiles flag is recorded for
-         the charts-only redraw path, and an empty tiles state CLEARS
-         the charts — previously rendered charts used to persist over
-         the "no data" tiles. */
-      mpStatsHasTiles = !!tiles;
-      if (!tiles) mpClearStatsCharts();
-      if (tiles) mpSafe(function () {
-        mpDrawStatsCharts(months);
-        /* The charts/figures read the newest month carrying each
-           board's types — those blocks join the sources list below. */
-        ["gvr", "fvreb"].forEach(function (board) {
-          for (var i = 0; i < months.length; i++) { if (months[i][board] && months[i][board].types) { usedBlocks.push(months[i][board]); break; } }
-        });
-      });
-      mpSafe(function () {
-        var sc = $("mpSources");
-        if (!sc) return;
-        /* Pack PJ (PJ-02 M2): the sources list is built from what
-           actually rendered — the blocks behind the visible tiles and
-           the chart/figure board months, plus the rates block behind
-           whichever rates tiles are on the page (the dataset snapshot
-           when snapshot tiles show, else the live payload's own
-           source). Dedup key = source + sourceDate. */
-        var blocks = usedBlocks.slice();
-        var snapB = mpSnapRates();
-        var snapShown = false;
-        if (snapB) {
-          if (!(mpRates && mpRates.ok)) snapShown = mpSnapNum(snapB.policyRate) !== null || mpSnapNum(snapB.prime) !== null;
-          if (!snapShown) {
-            var bd = typeof snapB.bestRatesDate === "string" ? snapB.bestRatesDate : "";
-            snapShown = typeof snapB.bestSource === "string" && snapB.bestSource !== "" && bd !== "" && (mpSnapNum(snapB.bestFixed5) !== null || mpSnapNum(snapB.bestVariable5) !== null);
-          }
-          /* Pack PJ2 (PJ-verify L8): a snapshot FALLBACK tile beside
-             live tiles (the live policy/prime value unusable) also
-             puts the snapshot's source on the list. */
-          if (!snapShown && mpRates && mpRates.ok) {
-            var polBad = !mpRates.policy || mpNum(mpRates.policy.value) === null;
-            var priBad = !mpRates.prime || mpNum(mpRates.prime.value) === null;
-            if ((polBad && mpSnapNum(snapB.policyRate) !== null) || (priBad && mpSnapNum(snapB.prime) !== null)) snapShown = true;
-          }
-        }
-        if (snapShown) blocks.push(snapB);
-        else if (mpRates && mpRates.ok && mpRates.source) blocks.push({ source: mpRates.source, sourceDate: (mpRates.policy && mpRates.policy.date) || "" });
-        var seen = {}, items = [];
-        blocks.forEach(function (b) {
-          if (!b || !b.source) return;
-          var key = b.source + "|" + (b.sourceDate || "");
-          if (seen[key]) return;
-          seen[key] = 1;
-          items.push("<li>" + esc(b.source) + " — " + esc(b.sourceDate || "") + "</li>");
-        });
-        sc.innerHTML = items.length ? "<ul>" + items.join("") + "</ul>" : "";
-      });
-    }
-    function mpRateTile(labelKey, value, srcText){
-      return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
-        '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
-        '<p class="mp-src">' + esc(srcText) + "</p></article>";
-    }
-    function mpRenderRates(){
-      var box = $("mpRatesTiles"); if (!box) return;
-      if (mpRates === undefined) return; /* Pack J (MP-02 H4): still loading — leave the section as-is */
-      var t = T();
-      /* Pack J (MP-02 M1) + Pack PI (PI-04 M2): the snapshot is the
-         newest month WITH a rates block, inside the age window. */
-      var snap = mpSnapRates();
-      var tiles = "", msg = "", warn = false;
-      /* Pack J (MP-02 H1): live tiles carry a per-tile stale marker when
-         the worker is serving cached rates. */
-      var staleTag = (mpRates && mpRates.stale) ? " · " + t.mp_stale_short : "";
-      if (mpRates && mpRates.ok) {
-        /* Pack PJ (PJ-03 M1/M2): live values pass the mpNum gate, and
-           the policy tile takes the same snapshot fallback prime has
-           always had — hub and band no longer disagree when the live
-           policy value is unusable. */
-        var polN = mpRates.policy ? mpNum(mpRates.policy.value) : null;
-        if (polN !== null) tiles += mpRateTile("mp_policy", mpPct(polN), "Bank of Canada · " + (mpRates.policy.date || "") + staleTag);
-        else if (snap && mpSnapNum(snap.policyRate) !== null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), mpSnapSrc(snap.policyDate || snap.sourceDate || ""));
-        /* Pack I (MP-01 M3): prime / bond5 may arrive null (their Valet
-           series missing or older than its freshness cap — the worker
-           reports them in mpRates.missing). Degrade per tile: prime
-           falls back to the dated dataset snapshot (labelled as such,
-           like the no-live-data path below); the bond has no snapshot
-           counterpart, so its tile is omitted rather than faked. */
-        var priN = mpRates.prime ? mpNum(mpRates.prime.value) : null;
-        if (priN !== null) tiles += mpRateTile("mp_prime", mpPct(priN), "Bank of Canada · " + (mpRates.prime.date || "") + staleTag);
-        else if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap.primeDate || snap.sourceDate || ""));
-        var bonN = mpRates.bond5 ? mpNum(mpRates.bond5.value) : null;
-        if (bonN !== null) tiles += mpRateTile("mp_bond5", mpPct(bonN), "Bank of Canada · " + (mpRates.bond5.date || "") + staleTag);
-        /* Pack PI (PI-04 M4): a malformed chart payload must not
-           take the tiles down with it. */
-        try { mpDrawPolicy(mpRates.policySeries); } catch (e) {}
-        /* Pack J (MP-02 L1): the retrieval date is Pacific, not UTC. */
-        /* Pack PJ (PJ-03 L4): an empty retrieval date omits the date
-           clause entirely — the stale case falls back to the plain
-           unavailable note, the live case shows no note. */
-        var fetchedD = mpVanDate(mpRates.fetchedAt);
-        if (mpRates.stale) { msg = fetchedD ? fill(t.mp_stale_note, { date: fetchedD }) : t.mp_unavailable_note; warn = true; }
-        else if (fetchedD) msg = fill(t.mp_live_note, { date: fetchedD });
-        /* Pack PI (PI-04 M3): a series the worker reported missing
-           and no snapshot filled is named, not silently absent. */
-        if (Array.isArray(mpRates.missing) && mpRates.missing.length) {
-          var missNames = [];
-          if (mpRates.missing.indexOf("prime") !== -1 && !(snap && mpSnapNum(snap.prime) !== null)) missNames.push(t.mp_prime || "Prime rate");
-          if (mpRates.missing.indexOf("bond5") !== -1) missNames.push(t.mp_bond5 || "5-year bond");
-          if (missNames.length) { msg = (msg ? msg + " " : "") + fill(t.mp_rates_missing || "Not currently available: {names}.", { names: missNames.join(", ") }); warn = true; }
-        }
-      } else {
-        if (snap && mpSnapNum(snap.policyRate) !== null) tiles += mpRateTile("mp_policy", mpPct(snap.policyRate), mpSnapSrc(snap.policyDate || snap.sourceDate || ""));
-        if (snap && mpSnapNum(snap.prime) !== null) tiles += mpRateTile("mp_prime", mpPct(snap.prime), mpSnapSrc(snap.primeDate || snap.sourceDate || ""));
-        try { mpDrawPolicy(null); } catch (e) {}
-        msg = t.mp_unavailable_note; warn = true;
-      }
-      /* Pack J (MP-02 M6): advertised-rate tiles render ONLY when the
-         snapshot names both a source and a date — no fallback attribution,
-         no dangling separators. */
-      /* Pack PJ (PI close L2 + PJ-03 L3): the advertised-rate date is
-         the rates-specific bestRatesDate only (no sourceDate fallback),
-         and both the source and the date must be real strings. */
-      var bestDate = snap && typeof snap.bestRatesDate === "string" ? snap.bestRatesDate : "";
-      var bestOk = !!snap && typeof snap.bestSource === "string" && snap.bestSource !== "" && bestDate !== "";
-      if (snap && mpSnapNum(snap.bestFixed5) !== null && bestOk) tiles += mpRateTile("mp_fixed5", mpPct(snap.bestFixed5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
-      if (snap && mpSnapNum(snap.bestVariable5) !== null && bestOk) tiles += mpRateTile("mp_variable5", mpPct(snap.bestVariable5), snap.bestSource + " · " + bestDate + " · " + t.mp_snapshot);
-      /* Pack PJ (PJ-03 M3): overwrite only when something rendered —
-         a failure with no snapshot keeps the baked tiles (the note
-         below still updates). */
-      if (tiles) box.innerHTML = tiles;
-      var msgEl = $("mpRatesMsg");
-      if (msgEl) { msgEl.textContent = msg || ""; msgEl.className = "mp-msg" + (warn ? " warn" : ""); }
-    }
-    function mpRenderBandRate(){
-      var tile = $("mpBandPolicy"); if (!tile) return; /* homepage band only; no-op on the hub page */
-      var t = T();
-      var val = null, src = "", liveStale = false;
-      var bandPol = (mpRates && mpRates.ok && mpRates.policy) ? mpNum(mpRates.policy.value) : null;
-      if (bandPol !== null) {
-        val = bandPol;
-        src = "Bank of Canada · " + esc(mpRates.policy.date || "") + (mpRates.stale ? " · " + esc(t.mp_stale_short) : "");
-        liveStale = !!mpRates.stale;
-      } else {
-        var snap = mpSnapRates();
-        if (snap && mpSnapNum(snap.policyRate) !== null) { val = snap.policyRate; var sd = snap.policyDate || snap.sourceDate || ""; src = esc(t.mp_snapshot || "") + (sd ? " · " + esc(sd) : ""); }
-      }
-      if (val == null) return; /* no data: keep the baked tile */
-      /* Pack J (MP-02 H1): the band carries the same stale warning as the
-         hub, with the retrieval date in Pacific time. */
-      /* Pack PJ2 (PJ-verify L1/L2): an unusable retrieval date makes
-         the band dateless too (the plain unavailable note), like the
-         hub — never "as of " with an empty date. */
-      var bandDate = liveStale ? mpVanDate(mpRates.fetchedAt) : "";
-      var staleHtml = liveStale ? '<p class="mp-msg warn">' + esc(bandDate ? fill(t.mp_stale_note, { date: bandDate }) : t.mp_unavailable_note) + "</p>" : "";
-      tile.innerHTML = "<h3>" + esc(t.mp_policy || "mp_policy") + '</h3><p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(mpPct(val)) + '</p><p class="mp-src">' + src + "</p>" + staleHtml;
-    }
-    function mpRenderAll(){ mpSafe(mpRenderStats); mpSafe(mpRenderRates); mpSafe(mpRenderBandRate); }
-    /* Pack J (MP-02 H4): the two endpoints load and render INDEPENDENTLY —
-       a hung or failed rates request never blocks the statistics, and a
-       failed part retries (after a 30s backoff) on the next entry: a
-       language switch (applyLang calls renderMarketPulse) or tab focus. */
-    function renderMarketPulse(){
-      if (!$("mpKpis")) return;
-      if (mpStats !== undefined && mpRates !== undefined && !mpStatsFailed && !mpRatesFailed) { mpRenderAll(); return; }
-      if (mpLoading) { mpRenderAll(); return; }
-      /* Pack PJ (PJ-01 L1): the retry backoff is per part — one part's
-         backoff never blocks the other part's retry. */
-      var statsDue = mpStats === undefined || (mpStatsFailed && Date.now() >= mpRetryAtStats);
-      var ratesDue = mpRates === undefined || (mpRatesFailed && Date.now() >= mpRetryAtRates);
-      if (!statsDue && !ratesDue) { mpRenderAll(); return; }
-      mpLoading = true;
-      var note = $("mpMonthNote");
-      if (note && mpStats === undefined) note.textContent = T().mp_loading;
-      var pending = 0;
-      function done(){ pending--; if (pending <= 0) mpLoading = false; }
-      if (statsDue) {
-        pending++;
-        mpGet("/api/market/stats").then(function (j) {
-          /* Pack PJ (PJ-01 M2): one success rule — a payload counts as
-             data only when ok is set AND months is an array; anything
-             else (including a 5xx JSON body) takes the failure path. */
-          if (j && j.ok && Array.isArray(j.months)) { mpStats = j; mpStatsFailed = false; }
-          else { mpStatsFailed = true; mpRetryAtStats = Date.now() + 30000; if (mpStats === undefined) mpStats = MP_STATS_FAILED; }
-          /* Pack PJ (PJ-03 H1): BOTH completion callbacks render
-             everything (the renderers are idempotent) — the snapshot
-             tiles need the stats payload, which may land after rates. */
-          mpRenderAll(); done();
-        });
-      }
-      if (ratesDue) {
-        pending++;
-        mpGet("/api/market/rates").then(function (j) {
-          /* Pack PJ (PJ-01 M2 + PJ-03 L13): rates success means
-             ok === true exactly. A worker 503 { ok: false } body is
-             still stored for rendering (the unavailable state plus
-             any snapshot) AND marked failed, so it retries after the
-             backoff instead of sticking as a permanent "success". */
-          if (j && j.ok === true) { mpRates = j; mpRatesFailed = false; }
-          else { mpRatesFailed = true; mpRetryAtRates = Date.now() + 30000; if (j) mpRates = j; else if (mpRates === undefined) mpRates = { ok: false }; }
-          mpRenderAll(); done();
-        });
-      }
-    }
-    /* Pack PJ2 (PJ-verify L4): retries fire only when their backoff
-       has actually expired — a focus during the backoff used to run a
-       full no-op re-render. */
-    window.addEventListener("focus", function () { if ((mpStatsFailed && Date.now() >= mpRetryAtStats) || (mpRatesFailed && Date.now() >= mpRetryAtRates)) renderMarketPulse(); });
-    /* Pack PJ2 (PJ-verify M2): chart-only redraw, shared by resize,
-       tab-return and the ResizeObserver below. The stats side redraws
-       ONLY the charts (mpRedrawStatsCharts — tiles, note and sources
-       are never rebuilt here); the sentinel is identity-compared, so
-       a payload's own failed field can no longer gate it; the rates
-       side redraws ONLY the policy chart and only when its mount and
-       series exist. Each chart redraws only when its mount's content
-       width actually changed since it was last drawn. */
-    function mpRenderCharts(){
-      var cg = $("mpChartGvr"), cf = $("mpChartFvreb");
-      if ((cg && mpWidthChanged(cg)) || (cf && mpWidthChanged(cf))) mpRedrawStatsCharts();
-      var pm = $("mpChartPolicy");
-      if (mpRates !== undefined && pm && mpRates.policySeries && mpWidthChanged(pm)) { try { mpDrawPolicy(mpRates.policySeries); } catch (e) {} }
-    }
-    /* Pack J (MP-02 M3): charts re-render at the new container width
-       on resize (debounced). Pack PJ2: the mpLastInnerW guard is gone
-       — mpRenderCharts itself ignores mounts whose content width did
-       not change, so a height-only resize (mobile URL-bar scroll)
-       costs nothing and needs no window-width bookkeeping. */
-    var mpResizeTm = null;
-    window.addEventListener("resize", function () {
-      clearTimeout(mpResizeTm);
-      mpResizeTm = setTimeout(mpRenderCharts, 200);
-    });
-    /* Pack PJ2 (PJ-verify ruling 3): a ResizeObserver on the chart
-       mounts — a chart first drawn inside a hidden container
-       (clientWidth 0, fallback width) redraws when the container is
-       revealed, which neither the window resize nor visibilitychange
-       reliably signals. Feature-detected; the resize listener above
-       stays as the fallback. */
-    if (typeof ResizeObserver === "function") {
-      try {
-        var mpRO = new ResizeObserver(function () { clearTimeout(mpResizeTm); mpResizeTm = setTimeout(mpRenderCharts, 120); });
-        ["mpChartGvr", "mpChartFvreb", "mpChartPolicy"].forEach(function (id) { var el = $(id); if (el) mpRO.observe(el); });
-      } catch (e) {}
-    }
-    /* Pack PJ (PJ-01 L4): a mobile tab-return does not fire focus —
-       visibilitychange runs the same retry path as focus AND
-       re-renders the charts once (a chart first rendered while the
-       tab was hidden used the fallback width). Pack PJ2 (PJ-verify
-       L4): when a retry is due, renderMarketPulse already re-renders
-       everything, so the charts path runs only otherwise — no more
-       double render on tab-return. */
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) return;
-      var due = (mpStatsFailed && Date.now() >= mpRetryAtStats) || (mpRatesFailed && Date.now() >= mpRetryAtRates);
-      if (due) renderMarketPulse();
-      else mpRenderCharts();
-    });
-    window.openListing = function(){ window.location.href = "listings.html"; };
-    function renderFeatured(){
-      $("featuredGrid").innerHTML = LISTINGS.map(function(l){ return cardHTML(l, null); }).join("");
-    }
     /* ---------- language ---------- */
     function applyLang(next, save){
       lang = next; var t = T();
@@ -1668,12 +1031,12 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
-      $("nlLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderAssistantLang(); renderFeatured(); renderMarketPulse();
+      investCalc(); renderAssistantLang(); buildReport();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
+    ["ivPrice","ivDown","ivRate","ivAmort","ivRent","ivTax","ivStrata","ivIns","ivMaint","ivVac"].forEach(function(id){ $(id).addEventListener("input", investCalc); $(id).addEventListener("change", investCalc); });
     /* ---- portal-managed data: merge + settings application ---- */
     function mergePortalListings(){
       var d = window.__portalListings;
@@ -1872,10 +1235,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested — we'll confirm your time shortly.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", vwPending: "Awaiting confirmation", vwConfirmed: "Confirmed", vwCancelled: "Cancelled", vwDone: "Completed", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد — به‌زودی زمان بازدیدت رو تأیید می‌کنیم.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", vwPending: "در انتظار تأیید", vwConfirmed: "تأیید شده", vwCancelled: "لغو شده", vwDone: "انجام شده", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। हम जल्द ही आपके समय की पुष्टि करेंगे।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", vwPending: "पुष्टि की प्रतीक्षा में", vwConfirmed: "पुष्टि हो गई", vwCancelled: "रद्द", vwDone: "पूर्ण", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，我们会尽快确认您的时间。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", vwPending: "等待确认", vwConfirmed: "已确认", vwCancelled: "已取消", vwDone: "已完成", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
     es:{
      "account": "Cuenta",
      "signIn": "Iniciar sesión",
@@ -1898,7 +1261,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "remove": "Eliminar",
      "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
      "noSearches": "Aún no tienes búsquedas guardadas.",
-     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "viewingDone": "Visita solicitada — confirmaremos tu hora en breve.",
      "errGeneric": "Algo salió mal — inténtalo de nuevo.",
      "captchaErr": "Completa la verificación de seguridad.",
      "errCreds": "El correo electrónico o la contraseña son incorrectos.",
@@ -1925,6 +1288,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "profSaved": "Perfil guardado.",
      "myViewings": "Mis visitas",
      "noViewings": "Aún no tienes visitas reservadas.",
+     "vwPending": "En espera de confirmación",
+     "vwConfirmed": "Confirmada",
+     "vwCancelled": "Cancelada",
+     "vwDone": "Completada",
      "recent": "Vistos recientemente",
      "priceDrop": "Bajada de precio",
      "cancelBooking": "Cancelar reserva",
@@ -2177,6 +1544,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
               .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
+          function vwStatusLabel(s){ var m = { new: tt("vwPending"), confirmed: tt("vwConfirmed"), cancelled: tt("vwCancelled"), done: tt("vwDone") }; return m[s] || s; }
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
@@ -2187,7 +1555,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(vwStatusLabel(v.status)) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;

@@ -1,122 +1,94 @@
-    var GUIDE = {
-    en:"<h3>The buying steps in BC</h3><ol>"
-      +"<li><b>Get pre-approved.</b> A lender or mortgage broker confirms your budget using the GDS/TDS ratios and the stress test — before you start shopping.</li>"
-      +"<li><b>Save your down payment and closing costs.</b> First-time buyers can use the FHSA (First Home Savings Account) and the RRSP Home Buyers' Plan (withdraw up to $60,000 from your RRSP, tax-free, as of 2026).</li>"
-      +"<li><b>Set your search criteria.</b> Cities, property type, must-haves and a budget range — so you can compare new listings against the same yardstick.</li>"
-      +"<li><b>View homes and compare.</b> For condos and townhouses, read the strata documents: meeting minutes, the depreciation report, and any special levies.</li>"
-      +"<li><b>Write an offer.</b> Price, deposit, dates, and subject conditions (financing, inspection, strata documents) with clear deadlines.</li>"
-      +"<li><b>Remove subjects and pay the deposit.</b> Once the conditions are met, the contract is firm and the deposit is held in trust.</li>"
-      +"<li><b>Complete the purchase.</b> Your lawyer or notary registers the transfer, the property transfer tax is paid, and the balance is due on the completion date.</li>"
-      +"<li><b>Possession day.</b> You get the keys — and start budgeting for property tax, insurance, strata and maintenance.</li></ol>"
-      +"<h3>Minimum down payment</h3><ul>"
-      +"<li><b>Under $500,000:</b> 5% of the purchase price.</li>"
-      +"<li><b>$500,000 to $1,499,999:</b> 5% of the first $500,000, plus 10% of the portion above $500,000.</li>"
-      +"<li><b>$1,500,000 and over:</b> 20% of the purchase price.</li>"
-      +"<li>With less than 20% down, mortgage default insurance (CMHC) is required and the premium is added to your mortgage. Homes priced at $1.5M and over are not eligible for insured mortgages — verify the current eligibility rules.</li></ul>"
-      +"<h3>BC property transfer tax (PTT)</h3><ul>"
-      +"<li>1% on the first $200,000 of the price.</li>"
-      +"<li>2% on the portion from $200,000 to $2,000,000.</li>"
-      +"<li>3% on the portion above $2,000,000 (an additional 2% can apply to the residential portion above $3,000,000).</li>"
-      +"<li><b>First-time buyer exemption:</b> as of October 2026, qualifying first-time buyers pay no tax on the first $500,000 (a saving of up to $8,000) on homes up to $835,000, with a partial exemption up to $860,000. You must be a Canadian citizen or permanent resident, a BC resident, and have never owned a principal residence. Thresholds change — verify the current rules at gov.bc.ca before relying on them.</li>"
-      +"<li>Newly built homes have their own exemption — full up to $1,100,000 and partial up to $1,150,000 — and an additional property transfer tax for foreign buyers can apply in specified areas.</li></ul>"
-      +"<h3>Closing costs to budget for</h3><ul>"
-      +"<li>Property transfer tax (above).</li>"
-      +"<li>Legal / notary fees and disbursements.</li>"
-      +"<li>Home inspection and appraisal fees.</li>"
-      +"<li>Title insurance and registration fees.</li>"
-      +"<li>GST (5%) on newly built homes — not charged on resale homes. Since March 2026, first-time buyers can also claim a federal GST rebate on new homes: a full rebate up to $1,000,000, phasing out to $1,500,000.</li>"
-      +"<li>Adjustments (prepaid property taxes, utilities, strata fees), moving costs, and utility hookups.</li>"
-      +"<li><b>Rule of thumb:</b> budget roughly 1.5%–4% of the purchase price for closing costs, on top of your down payment.</li></ul>",
-    fa:"<h3>مراحل خرید خانه در BC</h3><ol>"
-      +"<li><b>پیش‌تأیید بگیرید.</b> وام‌دهنده یا کارگزار وام، پیش از شروع جست‌وجو، با نسبت‌های GDS/TDS و تست استرس بودجه‌تان را تأیید می‌کند.</li>"
-      +"<li><b>پیش‌پرداخت و هزینه‌های پایانی را پس‌انداز کنید.</b> خریداران اولی می‌توانند از حساب FHSA (پس‌انداز خانه‌ی اول) و طرح Home Buyers' Plan از RRSP استفاده کنند (با این طرح می‌توانید تا ۶۰٬۰۰۰ دلار بدون مالیات از RRSP برداشت کنید؛ طبق قواعد ۲۰۲۶).</li>"
-      +"<li><b>معیارهای جست‌وجو را مشخص کنید.</b> شهر، نوع ملک، بایدها و بازه‌ی بودجه — تا فایل‌های جدید را با یک معیار ثابت مقایسه کنید.</li>"
-      +"<li><b>خانه‌ها را ببینید و مقایسه کنید.</b> برای آپارتمان و تاون‌هاوس، اسناد ساختمان را بخوانید: صورت‌جلسه‌ها، گزارش استهلاک و هزینه‌های ویژه (levy).</li>"
-      +"<li><b>پیشنهاد (آفر) بنویسید.</b> قیمت، ودیعه، تاریخ‌ها و شروط (تأمین مالی، بازرسی، اسناد ساختمان) با مهلت مشخص.</li>"
-      +"<li><b>شروط را بردارید و ودیعه را بپردازید.</b> با برآورده‌شدن شرط‌ها قرارداد قطعی می‌شود و ودیعه نزد امانی نگه داشته می‌شود.</li>"
-      +"<li><b>معامله را کامل کنید.</b> وکیل یا دفتر اسناد رسمی انتقال را ثبت می‌کند، مالیات انتقال ملک پرداخت می‌شود و مانده در روز تکمیل (completion) سررسید است.</li>"
-      +"<li><b>روز تحویل (possession).</b> کلیدها را می‌گیرید — و بودجه‌بندی مالیات ملک، بیمه، شارژ و نگهداری شروع می‌شود.</li></ol>"
-      +"<h3>حداقل پیش‌پرداخت</h3><ul>"
-      +"<li><b>کمتر از ۵۰۰ هزار دلار:</b> ۵٪ قیمت خرید.</li>"
-      +"<li><b>۵۰۰ هزار تا ۱٬۴۹۹٬۹۹۹ دلار:</b> ۵٪ از ۵۰۰ هزار دلار اول، به‌علاوه‌ی ۱۰٪ از بخش بالاتر از ۵۰۰ هزار دلار.</li>"
-      +"<li><b>۱٫۵ میلیون دلار و بیشتر:</b> ۲۰٪ قیمت خرید.</li>"
-      +"<li>با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی نکول وام (CMHC) الزامی است و حق بیمه‌اش به وام اضافه می‌شود. خانه‌های ۱٫۵ میلیون دلار به بالا واجد شرایط وام بیمه‌شده نیستند — قواعد جاری احراز صلاحیت را بررسی کنید.</li></ul>"
-      +"<h3>مالیات انتقال ملک BC ‏(PTT)</h3><ul>"
-      +"<li>۱٪ روی ۲۰۰ هزار دلار اول قیمت.</li>"
-      +"<li>۲٪ روی بخش ۲۰۰ هزار تا ۲ میلیون دلار.</li>"
-      +"<li>۳٪ روی بخش بالاتر از ۲ میلیون دلار (۲٪ اضافی می‌تواند روی بخش مسکونی بالاتر از ۳ میلیون دلار اعمال شود).</li>"
-      +"<li><b>معافیت خریدار اولی:</b> طبق قواعد اکتبر ۲۰۲۶، خریداران اولی واجد شرایط برای خانه‌های تا ۸۳۵ هزار دلار، از مالیات روی ۵۰۰ هزار دلار اول (تا سقف ۸٬۰۰۰ دلار) معاف‌اند و تا ۸۶۰ هزار دلار معافیت نسبی می‌گیرند. باید شهروند یا مقیم دائم کانادا و ساکن BC باشید و هرگز مالک محل سکونت اصلی نبوده باشید. سقف‌ها تغییر می‌کنند — پیش از اتکا، قواعد جاری را در gov.bc.ca بررسی کنید.</li>"
-      +"<li>خانه‌های نوساز معافیت جداگانه‌ی خودشان را دارند: معافیت کامل تا ۱٫۱ میلیون دلار و نسبی تا ۱٫۱۵ میلیون دلار. در مناطق مشخص، مالیات اضافی انتقال برای خریداران خارجی هم اعمال می‌شود.</li></ul>"
-      +"<h3>هزینه‌های پایانی که باید بودجه‌بندی کنید</h3><ul>"
-      +"<li>مالیات انتقال ملک (بالا).</li>"
-      +"<li>هزینه‌های وکیل / دفتر اسناد رسمی و مخارج اداری.</li>"
-      +"<li>هزینه‌ی بازرسی خانه و ارزیابی (appraisal).</li>"
-      +"<li>بیمه‌ی مالکیت (title insurance) و هزینه‌های ثبت.</li>"
-      +"<li>مالیات GST ‏(۵٪) روی خانه‌های نوساز — روی خانه‌های دست‌دوم اعمال نمی‌شود. از مارس ۲۰۲۶، خریداران اولی می‌توانند برای خانه‌های نوساز از تخفیف فدرال GST هم استفاده کنند: تخفیف کامل تا ۱ میلیون دلار و کاهشی تا ۱٫۵ میلیون دلار.</li>"
-      +"<li>تعدیل‌ها (مالیات ملک، آب‌وبرق و شارژ پیش‌پرداخت‌شده)، هزینه‌ی اسباب‌کشی و اتصال خدمات.</li>"
-      +"<li><b>قاعده‌ی سرانگشتی:</b> برای هزینه‌های پایانی، علاوه بر پیش‌پرداخت، حدود ۱٫۵ تا ۴٪ قیمت خرید را کنار بگذارید.</li></ul>",
-    hi:"<h3>BC में खरीद के चरण</h3><ol>"
-      +"<li><b>पूर्व-अनुमोदन लें।</b> ऋणदाता या मॉर्गेज ब्रोकर, खोज शुरू करने से पहले, GDS/TDS अनुपात और स्ट्रेस टेस्ट से आपका बजट पुष्टि करता है।</li>"
-      +"<li><b>डाउन पेमेंट और समापन लागत बचाएँ।</b> पहली बार खरीदार FHSA (First Home Savings Account) और RRSP Home Buyers' Plan का उपयोग कर सकते हैं (इस योजना से आप अपने RRSP से $60,000 तक कर-मुक्त निकाल सकते हैं, 2026 के अनुसार)।</li>"
-      +"<li><b>अपने खोज मानदंड तय करें।</b> शहर, प्रॉपर्टी प्रकार, अनिवार्य चीज़ें और एक बजट सीमा — ताकि आप नई लिस्टिंग की तुलना एक ही पैमाने से कर सकें।</li>"
-      +"<li><b>घर देखें और तुलना करें।</b> कॉन्डो और टाउनहाउस के लिए स्ट्राटा दस्तावेज़ पढ़ें: बैठक कार्यवृत्त (minutes), मूल्यह्रास रिपोर्ट और कोई विशेष शुल्क (levy)।</li>"
-      +"<li><b>ऑफ़र लिखें।</b> कीमत, जमा, तिथियाँ और स्पष्ट समय-सीमा वाले शर्त-विषय (वित्तपोषण, निरीक्षण, स्ट्राटा दस्तावेज़)।</li>"
-      +"<li><b>शर्तें हटाएँ और जमा दें।</b> शर्तें पूरी होते ही अनुबंध पक्का हो जाता है और जमा ट्रस्ट में रखा जाता है।</li>"
-      +"<li><b>खरीद पूरी करें।</b> आपका वकील या नोटरी हस्तांतरण पंजीकृत करता है, संपत्ति हस्तांतरण कर चुकता होता है और शेष राशि समापन तिथि पर देय होती है।</li>"
-      +"<li><b>कब्ज़े का दिन।</b> आपको चाबियाँ मिलती हैं — और संपत्ति कर, बीमा, स्ट्राटा व रखरखाव का बजट शुरू होता है।</li></ol>"
-      +"<h3>न्यूनतम डाउन पेमेंट</h3><ul>"
-      +"<li><b>$500,000 से कम:</b> खरीद कीमत का 5%।</li>"
-      +"<li><b>$500,000 से $1,499,999:</b> पहले $500,000 का 5%, और $500,000 से ऊपर के हिस्से का 10%।</li>"
-      +"<li><b>$1,500,000 और अधिक:</b> खरीद कीमत का 20%।</li>"
-      +"<li>20% से कम डाउन पेमेंट पर मॉर्गेज चूक बीमा (CMHC) अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ता है। $1.5M और अधिक कीमत के घर बीमित मॉर्गेज के पात्र नहीं हैं — वर्तमान पात्रता नियम जाँचें।</li></ul>"
-      +"<h3>BC संपत्ति हस्तांतरण कर (PTT)</h3><ul>"
-      +"<li>कीमत के पहले $200,000 पर 1%।</li>"
-      +"<li>$200,000 से $2,000,000 के हिस्से पर 2%।</li>"
-      +"<li>$2,000,000 से ऊपर के हिस्से पर 3% ($3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% लग सकता है)।</li>"
-      +"<li><b>पहली बार खरीदार छूट:</b> अक्टूबर 2026 के अनुसार, पात्र पहली बार खरीदार $835,000 तक के घरों पर पहले $500,000 पर लगने वाले कर (अधिकतम $8,000) से छूट पाते हैं, और $860,000 तक आंशिक छूट मिलती है। आपको कनाडा का नागरिक या स्थायी निवासी, BC निवासी होना चाहिए और पहले कभी मुख्य निवास का मालिक नहीं होना चाहिए। सीमाएँ बदलती रहती हैं — भरोसा करने से पहले gov.bc.ca पर वर्तमान नियम जाँचें।</li>"
-      +"<li>नए बने घरों की अपनी छूट है: $1,100,000 तक पूर्ण और $1,150,000 तक आंशिक। निर्दिष्ट क्षेत्रों में विदेशी खरीदारों पर अतिरिक्त हस्तांतरण कर भी लग सकता है।</li></ul>"
-      +"<h3>बजट में रखने योग्य समापन लागतें</h3><ul>"
-      +"<li>संपत्ति हस्तांतरण कर (ऊपर)।</li>"
-      +"<li>वकील / नोटरी शुल्क और खर्चे।</li>"
-      +"<li>गृह निरीक्षण और मूल्यांकन (appraisal) शुल्क।</li>"
-      +"<li>टाइटल बीमा और पंजीकरण शुल्क।</li>"
-      +"<li>नए बने घरों पर GST (5%) — पुनर्विक्रय घरों पर नहीं लगता। मार्च 2026 से, पहली बार खरीदार नए घरों पर संघीय GST छूट का दावा भी कर सकते हैं: $1,000,000 तक पूर्ण छूट, $1,500,000 तक क्रमिक कमी।</li>"
-      +"<li>समायोजन (पूर्व-चुकता संपत्ति कर, उपयोगिताएँ, स्ट्राटा शुल्क), स्थानांतरण लागत और उपयोगिता कनेक्शन।</li>"
-      +"<li><b>सामान्य नियम:</b> डाउन पेमेंट के अलावा, समापन लागतों के लिए खरीद कीमत का लगभग 1.5%–4% बजट रखें।</li></ul>",
-    zh:"<h3>在 BC 买房的步骤</h3><ol>"
-      +"<li><b>先取得预批。</b>在开始看房前,贷款机构或房贷经纪会用 GDS/TDS 比率和压力测试确认您的预算。</li>"
-      +"<li><b>存够首付和过户费用。</b>首次购房者可以使用 FHSA(首次购房储蓄账户)和 RRSP 的购房者计划(Home Buyers' Plan)(通过该计划可从 RRSP 免税提取最高 $60,000,截至 2026 年)。</li>"
-      +"<li><b>确定您的搜索标准。</b>城市、物业类型、必备条件和预算范围——这样您就能用同一把尺子比较新房源。</li>"
-      +"<li><b>看房并比较。</b>购买公寓和联排别墅时,务必阅读物业文件:会议记录、折旧报告和任何特别征费。</li>"
-      +"<li><b>提交报价(offer)。</b>价格、定金、日期和附带条件(贷款、验房、物业文件),并设定明确的截止日期。</li>"
-      +"<li><b>移除条件并支付定金。</b>条件满足后合同即成定局,定金由信托保管。</li>"
-      +"<li><b>完成交易。</b>您的律师或公证人登记过户,缴纳房产转让税,余款在成交日到期。</li>"
-      +"<li><b>交房日。</b>您拿到钥匙 — 同时开始为地税、保险、管理费和维护做预算。</li></ol>"
-      +"<h3>最低首付</h3><ul>"
-      +"<li><b>$500,000 以下:</b>房价的 5%。</li>"
-      +"<li><b>$500,000 至 $1,499,999:</b>首 $500,000 的 5%,加上超出 $500,000 部分的 10%。</li>"
-      +"<li><b>$1,500,000 及以上:</b>房价的 20%。</li>"
-      +"<li>首付低于 20% 时必须购买房贷违约保险(CMHC),保费计入贷款。$150 万及以上的房屋不符合保险型房贷资格 — 请核实当前资格规则。</li></ul>"
-      +"<h3>BC 房产转让税(PTT)</h3><ul>"
-      +"<li>房价首 $200,000 部分:1%。</li>"
-      +"<li>$200,000 至 $2,000,000 部分:2%。</li>"
-      +"<li>$2,000,000 以上部分:3%($3,000,000 以上的住宅部分可能另加 2%)。</li>"
-      +"<li><b>首次购房者减免:</b>截至 2026 年 10 月,符合条件的首次购房者购买 $835,000 以内的房屋,可免除首 $500,000 部分的税款(最高 $8,000),$860,000 以内可获部分减免。您必须是加拿大公民或永久居民、BC 居民,且从未拥有过主要居所。门槛会变化 — 依赖之前请先到 gov.bc.ca 核实当前规则。</li>"
-      +"<li>新建房屋有单独的减免:价值 $1,100,000 以内全额减免,$1,150,000 以内部分减免。在指定地区,外国买家还可能需缴纳额外转让税。</li></ul>"
-      +"<h3>需要预算的过户费用</h3><ul>"
-      +"<li>房产转让税(见上)。</li>"
-      +"<li>律师 / 公证费及杂费。</li>"
-      +"<li>验房费和评估费。</li>"
-      +"<li>产权保险和登记费。</li>"
-      +"<li>新建房屋的 GST(5%)— 二手房不收取。自 2026 年 3 月起,首次购房者购买新建房屋还可申请联邦 GST 退税:$1,000,000 以内全额退税,$1,500,000 以内逐步递减。</li>"
-      +"<li>调整项(预付的地税、水电费、管理费)、搬家费和开通水电的费用。</li>"
-      +"<li><b>经验法则:</b>除首付外,过户费用约为房价的 1.5%–4%。</li></ul>",
-    es:"<h3>Los pasos para comprar en BC</h3><ol><li><b>Obtenga una preaprobación.</b> Una entidad prestamista o un corredor hipotecario confirma su presupuesto utilizando las ratios GDS/TDS y la prueba de estrés — antes de que empiece a buscar.</li><li><b>Ahorre para la cuota inicial y los costos de cierre.</b> Los compradores primerizos pueden utilizar la FHSA (First Home Savings Account) y el Plan de Compradores de Vivienda de los RRSP (Home Buyers' Plan) (retirar hasta $60,000 de su RRSP, libre de impuestos, a partir de 2026).</li><li><b>Defina sus criterios de búsqueda.</b> Ciudades, tipo de propiedad, requisitos imprescindibles y un rango de presupuesto, para poder comparar las nuevas opciones con el mismo criterio.</li><li><b>Visite viviendas y compare.</b> En el caso de condominios y casas adosadas, lea los documentos de la strata: las actas de las reuniones, el informe de depreciación y cualquier cuota extraordinaria.</li><li><b>Presente una oferta.</b> Precio, depósito, fechas y condiciones suspensivas (financiamiento, inspección, documentos de la strata) con plazos claros.</li><li><b>Retire las condiciones y pague el depósito.</b> Una vez cumplidas las condiciones, el contrato queda en firme y el depósito se mantiene en fideicomiso.</li><li><b>Complete la compra.</b> Su abogado o notario registra la transferencia, se paga el impuesto de transferencia de la propiedad y el saldo vence en la fecha de cierre.</li><li><b>Día de posesión.</b> Recibe las llaves, y empieza a presupuestar el impuesto predial, el seguro, la cuota de mantenimiento de la strata y el mantenimiento.</li></ol><h3>Cuota inicial mínima</h3><ul><li><b>Menos de $500,000:</b> 5% del precio de compra.</li><li><b>De $500,000 a $1,499,999:</b> 5% de los primeros $500,000, más 10% de la parte que supere los $500,000.</li><li><b>$1,500,000 o más:</b> 20% del precio de compra.</li><li>Con una cuota inicial inferior al 20%, se requiere un seguro de incumplimiento hipotecario (CMHC) y la prima se suma a su hipoteca. Las viviendas con un precio de $1.5M o más no son elegibles para hipotecas aseguradas — verifique las normas de elegibilidad vigentes.</li></ul><h3>Impuesto de transferencia de la propiedad (PTT) de BC</h3><ul><li>1% sobre los primeros $200,000 del precio.</li><li>2% sobre la parte entre $200,000 y $2,000,000.</li><li>3% sobre la parte que supere los $2,000,000 (puede aplicarse un 2% adicional a la parte residencial que supere los $3,000,000).</li><li><b>Exención para compradores primerizos:</b> a partir de octubre de 2026, los compradores primerizos que califiquen no pagan impuesto sobre los primeros $500,000 (un ahorro de hasta $8,000) en viviendas de hasta $835,000, con una exención parcial hasta $860,000. Debe ser ciudadano canadiense o residente permanente, residente de BC, y nunca haber sido propietario de una residencia principal. Los umbrales cambian — verifique las normas vigentes en gov.bc.ca antes de basar su decisión en ellas.</li><li>Las viviendas de nueva construcción tienen su propia exención — total hasta $1,100,000 y parcial hasta $1,150,000 — y puede aplicarse un impuesto adicional de transferencia de la propiedad para compradores extranjeros en las zonas especificadas.</li></ul><h3>Costos de cierre a presupuestar</h3><ul><li>Impuesto de transferencia de la propiedad (arriba).</li><li>Honorarios de abogado / notario y desembolsos.</li><li>Honorarios de inspección de la vivienda y de avalúo.</li><li>Seguro de título y tarifas de registro.</li><li>GST (5%) en viviendas de nueva construcción — no se cobra en viviendas de reventa. Desde marzo de 2026, los compradores primerizos también pueden reclamar un reembolso federal del GST en viviendas nuevas: un reembolso total hasta $1,000,000, con eliminación gradual hasta $1,500,000.</li><li>Ajustes (impuestos prediales prepagados, servicios públicos, cuotas de mantenimiento), costos de mudanza y conexiones de servicios públicos.</li><li><b>Regla general:</b> presupueste aproximadamente el 1.5%–4% del precio de compra para los costos de cierre, además de su cuota inicial.</li></ul>"
-    };
+    /* ---------- lead form + CRM ---------- */
+    function buildLeadSelects(){
+      keep($("lIntent"), function(sel){ ["buyer","seller","investor","renter"].forEach(function(k){ opt(sel, k, T()["intent_"+k]); }); });
+      keep($("lCity"), function(sel){ buildCitySelect(sel, true); });
+      keep($("lBudget"), function(sel){ ["b0","b1","b2","b3","b4","b5"].forEach(function(k){ opt(sel, k, T()[k]); }); });
+    }
+    function renderCRM(){
+      if (!$("crmBody")) return; /* advisor panel hidden in this public preview */
+      var t = T();
+      $("crmBody").innerHTML = LEADS.map(function(ld){
+        function td(label, val){ return '<td data-th="'+esc(label)+'">'+val+"</td>"; }
+        return "<tr>" + td(t.th_name, esc(ld.name) + (ld.sample ? ' <span class="sample-tag">('+esc(t.sample)+")</span>" : "")) +
+          td(t.th_intent, esc(t["intent_"+ld.intent] || ld.intent)) +
+          td(t.th_city, esc(t.cities[ld.city] || ld.city || "—")) +
+          td(t.th_budget, esc(t[ld.budget] || "—")) +
+          '<td data-th="'+esc(t.th_stage)+'"><span class="stage'+(ld.stage==="new"?" s-new":"")+'">'+esc(t["stage_"+ld.stage] || ld.stage)+"</span></td>" +
+          td(t.th_source, esc(t["src_"+ld.source] || ld.source)) + "</tr>";
+      }).join("");
+    }
+    function leadTsToken(){
+      var tok = "";
+      var r = document.querySelector('#leadForm input[name="cf-turnstile-response"]');
+      if (r) tok = r.value || "";
+      if (!tok && window.turnstile && turnstile.getResponse) { try { tok = turnstile.getResponse() || ""; } catch(e){} }
+      return tok;
+    }
+    function tsResetIn(formSel){
+      if (!(window.turnstile && turnstile.reset)) return;
+      var el = document.querySelector(formSel + " .cf-turnstile");
+      try { if (el) turnstile.reset(el); } catch(e){}
+    }
+    $("leadForm").addEventListener("submit", function(e){
+      e.preventDefault(); var t = T();
+      var name = $("lName").value.trim(), email = $("lEmail").value.trim(), phone = $("lPhone").value.trim(),
+          intent = $("lIntent").value, city = $("lCity").value, budget = $("lBudget").value,
+          msg = $("lMsg").value.trim(), plang = $("lLang").value;
+      var langNames = {en:"English", fa:"فارسی", hi:"हिन्दी", zh:"中文（简体）", es:"Español"};
+      LEADS.unshift({name: name, intent: intent, city: city, budget: budget, stage: "new", source: "form", sample: false});
+      renderCRM();
+      var toast = $("leadToast");
+      function showToast(text){ toast.textContent = text; toast.className = "toast show"; toast.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+      function mailtoFallback(){
+        var body = fill(t.mail_body, {name: name, email: email, phone: phone || "—", intent: t["intent_"+intent],
+          city: city ? (t.cities[city] || city) : "—", budget: t[budget], lang: langNames[plang], msg: msg || "—"});
+        window.location.href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(fill(t.mail_subject, {name: name})) + "&body=" + encodeURIComponent(body.length > 1600 ? body.slice(0, 1600) + "…" : body);
+        showToast(t.l_fallback);
+      }
+      var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = t.l_sending;
+      var payload = {
+        name: name, email: email, phone: phone || "—",
+        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
+        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
+        _subject: "New lead — EH REALTY website",
+        _template: "table", _captcha: "false",
+        _honey: $("lHoney").value
+      };
+      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
+      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
+      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
+      try {
+        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
+          signal: leadCtl ? leadCtl.signal : undefined
+        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
+      } catch(e){}
+      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
+      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
+      fetch("https://formsubmit.co/ajax/" + EMAIL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        body: JSON.stringify(payload),
+        signal: fsCtl ? fsCtl.signal : undefined
+      }).then(function(res){
+        if (!res.ok) throw new Error("FormSubmit send failed");
+        return res.json();
+      }).then(function(data){
+        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
+        showToast(t.l_success);
+      }).catch(function(){
+        mailtoFallback();
+      }).then(function(){
+        if (fsTimer) clearTimeout(fsTimer);
+        tsResetIn("#leadForm");
+        btn.disabled = false; btn.textContent = btnLabel;
+      });
+    });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
     function numVal(id, d){ var x = parseFloat($(id).value); return isNaN(x) ? d : x; }
-    /* ---------- first-time buyer guide ---------- */
-    function renderGuide(){ $("guideBody").innerHTML = GUIDE[lang] || GUIDE.en; }
     /* ---------- AI tools dropdown ---------- */
     var toolsBtn = $("toolsBtn"), toolsList = $("toolsList");
     function closeTools(){ toolsList.classList.remove("open"); toolsBtn.setAttribute("aria-expanded", "false"); }
@@ -124,56 +96,6 @@
     document.addEventListener("click", function(e){ if (!$("toolsMenu").contains(e.target)) closeTools(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
-    /* ---------- FHSA contribution tracker ---------- */
-    var FH_CUR = new Date().getFullYear();
-    var fhAmounts = {};
-    function fhStartYear(){
-      var s = parseInt($("fhStart").value, 10);
-      if (isNaN(s)) s = FH_CUR;
-      return Math.min(Math.max(s, 2023), FH_CUR);
-    }
-    function fhBuildRows(){
-      var start = fhStartYear(), box = $("fhRows"), html = "";
-      for (var y = start; y <= FH_CUR; y++){
-        var v = fhAmounts[y] != null ? fhAmounts[y] : "";
-        html += '<div class="field"><label for="fhAmt' + y + '">' + y + " — " + esc(T().fh_contrib) + '</label><input id="fhAmt' + y + '" type="number" min="0" max="40000" step="100" data-year="' + y + '" value="' + esc(v) + '" /></div>';
-      }
-      box.innerHTML = html;
-      box.querySelectorAll("input").forEach(function(inp){
-        inp.addEventListener("input", function(){ fhAmounts[inp.getAttribute("data-year")] = inp.value; fhsaCalc(false); });
-      });
-    }
-    function fhsaCalc(rebuild){
-      if (rebuild !== false) fhBuildRows();
-      var t = T(), start = fhStartYear();
-      var total = 0, roomNow = 0;
-      for (var y = start; y <= FH_CUR; y++){
-        var accruedBefore = Math.min((y - start) * 8000, 40000);
-        var unusedPrev = Math.max(0, accruedBefore - total);
-        var avail = Math.max(0, Math.min(8000 + Math.min(unusedPrev, 8000), 40000 - total));
-        var raw = parseFloat(fhAmounts[y]); if (isNaN(raw) || raw < 0) raw = 0;
-        total += Math.min(raw, avail);
-        if (y === FH_CUR) roomNow = avail;
-      }
-      var accruedAll = Math.min((FH_CUR - start + 1) * 8000, 40000);
-      var unusedAll = Math.max(0, accruedAll - total);
-      var remain = Math.max(0, 40000 - total);
-      var carryNext = Math.min(unusedAll, 8000, remain);
-      $("fhTotal").textContent = fmt(total);
-      $("fhRoomL").textContent = fill(t.fh_room, {y: FH_CUR});
-      $("fhRoom").textContent = fmt(roomNow);
-      $("fhCarry").textContent = fmt(carryNext);
-      $("fhRemain").textContent = fmt(remain);
-      var pct = Math.min(100, total / 400);
-      $("fhPct").textContent = (Math.round(pct * 10) / 10) + "%";
-      $("fhBar").style.width = pct + "%";
-      var pace = total / (FH_CUR - start + 1), proj = $("fhProj");
-      if (remain <= 0) proj.textContent = t.fh_proj_done;
-      else if (pace > 0) proj.textContent = fill(t.fh_proj, {x: fmt(pace), y: FH_CUR + Math.ceil(remain / pace)});
-      else proj.textContent = t.fh_proj_none;
-    }
-    $("fhStart").addEventListener("input", function(){ fhsaCalc(true); });
-    $("fhStart").addEventListener("change", function(){ fhsaCalc(true); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
     var I18N12 = {
     en:{ai_sub:"Site answers first — web search for current market questions",
@@ -1052,8 +974,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (save) { try { localStorage.setItem("erfan-re-lang", lang); } catch(e){} }
       document.querySelectorAll("[data-i18n]").forEach(function(el){ var k = el.getAttribute("data-i18n"); if (t[k]) el.textContent = t[k]; });
       document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ var k = el.getAttribute("data-i18n-ph"); if (t[k]) el.setAttribute("placeholder", t[k]); });
+      buildLeadSelects();
+      $("lLang").value = lang;
       if (window.__applyPortalTexts) window.__applyPortalTexts();
-      renderGuide(); fhsaCalc(true); renderAssistantLang();
+      renderCRM(); renderAssistantLang();
       if (window.__applyPortalTexts) window.__applyPortalTexts();
     }
     $("langSel").addEventListener("change", function(){ applyLang(this.value, true); });
@@ -1255,10 +1179,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       try {
         var API = "https://advisor-api.erfanbillion.workers.dev";
         var STR = {
-          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested. A confirmation email is on its way.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
-          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد. ایمیل تایید در راهه.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
-          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। पुष्टि ईमेल आ रहा है।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
-          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，确认邮件即将发出。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
+          en: { account: "Account", signIn: "Sign in", register: "Create account", name: "Full name", email: "Email", password: "Password", signOut: "Sign out", savedHomes: "Saved homes", savedSearches: "Saved searches", saveSearch: "Save this search", searchName: "Name this search", notify: "Email me new matches", bookViewing: "Book a viewing", date: "Date", time: "Time", phone: "Phone", confirm: "Confirm request", close: "Close", remove: "Remove", noSaved: "No saved homes yet — tap the heart on a listing.", noSearches: "No saved searches yet.", viewingDone: "Viewing requested — we'll confirm your time shortly.", errGeneric: "Something went wrong — please try again.", captchaErr: "Please complete the security check.", errCreds: "Email or password is incorrect.", errExists: "An account with this email already exists — sign in instead.", needAuth: "Sign in first to save homes and searches.", alertsOn: "Alerts on", alertsOff: "Alerts off", savedOk: "Saved.", passHint: "At least 8 characters", profile: "Profile", budget: "Budget", interest: "I'm interested in", optBuy: "Buying", optSell: "Selling", optRent: "Renting", optInvest: "Investing", areas: "Areas you like (comma separated)", reachMe: "Best way to reach you", optEmail: "Email", optPhone: "Phone", optEither: "Either works", optional: "Optional — fill only what you like", saveBtn: "Save", profSaved: "Profile saved.", myViewings: "My viewings", noViewings: "No viewings booked yet.", vwPending: "Awaiting confirmation", vwConfirmed: "Confirmed", vwCancelled: "Cancelled", vwDone: "Completed", recent: "Recently viewed", priceDrop: "Price drop", cancelBooking: "Cancel booking", reschedule: "Reschedule", bannedErr: "This account has been suspended. Please contact us.", cancelledOk: "Booking cancelled.", movedOk: "Viewing moved.", or: "or", googleBtn: "Continue with Google", ownerTimes: "Viewing times set by the owner:", slotGone: "That time is no longer available — please pick another.", signedIn: "Signed in.", verifyEmail: "Verify your email to receive alerts", alertsFromNow: "You'll be notified about listings added from now on.", searchGone: "That search no longer exists.", errBusy: "Please try again in a moment.", sessionExpired: "Your session has expired — please sign in again." },
+          fa: { account: "حساب کاربری", signIn: "ورود", register: "ساخت حساب", name: "نام کامل", email: "ایمیل", password: "رمز عبور", signOut: "خروج", savedHomes: "خانه‌های ذخیره‌شده", savedSearches: "جستجوهای ذخیره‌شده", saveSearch: "ذخیره این جستجو", searchName: "اسم این جستجو", notify: "مچ‌های جدید رو برام ایمیل کن", bookViewing: "رزرو بازدید", date: "تاریخ", time: "ساعت", phone: "تلفن", confirm: "ثبت درخواست", close: "بستن", remove: "حذف", noSaved: "هنوز خونه‌ای ذخیره نکردی — روی قلب هر لیستینگ بزن.", noSearches: "هنوز جستجویی ذخیره نکردی.", viewingDone: "درخواست بازدید ثبت شد — به‌زودی زمان بازدیدت رو تأیید می‌کنیم.", errGeneric: "یه خطا پیش اومد — دوباره تلاش کن.", captchaErr: "لطفاً بررسی امنیتی رو کامل کن.", errCreds: "ایمیل یا رمز عبور اشتباهه.", errExists: "با این ایمیل قبلاً حساب ساخته شده — وارد شو.", needAuth: "برای ذخیره خونه و جستجو اول وارد شو.", alertsOn: "هشدار فعال", alertsOff: "هشدار خاموش", savedOk: "ذخیره شد.", passHint: "حداقل ۸ حرف", profile: "پروفایل", budget: "بودجه", interest: "علاقه‌مندم به", optBuy: "خرید", optSell: "فروش", optRent: "اجاره", optInvest: "سرمایه‌گذاری", areas: "محله‌های مورد علاقه (با کاما جدا کن)", reachMe: "بهترین راه تماس با تو", optEmail: "ایمیل", optPhone: "تلفن", optEither: "هرکدوم راحته", optional: "اختیاریه — فقط هرچی دوست داری پر کن", saveBtn: "ذخیره", profSaved: "پروفایل ذخیره شد.", myViewings: "بازدیدهای من", noViewings: "هنوز بازدیدی رزرو نکردی.", vwPending: "در انتظار تأیید", vwConfirmed: "تأیید شده", vwCancelled: "لغو شده", vwDone: "انجام شده", recent: "اخیراً دیده‌شده‌ها", priceDrop: "افت قیمت", cancelBooking: "لغو رزرو", reschedule: "تغییر زمان", bannedErr: "این حساب تعلیق شده. لطفاً با ما تماس بگیر.", cancelledOk: "رزرو لغو شد.", movedOk: "زمان بازدید جابه‌جا شد.", or: "یا", googleBtn: "ادامه با گوگل", ownerTimes: "زمان‌های بازدید رو صاحب‌خانه تعیین کرده:", slotGone: "این زمان دیگه در دسترس نیست — یه زمان دیگه انتخاب کن.", signedIn: "وارد شدی.", verifyEmail: "برای دریافت هشدارها ایمیلت رو تایید کن", alertsFromNow: "از این به بعد، خانه‌های تازه‌ای که اضافه بشن رو بهت اطلاع میدم.", searchGone: "این جستجو دیگه وجود نداره.", errBusy: "لطفاً چند لحظه دیگه دوباره تلاش کن.", sessionExpired: "نشستت منقضی شده — لطفاً دوباره وارد شو." },
+          hi: { account: "खाता", signIn: "साइन इन", register: "खाता बनाएं", name: "पूरा नाम", email: "ईमेल", password: "पासवर्ड", signOut: "साइन आउट", savedHomes: "सहेजे गए घर", savedSearches: "सहेजी गई खोजें", saveSearch: "यह खोज सहेजें", searchName: "खोज का नाम", notify: "नए मैच मुझे ईमेल करें", bookViewing: "व्यूइंग बुक करें", date: "तारीख़", time: "समय", phone: "फ़ोन", confirm: "अनुरोध की पुष्टि करें", close: "बंद करें", remove: "हटाएं", noSaved: "अभी कोई घर सहेजा नहीं गया — किसी लिस्टिंग पर दिल दबाएं।", noSearches: "अभी कोई खोज सहेजी नहीं गई।", viewingDone: "व्यूइंग का अनुरोध हो गया। हम जल्द ही आपके समय की पुष्टि करेंगे।", errGeneric: "कुछ गड़बड़ हुई — फिर कोशिश करें।", captchaErr: "कृपया सुरक्षा जांच पूरी करें।", errCreds: "ईमेल या पासवर्ड ग़लत है।", errExists: "इस ईमेल से खाता पहले से है — साइन इन करें।", needAuth: "घर और खोजें सहेजने के लिए पहले साइन इन करें।", alertsOn: "अलर्ट चालू", alertsOff: "अलर्ट बंद", savedOk: "सहेजा गया।", passHint: "कम से कम 8 अक्षर", profile: "प्रोफ़ाइल", budget: "बजट", interest: "मेरी रुचि है", optBuy: "खरीदना", optSell: "बेचना", optRent: "किराया", optInvest: "निवेश", areas: "पसंदीदा इलाके (कॉमा से अलग करें)", reachMe: "संपर्क का सबसे अच्छा तरीका", optEmail: "ईमेल", optPhone: "फ़ोन", optEither: "कोई भी ठीक है", optional: "वैकल्पिक — सिर्फ़ वही भरें जो चाहें", saveBtn: "सहेजें", profSaved: "प्रोफ़ाइल सहेजी गई।", myViewings: "मेरी व्यूइंग", noViewings: "अभी कोई व्यूइंग बुक नहीं है।", vwPending: "पुष्टि की प्रतीक्षा में", vwConfirmed: "पुष्टि हो गई", vwCancelled: "रद्द", vwDone: "पूर्ण", recent: "हाल ही में देखे गए", priceDrop: "कीमत में गिरावट", cancelBooking: "बुकिंग रद्द करें", reschedule: "समय बदलें", bannedErr: "यह खाता निलंबित कर दिया गया है। कृपया हमसे संपर्क करें।", cancelledOk: "बुकिंग रद्द हो गई।", movedOk: "व्यूइंग का समय बदल गया।", or: "या", googleBtn: "Google के साथ जारी रखें", ownerTimes: "मालिक द्वारा तय किए गए व्यूइंग समय:", slotGone: "यह समय अब उपलब्ध नहीं है — कृपया दूसरा चुनें।", signedIn: "साइन इन हो गया।", verifyEmail: "अलर्ट पाने के लिए अपना ईमेल सत्यापित करें", alertsFromNow: "अब से जो नई लिस्टिंग जुड़ेंगी, उनकी सूचना आपको मिलेगी।", searchGone: "वह खोज अब मौजूद नहीं है।", errBusy: "कृपया कुछ देर बाद फिर कोशिश करें।", sessionExpired: "आपका सत्र समाप्त हो गया है — कृपया फिर से साइन इन करें।" },
+          zh: { account: "账户", signIn: "登录", register: "创建账户", name: "全名", email: "电子邮箱", password: "密码", signOut: "退出登录", savedHomes: "已保存房源", savedSearches: "已保存搜索", saveSearch: "保存此搜索", searchName: "搜索名称", notify: "有新匹配时发邮件通知我", bookViewing: "预约看房", date: "日期", time: "时间", phone: "电话", confirm: "确认预约", close: "关闭", remove: "删除", noSaved: "尚未保存房源 — 点击房源上的爱心即可。", noSearches: "尚未保存搜索。", viewingDone: "看房请求已提交，我们会尽快确认您的时间。", errGeneric: "出错了 — 请重试。", captchaErr: "请完成安全验证。", errCreds: "电子邮箱或密码不正确。", errExists: "该电子邮箱已注册 — 请直接登录。", needAuth: "登录后即可保存房源和搜索。", alertsOn: "提醒已开启", alertsOff: "提醒已关闭", savedOk: "已保存。", passHint: "至少 8 个字符", profile: "个人资料", budget: "预算", interest: "我感兴趣", optBuy: "买房", optSell: "卖房", optRent: "租房", optInvest: "投资", areas: "喜欢的社区（用逗号分隔）", reachMe: "最佳联系方式", optEmail: "电子邮件", optPhone: "电话", optEither: "都可以", optional: "可选 — 只填您想填的", saveBtn: "保存", profSaved: "个人资料已保存。", myViewings: "我的看房", noViewings: "尚未预约看房。", vwPending: "等待确认", vwConfirmed: "已确认", vwCancelled: "已取消", vwDone: "已完成", recent: "最近浏览", priceDrop: "价格下降", cancelBooking: "取消预约", reschedule: "改期", bannedErr: "该账户已被停用，请联系我们。", cancelledOk: "预约已取消。", movedOk: "看房时间已更改。", or: "或", googleBtn: "使用 Google 继续", ownerTimes: "业主设定的看房时间：", slotGone: "该时间已不可用 — 请选择其他时间。", signedIn: "已登录。", verifyEmail: "验证您的电子邮箱以接收提醒", alertsFromNow: "从现在起，有新房源加入时我们会通知您。", searchGone: "该搜索已不存在。", errBusy: "请稍后再试。", sessionExpired: "您的登录已过期——请重新登录。" },
     es:{
      "account": "Cuenta",
      "signIn": "Iniciar sesión",
@@ -1281,7 +1205,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "remove": "Eliminar",
      "noSaved": "Aún no tienes propiedades guardadas — toca el corazón en un anuncio.",
      "noSearches": "Aún no tienes búsquedas guardadas.",
-     "viewingDone": "Visita solicitada. Un correo de confirmación va en camino.",
+     "viewingDone": "Visita solicitada — confirmaremos tu hora en breve.",
      "errGeneric": "Algo salió mal — inténtalo de nuevo.",
      "captchaErr": "Completa la verificación de seguridad.",
      "errCreds": "El correo electrónico o la contraseña son incorrectos.",
@@ -1308,6 +1232,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
      "profSaved": "Perfil guardado.",
      "myViewings": "Mis visitas",
      "noViewings": "Aún no tienes visitas reservadas.",
+     "vwPending": "En espera de confirmación",
+     "vwConfirmed": "Confirmada",
+     "vwCancelled": "Cancelada",
+     "vwDone": "Completada",
      "recent": "Vistos recientemente",
      "priceDrop": "Bajada de precio",
      "cancelBooking": "Cancelar reserva",
@@ -1560,6 +1488,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               .then(function(d){ if (pBtn) pBtn.disabled = false; me = d.user; myProfile = d.profile || {}; paintAcctBtn(); toast(tt("profSaved")); })
               .catch(function(){ if (pBtn) pBtn.disabled = false; toast(tt("errGeneric")); });
           });
+          function vwStatusLabel(s){ var m = { new: tt("vwPending"), confirmed: tt("vwConfirmed"), cancelled: tt("vwCancelled"), done: tt("vwDone") }; return m[s] || s; }
           api("/api/user/viewings").then(function(d){
             var vw = (d.viewings || []).filter(function(v){ return v.status !== "done"; });
             var el = document.getElementById("fxMyVw");
@@ -1570,7 +1499,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
               var L = v.listing || {};
               var can = (typeof v.canChange === "boolean") ? v.canChange : ((v.status === "new" || v.status === "confirmed") && v.date >= todayV);
               var acts = can ? '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button type="button" class="linkbtn" data-vwcancel="' + v.id + '">' + tt("cancelBooking") + '</button><button type="button" class="linkbtn" data-vwmove="' + v.id + '">' + tt("reschedule") + '</button></div><div id="mv-' + v.id + '"></div>' : "";
-              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(v.status) + ')</span></span>' + acts + '</div>';
+              return '<div class="fx-row" style="display:block"><span><b>' + esc2(v.date) + ' · ' + esc2(v.time) + '</b> — ' + esc2(L.street || v.listingId || "") + (L.city ? ', ' + esc2(L.city) : "") + ' <span style="color:#6e685b">(' + esc2(vwStatusLabel(v.status)) + ')</span></span>' + acts + '</div>';
             }).join("");
             el.querySelectorAll("[data-vwcancel]").forEach(function(b){ b.addEventListener("click", function(){
               if (!window.confirm(tt("cancelBooking") + "?")) return;
