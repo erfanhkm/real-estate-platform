@@ -274,6 +274,7 @@
         <button type="button" data-wslens="calendar">📅 Calendar</button>
         <button type="button" data-wslens="leads">📋 Leads table</button>
         <button type="button" data-wslens="calls">📞 Calls</button>
+        <button type="button" data-wslens="deals">🤝 Deals</button>
       </div>
       <div class="pagehead">
         <div><h1>Leads</h1><div class="mut" id="leadCount"></div></div>
@@ -369,6 +370,7 @@
         <button type="button" data-wslens="calendar">📅 Calendar</button>
         <button type="button" data-wslens="leads">📋 Leads table</button>
         <button type="button" data-wslens="calls">📞 Calls</button>
+        <button type="button" data-wslens="deals">🤝 Deals</button>
       </div>
       <style>
         .crm-cols{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
@@ -573,6 +575,7 @@
         <button type="button" data-wslens="calendar">📅 Calendar</button>
         <button type="button" data-wslens="leads">📋 Leads table</button>
         <button type="button" data-wslens="calls">📞 Calls</button>
+        <button type="button" data-wslens="deals">🤝 Deals</button>
       </div>
       <div class="pagehead">
         <div><h1>Viewing bookings</h1><div class="mut">Requested from listing pages — confirming queues the visitor a confirmation email; cancelling also removes the calendar event</div></div>
@@ -590,6 +593,7 @@
         <button type="button" data-wslens="calendar">📅 Calendar</button>
         <button type="button" data-wslens="leads">📋 Leads table</button>
         <button type="button" data-wslens="calls">📞 Calls</button>
+        <button type="button" data-wslens="deals">🤝 Deals</button>
       </div>
       <div class="pagehead">
         <div><h1>Calls</h1><div class="mut" id="callCount"></div></div>
@@ -612,6 +616,36 @@
       <div id="waThread" style="margin-top:12px"></div>
     </section>
 
+
+    <!-- DEALS (Pack SystemDealsCMA) -->
+    <section id="page-deals" hidden>
+      <div class="wsbar" role="tablist" aria-label="Workspace views">
+        <button type="button" data-wslens="people">👥 People</button>
+        <button type="button" data-wslens="board">🗂 Board</button>
+        <button type="button" data-wslens="matches">🎯 Matches</button>
+        <button type="button" data-wslens="follow">⏰ Follow-ups</button>
+        <button type="button" data-wslens="calendar">📅 Calendar</button>
+        <button type="button" data-wslens="leads">📋 Leads table</button>
+        <button type="button" data-wslens="calls">📞 Calls</button>
+        <button type="button" data-wslens="deals">🤝 Deals</button>
+      </div>
+      <div class="pagehead">
+        <div><h1>Deals</h1><div class="mut" id="dealCount"></div></div>
+        <div style="display:flex;gap:8px">
+          <button class="ghost small" id="dealNewBtn">+ New deal</button>
+          <button class="ghost small" id="dealRefresh">Refresh</button>
+        </div>
+      </div>
+      <div class="mut" style="margin-bottom:10px">Contract dates are used exactly as written in the CPS — the engine never moves them; it flags weekend/holiday landings and rolls only its own preparation reminders to a business day. Deadlines also land in Tasks, so they show on Today.</div>
+      <div id="dealBoard"><div class="empty">Loading…</div></div>
+      <div id="dealDetail" style="margin-top:14px"></div>
+      <div class="pagehead" style="margin-top:26px">
+        <div><h1 style="font-size:20px">CMA reports</h1><div class="mut">The engine ranks comparables and does the arithmetic — every adjustment is entered by you; it adds none and invents no prices.</div></div>
+        <button class="ghost small" id="cmaNewBtn">+ New CMA</button>
+      </div>
+      <div id="cmaBox"></div>
+      <div id="cmaList" style="margin-top:12px"></div>
+    </section>
     <!-- LISTINGS -->
     <section id="page-listings" hidden>
       <div class="pagehead">
@@ -926,6 +960,7 @@
         <div class="card"><h2>🔥 Hot leads</h2><div id="puTHot"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>⏰ Follow-ups due</h2><div id="puTFollow"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>✅ Tasks due</h2><div id="puTTasks"><div class="empty">Loading…</div></div></div>
+        <div class="card"><h2>🤝 Deal deadlines</h2><div id="puTDeals"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>🔮 Predictions <span class="pu-mini">(estimates — rule-based, factors stored per lead/listing)</span></h2><div id="puTPred"><div class="empty">Loading…</div></div><div style="margin-top:8px"><button class="ghost small" id="puPredBtn">🔮 Recompute predictions</button> <span class="pu-mini" id="puPredMsg"></span></div></div>
         <div class="card"><h2>🔔 Alerts &amp; automations</h2><div id="puTAlerts"><div class="empty">Loading…</div></div></div>
         <div class="card"><h2>📈 Market Pulse</h2><div id="puTMarket"><div class="empty">Loading…</div></div></div>
@@ -2025,10 +2060,368 @@
   var acQEl = $("acQ"); if (acQEl) acQEl.addEventListener("input", function(){ clearTimeout(acQTimer); acQTimer = setTimeout(function(){ loadAcademyList(); }, 250); });
   var acStEl = $("acStatus"); if (acStEl) acStEl.addEventListener("change", function(){ loadAcademyList(); });
 
+
+  // ---------- Deals workspace + CMA (Pack SystemDealsCMA, 2026-11-12) ----------
+  var SDC_STAGES = [["offer", "Offer"], ["subjects", "Subjects"], ["firm", "Firm"], ["completion", "Completion"], ["closed", "Closed"]];
+  var sdcDeals = [], sdcOpenId = "", sdcListings = null, sdcCma = null, sdcCmaReports = [];
+  function sdcMoney(n) { return n == null ? "-" : "$" + Number(n).toLocaleString("en-CA"); }
+  function sdcAddr(d) { return (d.property && (d.property.address || d.property.mls)) || "Untitled deal"; }
+  function sdcChip(dl) {
+    if (!dl) return '<div class="pu-mini">No dates yet</div>';
+    var st = dl.status === "overdue" ? ' style="color:#b3261e;font-weight:600"' : (dl.status === "today" ? ' style="color:#9a6a00;font-weight:600"' : "");
+    return '<div class="pu-mini"' + st + ">⏰ " + esc(dl.label) + " — " + esc(dl.date) + (dl.weekendOrHoliday ? " ⚠ weekend/holiday" : "") + "</div>";
+  }
+  function loadDeals() {
+    api(API_URL, "/api/admin/deals", { fresh: true }).then(function (d) {
+      if (d && d.ok) { sdcDeals = d.deals || []; renderDeals(); if (sdcOpenId) renderDealDetail(); }
+    }).catch(function () { var b = $("dealBoard"); if (b) b.innerHTML = '<div class="empty">Could not load deals.</div>'; });
+    loadCmaList();
+  }
+  function sdcCheckProgress(d) {
+    var items = d.checklistItems || [], done = 0;
+    items.forEach(function (i) { if (i.done) done++; });
+    return items.length ? done + "/" + items.length + " docs" : "";
+  }
+  function renderDeals() {
+    var cnt = $("dealCount"); if (cnt) cnt.textContent = sdcDeals.length + " deal(s)";
+    var board = $("dealBoard"); if (!board) return;
+    if (!sdcDeals.length) { board.innerHTML = '<div class="empty">No deals yet — create the first one.</div>'; return; }
+    var h = '<div style="display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:10px;overflow-x:auto">';
+    SDC_STAGES.forEach(function (st) {
+      var rows = sdcDeals.filter(function (d) { return d.stage === st[0]; });
+      h += '<div><div class="pu-mini" style="font-weight:700;margin-bottom:6px">' + st[1] + " (" + rows.length + ")</div>";
+      rows.forEach(function (d) {
+        h += '<div class="card" data-deal-open="' + esc(d.id) + '" style="padding:10px;margin-bottom:8px;cursor:pointer">' +
+          '<div style="font-weight:600;font-size:13px">' + esc(sdcAddr(d)) + "</div>" +
+          '<div class="pu-mini">' + esc((d.property && d.property.city) || "") + " · " + (d.side === "buy" ? "Buying" : "Selling") + " · " + sdcMoney(d.price) + "</div>" +
+          sdcChip(d.nextDeadline) +
+          '<div class="pu-mini">' + esc(sdcCheckProgress(d)) + "</div></div>";
+      });
+      h += "</div>";
+    });
+    h += "</div>";
+    var col = sdcDeals.filter(function (d) { return d.stage === "collapsed"; });
+    if (col.length) {
+      h += '<div class="pu-mini" style="margin-top:8px">Collapsed: ' + col.map(function (d) { return '<a href="#" data-deal-open="' + esc(d.id) + '">' + esc(sdcAddr(d)) + "</a>"; }).join(" · ") + "</div>";
+    }
+    board.innerHTML = h;
+  }
+  function sdcStageName(k) { for (var i = 0; i < SDC_STAGES.length; i++) if (SDC_STAGES[i][0] === k) return SDC_STAGES[i][1]; return k; }
+  function renderDealDetail() {
+    var box = $("dealDetail"); if (!box) return;
+    var d = null;
+    sdcDeals.forEach(function (x) { if (x.id === sdcOpenId) d = x; });
+    if (!d) { box.innerHTML = ""; return; }
+    var h = '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">' +
+      "<div><h2 style=\"margin:0\">" + esc(sdcAddr(d)) + '</h2><div class="mut">' + esc((d.property && d.property.city) || "") + " · " + (d.side === "buy" ? "You represent the buyer" : "You represent the seller") + " · " + sdcMoney(d.price) + (d.depositAmount != null ? " · deposit " + sdcMoney(d.depositAmount) : "") + (d.strata ? " · strata" : "") + "</div>" +
+      '<div class="mut">Buyer: ' + esc((d.buyer && (d.buyer.name || d.buyer.email)) || "-") + " · Seller: " + esc((d.seller && (d.seller.name || d.seller.email)) || "-") + "</div></div>" +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap"><select id="sdcStageSel">' + SDC_STAGES.concat([["collapsed", "Collapsed"]]).map(function (st) { return '<option value="' + st[0] + '"' + (d.stage === st[0] ? " selected" : "") + ">" + st[1] + "</option>"; }).join("") + '</select>' +
+      '<button class="ghost small" id="sdcEditBtn">Edit deal</button>' +
+      '<button class="ghost small" id="sdcDelBtn">Delete</button></div></div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:12px">';
+    // deadlines
+    h += '<div><h3 style="margin:0 0 6px">Deadlines</h3>';
+    if ((d.deadlines || []).length) {
+      d.deadlines.forEach(function (dl) {
+        var st = dl.status === "overdue" ? ' style="color:#b3261e;font-weight:600"' : (dl.status === "today" ? ' style="color:#9a6a00;font-weight:600"' : "");
+        h += '<div class="pu-mini"' + st + ">" + esc(dl.date) + " — " + esc(dl.label) + (dl.kind === "contract" ? "" : " (reminder)") + (dl.weekendOrHoliday ? " ⚠ weekend/holiday" : "") + "</div>";
+      });
+    } else h += '<div class="pu-mini">No dates entered yet.</div>';
+    // conditions
+    h += '<h3 style="margin:14px 0 6px">Subject conditions</h3><div id="sdcCondList">';
+    (d.conditions || []).forEach(function (c, i) {
+      h += '<label class="pu-mini" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-cond="' + i + '"' + (c.done ? " checked" : "") + "> <span" + (c.done ? ' style="text-decoration:line-through"' : "") + ">" + esc(c.label) + (c.due ? " — due " + esc(c.due) : "") + "</span></label>";
+    });
+    h += '</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input type="text" id="sdcCondLabel" placeholder="New subject (e.g. financing)" style="flex:1;min-width:160px"><input type="date" id="sdcCondDue"><button class="ghost small" id="sdcCondAdd">Add</button></div>';
+    h += "</div>";
+    // checklist
+    h += '<div><h3 style="margin:0 0 6px">Document checklist</h3>';
+    var lastStage = "";
+    (d.checklistItems || []).forEach(function (it) {
+      if (it.stage !== lastStage) { lastStage = it.stage; h += '<div class="pu-mini" style="font-weight:700;margin-top:8px">' + esc(sdcStageName(it.stage)) + "</div>"; }
+      h += '<label class="pu-mini" style="display:flex;gap:6px;align-items:flex-start"><input type="checkbox" data-check="' + esc(it.stage) + ":" + esc(it.key) + '"' + (it.done ? " checked" : "") + "> <span" + (it.done ? ' style="text-decoration:line-through"' : "") + ">" + esc(it.label) + "</span></label>";
+    });
+    h += "</div></div>";
+    if (d.notes) h += '<div class="mut" style="margin-top:10px">' + esc(d.notes) + "</div>";
+    h += "</div>";
+    box.innerHTML = h;
+    $("sdcStageSel").addEventListener("change", function () { sdcPatch(d.id, { stage: this.value }); });
+    $("sdcEditBtn").addEventListener("click", function () { renderDealForm(d); });
+    var delB = $("sdcDelBtn");
+    delB.addEventListener("click", function () {
+      if (delB.getAttribute("data-arm")) { api(API_URL, "/api/admin/deals/" + encodeURIComponent(d.id), { method: "DELETE" }).then(function () { sdcOpenId = ""; loadDeals(); }); return; }
+      delB.setAttribute("data-arm", "1"); delB.textContent = "Confirm delete?";
+      setTimeout(function () { delB.removeAttribute("data-arm"); delB.textContent = "Delete"; }, 5000);
+    });
+    $("sdcCondAdd").addEventListener("click", function () {
+      var label = $("sdcCondLabel").value.trim(); if (!label) return;
+      var conds = (d.conditions || []).slice();
+      conds.push({ key: "", label: label, due: $("sdcCondDue").value || "", done: false });
+      sdcPatch(d.id, { conditions: conds });
+    });
+    box.querySelectorAll("[data-cond]").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        var conds = (d.conditions || []).slice();
+        var i = Number(cb.getAttribute("data-cond"));
+        if (conds[i]) { conds[i] = Object.assign({}, conds[i], { done: cb.checked }); sdcPatch(d.id, { conditions: conds }); }
+      });
+    });
+    box.querySelectorAll("[data-check]").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        var parts = cb.getAttribute("data-check").split(":");
+        sdcPatch(d.id, { checklistSet: { stage: parts[0], key: parts[1], done: cb.checked } });
+      });
+    });
+  }
+  function sdcPatch(id, body) {
+    return api(API_URL, "/api/admin/deals/" + encodeURIComponent(id), { method: "PATCH", body: JSON.stringify(body) }).then(function (r) {
+      if (r && r.ok) { loadDeals(); } else { /* keep the desk calm; a reload shows server truth */ loadDeals(); }
+      return r;
+    }).catch(function () { loadDeals(); });
+  }
+  function sdcLoadListings(cb) {
+    if (sdcListings) { cb(sdcListings); return; }
+    api(API_URL, "/api/admin/listings", { fresh: true }).then(function (d) {
+      var rows = [];
+      if (d && d.ok) { (d.listings || []).forEach(function (r) { rows.push(r); }); (d.seeds || []).forEach(function (r) { rows.push(r); }); }
+      sdcListings = rows; cb(rows);
+    }).catch(function () { sdcListings = []; cb([]); });
+  }
+  function renderDealForm(d) {
+    var box = $("dealDetail"); if (!box) return;
+    var isNew = !d;
+    d = d || { side: "buy", stage: "offer", buyer: {}, seller: {}, property: {}, dates: {}, price: null, depositAmount: null, strata: false, notes: "" };
+    sdcOpenId = d.id || "";
+    var dt = function (k) { return (d.dates && d.dates[k]) || ""; };
+    var f = function (id, label, val, type, ph) { return '<label style="display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1"><span class="mut">' + label + '</span><input type="' + (type || "text") + '" id="' + id + '" value="' + esc(val == null ? "" : val) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + "></label>"; };
+    var h = '<div class="card"><h2 style="margin-top:0">' + (isNew ? "New deal" : "Edit deal") + "</h2>" +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">You represent</span><select id="dfSide"><option value="buy"' + (d.side === "buy" ? " selected" : "") + '>Buyer</option><option value="sell"' + (d.side === "sell" ? " selected" : "") + ">Seller</option></select></label>" +
+      f("dfBuyerName", "Buyer name", d.buyer.name) + f("dfBuyerEmail", "Buyer email", d.buyer.email) +
+      f("dfSellerName", "Seller name", d.seller.name) + f("dfSellerEmail", "Seller email", d.seller.email) + "</div>" +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;flex-direction:column;gap:4px;min-width:200px;flex:1"><span class="mut">Property (pick a listing or type below)</span><select id="dfMls"><option value="">— free address —</option></select></label>' +
+      f("dfAddr", "Address", d.property.address) + f("dfCity", "City", d.property.city) +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Type</span><select id="dfType">' + ["", "condo", "townhouse", "house", "duplex", "apartment", "land"].map(function (t) { return '<option value="' + t + '"' + (d.property.type === t ? " selected" : "") + ">" + (t || "—") + "</option>"; }).join("") + "</select></label>" +
+      '<label style="display:flex;gap:4px;align-items:flex-end"><input type="checkbox" id="dfStrata"' + (d.strata ? " checked" : "") + '> <span class="mut">Strata</span></label></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">' + f("dfPrice", "Agreed price ($)", d.price, "number") + f("dfDeposit", "Deposit ($)", d.depositAmount, "number") + "</div>" +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">' +
+      f("dfOffer", "Offer date", dt("offer"), "date") + f("dfAccept", "Acceptance", dt("acceptance"), "date") + f("dfSubjects", "Subject removal", dt("subjectsRemoval"), "date") + f("dfDepDue", "Deposit due (blank = 24h after subject removal)", dt("depositDue"), "date") +
+      f("dfCompletion", "Completion", dt("completion"), "date") + f("dfAdjust", "Adjustment", dt("adjustment"), "date") + f("dfPossession", "Possession", dt("possession"), "date") + "</div>" +
+      '<label style="display:flex;flex-direction:column;gap:4px;margin-top:8px"><span class="mut">Notes</span><textarea id="dfNotes" rows="2">' + esc(d.notes || "") + "</textarea></label>" +
+      '<div style="display:flex;gap:8px;margin-top:10px"><button class="small" id="dfSave">' + (isNew ? "Create deal" : "Save deal") + '</button><button class="ghost small" id="dfCancel">Cancel</button><span class="pu-mini" id="dfMsg"></span></div></div>';
+    box.innerHTML = h;
+    sdcLoadListings(function (rows) {
+      var sel = $("dfMls"); if (!sel) return;
+      rows.forEach(function (r) {
+        var o = document.createElement("option");
+        o.value = r.mls; o.textContent = r.mls + " — " + (r.street || "") + ", " + (r.city || "");
+        if (d.property.mls === r.mls) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function () {
+        var r = null; rows.forEach(function (x) { if (x.mls === sel.value) r = x; });
+        if (r) { $("dfAddr").value = r.street || ""; $("dfCity").value = r.city || ""; $("dfType").value = r.type || ""; if (r.price != null && !$("dfPrice").value) $("dfPrice").value = r.price; }
+      });
+    });
+    $("dfCancel").addEventListener("click", function () { if (isNew) { box.innerHTML = ""; } else renderDealDetail(); });
+    $("dfSave").addEventListener("click", function () {
+      var body = {
+        side: $("dfSide").value,
+        buyer: { name: $("dfBuyerName").value, email: $("dfBuyerEmail").value },
+        seller: { name: $("dfSellerName").value, email: $("dfSellerEmail").value },
+        property: { mls: $("dfMls").value, address: $("dfAddr").value, city: $("dfCity").value, type: $("dfType").value },
+        strata: $("dfStrata").checked,
+        price: $("dfPrice").value === "" ? null : Number($("dfPrice").value),
+        depositAmount: $("dfDeposit").value === "" ? null : Number($("dfDeposit").value),
+        dates: { offer: $("dfOffer").value, acceptance: $("dfAccept").value, subjectsRemoval: $("dfSubjects").value, depositDue: $("dfDepDue").value, completion: $("dfCompletion").value, adjustment: $("dfAdjust").value, possession: $("dfPossession").value },
+        notes: $("dfNotes").value
+      };
+      var msg = $("dfMsg");
+      var req = isNew ? api(API_URL, "/api/admin/deals", { method: "POST", body: JSON.stringify(body) }) : api(API_URL, "/api/admin/deals/" + encodeURIComponent(d.id), { method: "PATCH", body: JSON.stringify(body) });
+      req.then(function (r) {
+        if (r && r.ok) { if (r.deal) sdcOpenId = r.deal.id; loadDeals(); }
+        else if (msg) msg.textContent = "Could not save (" + ((r && r.error) || "error") + (r && r.field ? ": " + r.field : "") + ")";
+      }).catch(function () { if (msg) msg.textContent = "Could not save."; });
+    });
+  }
+
+  // ---------- CMA ----------
+  function loadCmaList() {
+    api(API_URL, "/api/admin/cma", { fresh: true }).then(function (d) {
+      if (d && d.ok) { sdcCmaReports = d.reports || []; renderCmaList(); }
+    }).catch(function () {});
+  }
+  function renderCmaList() {
+    var box = $("cmaList"); if (!box) return;
+    if (!sdcCmaReports.length) { box.innerHTML = '<div class="empty">No CMA reports yet.</div>'; return; }
+    var h = "";
+    sdcCmaReports.forEach(function (r) {
+      h += '<div class="card" style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap">' +
+        "<div><b>" + esc((r.subject && r.subject.address) || "-") + '</b> <span class="mut">' + esc((r.subject && r.subject.city) || "") + " · " + r.compCount + " comp(s) · " + esc(String(r.created_at || "").slice(0, 10)) + (r.sampleData ? ' · <span style="color:#9a6a00;font-weight:600">SAMPLE DATA</span>' : "") + '</span><div class="pu-mini">Indicated range: ' + sdcMoney(r.indicated && r.indicated.low) + " – " + sdcMoney(r.indicated && r.indicated.high) + (r.indicated && r.indicated.indicated != null ? " · indication " + sdcMoney(r.indicated.indicated) : "") + "</div></div>" +
+        '<div style="display:flex;gap:6px"><button class="ghost small" data-cma-pdf="' + esc(r.id) + '">PDF</button><button class="ghost small" data-cma-del="' + esc(r.id) + '">Delete</button></div></div>';
+    });
+    box.innerHTML = h;
+  }
+  function sdcCmaNew() {
+    sdcCma = { subject: {}, candidates: [], picked: {} };
+    renderCmaBox();
+  }
+  function renderCmaBox() {
+    var box = $("cmaBox"); if (!box || !sdcCma) return;
+    var h = '<div class="card"><h3 style="margin-top:0">New CMA</h3>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;min-width:220px;flex:1"><span class="mut">Subject — pick a listing</span><select id="cfMls"><option value="">— manual subject —</option></select></label></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:170px"><span class="mut">Address</span><input type="text" id="cfAddr"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">City</span><input type="text" id="cfCity"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Type</span><select id="cfType">' + ["", "condo", "townhouse", "house", "duplex", "apartment", "land"].map(function (t) { return '<option value="' + t + '">' + (t || "—") + "</option>"; }).join("") + "</select></label>" +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Beds</span><input type="number" id="cfBeds" style="width:80px"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Baths</span><input type="number" id="cfBaths" style="width:80px"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Sqft</span><input type="number" id="cfSqft" style="width:100px"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Year built</span><input type="number" id="cfYear" style="width:100px"></label>' +
+      '<button class="small" id="cfFind">Find comparables</button></div>' +
+      '<div id="cfCands" style="margin-top:12px"></div><div id="cfPicked" style="margin-top:12px"></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:flex-end">' +
+      '<label style="display:flex;flex-direction:column;gap:4px"><span class="mut">Prepared for (client name)</span><input type="text" id="cfClient"></label>' +
+      '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px"><span class="mut">Notes</span><input type="text" id="cfNotes"></label>' +
+      '<button class="small" id="cfCreate">Create report + PDF</button><span class="pu-mini" id="cfMsg"></span></div>' +
+      "</div>";
+    box.innerHTML = h;
+    sdcLoadListings(function (rows) {
+      var sel = $("cfMls"); if (!sel) return;
+      rows.forEach(function (r) {
+        var o = document.createElement("option");
+        o.value = r.mls; o.textContent = r.mls + " — " + (r.street || "") + ", " + (r.city || "");
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function () {
+        var r = null; rows.forEach(function (x) { if (x.mls === sel.value) r = x; });
+        if (r) { $("cfAddr").value = r.street || ""; $("cfCity").value = r.city || ""; $("cfType").value = r.type || ""; $("cfBeds").value = r.beds != null ? r.beds : ""; $("cfBaths").value = r.baths != null ? r.baths : ""; $("cfSqft").value = r.sqft != null ? r.sqft : ""; $("cfYear").value = r.year != null ? r.year : ""; }
+      });
+    });
+    $("cfFind").addEventListener("click", function () {
+      var subj = { mls: $("cfMls").value, address: $("cfAddr").value, city: $("cfCity").value, type: $("cfType").value, beds: $("cfBeds").value === "" ? null : Number($("cfBeds").value), baths: $("cfBaths").value === "" ? null : Number($("cfBaths").value), sqft: $("cfSqft").value === "" ? null : Number($("cfSqft").value), year: $("cfYear").value === "" ? null : Number($("cfYear").value) };
+      sdcCma.subject = subj;
+      api(API_URL, "/api/admin/cma/candidates", { method: "POST", body: JSON.stringify({ subject: subj }) }).then(function (r) {
+        if (r && r.ok) { sdcCma.candidates = r.candidates || []; sdcCma.subject = r.subject; renderCmaCands(); }
+        else { var m = $("cfMsg"); if (m) m.textContent = "Could not rank comparables (" + ((r && r.error) || "error") + ")."; }
+      }).catch(function () { var m = $("cfMsg"); if (m) m.textContent = "Could not rank comparables."; });
+    });
+    $("cfCreate").addEventListener("click", function () { sdcCmaCreate(); });
+  }
+  function renderCmaCands() {
+    var box = $("cfCands"); if (!box || !sdcCma) return;
+    if (!sdcCma.candidates.length) { box.innerHTML = '<div class="pu-mini">No comparable candidates matched. Broaden the subject specs.</div>'; renderCmaPicked(); return; }
+    var h = '<div class="pu-mini" style="font-weight:700;margin-bottom:6px">Ranked candidates — pick the comparables</div>';
+    sdcCma.candidates.forEach(function (c) {
+      var on = !!sdcCma.picked[c.mls];
+      h += '<label style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eee"><input type="checkbox" data-cand="' + esc(c.mls) + '"' + (on ? " checked" : "") + ">" +
+        "<span><b>" + esc(c.street || c.mls) + '</b> <span class="mut">' + esc(c.city || "") + " · " + esc(c.type || "") + " · " + (c.beds != null ? c.beds + "bd/" : "") + (c.baths != null ? c.baths + "ba" : "") + " · " + (c.sqft ? Number(c.sqft).toLocaleString("en-CA") + " sqft" : "") + " · " + (c.year || "") + '</span><br><span class="pu-mini">Score ' + c.score + " (city " + c.parts.city + " · type " + c.parts.type + " · beds " + c.parts.beds + " · size " + c.parts.sqft + " · age " + c.parts.year + ") · " + sdcMoney(c.price) + (c.status === "sold" ? " · SOLD" : " · asking") + "</span></span></label>";
+    });
+    box.innerHTML = h;
+    box.querySelectorAll("[data-cand]").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        var mls = cb.getAttribute("data-cand");
+        if (cb.checked) { var rec = null; sdcCma.candidates.forEach(function (x) { if (x.mls === mls) rec = x; }); sdcCma.picked[mls] = { rec: rec, adjustments: [] }; }
+        else delete sdcCma.picked[mls];
+        renderCmaPicked();
+      });
+    });
+    renderCmaPicked();
+  }
+  function renderCmaPicked() {
+    var box = $("cfPicked"); if (!box || !sdcCma) return;
+    var mls = Object.keys(sdcCma.picked);
+    if (!mls.length) { box.innerHTML = ""; return; }
+    var h = '<div class="pu-mini" style="font-weight:700;margin-bottom:6px">Adjustments (yours — the engine adds none)</div>';
+    mls.forEach(function (m) {
+      var p = sdcCma.picked[m];
+      h += '<div style="margin-bottom:8px"><div class="pu-mini"><b>' + esc((p.rec && p.rec.street) || m) + "</b> — " + sdcMoney(p.rec && p.rec.price) + "</div>";
+      p.adjustments.forEach(function (a, i) {
+        h += '<div class="pu-mini" style="margin-left:14px">' + esc(a.label) + ": " + (a.amount > 0 ? "+" : "") + sdcMoney(a.amount) + ' <a href="#" data-adj-del="' + esc(m) + ":" + i + '">remove</a></div>';
+      });
+      h += '<div style="display:flex;gap:6px;margin:4px 0 0 14px;flex-wrap:wrap"><input type="text" placeholder="Adjustment label (e.g. Renovated kitchen)" data-adj-label="' + esc(m) + '" style="min-width:200px;flex:1"><input type="number" placeholder="+/- $" data-adj-amt="' + esc(m) + '" style="width:110px"><button class="ghost small" data-adj-add="' + esc(m) + '">Add</button></div></div>';
+    });
+    box.innerHTML = h;
+    box.querySelectorAll("[data-adj-add]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var m = b.getAttribute("data-adj-add");
+        var lab = box.querySelector('[data-adj-label="' + m + '"]').value.trim();
+        var amt = Number(box.querySelector('[data-adj-amt="' + m + '"]').value);
+        if (!lab || !isFinite(amt)) return;
+        sdcCma.picked[m].adjustments.push({ label: lab, amount: Math.round(amt) });
+        renderCmaPicked();
+      });
+    });
+    box.querySelectorAll("[data-adj-del]").forEach(function (a) {
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        var parts = a.getAttribute("data-adj-del").split(":");
+        var list = sdcCma.picked[parts[0]];
+        if (list) list.adjustments.splice(Number(parts[1]), 1);
+        renderCmaPicked();
+      });
+    });
+  }
+  function sdcCmaCreate() {
+    var msg = $("cfMsg");
+    if (!sdcCma || !Object.keys(sdcCma.picked).length) { if (msg) msg.textContent = "Pick at least one comparable first."; return; }
+    var adjustments = {};
+    Object.keys(sdcCma.picked).forEach(function (m) { adjustments[m] = sdcCma.picked[m].adjustments; });
+    var body = { subject: sdcCma.subject, compMls: Object.keys(sdcCma.picked), adjustments: adjustments, clientName: $("cfClient").value, notes: $("cfNotes").value };
+    api(API_URL, "/api/admin/cma", { method: "POST", body: JSON.stringify(body) }).then(function (r) {
+      if (r && r.ok) {
+        if (msg) msg.textContent = "Created: " + sdcMoney(r.report.indicated.low) + " – " + sdcMoney(r.report.indicated.high) + (r.report.sampleData ? " (sample data)" : "");
+        sdcCma = null; $("cmaBox").innerHTML = ""; loadCmaList();
+      } else if (msg) msg.textContent = "Could not create (" + ((r && r.error) || "error") + (r && r.mls ? ": " + r.mls : "") + ")";
+    }).catch(function () { if (msg) msg.textContent = "Could not create."; });
+  }
+  function sdcDlCmaPdf(id) {
+    fetch(API_URL + "/api/admin/cma/" + encodeURIComponent(id) + "/pdf", { headers: { Authorization: "Bearer " + (localStorage.getItem("admin_token") || "") } }).then(function (r) { return r.blob(); }).then(function (b) {
+      var u = URL.createObjectURL(b);
+      var a = document.createElement("a");
+      a.href = u; a.download = "cma-" + id + ".pdf";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+    }).catch(function () {});
+  }
+  // ---------- wiring ----------
+  $("dealBoard").addEventListener("click", function (ev) {
+    var t = ev.target.closest ? ev.target.closest("[data-deal-open]") : null;
+    if (t) { sdcOpenId = t.getAttribute("data-deal-open"); renderDealDetail(); var dd = $("dealDetail"); if (dd && dd.scrollIntoView) dd.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  });
+  $("dealRefresh").addEventListener("click", loadDeals);
+  $("dealNewBtn").addEventListener("click", function () { renderDealForm(null); });
+  $("cmaNewBtn").addEventListener("click", sdcCmaNew);
+  $("cmaList").addEventListener("click", function (ev) {
+    var t = ev.target.closest ? ev.target.closest("[data-cma-pdf],[data-cma-del]") : null;
+    if (!t) return;
+    if (t.getAttribute("data-cma-pdf")) { sdcDlCmaPdf(t.getAttribute("data-cma-pdf")); return; }
+    var id = t.getAttribute("data-cma-del");
+    if (t.getAttribute("data-arm")) { api(API_URL, "/api/admin/cma/" + encodeURIComponent(id), { method: "DELETE" }).then(loadCmaList); return; }
+    t.setAttribute("data-arm", "1"); t.textContent = "Confirm?";
+    setTimeout(function () { t.removeAttribute("data-arm"); t.textContent = "Delete"; }, 5000);
+  });
+  // ---------- Today strip ----------
+  function loadTodayDeals() {
+    var el = $("puTDeals"); if (!el) return;
+    api(API_URL, "/api/admin/deals/deadlines", { fresh: true }).then(function (d) {
+      if (!d || !d.ok) { el.innerHTML = '<div class="empty">Unavailable</div>'; return; }
+      var h = "";
+      (d.overdue || []).forEach(function (r) { h += '<div class="pu-mini" style="color:#b3261e;font-weight:600">⚠ ' + esc(r.date) + " — " + esc(r.label) + " · " + esc(r.address) + "</div>"; });
+      (d.dueToday || []).forEach(function (r) { h += '<div class="pu-mini" style="color:#9a6a00;font-weight:600">⏰ Today — ' + esc(r.label) + " · " + esc(r.address) + "</div>"; });
+      (d.next7 || []).slice(0, 5).forEach(function (r) { h += '<div class="pu-mini">' + esc(r.date) + " — " + esc(r.label) + " · " + esc(r.address) + "</div>"; });
+      if (!h) h = '<div class="empty">No deal deadlines in the next 7 days.</div>';
+      h += '<div style="margin-top:8px"><button class="ghost small" id="puTDealsGo">Open Deals workspace →</button></div>';
+      el.innerHTML = h;
+      $("puTDealsGo").addEventListener("click", function () { go("deals"); });
+    }).catch(function () { el.innerHTML = '<div class="empty">Unavailable</div>'; });
+  }
   // ---------- navigation ----------
   var wsLens = "board";
   function wsOpen(){
     if (wsLens === "calls") { go("calls"); return; }
+    if (wsLens === "deals") { go("deals"); return; }
     if (wsLens === "calendar") { go("viewings"); return; }
     if (wsLens === "leads") { go("leads"); return; }
     go("crm");
@@ -2039,6 +2432,7 @@
   function wsSync(page){
     var cur = wsLens;
     if (page === "calls") cur = "calls";
+    if (page === "deals") cur = "deals";
     else if (page === "viewings") cur = "calendar";
     else if (page === "leads") cur = "leads";
     else if (page === "crm") cur = (crmView === "people") ? "people" : (crmView === "pipeline") ? "board" : (crmView === "matches") ? "matches" : (crmView === "follow") ? "follow" : cur;
@@ -2057,11 +2451,11 @@
     if (page === "workspace") { wsOpen(); return; }
     if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","today","pipeline","rules","reports","brain","mailq","academy","pastclients"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","deals","today","pipeline","rules","reports","brain","mailq","academy","pastclients"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
     if (["site", "pipeline", "maintenance", "rules", "mailq", "pastclients"].indexOf(page) !== -1) navOthersOpen(true);
-    var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls") ? "workspace" : page;
+    var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls" || page === "deals") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
       var on = b.getAttribute("data-nav") === navKey;
       b.classList.toggle("on", on);
@@ -2069,7 +2463,7 @@
     });
     if (typeof pbStopSpeak === "function") pbStopSpeak(); // Pack PM9 (#32): leaving a page stops any read-aloud
     if (page === "overview") loadOverview();
-    if (page === "today") puLoadToday();
+    if (page === "today") { puLoadToday(); loadTodayDeals(); }
     if (page === "brain") pbLoadBrain();
     if (page === "pipeline") puLoadPipeline();
     if (page === "demand") puLoadDemand();
@@ -2087,6 +2481,7 @@
     if (page === "newsletter") loadNewsletter();
     if (page === "maintenance") loadMaint();
     if (page === "calls") { loadCalls(); loadCallsConfig(); }
+    if (page === "deals") { loadDeals(); }
     if (page === "mailq") loadMailq();
     if (page === "pastclients") loadPastClients();
     if (page === "academy") { if (acLoadedOnce) cacheClear(); acLoadedOnce = true; loadAcademy(); }
