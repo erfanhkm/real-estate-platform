@@ -2729,7 +2729,7 @@
         var other = c.direction === "in" ? c.from : c.to;
         var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#E6CB7E">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
         return '<div class="tourrow"><div>' + (c.direction === "in" ? "📥" : "📤") + ' <b>' + who + '</b> <span class="mut">' + esc(other || "") + '</span></div>' +
-          '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' + (c.kind === "voicemail" ? '<span class="chip">📩 Voicemail</span>' : '') +
+          '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + (c.direction === "outbound-portal" ? ' · via portal' : '') + '</span>' + (c.kind === "voicemail" ? '<span class="chip">📩 Voicemail</span>' : '') +
           (c.screened ? '<span class="chip" title="Screened as likely spam — it never rang your cell">🚫 screened' + (c.screenReason ? ' · ' + esc(c.screenReason) : '') + '</span>' : '') +
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
           (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
@@ -2992,7 +2992,7 @@
       }).slice(0, 6);
       if (!mine.length) { box2.innerHTML = ""; return; }
       box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📞 Calls</div>' + mine.map(function(x){
-        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(fmtDate(x.startedAt)) + ' · ' + fmtDur(x.durationSec) + ' · ' + esc(x.status) + (x.kind === "voicemail" ? ' · 📩 voicemail' : '') + (x.recordingUrl ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(x.id) + '">▶ Recording</button>' : '') + '</div>';
+        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(fmtDate(x.startedAt)) + ' · ' + fmtDur(x.durationSec) + ' · ' + esc(x.status) + (x.direction === "outbound-portal" ? ' · via portal' : '') + (x.kind === "voicemail" ? ' · 📩 voicemail' : '') + (x.recordingUrl ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(x.id) + '">▶ Recording</button>' : '') + '</div>';
       }).join("");
     }).catch(function(){});
   }
@@ -3047,6 +3047,66 @@
     var t = e.target.closest && e.target.closest("[data-tl-open]");
     if (t) openTimeline(t.getAttribute("data-tl-open"));
   });
+  /* ==== Pack TelephonyClick2Call BEGIN ==== */
+  // Portal click-to-call (2026-11-12): the person panel's Call
+  // button. First click ARMS inline (no native confirm dialog —
+  // the B2 / Calls-setup posture), second click POSTs ONLY the
+  // person's email to /api/admin/calls/click-call; the worker
+  // reads the number from the stored profile, rings the OWNER's
+  // cell first, and bridges to the client only when he answers.
+  // fillC2c resolves the button's state from the same config
+  // existence probe the Calls setup card uses: while no calls
+  // setup is stored, the button renders disabled with the Calls
+  // banner's own not-connected note.
+  function fillC2c(c){
+    var btn = document.querySelector("[data-c2c]");
+    if (!btn) return;
+    api(API_URL, "/api/admin/config?key=calls", { fresh: true }).then(function(d){
+      if (!crmOpen || crmOpen !== c.email) return;
+      var b2 = document.querySelector("[data-c2c]"); if (!b2) return;
+      var configured = !!(d && d.ok && d.value && d.value.configured);
+      if (!configured) {
+        b2.disabled = true;
+        b2.textContent = "📞 Call (not connected yet)";
+        var box = $("crmC2cBox");
+        if (box) box.innerHTML = '<div class="mut">📞 <b>Business number not connected yet</b> — it activates with the domain in December. Click-to-call turns on with it.</div>';
+      }
+    }).catch(function(){});
+  }
+  document.addEventListener("click", function(e){
+    var t = e.target.closest && e.target.closest("[data-c2c]");
+    if (!t || t.disabled) return;
+    var email = t.getAttribute("data-c2c");
+    if (t.dataset.armed !== "1") {
+      t.dataset.armed = "1";
+      var old = t.textContent;
+      t.textContent = "📞 Tap again — your cell rings first";
+      setTimeout(function(){ if (t.dataset.armed === "1") { t.dataset.armed = ""; t.textContent = old; } }, 6000);
+      return;
+    }
+    t.dataset.armed = "";
+    t.disabled = true;
+    t.textContent = "📞 Calling your cell…";
+    api(API_URL, "/api/admin/calls/click-call", { method: "POST", body: JSON.stringify({ email: email }) }).then(function(r){
+      if (r && r.ok) {
+        toast("Calling your cell now — answer it to be connected");
+        t.textContent = "📞 Ringing your cell…";
+        setTimeout(function(){ t.disabled = false; t.textContent = "📞 Call"; }, 8000);
+        return;
+      }
+      t.disabled = false;
+      t.textContent = "📞 Call";
+      if (r && r.error === "not_configured") toast("Business number not connected yet — it activates with the domain in December", true);
+      else if (r && r.error === "in_flight") toast("A call to this person is already in progress", true);
+      else if (r && r.error === "no_phone") toast("This profile has no usable phone number", true);
+      else toast("Could not place the call" + (r && r.error ? " — " + r.error : ""), true);
+    }).catch(function(){
+      t.disabled = false;
+      t.textContent = "📞 Call";
+      toast("Could not place the call — network error", true);
+    });
+  });
+  /* ==== Pack TelephonyClick2Call END ==== */
   var smsOpenPhone = null, smsCache = [];
   function smsOther(m){ return m.direction === "in" ? m.from : m.to; }
   // Pack TelephonyStronger (2026-11-12): per-message delivery
@@ -3861,7 +3921,7 @@
       if (c) {
         var keep = {};
         ["crmCommSubject", "crmCommText", "crmExtractText", "crmTags", "crmNoteText"].forEach(function(id){ var el = $(id); if (el) keep[id] = el.value; });
-        $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c); fillTimeline(c);
+        $("crmMain").innerHTML = crmProfile(c); fillRadarOpp(c); fillCalls(c); fillSms(c); fillC2c(c); fillTimeline(c);
         Object.keys(keep).forEach(function(id){ var el = $(id); if (el && keep[id]) el.value = keep[id]; });
         return;
       }
@@ -3927,10 +3987,12 @@
         '<button type="button" class="btn-spruce small" data-act="brief" data-email="' + em + '">🤖 AI brief</button>' +
         '<button type="button" class="ghost small" data-act="draft" data-email="' + em + '">✍️ AI follow-up draft</button>' +
         '<button type="button" class="ghost small" data-act="meeting" data-email="' + em + '">📋 Meeting brief</button>' +
+        (c.phone ? '<button type="button" class="btn-spruce small" data-c2c="' + em + '">📞 Call</button>' : '') +
         (c.banned ? '<button type="button" class="ghost small" data-crm-unban="' + em + '">Unban</button>' : '<button type="button" class="ghost small" data-crm-ban="' + em + '">🚫 Ban</button>') +
         (c.isUser ? '<button type="button" class="ghost small" data-crm-del="' + em + '">🗑 Delete account</button>' : '') +
       '</div>' +
       '<div id="crmAiBox" style="margin-top:10px"></div>' +
+      '<div id="crmC2cBox" style="margin-top:8px"></div>' +
       '<div class="card" style="margin-top:12px"><h2>✉️ Message centre</h2>' +
         '<div class="row2" style="margin-top:0"><select id="crmCommKind" style="flex:1 1 200px"><option value="invite">Viewing invitation</option><option value="drop">Price-drop news</option><option value="feedback">Ask for feedback after a viewing</option><option value="checkin">Friendly check-in</option></select><button type="button" class="ghost small" data-act="commgen" data-email="' + em + '">Generate draft</button></div>' +
         '<input type="text" id="crmCommSubject" placeholder="Subject" style="width:100%;margin-top:8px">' +
