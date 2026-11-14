@@ -2729,15 +2729,40 @@
         var other = c.direction === "in" ? c.from : c.to;
         var who = c.matchedEmail ? '<a href="#" data-call-person="' + esc(c.matchedEmail) + '" style="color:#E6CB7E">' + esc(c.matchedName || c.matchedEmail) + '</a>' : esc(other || "—");
         return '<div class="tourrow"><div>' + (c.direction === "in" ? "📥" : "📤") + ' <b>' + who + '</b> <span class="mut">' + esc(other || "") + '</span></div>' +
-          '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' +
+          '<span class="mut">' + esc(fmtDate(c.startedAt)) + ' · ' + fmtDur(c.durationSec) + ' · ' + esc(c.status) + '</span>' + (c.kind === "voicemail" ? '<span class="chip">📩 Voicemail</span>' : '') +
           (c.screened ? '<span class="chip" title="Screened as likely spam — it never rang your cell">🚫 screened' + (c.screenReason ? ' · ' + esc(c.screenReason) : '') + '</span>' : '') +
           (c.recordingUrl ? '<button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Recording</button>' : '') +
           (!c.matchedEmail && !c.leadId ? '<button type="button" class="ghost small" data-call-lead="' + esc(c.id) + '">➕ Create lead</button>' : '') +
           (c.leadId ? '<span class="chip">lead created</span>' : '') + '<button type="button" class="ghost small" data-tl-open="' + esc(String(other || "").replace(/\D/g, "").slice(-10)) + '">🕘 Timeline</button></div>' +
           (c.summaryOneLine ? '<div class="mut" style="padding:2px 10px 2px">📝 ' + esc(c.summaryOneLine) + '</div>' : '') +
-          ((c.hasTranscript || c.transcriptStatus || c.hasSummary) ? '<div style="padding:0 10px 8px"><button type="button" class="ghost small" data-call-expand="' + esc(c.id) + '" aria-expanded="false">▸ Summary &amp; transcript</button><div data-call-detail="' + esc(c.id) + '" hidden></div></div>' : '');
+          ((c.hasTranscript || c.transcriptStatus || c.hasSummary || c.kind === "voicemail") ? '<div style="padding:0 10px 8px"><button type="button" class="ghost small" data-call-expand="' + esc(c.id) + '" aria-expanded="false">▸ Summary &amp; transcript</button><div data-call-detail="' + esc(c.id) + '" hidden></div></div>' : '');
       }).join("") : '<div class="empty">No calls logged yet.</div>';
     }).catch(function(){ $("callList").innerHTML = '<div class="empty">Could not load calls.</div>'; });
+  }
+  // Pack TelephonyVoicemail (2026-11-12): the voicemail panel —
+  // the same collapsible discipline as the call transcripts: the
+  // list row carries only a ONE-LINE preview; the full summary +
+  // verbatim transcript + playback live inside a <details> that
+  // is CLOSED by default and opens on click. Preview and texts
+  // render in the CALLER's language (dir="auto") and the
+  // detected-language tag sits on the panel header.
+  function vmLangName(code){
+    var m = { en: "EN · English", fa: "FA · فارسی", hi: "HI · हिन्दी", zh: "ZH · 中文", es: "ES · Español" };
+    var k = String(code || "").toLowerCase();
+    return m[k] || (k ? k.toUpperCase() : "");
+  }
+  function vmPanelHtml(c){
+    var vm = c.voicemail || {};
+    var prev = String(c.summary || c.transcript || "").split("\n")[0].slice(0, 140);
+    var tag = c.tLang ? '<span class="chip">' + esc(vmLangName(c.tLang)) + (typeof c.tLangConf === "number" ? " · " + Math.round(c.tLangConf * 100) + "%" : "") + '</span>' : "";
+    var state = vm.state && vm.state !== "transcribed" ? ' <span class="mut">· ' + esc(vm.state) + '</span>' : "";
+    var h = '<details class="vmPanel" style="padding:2px 10px 8px"><summary style="cursor:pointer">📩 <b>Voicemail</b> ' + tag + state +
+      (prev ? ' <span class="mut" dir="auto" style="display:inline-block;max-width:480px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom">' + esc(prev) + '</span>' : ' <span class="mut">(no transcript yet)</span>') +
+      '</summary><div style="margin-top:6px">';
+    if (c.summary) h += '<div dir="auto" style="margin-bottom:6px">' + esc(c.summary) + '</div>';
+    if (c.transcript) h += '<div class="mut" dir="auto" style="white-space:pre-wrap">📝 ' + esc(c.transcript) + '</div>';
+    if (c.recordingUrl) h += '<div style="margin-top:6px"><button type="button" class="ghost small" data-call-rec="' + esc(c.id) + '">▶ Play voicemail</button></div>';
+    return h + '</div></details>';
   }
   $("callRefresh").addEventListener("click", function(){ cacheClear(); loadCalls(); });
   // Pack TelephonyStronger (2026-11-12): the webhook health
@@ -2936,6 +2961,12 @@
       if (!d || !d.ok || !d.call) { box.innerHTML = '<div class="mut">Could not load the transcript.</div>'; return; }
       box.setAttribute("data-loaded", "1");
       var c = d.call, h = "";
+      // Pack TelephonyVoicemail (Smarter-first rebase, QC §6d): a
+      // voicemail's detail payload carries the VM fields, and its
+      // section renders the language-tagged voicemail panel — the
+      // same vmPanelHtml the pack shipped — instead of the
+      // answered-call summary layout.
+      if (c.kind === "voicemail") { box.innerHTML = vmPanelHtml(c); return; }
       var sm = c.callSummary;
       if (sm) {
         if (sm.oneLine) h += '<div style="margin:4px 0"><b>' + esc(sm.oneLine) + '</b></div>';
@@ -2961,7 +2992,7 @@
       }).slice(0, 6);
       if (!mine.length) { box2.innerHTML = ""; return; }
       box2.innerHTML = '<div class="mut" style="margin-bottom:2px">📞 Calls</div>' + mine.map(function(x){
-        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(fmtDate(x.startedAt)) + ' · ' + fmtDur(x.durationSec) + ' · ' + esc(x.status) + (x.recordingUrl ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(x.id) + '">▶ Recording</button>' : '') + '</div>';
+        return '<div class="kv">' + (x.direction === "in" ? "📥" : "📤") + ' ' + esc(fmtDate(x.startedAt)) + ' · ' + fmtDur(x.durationSec) + ' · ' + esc(x.status) + (x.kind === "voicemail" ? ' · 📩 voicemail' : '') + (x.recordingUrl ? ' · <button type="button" class="ghost small" data-call-rec="' + esc(x.id) + '">▶ Recording</button>' : '') + '</div>';
       }).join("");
     }).catch(function(){});
   }
