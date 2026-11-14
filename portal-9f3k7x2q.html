@@ -2779,6 +2779,17 @@
   // renders a stored value. The Auth Token and ingest secret inputs
   // are cleared the moment the form submits (the B2 card posture)
   // and the local copies are dropped again when the request settles.
+  // Pack CallsIngestSecretSolo (2026-11-14): the Ingest secret is
+  // independently saveable — with every telephony field blank, Save
+  // posts only {secret}; the cfg:calls merge (CallsConfigPreserve)
+  // stores it over the existing setup and leaves every sibling
+  // field untouched, so the EH Receptionist bridge can be armed
+  // without force-filling Twilio values that belong to the
+  // platform's own later activation (three-pools rule). Telephony
+  // fields still save all-or-nothing. The status line is refined
+  // from GET /api/admin/calls (lone 'configured' / 'hasSecret'
+  // booleans) so a secret-only setup never claims the business
+  // number is connected.
   function loadCallsConfig(){
     var box = $("callCfgBody"); if (!box) return;
     api(API_URL, "/api/admin/config?key=calls", { fresh: true }).then(function(d){
@@ -2789,7 +2800,7 @@
   function renderCallsConfig(configured){
     var box = $("callCfgBody"); if (!box) return;
     var h = '<div class="pu-mini">Calls setup: ' + (configured ? "✓ stored" : "✗ not stored") + "</div>";
-    if (configured) h += '<div class="ok" style="margin-top:8px">Configured ✓ — the business number is connected and calls/texts log here.</div>';
+    if (configured) h += '<div class="ok" id="callCfgStateLine" style="margin-top:8px">Stored ✓ on the worker.</div>';
     h += '<form id="callCfgForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">' +
       '<label style="display:flex;flex-direction:column;gap:4px;min-width:140px"><span class="mut">Provider</span><select id="callCfgProvider"><option value="twilio" selected>Twilio</option></select></label>' +
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px"><span class="mut">Business number (Twilio)</span><input type="text" id="callCfgNumber" autocomplete="off" spellcheck="false" placeholder="+1…"></label>' +
@@ -2799,7 +2810,7 @@
       '<label style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:220px"><span class="mut">Ingest secret</span><input type="password" id="callCfgSecret" autocomplete="off" spellcheck="false" placeholder="Any random word of your own"></label>' +
       '<label style="display:flex;flex-direction:row;gap:6px;align-items:center;min-width:220px"><input type="checkbox" id="callCfgTranscribe"> <span class="mut">Transcribe recorded calls + AI summary</span></label>' +
       '<button type="submit" id="callCfgSave">' + (configured ? "Save / replace calls setup" : "Save calls setup") + "</button></form>" +
-      '<div class="hint">One save stores the whole setup and replaces any previous one — including the Transcribe tick above: saving with it unticked turns call transcription off. The SID and Auth Token travel only from this page to the worker inside your signed-in session — never through chat — and are never shown again. Leave the ingest secret blank to keep the generic ingest routes off.</div>';
+      '<div class="hint">One save stores the whole setup and replaces any previous one — including the Transcribe tick above: saving with it unticked turns call transcription off. The SID and Auth Token travel only from this page to the worker inside your signed-in session — never through chat — and are never shown again. Leave the ingest secret blank to keep the generic ingest routes off. The Ingest secret can also be saved on its own: fill only that field and press Save — it is stored over the existing setup and every other stored field is left exactly as it is.</div>';
     if (configured) {
       h += '<div style="margin-top:10px"><button type="button" class="ghost small" id="callCfgClear">Clear / reset calls setup</button></div>' +
         '<div class="hint">Reset stores an EMPTY setup: every call/text route goes back to inert and the banner above flips to "not connected yet". The status line above reads the stored record, so it can still show as stored (empty) after a reset — the banner and the routes are the live truth.</div>';
@@ -2817,6 +2828,17 @@
     api(API_URL, "/api/admin/calls?limit=1").then(function(d){
       var t = $("callCfgTranscribe");
       if (t) t.checked = !!(d && d.transcribe === true);
+      // Pack CallsIngestSecretSolo (2026-11-14): refine the status
+      // line from the same response — 'configured' there keys off
+      // the business number and 'hasSecret' off the ingest secret,
+      // so a secret-only setup reads as bridge-armed (not as a
+      // connected number) and a cleared/empty setup reads as empty.
+      var sl = $("callCfgStateLine");
+      if (sl && d && d.ok) {
+        if (d.configured) sl.textContent = "Configured ✓ — the business number is connected and calls/texts log here.";
+        else if (d.hasSecret) sl.textContent = "Ingest secret stored ✓ — the receptionist bridge can post call records here. The business number is not connected yet; telephony stays off until its own setup is saved.";
+        else sl.textContent = "Stored but empty — no business number connected and no ingest secret set.";
+      }
     }).catch(function(){});
     var f = $("callCfgForm");
     if (f) f.addEventListener("submit", function(e){
@@ -2827,6 +2849,23 @@
       var sid = ($("callCfgSid").value || "").trim();
       var tokInp = $("callCfgToken"); var tok = (tokInp.value || "").trim(); tokInp.value = ""; // cleared immediately on submit — never kept client-side
       var secInp = $("callCfgSecret"); var sec = (secInp.value || "").trim(); secInp.value = ""; // same posture
+      // Pack CallsIngestSecretSolo (2026-11-14): secret-only save.
+      // When NO telephony field is filled, Save stores just the
+      // ingest secret: the post is exactly {secret} and the worker
+      // merge for cfg:calls preserves every other stored field
+      // (number/SID/token, whatsapp registry, allow/block lists,
+      // guardian/transcribe/voicemail flags). The Transcribe tick
+      // is NOT posted on this path, so it cannot flip either way.
+      if (!num && !fwd && !sid && !tok) {
+        if (!sec) { toast("Nothing to save — fill in the calls setup, or just the Ingest secret to save it on its own", true); return; }
+        var sbtn = $("callCfgSave"); if (sbtn) { sbtn.disabled = true; sbtn.textContent = "Saving…"; }
+        api(API_URL, "/api/admin/config", { method: "POST", body: JSON.stringify({ key: "calls", value: { secret: sec } }) }).then(function(r){
+          sec = "";
+          if (r && r.ok) { toast("Ingest secret saved ✓"); loadCallsConfig(); loadCalls(); return; }
+          toast("Could not save the ingest secret" + (r && r.error ? " — " + r.error : ""), true); loadCallsConfig();
+        }).catch(function(){ sec = ""; toast("Could not save the ingest secret — network error", true); loadCallsConfig(); });
+        return;
+      }
       if (!num || !fwd || !sid || !tok) { toast("Fill in the business number, forward-to number, Account SID and Auth Token first", true); return; }
       var btn = $("callCfgSave"); if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
       var value = { provider: prov, number: num, forwardTo: fwd, secret: sec, twilioAccountSid: sid, twilioAuthToken: tok };
