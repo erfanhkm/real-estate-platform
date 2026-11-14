@@ -4883,7 +4883,9 @@
     api(API_URL, "/api/admin/usage-split").then(function (d) {
       var b2 = $("mtUsageSplit"); if (!b2) return;
       if (!d || !d.ok || !d.site || !d.academy) { b2.innerHTML = '<div class="card" style="margin-bottom:12px"><h2>Usage</h2><div class="empty">Usage split unavailable right now.</div></div>'; return; }
-      b2.innerHTML = [d.site, d.academy].map(function (sec) {
+      var wdLine = "";
+      if (d.watchdog) wdLine = '<div class="card" style="margin-bottom:12px"><div class="mut">Automatic usage watchdog: <b>ON</b> · last check ' + (d.watchdog.lastCheckAt ? puVanTs(d.watchdog.lastCheckAt) : "—") + ' · alerts this period: <b>' + Number(d.watchdog.alertsThisPeriod || 0) + "</b></div></div>";
+      b2.innerHTML = wdLine + [d.site, d.academy].map(function (sec) {
         return '<div class="card" style="margin-bottom:12px"><h2>' + esc(sec.label) + "</h2>" + (sec.metrics || []).map(puUsageRow).join("") + "</div>";
       }).join("");
     }).catch(function () { var b3 = $("mtUsageSplit"); if (b3) b3.innerHTML = '<div class="card" style="margin-bottom:12px"><h2>Usage</h2><div class="empty">Usage split unavailable right now.</div></div>'; });
