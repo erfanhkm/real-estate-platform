@@ -11,6 +11,13 @@
       var heat = { condo: 75, townhouse: 120, house: 240 }[l.type] || 100;
       return { mort: mort, strata: strata, tax: tax, heat: heat, total: mort + strata + tax + heat };
     }
+    function descTeaser(s){ // FIX-C1 #9 (Campaign 1): card teasers end at a word boundary with an ellipsis \u2014 the raw CSS line-clamp cut them mid-word; the detail modal always shows the full text
+      s = String(s || "");
+      if (s.length <= 110) return s;
+      var cut = s.slice(0, 110), sp = cut.lastIndexOf(" ");
+      if (sp > 60) cut = cut.slice(0, sp);
+      return cut + "\u2026";
+    }
     function cardHTML(l, why){
       var t = T();
       var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
@@ -35,8 +42,8 @@
       }
       return '<article class="card"><div class="ph"><img src="'+esc(l.photo)+'" alt="'+esc(t["type_"+l.type] || l.type)+" — "+esc(l.street)+", "+esc(l.city)+'" loading="lazy" />' +
         '<span class="badge'+(statusKey(l)==="active"?"":" "+statusKey(l))+'">'+(l.pt==="presale" ? "🏗️ "+esc(t.presale) : esc(t[statusKey(l)]))+'</span><button type="button" class="save-btn" data-save="'+esc(l.mls)+'" aria-pressed="false" aria-label="Save this home">♡</button></div>' +
-        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' <span style="color:#6e685b">'+esc(t.est_mo)+'</span></div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
-        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(l.desc[lang]||l.desc.en)+"</p>"+whyHTML +
+        '<div class="body"><div class="price">'+fmt(l.price)+'</div><div class="mo" style="color:#96762f;font-size:14px;margin-top:1px">≈ '+fmt(Math.round(monthlyCost(l).total))+' '+esc(t.est_mo)+'</div><div class="addr">'+esc(l.street)+'</div><div class="city">'+esc(t.cities[l.city] || l.city)+", BC · "+esc(l.postal)+"</div>" +
+        '<div class="specs">'+specs+'</div>'+preHTML+'<p class="desc">'+esc(descTeaser(l.desc[lang]||l.desc.en))+"</p>"+whyHTML +
         '<div class="foot"><span class="mls">MLS® '+esc(l.mls)+" · "+esc(domOf(l))+" "+t.dom+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-line" style="padding:8px 15px;font-size:14.5px" data-open-listing="'+esc(l.mls)+'">'+esc(t.view)+"</button>"+cmpBtn+"</span></div></div></article>";
     }
     function filteredListings(){
@@ -752,7 +759,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!welcomeEls.length) welcomeEls = postMsg("bot", esc(T().as_welcome));
       else welcomeEls.forEach(function(el){ el.innerHTML = esc(T().as_welcome); });
       var t = T();
-      if ($("aiFab")) $("aiFab").setAttribute("aria-label", "Ask AI"); /* fixed micro-label — literal in all languages, matches the pill text */
+      if ($("aiFab")) { $("aiFab").setAttribute("aria-label", t.ai_fab || "Ask AI"); var fabLbl = $("aiFab").querySelector("span"); if (fabLbl) fabLbl.textContent = (t.ai_fab || "Ask AI").toUpperCase(); } /* FIX-C1 #8: the pill label is localised (ai_fab) — it stayed English in every language */
       if ($("aiClose")) $("aiClose").setAttribute("aria-label", t.ai_close);
     }
     /* --- live AI brain: the Gemini worker (Google Search grounding) answers
@@ -887,24 +894,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       else window.location.href = "index.html#newsletter";
       setTimeout(function(){ var f = $("nlFirst"); if (f && window.matchMedia && window.matchMedia("(pointer:fine)").matches) f.focus({preventScroll: true}); }, 650);
     }
-    function maybeNudge(text){
-      if (nlNudged) return;
-      var marketish = webIntent(text);
-      if (!marketish){
-        var m = text.toLowerCase();
-        for (var i = 0; i < WEB_MARKET.length; i++){ if (m.indexOf(WEB_MARKET[i]) !== -1){ marketish = true; break; } }
-      }
-      if (!marketish) return;
-      nlNudged = true;
-      var pitch = T().ai_nl_pitch, btn = T().ai_nl_btn;
-      if (!pitch || !btn) return;
-      var els = postMsg("bot", esc(pitch) + "<br><button type=\"button\" class=\"chat-cta\">" + esc(btn) + "</button>");
-      els.forEach(function(el){
-        var b = el.querySelector(".chat-cta");
-        if (b) b.addEventListener("click", gotoNewsletter);
-      });
-      pushHistory("assistant", pitch);
-    }
+    /* FIX-C1 #13 (Campaign 1): the chat's unsolicited newsletter-promotion nudge was removed — the assistant answers the visitor's question and adds nothing else. */
     function askChat(input){
       var text = input.value.trim().slice(0, 1000);
       if (!text) return;
@@ -918,7 +908,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (local){
         postMsg("bot", local);
         pushHistory("assistant", plainOf(local));
-        maybeNudge(text);
+        
         return;
       }
       var social = socialKind(text);
@@ -944,7 +934,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (res){
           postMsg("bot", res.html);
           pushHistory("assistant", res.raw);
-          maybeNudge(text);
+          
         } else {
           /* Live brain unreachable or out of free quota: still answer from
              this site's own knowledge base instead of dead-ending. */

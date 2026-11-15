@@ -640,7 +640,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!welcomeEls.length) welcomeEls = postMsg("bot", esc(T().as_welcome));
       else welcomeEls.forEach(function(el){ el.innerHTML = esc(T().as_welcome); });
       var t = T();
-      if ($("aiFab")) $("aiFab").setAttribute("aria-label", "Ask AI"); /* fixed micro-label — literal in all languages, matches the pill text */
+      if ($("aiFab")) { $("aiFab").setAttribute("aria-label", t.ai_fab || "Ask AI"); var fabLbl = $("aiFab").querySelector("span"); if (fabLbl) fabLbl.textContent = (t.ai_fab || "Ask AI").toUpperCase(); } /* FIX-C1 #8: the pill label is localised (ai_fab) — it stayed English in every language */
       if ($("aiClose")) $("aiClose").setAttribute("aria-label", t.ai_close);
     }
     /* --- live AI brain: the Gemini worker (Google Search grounding) answers
@@ -775,24 +775,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       else window.location.href = "index.html#newsletter";
       setTimeout(function(){ var f = $("nlFirst"); if (f && window.matchMedia && window.matchMedia("(pointer:fine)").matches) f.focus({preventScroll: true}); }, 650);
     }
-    function maybeNudge(text){
-      if (nlNudged) return;
-      var marketish = webIntent(text);
-      if (!marketish){
-        var m = text.toLowerCase();
-        for (var i = 0; i < WEB_MARKET.length; i++){ if (m.indexOf(WEB_MARKET[i]) !== -1){ marketish = true; break; } }
-      }
-      if (!marketish) return;
-      nlNudged = true;
-      var pitch = T().ai_nl_pitch, btn = T().ai_nl_btn;
-      if (!pitch || !btn) return;
-      var els = postMsg("bot", esc(pitch) + "<br><button type=\"button\" class=\"chat-cta\">" + esc(btn) + "</button>");
-      els.forEach(function(el){
-        var b = el.querySelector(".chat-cta");
-        if (b) b.addEventListener("click", gotoNewsletter);
-      });
-      pushHistory("assistant", pitch);
-    }
+    /* FIX-C1 #13 (Campaign 1): the chat's unsolicited newsletter-promotion nudge was removed — the assistant answers the visitor's question and adds nothing else. */
     function askChat(input){
       var text = input.value.trim().slice(0, 1000);
       if (!text) return;
@@ -806,7 +789,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (local){
         postMsg("bot", local);
         pushHistory("assistant", plainOf(local));
-        maybeNudge(text);
+        
         return;
       }
       var social = socialKind(text);
@@ -832,7 +815,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (res){
           postMsg("bot", res.html);
           pushHistory("assistant", res.raw);
-          maybeNudge(text);
+          
         } else {
           /* Live brain unreachable or out of free quota: still answer from
              this site's own knowledge base instead of dead-ending. */

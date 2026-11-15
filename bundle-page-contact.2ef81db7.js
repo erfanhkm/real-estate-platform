@@ -48,43 +48,66 @@
       var btn = $("lSubmitBtn"), btnLabel = btn.textContent;
       btn.disabled = true; btn.textContent = t.l_sending;
       var payload = {
-        name: name, email: email, phone: phone || "—",
-        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "—", budget: t[budget],
-        message: msg || "—", preferred_reply_language: langNames[plang], page_language: lang,
-        _subject: "New lead — EH REALTY website",
+        name: name, email: email, phone: phone || "\u2014",
+        intent: t["intent_"+intent], city: city ? (t.cities[city] || city) : "\u2014", budget: t[budget],
+        message: msg || "\u2014", preferred_reply_language: langNames[plang], page_language: lang,
+        _subject: "New lead \u2014 EH REALTY website",
         _template: "table", _captcha: "false",
         _honey: $("lHoney").value
       };
-      /* also save to the private advisor portal (fire-and-forget; never blocks the form) */
-      var leadCtl = (window.AbortController ? new AbortController() : null), leadTimer = null;
-      if (leadCtl) leadTimer = setTimeout(function(){ try { leadCtl.abort(); } catch(e){} }, 15000);
-      try {
-        fetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value}),
-          signal: leadCtl ? leadCtl.signal : undefined
-        }).catch(function(){}).then(function(){ if (leadTimer) clearTimeout(leadTimer); });
-      } catch(e){}
-      var fsCtl = (window.AbortController ? new AbortController() : null), fsTimer = null;
-      if (fsCtl) fsTimer = setTimeout(function(){ try { fsCtl.abort(); } catch(e){} }, 15000);
-      fetch("https://formsubmit.co/ajax/" + EMAIL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify(payload),
-        signal: fsCtl ? fsCtl.signal : undefined
-      }).then(function(res){
-        if (!res.ok) throw new Error("FormSubmit send failed");
-        return res.json();
-      }).then(function(data){
-        if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
-        showToast(t.l_success);
-      }).catch(function(){
-        mailtoFallback();
-      }).then(function(){
-        if (fsTimer) clearTimeout(fsTimer);
+      /* FIX-C1 #1 (Campaign 1 + portal sweep 2026-11-15): the advisor API
+         is the PRIMARY delivery path and its result decides what the
+         visitor is told. The sweep proved the old flow DID capture the
+         lead server-side while the visitor was shown a failure: the API
+         call was fire-and-forget and the visible outcome was gated on
+         the secondary FormSubmit leg. Now: API ok -> confirmation; API
+         captcha error -> a distinct retry message (the form contents are
+         kept and the widget resets so the visitor can re-verify); any
+         other API failure -> one FormSubmit attempt, then the honest
+         mailto fallback. A per-fill submitId makes retries safe: the
+         worker dedupes a repeated submitId instead of storing a
+         second lead for the same submission. */
+      if (!window.__leadSubmitId) window.__leadSubmitId = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      var submitId = window.__leadSubmitId, finished = false;
+      function finish(ok){
+        if (finished) return; finished = true;
+        if (ok) window.__leadSubmitId = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
         tsResetIn("#leadForm");
         btn.disabled = false; btn.textContent = btnLabel;
+      }
+      function timedFetch(url, opts){
+        var ctl = (window.AbortController ? new AbortController() : null), timer = null;
+        var o = {}; for (var k in opts) o[k] = opts[k];
+        if (ctl) { o.signal = ctl.signal; timer = setTimeout(function(){ try { ctl.abort(); } catch(e){} }, 15000); }
+        return fetch(url, o).then(function(r){ if (timer) clearTimeout(timer); return r; }, function(err){ if (timer) clearTimeout(timer); throw err; });
+      }
+      function tryFormSubmit(){
+        timedFetch("https://formsubmit.co/ajax/" + EMAIL, {
+          method: "POST",
+          headers: {"Content-Type": "application/json", "Accept": "application/json"},
+          body: JSON.stringify(payload)
+        }).then(function(res){
+          if (!res.ok) throw new Error("FormSubmit send failed");
+          return res.json();
+        }).then(function(data){
+          if (data && String(data.success) === "false") throw new Error("FormSubmit reported failure");
+          showToast(t.l_success); finish(true);
+        }).catch(function(){
+          mailtoFallback(); finish(false);
+        });
+      }
+      timedFetch("https://advisor-api.erfanbillion.workers.dev/api/lead", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name: name, intent: intent, city: city, budget: budget, email: email, phone: phone, message: msg, source: "site-form", lang: plang || lang, turnstileToken: leadTsToken(), hp: $("lHoney").value, submitId: submitId})
+      }).then(function(res){
+        return res.json().catch(function(){ return {}; });
+      }).then(function(data){
+        if (data && data.ok) { showToast(t.l_success); finish(true); return; }
+        if (data && data.error === "captcha") { showToast(t.l_captcha || t.l_fallback); finish(false); return; }
+        tryFormSubmit();
+      }).catch(function(){
+        tryFormSubmit();
       });
     });
     /* ---------- shared numeric input helper (from the buy-vs-rent module) ---------- */
@@ -729,7 +752,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!welcomeEls.length) welcomeEls = postMsg("bot", esc(T().as_welcome));
       else welcomeEls.forEach(function(el){ el.innerHTML = esc(T().as_welcome); });
       var t = T();
-      if ($("aiFab")) $("aiFab").setAttribute("aria-label", "Ask AI"); /* fixed micro-label — literal in all languages, matches the pill text */
+      if ($("aiFab")) { $("aiFab").setAttribute("aria-label", t.ai_fab || "Ask AI"); var fabLbl = $("aiFab").querySelector("span"); if (fabLbl) fabLbl.textContent = (t.ai_fab || "Ask AI").toUpperCase(); } /* FIX-C1 #8: the pill label is localised (ai_fab) — it stayed English in every language */
       if ($("aiClose")) $("aiClose").setAttribute("aria-label", t.ai_close);
     }
     /* --- live AI brain: the Gemini worker (Google Search grounding) answers
@@ -864,24 +887,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       else window.location.href = "index.html#newsletter";
       setTimeout(function(){ var f = $("nlFirst"); if (f && window.matchMedia && window.matchMedia("(pointer:fine)").matches) f.focus({preventScroll: true}); }, 650);
     }
-    function maybeNudge(text){
-      if (nlNudged) return;
-      var marketish = webIntent(text);
-      if (!marketish){
-        var m = text.toLowerCase();
-        for (var i = 0; i < WEB_MARKET.length; i++){ if (m.indexOf(WEB_MARKET[i]) !== -1){ marketish = true; break; } }
-      }
-      if (!marketish) return;
-      nlNudged = true;
-      var pitch = T().ai_nl_pitch, btn = T().ai_nl_btn;
-      if (!pitch || !btn) return;
-      var els = postMsg("bot", esc(pitch) + "<br><button type=\"button\" class=\"chat-cta\">" + esc(btn) + "</button>");
-      els.forEach(function(el){
-        var b = el.querySelector(".chat-cta");
-        if (b) b.addEventListener("click", gotoNewsletter);
-      });
-      pushHistory("assistant", pitch);
-    }
+    /* FIX-C1 #13 (Campaign 1): the chat's unsolicited newsletter-promotion nudge was removed — the assistant answers the visitor's question and adds nothing else. */
     function askChat(input){
       var text = input.value.trim().slice(0, 1000);
       if (!text) return;
@@ -895,7 +901,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (local){
         postMsg("bot", local);
         pushHistory("assistant", plainOf(local));
-        maybeNudge(text);
+        
         return;
       }
       var social = socialKind(text);
@@ -921,7 +927,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (res){
           postMsg("bot", res.html);
           pushHistory("assistant", res.raw);
-          maybeNudge(text);
+          
         } else {
           /* Live brain unreachable or out of free quota: still answer from
              this site's own knowledge base instead of dead-ending. */
