@@ -218,6 +218,7 @@
       <button class="navbtn sub" data-nav="briefings"><span class="ic">🌅</span>Briefings</button>
       <button class="navbtn sub" data-nav="qa"><span class="ic">🧪</span>QA</button>
       <button class="navbtn sub" data-nav="intel"><span class="ic">🔮</span>Intelligence</button>
+      <button class="navbtn sub" data-nav="its"><span class="ic">🛠️</span>IT Support</button>
     </div>
     <div class="sp"></div>
     <a class="navbtn" href="https://ehrealtybc.com/" target="_blank" rel="noopener" style="text-decoration:none"><span class="ic">🌐</span>View website</a>
@@ -1098,6 +1099,88 @@
       </div>
       <div class="card" style="margin-top:12px"><h2>🌙 Dormant modules — Seller-Intent &amp; Time/ROI</h2>
         <div id="intelDormant"><div class="empty">Loading…</div></div>
+      </div>
+    </section>
+
+    <!-- IT SUPPORT (Pack EB-8: owner-only IT Support — Brain-pool model calls only via ebModelCall, runbook-grounded diagnosis with citations, read-only probe toolbox, allow-listed fixes behind dry-run → Critic → Digital-Twin shadow → owner approval → execute → re-probe verify; Level-3 Operator hands fail-closed behind cfg:itops; Security Officer harden/observe only; chaos + restore drills against the twin; golden state; silence alarms; escalation ladder) -->
+    <section id="page-its" hidden>
+      <div class="pagehead">
+        <div><h1>🛠️ IT Support</h1><div class="mut">Executive Brain IT support for the <b>site</b>, <b>Academy</b> and <b>receptionist</b> surfaces. Diagnosis is grounded in live probes and the runbook — never guesses. Fixes are allow-listed only: dry-run preview → Critic cross-check → Digital-Twin shadow test → your approval → execute → automatic re-probe verification, all ledger-logged. Level 3 infra hands stay OFF until cfg:itops is provisioned. The security module can only harden or observe — it can never loosen anything. Model calls run on the Brain pools only, under EB-8's own daily cap.</div></div>
+        <button class="ghost small" id="itsRefresh">Refresh</button>
+      </div>
+      <div class="card"><h2>Status</h2>
+        <div id="itsStatus"><div class="empty">Loading…</div></div>
+        <div id="itsHealth" style="margin-top:8px"></div>
+        <div id="itsWeekly" style="margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>Chat</h2>
+        <div class="mut" style="margin-bottom:8px">Ask a status question or describe a symptom. The chat states which surface (site / academy / receptionist) a diagnosis concerns. It refuses non-IT requests (lead data, marketing, key edits) — those live in their own portal sections.</div>
+        <div id="itsThread" style="max-height:440px;overflow-y:auto"></div>
+        <div class="row2" style="margin-top:8px">
+          <input id="itsInput" placeholder="Describe the symptom, or ask e.g. “why is the Brain parked?”" style="flex:1">
+          <button class="small" id="itsSend">Send</button>
+        </div>
+        <div id="itsMsg" class="mut" style="margin-top:6px"></div>
+        <div id="itsProposal" style="margin-top:8px"></div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>Proactive cards &amp; incidents</h2>
+        <div class="mut" style="margin-bottom:8px">Pre-diagnosed cards from the hourly tick, silence alarms, drills, integrity sweeps and the security lane. Acknowledging a card stops its escalation ladder.</div>
+        <div id="itsCards"><div class="empty">Loading…</div></div>
+        <h2 style="margin-top:16px">Recent incidents (incident memory)</h2>
+        <div id="itsIncidents"><div class="empty">Loading…</div></div>
+        <h2 style="margin-top:16px">Recent fixes</h2>
+        <div id="itsFixes"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>🛡️ Security officer</h2>
+        <div class="mut" style="margin-bottom:8px">Harden / observe only. Secrets hygiene shows presence + age — never values. Abuse IP blocks need your approval, carry an automatic expiry, and are reversible in one tap (early removal is itself an approval-gated proposal).</div>
+        <div id="itsSecurity"><div class="empty">Loading…</div></div>
+        <div class="row2" style="margin-top:8px">
+          <button class="small" id="itsSecAuditBtn">Run security audit</button>
+          <button class="small" id="itsSecSweepBtn">Sweep expired blocks</button>
+          <button class="small" id="itsMuteBtn">Mute critical pushes</button>
+          <span id="itsSecMsg" class="mut"></span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>Golden state &amp; drills</h2>
+        <div class="mut" style="margin-bottom:8px">Golden snapshots store config/state SHAPE only — never secret values. Restore is an approval-gated fix with post-restore verification. Chaos and restore drills run against the Digital Twin / shadow only — never destructively on production.</div>
+        <div id="itsGolden"><div class="empty">Loading…</div></div>
+        <div class="row2" style="margin-top:8px">
+          <button class="small" id="itsGoldenCapBtn">Capture golden state</button>
+          <button class="small" id="itsGoldenRestoreBtn">Propose restore to golden</button>
+          <span id="itsGoldenMsg" class="mut"></span>
+        </div>
+        <div id="itsDrills" style="margin-top:10px"></div>
+        <div class="row2" style="margin-top:8px">
+          <button class="small" data-itsrun="drills/run">Chaos drills</button>
+          <button class="small" data-itsrun="restore/run">Restore drill</button>
+          <button class="small" data-itsrun="redteam/run">Red-team round</button>
+          <button class="small" data-itsrun="integrity/run">Integrity sweep</button>
+          <button class="small" data-itsrun="silence/run">Silence check</button>
+          <button class="small" data-itsrun="extstatus/run">Upstream status</button>
+          <button class="small" data-itsrun="selftest/run">Self-tests</button>
+          <button class="small" data-itsrun="proactive/run">Proactive tick</button>
+          <button class="small" data-itsrun="weekly/run">Weekly report</button>
+          <button class="small" data-itsrun="escalation/run">Escalation tick</button>
+        </div>
+        <div id="itsRunMsg" class="mut" style="margin-top:6px"></div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>Graduated autonomy</h2>
+        <div class="mut" style="margin-bottom:8px">A fix type becomes auto-eligible only after 5 owner-approved verified successes AND you switch its toggle on. All toggles ship OFF. Level 3 fixes and golden restore can never be automated.</div>
+        <div id="itsAuto"><div class="empty">Loading…</div></div>
+        <div id="itsAutoMsg" class="mut" style="margin-top:6px"></div>
+      </div>
+      <div class="card" style="margin-top:12px"><h2>Teach &amp; escalate</h2>
+        <div class="mut" style="margin-bottom:8px">Teach adds your note to the runbook knowledge the chat retrieves from. Escalation prepares a structured incident pack for Muse (symptoms, probes + results, suspected layer, timeline) — stored as a held record for you to relay.</div>
+        <div class="row2" style="margin-top:0">
+          <input id="itsTeachText" placeholder="Teach a fact or procedure…" style="flex:1">
+          <button class="small" id="itsTeachBtn">Teach</button>
+        </div>
+        <div class="row2" style="margin-top:8px">
+          <input id="itsEscText" placeholder="Symptom to escalate…" style="flex:1">
+          <button class="small" id="itsEscBtn">Prepare incident pack</button>
+        </div>
+        <div id="itsTeachMsg" class="mut" style="margin-top:6px"></div>
+        <div id="itsEscalations" style="margin-top:8px"></div>
       </div>
     </section>
 
@@ -2668,10 +2751,10 @@
     if (page === "workspace") { wsOpen(); return; }
     if (page === "demand") page = "radar"; // phase 2: the demand map lives inside Market Radar now
     currentPage = page;
-    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","deals","today","pipeline","rules","reports","brain","mailq","academy","pastclients","systems","protection","control","briefings","qa","intel"].forEach(function(p){
+    ["overview","leads","crm","search","tours","listings","site","radar","traffic","viewings","newsletter","maintenance","calls","deals","today","pipeline","rules","reports","brain","mailq","academy","pastclients","systems","protection","control","briefings","qa","intel","its"].forEach(function(p){
       $("page-" + p).hidden = p !== page;
     });
-    if (["site", "pipeline", "maintenance", "rules", "mailq", "pastclients", "systems", "protection", "control", "briefings", "qa", "intel"].indexOf(page) !== -1) navOthersOpen(true);
+    if (["site", "pipeline", "maintenance", "rules", "mailq", "pastclients", "systems", "protection", "control", "briefings", "qa", "intel", "its"].indexOf(page) !== -1) navOthersOpen(true);
     var navKey = (page === "leads" || page === "crm" || page === "viewings" || page === "calls" || page === "deals") ? "workspace" : page;
     Array.prototype.forEach.call(document.querySelectorAll(".navbtn[data-nav]"), function(b){
       var on = b.getAttribute("data-nav") === navKey;
@@ -2703,6 +2786,7 @@
     if (page === "briefings") loadBriefings();
     if (page === "qa") loadQA();
     if (page === "intel") loadIntel();
+    if (page === "its") loadIts();
     if (page === "calls") { loadCalls(); loadCallsConfig(); }
     if (page === "deals") { loadDeals(); }
     if (page === "mailq") loadMailq();
@@ -5542,6 +5626,223 @@
     api(API_URL, "/api/admin/eb/flightsim", { method: "POST", body: JSON.stringify({ callRef: ref }) }).then(function(d){
       $("intelFsOut").innerHTML = '<div class="pu-row" style="display:block"><div>Divergences: <b>' + (d.divergences || []).length + '</b>' + (d.state ? ' · state: ' + esc(d.state) : '') + (d.found === false ? ' · not found' : '') + '</div><div class="pu-mini">' + (d.divergences || []).map(function(x){ return esc(x.kind) + ' — ' + esc(x.detail || ''); }).join('<br>') + esc(d.note || '') + '</div></div>';
     }).catch(function(){ $("intelFsOut").innerHTML = '<div class="empty">Unavailable.</div>'; });
+  });
+
+  // Pack EB-8: IT Support tab. Every call goes to /api/admin/eb/itsupport/*
+  // on the site worker. The tab renders state only — all diagnosis, fix
+  // proposal and execution logic lives server-side behind the EB-8 gates
+  // (shield → scope guard → probes → diagnosis → Critic → shadow → panel
+  // → owner approval → execute → re-probe verify).
+  function itsBadge(ok){ return ok ? '<span style="color:#7fc97f">●</span>' : '<span style="color:#e0655f">●</span>'; }
+  function itsRow(k, v){ return '<div class="pu-row"><span>' + esc(k) + '</span><span>' + v + '</span></div>'; }
+  function itsPost(path, body){
+    return api(API_URL, "/api/admin/eb/itsupport/" + path, { method: "POST", body: JSON.stringify(body || {}) });
+  }
+  function loadIts(){
+    api(API_URL, "/api/admin/eb/itsupport/state", { fresh: true }).then(function(d){
+      var st = $("itsStatus"), he = $("itsHealth"), wk = $("itsWeekly");
+      if (!d || !d.ok) { if (st) st.innerHTML = '<div class="empty">IT Support state unavailable.</div>'; return; }
+      var l3 = d.level3 || {};
+      if (st) st.innerHTML =
+        itsRow("Surface scope", "<b>site</b> · academy + receptionist monitored") +
+        itsRow("EB-8 model calls today", esc(String((d.cap || {}).used != null ? d.cap.used : "?")) + " / " + esc(String((d.cap || {}).max || 40)) + ' <span class="mut">(own cap — separate from EB-4/EB-5)</span>') +
+        itsRow("Level 3 Operator", l3.configured ? "cfg:itops present — Cloudflare " + (l3.cf ? "✓" : "✗") + " · Render " + (l3.render ? "✓" : "✗") + " · GitHub " + (l3.github ? "✓" : "✗") + " · Watchdog " + (l3.watchdog ? "✓" : "✗") : '<span style="color:#e0655f">OFF</span> <span class="mut">— cfg:itops not provisioned; Level 3 actions refuse</span>') +
+        itsRow("Self-tests (today)", d.selftest ? itsBadge(!!d.selftest.ok) + " " + esc(String((d.selftest.journeys || []).filter(function(j){ return j.ok; }).length)) + "/" + esc(String((d.selftest.journeys || []).length)) + " journeys · " + esc(fmtDate(d.selftest.at)) : '<span class="mut">no round yet today</span>');
+      if (he) { var h = d.health; he.innerHTML = h ?
+        '<div style="font-size:13.5px">Health scores — site <b>' + esc(String(h.site)) + '</b> · academy <b>' + esc(String(h.academy)) + '</b> · receptionist <b>' + esc(String(h.receptionist)) + '</b> · overall <b>' + esc(String(h.overall)) + '</b> <span class="mut">' + esc(fmtDate(h.at)) + '</span></div>' +
+        ((h.why && h.why.length) ? '<div class="mut" style="margin-top:4px">' + h.why.map(function(w){ return esc(w); }).join("<br>") + '</div>' : '') :
+        '<div class="mut">No health score stored yet — computed on the hourly tick.</div>'; }
+      if (wk) { var w = d.weekly; wk.innerHTML = w ?
+        '<div style="font-size:13.5px">📋 Weekly IT report (' + esc(w.week || "") + '): incidents <b>' + esc(String((w.incidents || {}).count != null ? w.incidents.count : "?")) + '</b> · fixes proposed <b>' + esc(String((w.fixes || {}).proposed != null ? w.fixes.proposed : "?")) + '</b>, executed <b>' + esc(String((w.fixes || {}).executed != null ? w.fixes.executed : "?")) + '</b>, verified <b>' + esc(String((w.fixes || {}).verified != null ? w.fixes.verified : "?")) + '</b>' + ((w.fixes && w.fixes.avgTtrMin != null) ? ' · avg time-to-resolve ' + esc(String(w.fixes.avgTtrMin)) + ' min' : '') + ((w.openRisks && w.openRisks.length) ? '<div class="mut" style="margin-top:4px">Open risks: ' + w.openRisks.map(function(r){ return esc(r); }).join(" · ") + '</div>' : '') + '</div>' :
+        '<div class="mut">No weekly IT report yet — the first lands with the weekly tick (or run “Weekly report” below).</div>'; }
+      itsRenderCards(d); itsRenderIncidents(d); itsRenderFixes(d); itsRenderSecurity(d); itsRenderGolden(d); itsRenderDrills(d); itsRenderAuto(d); itsRenderEscalations(d);
+    }).catch(function(){ var s = $("itsStatus"); if (s) s.innerHTML = '<div class="empty">Could not load IT Support state.</div>'; });
+  }
+  function itsRenderCards(d){
+    var el = $("itsCards"); if (!el) return;
+    var cards = d.cards || [];
+    el.innerHTML = cards.length ? cards.map(function(c){
+      return '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px">' + itsBadge(c.state === "open") + ' <b>' + esc(c.signal || "card") + '</b> <span class="mut">' + esc(fmtDate(c.at)) + ' · ' + esc(c.state || "") + (c.fixType ? ' · fix: ' + esc(c.fixType) : '') + '</span>' +
+        (c.diagnosis ? '<div style="margin-top:2px">' + esc(c.diagnosis) + '</div>' : '') +
+        (c.state === "open" ? '<div style="margin-top:4px"><button class="small" data-itsack="' + esc(c.id) + '">Acknowledge</button></div>' : '') + '</div>';
+    }).join("") : '<div class="empty">No proactive cards yet.</div>';
+    Array.prototype.forEach.call(el.querySelectorAll("[data-itsack]"), function(b){
+      b.addEventListener("click", function(){
+        itsPost("cards/ack", { cardId: b.getAttribute("data-itsack") }).then(function(){ loadIts(); }).catch(function(){});
+      });
+    });
+  }
+  function itsRenderIncidents(d){
+    var el = $("itsIncidents"); if (!el) return;
+    var rows = d.incidents || [];
+    el.innerHTML = rows.length ? rows.map(function(x){
+      return '<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><b>' + esc(x.scope || "site") + '</b> <span class="mut">' + esc(fmtDate(x.at)) + (x.source ? ' · ' + esc(x.source) : '') + (x.fixType ? ' · fix: ' + esc(x.fixType) : '') + (x.outcome ? ' · ' + esc(x.outcome) : '') + '</span><div>' + esc(x.symptom || "") + '</div></div>';
+    }).join("") : '<div class="empty">No incidents recorded yet.</div>';
+  }
+  function itsRenderFixes(d){
+    var el = $("itsFixes"); if (!el) return;
+    var rows = d.fixes || [];
+    el.innerHTML = rows.length ? rows.map(function(f){
+      return '<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><b>' + esc(f.type || "") + '</b> <span class="mut">' + esc(f.scope || "site") + ' · ' + esc(fmtDate(f.at)) + ' · state: ' + esc(f.state || "") + (f.verified ? ' · ✅ verified' : '') + (f.shadowOk === true ? ' · 🧪 shadow passed' : (f.shadowOk === false ? ' · 🧪 shadow FAILED' : '')) + (f.panel ? ' · 👥 panel convened' : '') + '</span></div>';
+    }).join("") : '<div class="empty">No fixes proposed yet.</div>';
+  }
+  function itsRenderSecurity(d){
+    var el = $("itsSecurity"); if (!el) return;
+    var s = d.security;
+    if (!s) { el.innerHTML = '<div class="empty">Security view unavailable.</div>'; return; }
+    var blocks = s.activeBlocks || [];
+    el.innerHTML =
+      itsRow("Shield-flagged records (2d ledger scan)", '<b>' + esc(String((s.shieldFlags || {}).count || 0)) + '</b>' + (((s.shieldFlags || {}).items || []).length ? '<div class="mut">' + s.shieldFlags.items.map(function(f){ return esc(f.ref || "") + " [" + esc((f.patterns || []).join(", ")) + "]"; }).join("<br>") + '</div>' : '')) +
+      itsRow("Auth / Turnstile / signature signal events (2d)", esc(String(s.authSignalEvents2d || 0)) + ' <span class="mut">of ' + esc(String(s.ledgerEvents2d || 0)) + ' ledger events</span>') +
+      itsRow("Last weekly audit", s.lastAudit ? itsBadge(!!s.lastAudit.ok) + ' ' + esc(fmtDate(s.lastAudit.at)) + ' · open findings: ' + esc(String(s.lastAudit.openFindings || 0)) : '<span class="mut">none yet</span>') +
+      itsRow("Critical pushes", s.criticalPushMuted ? '<span style="color:#e0655f">MUTED by your explicit toggle</span>' : 'armed (critical severity bypasses the general silence switch; only this toggle mutes it)') +
+      '<div style="margin-top:8px"><b style="font-size:13px">Active abuse IP blocks</b>' + (blocks.length ? blocks.map(function(b){
+        return '<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px">' + esc(b.ip || "") + ' <span class="mut">' + esc(b.surface || "site") + ' · expires ' + esc(fmtDate(b.expiresAt)) + '</span> <button class="small" data-itsunblock="' + esc(b.id) + '" data-itsip="' + esc(b.ip || "") + '">Propose early removal</button></div>';
+      }).join("") : '<div class="empty">No active blocks.</div>') + '</div>';
+    var mb = $("itsMuteBtn"); if (mb) mb.textContent = s.criticalPushMuted ? "Unmute critical pushes" : "Mute critical pushes";
+    Array.prototype.forEach.call(el.querySelectorAll("[data-itsunblock]"), function(b){
+      b.addEventListener("click", function(){
+        var msg = $("itsSecMsg"); if (msg) msg.textContent = "Preparing removal proposal…";
+        itsPost("security/unblock-propose", { ip: b.getAttribute("data-itsip") }).then(function(r){
+          if (msg) msg.textContent = (r && r.ok) ? "Removal proposed — review it in the Chat card above (nothing is removed before your approval)." : "Could not propose removal.";
+          loadIts();
+        }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+      });
+    });
+  }
+  function itsRenderGolden(d){
+    var el = $("itsGolden"); if (!el) return;
+    var g = d.golden;
+    if (!g) { el.innerHTML = '<div class="mut">No golden snapshot captured yet.</div>'; return; }
+    var drift = g.drift || { cfg: [], state: [] };
+    el.innerHTML = itsRow("Latest golden snapshot", esc(g.id || "") + ' <span class="mut">' + esc(fmtDate(g.at)) + '</span>') +
+      itsRow("Drift vs golden", '<b>' + esc(String((drift.cfg || []).length + (drift.state || []).length)) + '</b> drifted entr' + (((drift.cfg || []).length + (drift.state || []).length) === 1 ? 'y' : 'ies') + ((drift.state || []).length ? '<div class="mut">' + drift.state.map(function(x){ return esc(x.key || "") + " (" + esc(x.kind || "") + ")"; }).join("<br>") + '</div>' : '') + ((drift.cfg || []).length ? '<div class="mut">config shape drift: ' + drift.cfg.map(function(x){ return esc(x.key || ""); }).join(", ") + ' (shape only — values are never stored)</div>' : ''));
+  }
+  function itsRenderDrills(d){
+    var el = $("itsDrills"); if (!el) return;
+    function line(label, rec, extra){ return itsRow(label, rec ? itsBadge(!!rec.ok) + ' ' + esc(fmtDate(rec.at)) + (extra ? ' <span class="mut">' + esc(extra) + '</span>' : '') : '<span class="mut">not run yet</span>'); }
+    el.innerHTML =
+      line("Chaos drills (twin)", d.drills, d.drills && d.drills.failed && d.drills.failed.length ? "failed: " + d.drills.failed.join(", ") : "") +
+      line("Restore drill (into shadow)", d.restoredrill, d.restoredrill && d.restoredrill.reason ? d.restoredrill.reason : "") +
+      line("Red-team round", d.redteam, d.redteam && d.redteam.failed && d.redteam.failed.length ? "failed: " + d.redteam.failed.join(", ") : "") +
+      line("Integrity sweep", d.integrity, d.integrity && d.integrity.findings ? d.integrity.findings.length + " finding(s)" : "") +
+      line("Runbook replay (monthly)", d.replay, d.replay ? "checked " + d.replay.checked + " · stale " + d.replay.stale : "") +
+      itsRow("Upstream status", d.extstatus ? esc(Object.keys(d.extstatus.providers || {}).map(function(k){ return k + ": " + ((d.extstatus.providers[k] || {}).status || "?"); }).join(" · ") || "polled " + fmtDate(d.extstatus.at)) : '<span class="mut">not polled yet</span>') +
+      itsRow("Silence alarms", d.silence ? ((d.silence.alarms && d.silence.alarms.length) ? '<span style="color:#e0655f">' + d.silence.alarms.map(function(a){ return esc(a.signal || a); }).join(", ") + '</span>' : '<span style="color:#7fc97f">all expected signals present</span>') : '<span class="mut">not checked yet</span>');
+  }
+  function itsRenderAuto(d){
+    var el = $("itsAuto"); if (!el) return;
+    var stats = d.fixstats || {}, auto = d.auto || {}, types = d.fixTypes || [];
+    el.innerHTML = types.map(function(t){
+      var n = (stats[t] && stats[t].approvedVerified) || 0;
+      var never = (t === "restore_golden") || t.indexOf("l3_") === 0;
+      return '<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><b>' + esc(t) + '</b> <span class="mut">verified successes: ' + esc(String(n)) + ' / ' + esc(String(d.autoMinSuccesses || 5)) + (never ? ' · never auto-eligible' : '') + '</span> ' +
+        (never ? '' : '<label style="float:right"><input type="checkbox" data-itsauto="' + esc(t) + '"' + (auto[t] ? ' checked' : '') + (n < (d.autoMinSuccesses || 5) && !auto[t] ? ' disabled' : '') + '> auto</label>') + '</div>';
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll("[data-itsauto]"), function(cb){
+      cb.addEventListener("change", function(){
+        var msg = $("itsAutoMsg");
+        itsPost("auto", { fixType: cb.getAttribute("data-itsauto"), enabled: cb.checked }).then(function(r){
+          if (msg) msg.textContent = (r && r.ok) ? "Saved." : ("Refused: " + esc((r && (r.detail || r.error)) || "unknown"));
+          loadIts();
+        }).catch(function(){ if (msg) msg.textContent = "Request failed."; loadIts(); });
+      });
+    });
+  }
+  function itsRenderEscalations(d){
+    var el = $("itsEscalations"); if (!el) return;
+    var rows = d.escalations || [];
+    el.innerHTML = rows.length ? rows.map(function(x){
+      return '<div style="padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><b>' + esc(x.id || "") + '</b> <span class="mut">' + esc(fmtDate(x.at)) + ' · ' + esc(x.state || "") + (x.suspectedLayer ? ' · layer: ' + esc(x.suspectedLayer) : '') + '</span><div>' + esc(x.symptom || "") + '</div></div>';
+    }).join("") : '';
+  }
+  function itsRenderProposal(p){
+    var el = $("itsProposal"); if (!el) return;
+    if (!p) { el.innerHTML = ""; return; }
+    el.innerHTML = '<div class="card" style="border:1px solid #C9A24B;background:#161513"><h2>Proposed fix — ' + esc(p.type || "") + ' <span class="mut">(surface: ' + esc(p.scope || "site") + ')</span></h2>' +
+      '<div style="font-size:13px;white-space:pre-wrap">' + esc(p.dryRun || "") + '</div>' +
+      (p.shadow ? '<div style="margin-top:6px;font-size:13px">🧪 Digital-Twin shadow test: <b>' + (p.shadow.ok ? "PASSED" : "FAILED") + '</b> — ' + esc(p.shadow.note || "") + '</div>' : '') +
+      (p.critic ? '<div style="margin-top:6px;font-size:13px">' + (p.critic.agree === true ? "Critic cross-check: AGREES" : (p.critic.agree === false ? "⚠️ Critic cross-check: DISAGREES — both views are shown; the decision is yours" : "Critic: " + esc(p.critic.note || "unavailable"))) + (p.critic.note && p.critic.agree !== null ? ' — ' + esc(p.critic.note) : '') + '</div>' : '') +
+      (p.panel && p.panel.judge ? '<div style="margin-top:6px;font-size:13px">👥 Multi-model panel: ' + esc(String((p.panel.views || []).length)) + ' diagnoses reconciled — ' + esc(p.panel.judge.summary || "") + (p.panel.judge.dissent ? '<br>Dissent: ' + esc(p.panel.judge.dissent) : '') + '</div>' : '') +
+      '<div class="row2" style="margin-top:8px"><button class="small" id="itsApproveBtn">Approve &amp; execute</button><button class="small" id="itsRejectBtn">Reject</button><span id="itsFixMsg" class="mut"></span></div></div>';
+    $("itsApproveBtn").addEventListener("click", function(){
+      var msg = $("itsFixMsg"); if (msg) msg.textContent = "Executing + verifying…";
+      itsPost("fix/approve", { fixId: p.id }).then(function(r){
+        if (msg) msg.textContent = (r && r.ok) ? (r.verified ? "Executed and VERIFIED by re-probe." : "Executed — verification: " + esc(r.reason || "see fix record")) : ("Refused: " + esc((r && (r.reason || r.error)) || "unknown"));
+        itsRenderProposal(null); loadIts();
+      }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+    });
+    $("itsRejectBtn").addEventListener("click", function(){
+      itsPost("fix/reject", { fixId: p.id }).then(function(){ itsRenderProposal(null); loadIts(); }).catch(function(){});
+    });
+  }
+  function itsSend(){
+    var inp = $("itsInput"), msg = $("itsMsg");
+    var text = (inp.value || "").trim(); if (!text) return;
+    var th = $("itsThread");
+    if (th) th.innerHTML += '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px"><b>You:</b> ' + esc(text) + '</div>';
+    inp.value = ""; if (msg) msg.textContent = "Probing + thinking…";
+    itsPost("chat", { message: text }).then(function(r){
+      if (msg) msg.textContent = "";
+      if (th && r) th.innerHTML += '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;white-space:pre-wrap"><b>IT:</b> ' + esc(r.reply || r.error || "No reply.") + ((r.probes && r.probes.length) ? '<div class="mut" style="margin-top:3px">probes: ' + r.probes.map(function(p){ return esc(p.probe || p); }).join(", ") + '</div>' : '') + ((r.sources && r.sources.length) ? '<div class="mut">sources: ' + r.sources.map(function(s){ return esc(s.ref || s); }).join(", ") + '</div>' : '') + '</div>';
+      if (th) th.scrollTop = th.scrollHeight;
+      itsRenderProposal(r && r.fixProposal ? r.fixProposal : null);
+      loadIts();
+    }).catch(function(){ if (msg) msg.textContent = "Request failed — please retry."; });
+  }
+  $("itsRefresh").addEventListener("click", function(){ loadIts(); });
+  $("itsSend").addEventListener("click", itsSend);
+  $("itsInput").addEventListener("keydown", function(e){ if (e.key === "Enter") itsSend(); });
+  $("itsSecAuditBtn").addEventListener("click", function(){
+    var msg = $("itsSecMsg"); if (msg) msg.textContent = "Auditing…";
+    itsPost("security/audit", {}).then(function(r){ if (msg) msg.textContent = (r && r.ok) ? "Audit complete." : "Audit failed."; loadIts(); }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  $("itsSecSweepBtn").addEventListener("click", function(){
+    var msg = $("itsSecMsg"); if (msg) msg.textContent = "Sweeping…";
+    itsPost("security/sweep", {}).then(function(r){ if (msg) msg.textContent = (r && r.ok) ? "Sweep complete." : "Sweep failed."; loadIts(); }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  $("itsMuteBtn").addEventListener("click", function(){
+    var msg = $("itsSecMsg");
+    api(API_URL, "/api/admin/eb/itsupport/state", { fresh: true }).then(function(d){
+      var cur = !!(d && d.security && d.security.criticalPushMuted);
+      return itsPost("security/mute", { critical: !cur });
+    }).then(function(r){ if (msg) msg.textContent = (r && r.ok) ? "Saved." : "Failed."; loadIts(); }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  $("itsGoldenCapBtn").addEventListener("click", function(){
+    var msg = $("itsGoldenMsg"); if (msg) msg.textContent = "Capturing…";
+    itsPost("golden/capture", {}).then(function(r){ if (msg) msg.textContent = (r && r.ok) ? "Golden state captured (shape only)." : "Capture failed."; loadIts(); }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  $("itsGoldenRestoreBtn").addEventListener("click", function(){
+    var msg = $("itsGoldenMsg"); if (msg) msg.textContent = "Preparing restore proposal…";
+    itsPost("golden/restore-propose", {}).then(function(r){
+      if (msg) msg.textContent = (r && r.ok) ? "Restore proposed — approve it in the proposal card (Chat section)." : ("Refused: " + esc((r && (r.reason || r.error)) || "no golden snapshot"));
+      if (r && r.fixProposal) itsRenderProposal(r.fixProposal);
+      loadIts();
+    }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-itsrun]"), function(b){
+    b.addEventListener("click", function(){
+      var msg = $("itsRunMsg"); if (msg) msg.textContent = "Running " + b.getAttribute("data-itsrun") + "…";
+      itsPost(b.getAttribute("data-itsrun"), {}).then(function(r){ if (msg) msg.textContent = (r && r.ok !== false) ? "Done." : ("Failed: " + esc((r && (r.reason || r.error)) || "")); loadIts(); }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+    });
+  });
+  $("itsTeachBtn").addEventListener("click", function(){
+    var inp = $("itsTeachText"), msg = $("itsTeachMsg");
+    var note = (inp.value || "").trim(); if (!note) return;
+    itsPost("teach", { note: note }).then(function(r){
+      if (msg) msg.textContent = (r && r.ok) ? "Taught — the note is now runbook knowledge." : "Teach failed.";
+      if (r && r.ok) inp.value = "";
+      loadIts();
+    }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
+  });
+  $("itsEscBtn").addEventListener("click", function(){
+    var inp = $("itsEscText"), msg = $("itsTeachMsg");
+    var symptom = (inp.value || "").trim(); if (!symptom) return;
+    itsPost("escalate", { symptom: symptom }).then(function(r){
+      if (msg) msg.textContent = (r && r.ok) ? "Incident pack prepared: " + esc(r.id || "") + " — held for you to relay." : "Escalation failed.";
+      if (r && r.ok) inp.value = "";
+      loadIts();
+    }).catch(function(){ if (msg) msg.textContent = "Request failed."; });
   });
 
   $("qaRefresh").addEventListener("click", function(){ loadQA(); });
