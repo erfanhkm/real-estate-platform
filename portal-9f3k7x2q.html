@@ -7893,6 +7893,8 @@
     return fetch(API + path, { method: opts.method || "GET", headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) { return r.json(); });
   }
   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/portal-sw.js").catch(function () {}); }
+  /* Fix SB-0 (F-041): teach the service worker this document's path at runtime — the path itself is no longer written into the public portal-sw.js file. */
+  if ("serviceWorker" in navigator) { try { navigator.serviceWorker.ready.then(function (reg) { var w = reg.active || reg.waiting || reg.installing; var msg = { type: "eh-portal-path", path: location.pathname }; if (w) { try { w.postMessage(msg); } catch (e) {} } if (navigator.serviceWorker.controller) { try { navigator.serviceWorker.controller.postMessage(msg); } catch (e) {} } }); } catch (e) {} }
   var chip = document.createElement("div");
   chip.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:400;background:#201D18;border:1px solid #C9A24B;color:#F5F1E8;border-radius:999px;padding:7px 14px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none";
   document.body.appendChild(chip);
