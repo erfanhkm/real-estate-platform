@@ -35,7 +35,8 @@
     <meta name="twitter:title" content="EH REALTY — 五种语言的房源、贷款工具与购房指南">
     <meta name="twitter:description" content="在温哥华地区寻找您的下一套住房：房源、加拿大按揭与负担能力计算器、投资工具和首次购房指南 — 提供英语、波斯语、印地语、中文和西班牙语。">
     <meta name="twitter:image" content="https://ehrealtybc.com/photos/hero.webp">
-    <link rel="manifest" href="/manifest.3266d720.webmanifest">
+    <link rel="preload" as="image" href="photos/hero.webp" fetchpriority="high" />
+<link rel="manifest" href="/manifest-zh.0ccf3cb5.webmanifest">
     <link rel="apple-touch-icon" href="/apple-touch-icon.647c0bd3.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -490,12 +491,14 @@ header.hdr-b .langnav a{color:#C9A24B;font-size:12px;font-weight:600;letter-spac
     <script>
     /* Portal-managed live data: listings + site settings are managed from
        the Site Admin portal and fetched before the main script boots; the
-       main script waits for this promise (max ~1.8s) before first render. */
+       main script NO LONGER waits for this promise (Fix Pack SB-3, F-062):
+       first render happens immediately with baked content; when the
+       fetch lands, __portalReapply enhances the page progressively. */
     window.__portalReady = (function(){
       var API = "https://advisor-api.erfanbillion.workers.dev";
       function get(p){ return fetch(API + p).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
       var timedOut = false;
-      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 1800); });
+      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 0); });
       var data = Promise.all([get("/api/listings"), get("/api/settings")]).then(function(a){
         window.__portalListings = a[0];
         window.__portalSettings = (a[1] && a[1].settings) || null;
@@ -569,7 +572,7 @@ header.hdr-b .langnav a{color:#C9A24B;font-size:12px;font-weight:600;letter-spac
     
 
     <div class="hero" id="top">
-      <img class="bg" src="photos/hero.webp" alt="Townhomes in a Metro Vancouver neighbourhood" />
+      <img class="bg" src="photos/hero.webp" width="1280" height="855" fetchpriority="high" decoding="async" alt="Townhomes in a Metro Vancouver neighbourhood" />
       <div class="veil"></div>
       <div class="wrap inner">
         <h1 data-i18n="hero_title">在温哥华都会区找到您的下一个家 — 用您自己的语言</h1>
