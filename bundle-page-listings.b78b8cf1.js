@@ -21,7 +21,7 @@
     function cardHTML(l, why){
       var t = T();
       var specs = "<span><b>"+esc(l.beds)+"</b> "+t.beds+"</span><span><b>"+esc(l.baths)+"</b> "+t.baths+"</span>" +
-        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString("en-US")+"</b> "+t.sqft+"</span>" : "") +
+        (l.sqft ? "<span><b>"+Number(l.sqft).toLocaleString(numLoc())+"</b> "+t.sqft+"</span>" : "") +
         (l.strata ? "<span><b>"+fmt(l.strata)+"</b> "+t.strata_mo+"</span>" : "");
       var preHTML = "";
       if (l.pt === "presale"){
@@ -123,8 +123,8 @@
       function kv(label, val){ return "<div><span>"+esc(label)+"</span><b>"+esc(val)+"</b></div>"; }
       $("dKv").innerHTML =
         kv(t.m_type, t["type_"+l.type] || l.type) + kv(t.d_beds, l.beds) + kv(t.m_baths, l.baths) +
-        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString("en-US")+" "+t.sqft : t.na) +
-        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString("en-US")+" "+t.sqft : t.na_ap) +
+        kv(t.m_interior, l.sqft ? Number(l.sqft).toLocaleString(numLoc())+" "+t.sqft : t.na) +
+        kv(t.m_lot, l.lot ? Number(l.lot).toLocaleString(numLoc())+" "+t.sqft : t.na_ap) +
         kv(t.m_year, l.year || t.na) + kv(t.m_parking, (t["parking_"+l.parking] || "—") + (l.stalls ? fill(t.stalls, {n: l.stalls}) : "")) +
         kv(t.m_strata, l.strata ? fmt(l.strata) : t.na_ap) + kv(t.m_dom, domOf(l)) + kv(t.m_listed, l.listed) + kv(t.m_mls, l.mls);
       var mc = monthlyCost(l);
@@ -169,7 +169,7 @@
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
-    var I18N12 = {
+    var I18N12P = {
     en:{ai_sub:"Site answers first — web search for current market questions",
       as_sub:"Ask about buying a home in BC — the steps, down payments, taxes, the stress test, strata and more. Answers come from this page's guide and calculators; for current market questions the site doesn't cover, the assistant searches the web and answers briefly, with sources.",
       as_welcome:"Hi! I can chat about buying a home in BC — the steps, minimum down payments, property transfer tax and annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, neighbourhoods and typical rents. For questions this site doesn't cover — like comparing the Ontario and BC markets or the latest monthly numbers — I search the web and answer briefly, with sources. Pick a suggestion below or type your own question.",
@@ -209,11 +209,11 @@
      "ai_err": "No pude acceder a la búsqueda web en vivo en este momento, así que por ahora solo puedo responder con el contenido de este sitio. Inténtalo de nuevo en un rato — o pregúntame sobre los pasos de compra, la cuota inicial, los impuestos, la prueba de resistencia, las cuotas de mantenimiento o las propiedades de aquí."
     }
     };
-    for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
+    for (var L12 in I18N12P) { if (I18N[L12]) { for (var k12 in I18N12P[L12]) I18N[L12][k12] = I18N12P[L12][k12]; } }
 
     /* ---------- Smart in-chat invitations: after a market answer, the assistant
        points the visitor to this site's own monthly market report (all 5 languages) ---------- */
-    var I18N13 = {
+    var I18N13P = {
     en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
       ai_nl_btn:"Get the free monthly report",close:"Close",m_city:"Preferred city"},
     fa:{ai_nl_pitch:"راستی — ما هر ماه یک گزارش رایگان از بازار مسکن BC و کانادا منتشر می‌کنیم: روند قیمت‌ها، حجم معاملات، تغییرات نرخ بهره و اینکه همه‌ی این‌ها برای خریدار و فروشنده چه معنایی دارد — به زبان خودتان. دوست دارید هر ماه در ایمیل‌تان باشد؟ عضویت فقط حدود ۲۰ ثانیه طول می‌کشد: کافی است فرم کوتاه اشتراک را پر کنید.",
@@ -229,7 +229,7 @@
      "m_city": "Ciudad preferida"
     }
     };
-    for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
+    for (var L13 in I18N13P) { if (I18N[L13]) { for (var k13 in I18N13P[L13]) I18N[L13][k13] = I18N13P[L13][k13]; } }
 
     /* ---------- home buying assistant: site brain first, live AI + web search second ---------- */
     var AS_FALLBACK = {
@@ -732,7 +732,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (crit.beds && l.beds < crit.beds) return false;
         return true;
       });
-      if (!hits.length) return t.sr_none;
+      if (!hits.length) return t.sr_none.replace("{matchLink}", "<a href='#match'>" + esc(t.nav_match) + "</a>");
       var lines = hits.map(function(l){
         return "<b>" + fmt(l.price) + "</b> — " + l.beds + " " + esc(t.beds) + " · " + esc(t["type_" + l.type]) + " · " + esc(t.cities[l.city] || l.city)
           + (l.status === "pending" ? " · " + esc(t.pending) : "")
@@ -1144,8 +1144,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         ["m_type", function(l){ return esc(t["type_"+l.type]); }],
         ["d_beds", function(l){ return String(l.beds); }],
         ["m_baths", function(l){ return String(l.baths); }],
-        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
-        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString("en-US")+" "+esc(t.sqft) : "—"; }],
+        ["m_interior", function(l){ return l.sqft ? l.sqft.toLocaleString(numLoc())+" "+esc(t.sqft) : "—"; }],
+        ["m_lot", function(l){ return l.lot ? l.lot.toLocaleString(numLoc())+" "+esc(t.sqft) : "—"; }],
         ["m_year", function(l){ return l.year ? String(l.year) : "—"; }],
         ["m_strata", function(l){ return l.strata ? fmt(l.strata) : "—"; }],
         ["m_parking", function(l){ return esc(t["parking_"+l.parking]) + fill(t.stalls, {n: l.stalls}); }],
@@ -1530,7 +1530,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           if (el && window.turnstile && turnstile.reset) { try { turnstile.reset(el._wid); } catch(e){} }
         }
         function esc2(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-        function money(n){ return "$" + Number(n).toLocaleString("en-US"); }
+        function money(n){ return "$" + Number(n).toLocaleString(numLoc()); }
         var token = ""; try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {

@@ -8,7 +8,7 @@
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && toolsList.classList.contains("open")){ var inMenu = $("toolsMenu").contains(document.activeElement); closeTools(); if (inMenu) toolsBtn.focus(); } });
     toolsList.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", closeTools); });
     /* ---------- Live AI chat strings (site answers first, web search beyond the site) ---------- */
-    var I18N12 = {
+    var I18N12P = {
     en:{ai_sub:"Site answers first — web search for current market questions",
       as_sub:"Ask about buying a home in BC — the steps, down payments, taxes, the stress test, strata and more. Answers come from this page's guide and calculators; for current market questions the site doesn't cover, the assistant searches the web and answers briefly, with sources.",
       as_welcome:"Hi! I can chat about buying a home in BC — the steps, minimum down payments, property transfer tax and annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, neighbourhoods and typical rents. For questions this site doesn't cover — like comparing the Ontario and BC markets or the latest monthly numbers — I search the web and answer briefly, with sources. Pick a suggestion below or type your own question.",
@@ -48,11 +48,11 @@
      "ai_err": "No pude acceder a la búsqueda web en vivo en este momento, así que por ahora solo puedo responder con el contenido de este sitio. Inténtalo de nuevo en un rato — o pregúntame sobre los pasos de compra, la cuota inicial, los impuestos, la prueba de resistencia, las cuotas de mantenimiento o las propiedades de aquí."
     }
     };
-    for (var L12 in I18N12) { if (I18N[L12]) { for (var k12 in I18N12[L12]) I18N[L12][k12] = I18N12[L12][k12]; } }
+    for (var L12 in I18N12P) { if (I18N[L12]) { for (var k12 in I18N12P[L12]) I18N[L12][k12] = I18N12P[L12][k12]; } }
 
     /* ---------- Smart in-chat invitations: after a market answer, the assistant
        points the visitor to this site's own monthly market report (all 5 languages) ---------- */
-    var I18N13 = {
+    var I18N13P = {
     en:{ai_nl_pitch:"By the way — we publish a free monthly housing market report for BC & Canada: price trends, sales activity, interest-rate moves, and what they mean for buyers and sellers — in your language. Want it in your inbox each month? Joining takes about 20 seconds: just fill in the short form.",
       ai_nl_btn:"Get the free monthly report",close:"Close",m_city:"Preferred city"},
     fa:{ai_nl_pitch:"راستی — ما هر ماه یک گزارش رایگان از بازار مسکن BC و کانادا منتشر می‌کنیم: روند قیمت‌ها، حجم معاملات، تغییرات نرخ بهره و اینکه همه‌ی این‌ها برای خریدار و فروشنده چه معنایی دارد — به زبان خودتان. دوست دارید هر ماه در ایمیل‌تان باشد؟ عضویت فقط حدود ۲۰ ثانیه طول می‌کشد: کافی است فرم کوتاه اشتراک را پر کنید.",
@@ -68,7 +68,7 @@
      "m_city": "Ciudad preferida"
     }
     };
-    for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
+    for (var L13 in I18N13P) { if (I18N[L13]) { for (var k13 in I18N13P[L13]) I18N[L13][k13] = I18N13P[L13][k13]; } }
 
     /* ---------- home buying assistant: site brain first, live AI + web search second ---------- */
     var AS_FALLBACK = {
@@ -571,7 +571,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (crit.beds && l.beds < crit.beds) return false;
         return true;
       });
-      if (!hits.length) return t.sr_none;
+      if (!hits.length) return t.sr_none.replace("{matchLink}", "<a href='#match'>" + esc(t.nav_match) + "</a>");
       var lines = hits.map(function(l){
         return "<b>" + fmt(l.price) + "</b> — " + l.beds + " " + esc(t.beds) + " · " + esc(t["type_" + l.type]) + " · " + esc(t.cities[l.city] || l.city)
           + (l.status === "pending" ? " · " + esc(t.pending) : "")
@@ -1045,7 +1045,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (v.beds) head.push(v.beds + "-bedroom");
         if (v.baths) head.push(v.baths + "-bathroom");
         var s = "This " + (head.length ? head.join(", ") + " " : "") + type.toLowerCase();
-        if (v.sqft) s += " offers " + Number(v.sqft).toLocaleString("en-US") + " sq ft of interior living space";
+        if (v.sqft) s += " offers " + Number(v.sqft).toLocaleString("en-CA") + " sq ft of interior living space";
         s += ".";
         if (v.features) s += " Key features: " + v.features + ".";
         if (v.nb) s += " Neighbourhood highlights: " + v.nb + ".";
@@ -1057,9 +1057,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (v.beds) seg.push(v.beds + " اتاق خواب");
         if (v.baths) seg.push(v.baths + " حمام");
         var s = "این " + type;
-        if (seg.length && v.sqft) s += " دارای " + seg.join(" و ") + " است و زیربنای آن " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع است.";
+        if (seg.length && v.sqft) s += " دارای " + seg.join(" و ") + " است و زیربنای آن " + Number(v.sqft).toLocaleString("fa-IR-u-ca-gregory") + " فوت مربع است.";
         else if (seg.length) s += " دارای " + seg.join(" و ") + " است.";
-        else if (v.sqft) s += " زیربنای " + Number(v.sqft).toLocaleString("en-US") + " فوت مربع دارد.";
+        else if (v.sqft) s += " زیربنای " + Number(v.sqft).toLocaleString("fa-IR-u-ca-gregory") + " فوت مربع دارد.";
         else s += " برای فروش عرضه شده است.";
         if (v.features) s += " امکانات کلیدی: " + v.features + ".";
         if (v.nb) s += " نکات برجسته‌ی محله: " + v.nb + ".";
@@ -1072,7 +1072,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (v.baths) seg.push(v.baths + " बाथरूम");
         var s = "यह " + type;
         if (seg.length) s += " " + seg.join(" और ") + " के साथ आता है";
-        if (v.sqft) s += (seg.length ? " और" : "") + " इसका आंतरिक क्षेत्र " + Number(v.sqft).toLocaleString("en-US") + " वर्ग फुट है";
+        if (v.sqft) s += (seg.length ? " और" : "") + " इसका आंतरिक क्षेत्र " + Number(v.sqft).toLocaleString("hi-IN") + " वर्ग फुट है";
         s += "।";
         if (v.features) s += " मुख्य विशेषताएँ: " + v.features + "।";
         if (v.nb) s += " इलाके की मुख्य बातें: " + v.nb + "।";
@@ -1085,7 +1085,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (v.baths) seg.push(v.baths + " 间浴室");
         var s = "这套" + type;
         if (seg.length) s += "设有" + seg.join("和");
-        if (v.sqft) s += (seg.length ? "," : "") + "室内面积为 " + Number(v.sqft).toLocaleString("en-US") + " 平方英尺";
+        if (v.sqft) s += (seg.length ? "," : "") + "室内面积为 " + Number(v.sqft).toLocaleString("zh-CN") + " 平方英尺";
         s += "。";
         if (v.features) s += "主要特色:" + v.features + "。";
         if (v.nb) s += "社区亮点:" + v.nb + "。";
@@ -1214,7 +1214,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         var e = hvLast.est, inp = hvLast.inputs || {}, isPrice = e.basis === "price";
         /* echo WHAT the estimate describes, so it is verifiable (F-07) */
         var echo = fill(t.hv_for, { addr: inp.address || "", city: (t.cities && t.cities[inp.city]) || inp.city || "", type: t["type_" + inp.type] || inp.type || "" });
-        if (inp.sqft != null) echo += fill(t.hv_for_sqft, { sqft: Number(inp.sqft).toLocaleString("en-US") });
+        if (inp.sqft != null) echo += fill(t.hv_for_sqft, { sqft: Number(inp.sqft).toLocaleString(numLoc()) });
         var based = isPrice
           ? (e.comps === 1 ? t.hv_based_price_one : fill(t.hv_based_price, { n: e.comps }))
           : (e.comps === 1 ? t.hv_based_one : fill(t.hv_based, { n: e.comps }));
@@ -1336,7 +1336,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     var PR_LINK_HOSTS = ["www.bcassessment.ca", "maps.ltsa.ca", "www.walkscore.com", "ltsa.ca"];
     var prBusy = false, prLast = null, prErrKey = null, prGates = null, prGatesBusy = false, prTitleKey = null, prFocusPending = false, prTitleBusy = false, prTitleGen = 0;
     function prMissing(v){ return v === null || v === undefined || v === "" || typeof v === "boolean"; }
-    function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString("en-US") : "—"; }
+    function prNum(n){ if (prMissing(n)) return "—"; var v = Number(n); return isFinite(v) ? v.toLocaleString(numLoc()) : "—"; }
     function prMoney(v){ if (prMissing(v)) return "—"; var n = Number(v); return isFinite(n) ? hvMoney(n) : "—"; }
     function prPct(v){ if (prMissing(v)) return "—"; var x = Number(v); return isFinite(x) ? (Math.round(x * 10) / 10) + "%" : "—"; }
     /* scoped safe fill (PR-02 L2): single-pass, a missing key becomes ""
@@ -1960,7 +1960,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           if (el && window.turnstile && turnstile.reset) { try { turnstile.reset(el._wid); } catch(e){} }
         }
         function esc2(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-        function money(n){ return "$" + Number(n).toLocaleString("en-US"); }
+        function money(n){ return "$" + Number(n).toLocaleString(numLoc()); }
         var token = ""; try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
