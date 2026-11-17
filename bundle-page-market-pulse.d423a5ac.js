@@ -1008,7 +1008,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var x = Number(v); if (!isFinite(x)) return "";
       var r = Math.round(x * 10) / 10; /* sign is chosen AFTER 1dp rounding: -0.04 renders "0.0%", never "-0.0%" */
       var cls = r < 0 ? "mp-down" : (r > 0 ? "mp-up" : "");
-      return '<span class="' + cls + '" dir="ltr" style="unicode-bidi:isolate">' + (r > 0 ? "+" : (r < 0 ? "−" : "")) + Math.abs(r).toFixed(1) + "%</span>";
+      return '<span class="' + cls + '" dir="ltr" style="unicode-bidi:isolate">' + (r > 0 ? "▲ +" : (r < 0 ? "▼ −" : "")) + Math.abs(r).toFixed(1) + "%</span>";
     }
     function mpDeltaSub(v){ var d = mpDeltaHtml(v); return d ? d + " " + esc(T().mp_yoy || "YoY") : ""; }
     function mpMonthLabel(ym, short){
@@ -1125,9 +1125,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     }
     /* Pack PJ2 (PJ-verify L5): a source-less block yields just the
        month label — no leading " · " separator. */
-    function mpSrcLine(block, ym){ if (!block) return ""; var lbl = esc(mpMonthLabel(ym)); var src = block.source ? esc(block.source) : ""; return src ? src + " · " + lbl : lbl; }
+    function mpSrcLine(block, ym){ if (!block) return ""; var lbl = esc(mpMonthLabel(ym)); var src = block.source ? esc(block.source) : ""; var tm = '<time datetime="' + esc(ym) + '">' + lbl + "</time>"; return src ? src + " · " + tm : tm; }
     function mpTile(labelKey, value, subHtml, srcHtml){
-      return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
+      /* SB-5 F-084: stat tiles take h2 where they directly follow the page
+         h1 (Market Pulse page) and stay h3 under the homepage band's own
+         h2 section title — the level follows the document outline. */
+      var tag = (typeof document !== "undefined" && document.getElementById && document.getElementById("market-pulse-band")) ? "h3" : "h2";
+      return '<article class="mp-kpi"><' + tag + '>' + esc(T()[labelKey] || labelKey) + '</' + tag + '>' +
         '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
         (subHtml ? '<p class="mp-sub">' + subHtml + "</p>" : "") +
         (srcHtml ? '<p class="mp-src">' + srcHtml + "</p>" : "") + "</article>";
@@ -1426,15 +1430,22 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           var key = b.source + "|" + (b.sourceDate || "");
           if (seen[key]) return;
           seen[key] = 1;
-          items.push("<li>" + esc(b.source) + " — " + esc(b.sourceDate || "") + "</li>");
+          items.push("<li>" + esc(b.source) + " — " + mpTimeEl(b.sourceDate || "") + "</li>");
         });
         sc.innerHTML = items.length ? "<ul>" + items.join("") + "</ul>" : "";
       });
     }
+    /* SB-5 F-084: machine-readable dates in rendered source lines. */
+    function mpTimeEl(d){
+      return /^\d{4}-\d{2}(-\d{2})?$/.test(d || "") ? '<time datetime="' + esc(d) + '">' + esc(d) + "</time>" : esc(d || "");
+    }
+    function mpTimeWrap(s){
+      return esc(s).replace(/\d{4}-\d{2}-\d{2}/g, function (d) { return '<time datetime="' + d + '">' + d + "</time>"; });
+    }
     function mpRateTile(labelKey, value, srcText){
       return '<article class="mp-kpi"><h3>' + esc(T()[labelKey] || labelKey) + '</h3>' +
         '<p class="mp-val" dir="ltr" style="unicode-bidi:isolate">' + esc(value) + "</p>" +
-        '<p class="mp-src">' + esc(srcText) + "</p></article>";
+        '<p class="mp-src">' + mpTimeWrap(srcText) + "</p></article>";
     }
     function mpRenderRates(){
       var box = $("mpRatesTiles"); if (!box) return;

@@ -43,13 +43,36 @@
         .then(function(t){ once(t); })
         .catch(function(){ once(null); });
     }
+    /* SB-5 F-068: tour dialog focus management — focus is saved when the
+       dialog opens, moved to the close button, kept inside by a Tab trap,
+       Esc closes, and focus returns to the opener on close. */
+    var tourReturnFocus = null;
+    function tourFocusable(){
+      var m = $("tourModal"); if (!m) return [];
+      var els = m.querySelectorAll("button, a[href], [tabindex]"), out = [];
+      for (var i = 0; i < els.length; i++) { if (!els[i].disabled && els[i].getAttribute("tabindex") !== "-1") out.push(els[i]); }
+      return out;
+    }
+    function tourKeydown(e){
+      var m = $("tourModal"); if (!m || m.style.display === "none") return;
+      if (e.key === "Escape" || e.keyCode === 27) { e.preventDefault(); closeTour(); return; }
+      if (e.key !== "Tab" && e.keyCode !== 9) return;
+      var f = tourFocusable(); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!m.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    }
     var tourViewer = null;
     window.openTour = function(mls){
+      tourReturnFocus = document.activeElement;
       var dEl = document.getElementById("dlg");
       if (dEl && dEl.open) { try { dEl.close(); } catch(e){} }
       getTour(mls, function(tour){
         if (!tour || !Array.isArray(tour.rooms) || !tour.rooms.length) return;
         $("tourModal").style.display = "block";
+        document.addEventListener("keydown", tourKeydown, true);
+        var tourCloseBtn = $("tourClose"); if (tourCloseBtn) { try { tourCloseBtn.focus(); } catch(e){} }
         document.body.style.overflow = "hidden";
         loadPannellum(function(){
           if (!window.pannellum) return;
@@ -74,6 +97,9 @@
       document.body.style.overflow = "";
       if (tourViewer){ try { tourViewer.destroy(); } catch(e){} tourViewer = null; }
       $("tourPano").innerHTML = "";
+      document.removeEventListener("keydown", tourKeydown, true);
+      if (tourReturnFocus && tourReturnFocus.focus) { try { tourReturnFocus.focus(); } catch(e){} }
+      tourReturnFocus = null;
     }
     var CITIES = ["Burnaby","Coquitlam","Port Coquitlam","Richmond","Surrey","Vancouver","North Vancouver","West Vancouver","Langley","Abbotsford","Delta","New Westminster","Port Moody","Maple Ridge","Pitt Meadows","White Rock","Mission","Chilliwack"];
     var LISTINGS = [

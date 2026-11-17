@@ -64,10 +64,52 @@
       if (sort === "dom") out.sort(function(a,b){return domOf(b)-domOf(a);});
       return out;
     }
+    /* SB-5 F-071: filter state <-> URL query params, so a filtered view is
+       shareable and bookmarkable. The URL initialises the controls once at
+       boot; afterwards every render mirrors the controls into the URL via
+       history.replaceState (no history spam, no reload). Values that do
+       not match a real option are ignored; defaults stay out of the URL. */
+    function filtersFromUrl(){
+      var p = new URLSearchParams(window.location.search);
+      function setSel(id, val){
+        var el = $(id); if (!el || val === null) return;
+        for (var i = 0; i < el.options.length; i++) { if (el.options[i].value === val) { el.value = val; return; } }
+      }
+      var q = p.get("q"); if (q !== null) $("q").value = String(q).slice(0, 200);
+      setSel("fCity", p.get("city")); setSel("fType", p.get("type")); setSel("fPrice", p.get("price"));
+      setSel("fBeds", p.get("beds")); setSel("fSort", p.get("sort"));
+      var pre = p.get("presale"); if (pre !== null) $("fPresale").checked = (pre === "1" || pre === "true");
+    }
+    function syncFiltersToUrl(){
+      try {
+        var p = new URLSearchParams(), v;
+        v = $("q").value.trim(); if (v) p.set("q", v);
+        v = $("fCity").value; if (v) p.set("city", v);
+        v = $("fType").value; if (v) p.set("type", v);
+        v = $("fPrice").value; if (v) p.set("price", v);
+        v = $("fBeds").value; if (v && v !== "0") p.set("beds", v);
+        v = $("fSort").value; if (v && v !== "featured") p.set("sort", v);
+        if ($("fPresale") && $("fPresale").checked) p.set("presale", "1");
+        var qs = p.toString(), url = window.location.pathname + (qs ? "?" + qs : "") + window.location.hash;
+        if (url !== window.location.pathname + window.location.search + window.location.hash) window.history.replaceState(null, "", url);
+      } catch(e){}
+    }
+
     function renderListings(){
       var list = filteredListings(), t = T();
-      $("resultCount").textContent = fill(t.results, {n: list.length});
-      $("grid").innerHTML = list.length ? list.map(function(l){ try { return cardHTML(l, null); } catch(e){ return ""; } }).join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
+      /* SB-5 F-069: the announced count is the number of cards actually
+         rendered. A listing whose card fails to build is logged and left
+         out of BOTH the grid and the count, never silently swallowed. */
+      var cards = [];
+      list.forEach(function(l){
+        var h = null, threw = false;
+        try { h = cardHTML(l, null); } catch(e){ threw = true; if (window.console && console.warn) console.warn("SB-5: cardHTML failed for listing " + (l && l.mls), e); }
+        if (h) cards.push(h);
+        else if (!threw && window.console && console.warn) console.warn("SB-5: cardHTML returned no HTML for listing " + (l && l.mls));
+      });
+      $("resultCount").textContent = fill(t.results, {n: cards.length});
+      $("grid").innerHTML = cards.length ? cards.join("") : '<div class="empty">'+esc(t.no_results)+"</div>";
+      syncFiltersToUrl();
     }
 
     /* ---------- detail dialog ---------- */
@@ -1184,6 +1226,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       keep($("fPrice"), function(sel){ buildPriceSelect(sel); });
       keep($("fBeds"), function(sel){ buildBedsSelect(sel); });
       keep($("fSort"), function(sel){ buildSortSelect(sel); });
+      if (!window.__sb5UrlFiltersDone) { window.__sb5UrlFiltersDone = true; try { filtersFromUrl(); } catch(e){} }
       if (window.__applyPortalTexts) window.__applyPortalTexts();
       renderListings(); renderAssistantLang(); renderCompare();
       if (dlg.open && current){ window.__langSwitch = true; try { openListing(current.mls); } catch (e) {} window.__langSwitch = false; }
