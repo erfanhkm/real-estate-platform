@@ -35,7 +35,7 @@
     <meta name="twitter:title" content="रियल एस्टेट निवेश विश्लेषण — कैप रेट और कैश फ़्लो | EH REALTY">
     <meta name="twitter:description" content="BC किराए निवेश का विश्लेषण करें: कैप रेट, कैश फ़्लो, कैश-ऑन-कैश रिटर्न और मॉर्गेज स्ट्रेस टेस्ट, प्रिंट योग्य रिपोर्ट के साथ।">
     <meta name="twitter:image" content="https://ehrealtybc.com/photos/hero.webp">
-    <link rel="manifest" href="/manifest.3266d720.webmanifest">
+    <link rel="manifest" href="/manifest-hi.81238875.webmanifest">
     <link rel="apple-touch-icon" href="/apple-touch-icon.647c0bd3.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -485,12 +485,14 @@ header.hdr-b .langnav a{color:#C9A24B;font-size:12px;font-weight:600;letter-spac
     <script>
     /* Portal-managed live data: listings + site settings are managed from
        the Site Admin portal and fetched before the main script boots; the
-       main script waits for this promise (max ~1.8s) before first render. */
+       main script NO LONGER waits for this promise (Fix Pack SB-3, F-062):
+       first render happens immediately with baked content; when the
+       fetch lands, __portalReapply enhances the page progressively. */
     window.__portalReady = (function(){
       var API = "https://advisor-api.erfanbillion.workers.dev";
       function get(p){ return fetch(API + p).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
       var timedOut = false;
-      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 1800); });
+      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 0); });
       var data = Promise.all([get("/api/listings"), get("/api/settings")]).then(function(a){
         window.__portalListings = a[0];
         window.__portalSettings = (a[1] && a[1].settings) || null;
