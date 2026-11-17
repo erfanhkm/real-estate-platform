@@ -35,7 +35,7 @@
     <meta name="twitter:title" content="31-8465 84 Avenue, Delta — Casa adosada en venta — $799,000 | EH REALTY">
     <meta name="twitter:description" content="Casa adosada de 3 habitaciones y 2 baños en venta en 31-8465 84 Avenue, Delta por $799,000 (MLS® R2991015). Casa adosada de 3 dormitorios en North Delta en un complejo pequeño y tranquilo. Zona de estar en la planta principal con una terraza soleada, garaje más estacionamiento en la entrada, cerca de las escuelas de Burnsview y del transporte público.">
     <meta name="twitter:image" content="https://ehrealtybc.com/photos/R2991015.jpg">
-    <link rel="manifest" href="/manifest.3266d720.webmanifest">
+    <link rel="manifest" href="/manifest-es.c8be8d65.webmanifest">
     <link rel="apple-touch-icon" href="/apple-touch-icon.647c0bd3.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -485,12 +485,14 @@ header.hdr-b .langnav a{color:#C9A24B;font-size:12px;font-weight:600;letter-spac
     <script>
     /* Portal-managed live data: listings + site settings are managed from
        the Site Admin portal and fetched before the main script boots; the
-       main script waits for this promise (max ~1.8s) before first render. */
+       main script NO LONGER waits for this promise (Fix Pack SB-3, F-062):
+       first render happens immediately with baked content; when the
+       fetch lands, __portalReapply enhances the page progressively. */
     window.__portalReady = (function(){
       var API = "https://advisor-api.erfanbillion.workers.dev";
       function get(p){ return fetch(API + p).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
       var timedOut = false;
-      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 1800); });
+      var timeout = new Promise(function(res){ setTimeout(function(){ timedOut = true; res(false); }, 0); });
       var data = Promise.all([get("/api/listings"), get("/api/settings")]).then(function(a){
         window.__portalListings = a[0];
         window.__portalSettings = (a[1] && a[1].settings) || null;
