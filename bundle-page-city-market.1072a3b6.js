@@ -1398,7 +1398,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         if (typeof rec.postal !== "string") rec.postal = "";
         if (["condo", "townhouse", "house"].indexOf(rec.type) === -1) rec.type = "condo";
         if (["underground", "garage", "carport", "street", "none"].indexOf(rec.parking) === -1) rec.parking = "none";
-        if (rec.status !== "pending" && rec.status !== "sold") rec.status = "active";
+        if (rec.status == null || rec.status === "") rec.status = "active"; else if (rec.status !== "active" && rec.status !== "pending" && rec.status !== "sold") { if (window.console && console.warn) console.warn("portal listing dropped: unknown status " + JSON.stringify(rec.status) + " for " + rec.mls); return; }
         if (rec.pt !== "presale") rec.pt = "resale";
         var ix = -1;
         for (var i = 0; i < LISTINGS.length; i++) if (LISTINGS[i].mls === rec.mls) ix = i;
@@ -1665,7 +1665,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         }
         function esc2(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
         function money(n){ return "$" + Number(n).toLocaleString("en-US"); }
-        var token = ""; try { token = localStorage.getItem("re_user_token") || ""; } catch(e){}
+        var token = ""; try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
           var gh = String(location.hash || "");
@@ -1773,7 +1773,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             var payload = reg ? { name: document.getElementById("fxName").value, email: email, password: pass, lang: lang(), turnstileToken: tsTok } : { email: email, password: pass };
             api(reg ? "/api/user/register" : "/api/user/login", "POST", payload).then(function(d){
               if (sBtn) sBtn.disabled = false;
-              token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e2){}
+              if (!/^u_[0-9a-f]{32}$/.test(d.token || "")) throw new Error("generic"); token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e2){}
               me = d.user; loadMe().then(function(){ showAccount(); });
             }).catch(function(er){
               if (sBtn) sBtn.disabled = false;
