@@ -856,20 +856,37 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       var ctrl = ("AbortController" in window) ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 20000) : null;
       function finish(v){ if (timer) clearTimeout(timer); done(v); }
-      fetch(AI_CHAT_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: text, lang: lang, history: chatHistory.slice(0, -1).slice(-6)}),
-        signal: ctrl ? ctrl.signal : undefined
-      }).then(function(r){
-        return r.json().catch(function(){ return null; }).then(function(d){ return {status: r.status, data: d}; });
-      }).then(function(res){
-        if (res.status === 200 && res.data && res.data.ok && res.data.reply){
-          var out = {html: aiTextToHtml(res.data.reply, res.data.sources), raw: res.data.reply};
-          aiCache[cacheKey] = out;
-          finish(out);
-        } else finish(null);
-      }).catch(function(){ finish(null); });
+      // Pack DP12 (F-047): attach a Turnstile token from the widget rendered
+      // into #aiPanel at init (the site's one existing sitekey). Tokens are
+      // single-use, so the widget resets when the request settles. If the
+      // Turnstile API is entirely absent (script blocked) the request goes
+      // without a token and the worker's verdict applies; if the widget is
+      // present but the managed challenge has no token yet, wait briefly.
+      function chatTsEl(){ return document.querySelector('.fx-ts[data-ts="chat"]'); }
+      function chatTsToken(){ var el = chatTsEl(); if (!el || !window.turnstile || !turnstile.getResponse) return ""; try { return turnstile.getResponse(el._wid) || ""; } catch(e){ return ""; } }
+      function chatTsReset(){ var el = chatTsEl(); if (el && window.turnstile && turnstile.reset) { try { turnstile.reset(el._wid); } catch(e){} } }
+      function sendChat(tsTok){
+        fetch(AI_CHAT_URL, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({message: text, lang: lang, history: chatHistory.slice(0, -1).slice(-6), turnstileToken: tsTok || undefined}),
+          signal: ctrl ? ctrl.signal : undefined
+        }).then(function(r){
+          return r.json().catch(function(){ return null; }).then(function(d){ return {status: r.status, data: d}; });
+        }).then(function(res){
+          chatTsReset();
+          if (res.status === 200 && res.data && res.data.ok && res.data.reply){
+            var out = {html: aiTextToHtml(res.data.reply, res.data.sources), raw: res.data.reply};
+            aiCache[cacheKey] = out;
+            finish(out);
+          } else finish(null);
+        }).catch(function(){ chatTsReset(); finish(null); });
+      }
+      var firstTok = chatTsToken();
+      if (!firstTok && (window.turnstile || chatTsEl())) {
+        var tsTries2 = 0;
+        var tsIv = setInterval(function(){ tsTries2++; var t2 = chatTsToken(); if (t2 || tsTries2 >= 7) { clearInterval(tsIv); sendChat(t2); } }, 150);
+      } else sendChat(firstTok);
     }
     /* --- smart cross-promotion: once per visit, right after the assistant
        answers a market question, it invites the visitor to this site's free
@@ -943,6 +960,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       e.preventDefault();
       askChat($("chatInput"));
     });
+    // Pack DP12 (F-047): Turnstile for the public chat — inject the widget container into the panel; the fx block's tsRenderAll() renders it with the site's one existing sitekey.
+    try { var aipEl = $("aiPanel"), aifEl = $("aiForm"); if (aipEl && aifEl && !aipEl.querySelector('.fx-ts[data-ts="chat"]')) { var tsdEl = document.createElement("div"); tsdEl.className = "fx-ts"; tsdEl.setAttribute("data-ts", "chat"); tsdEl.style.margin = "0 12px 8px"; aipEl.insertBefore(tsdEl, aifEl); } } catch(e){}
     if ($("aiForm")) $("aiForm").addEventListener("submit", function(e){
       e.preventDefault();
       askChat($("aiInput"));
@@ -1961,19 +1980,24 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         }
         function esc2(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
         function money(n){ return "$" + Number(n).toLocaleString(numLoc()); }
-        var token = ""; try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
+        var token = ""; // Pack DP12 (F-048): on the web the session token lives ONLY in this memory variable — the worker owns the durable copy in an httpOnly cookie. A legacy localStorage token is read once here, used for the one-time session-exchange at boot, then removed and never written again. APP_ORIGIN (Capacitor / localhost) keeps the legacy persistence: a WebView's cross-site cookies cannot be relied on there.
+        var APP_ORIGIN = (location.protocol === "capacitor:" || location.hostname === "localhost");
+        try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
+        function csrfVal(){ var m = /(?:^|; )ehcsrf=([0-9a-f]{32})/.exec(document.cookie || ""); return m ? m[1] : ""; }
+        function persistToken(){ if (APP_ORIGIN && token) { try { localStorage.setItem("re_user_token", token); } catch(e){} } }
+        function dropToken(){ token = ""; try { localStorage.removeItem("re_user_token"); } catch(e){} }
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
           var gh = String(location.hash || "");
           if (gh.indexOf("#gcode=") === 0) { var gc = gh.slice(7); history.replaceState(null, "", location.pathname + location.search); var gv = ""; try { gv = sessionStorage.getItem("re_gv") || ""; sessionStorage.removeItem("re_gv"); } catch(e){}
             if (/^[0-9a-f]{48}$/.test(gc) && /^[0-9a-f]{64}$/.test(gv)) {
               var exTry = function(n){
-                fetch(API + "/api/user/google/exchange", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: gc, verifier: gv }) })
+                fetch(API + "/api/user/google/exchange", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ code: gc, verifier: gv }) })
                 .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ return { s: r.status, d: d }; }); })
                 .then(function(res){
                   if (res.s === 401 && n < 1) { setTimeout(function(){ exTry(n + 1); }, 1500); return; }
                   var d = res.d;
-                  if (d && d.ok && /^u_[0-9a-f]{32}$/.test(d.token || "")) { token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e){} me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {}; paintAcctBtn(); loadMe().then(function(){ if (me) toast(tt("signedIn")); else toast(tt("errGeneric")); }); }
+                  if (d && d.ok && /^u_[0-9a-f]{32}$/.test(d.token || "")) { token = d.token; persistToken(); me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {}; paintAcctBtn(); loadMe().then(function(){ if (me) toast(tt("signedIn")); else toast(tt("errGeneric")); }); }
                   else { toast(tt("errGeneric")); }
                 }).catch(function(){ toast(tt("errGeneric")); });
               };
@@ -2013,7 +2037,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         function api(path, method, body){
           var h = { "Content-Type": "application/json" };
           if (token) h["Authorization"] = "Bearer " + token;
-          return fetch(API + path, { method: method || "GET", headers: h, body: body ? JSON.stringify(body) : undefined })
+          var mth = method || "GET";
+          if (mth !== "GET") { var cv = csrfVal(); if (cv) h["X-CSRF-Token"] = cv; } // Pack DP12: double-submit header for cookie-authed mutations (the worker enforces it only for cookie sessions)
+          return fetch(API + path, { method: mth, headers: h, credentials: "include", body: body ? JSON.stringify(body) : undefined })
             .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (!r.ok) throw new Error(d.error || "request"); return d; }); });
         }
         var acctBtn = document.createElement("button");
@@ -2069,7 +2095,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             var payload = reg ? { name: document.getElementById("fxName").value, email: email, password: pass, lang: lang(), turnstileToken: tsTok } : { email: email, password: pass };
             api(reg ? "/api/user/register" : "/api/user/login", "POST", payload).then(function(d){
               if (sBtn) sBtn.disabled = false;
-              if (!/^u_[0-9a-f]{32}$/.test(d.token || "")) throw new Error("generic"); token = d.token; try { localStorage.setItem("re_user_token", token); } catch(e2){}
+              if (!/^u_[0-9a-f]{32}$/.test(d.token || "")) throw new Error("generic"); token = d.token; persistToken();
               me = d.user; loadMe().then(function(){ showAccount(); });
             }).catch(function(er){
               if (sBtn) sBtn.disabled = false;
@@ -2080,14 +2106,14 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           tsRenderAll();
         }
         function loadMe(){
-          var t = token; if (!t) return Promise.resolve();
+          var t = token; // Pack DP12: no token early-return — the httpOnly cookie may hold the session with no memory token at all; /api/user/me decides. The t !== token guards still supersede stale responses.
           return api("/api/user/me").then(function(d){
             if (t !== token) return; // superseded by a newer sign-in while in flight
             me = d.user; mySearches = d.searches || []; myProfile = d.profile || {}; myRecent = d.recent || [];
             myDrops = {}; (d.priceDrops || []).forEach(function(x){ myDrops[x.mls] = x; });
             savedSet = {}; (d.saved || []).forEach(function(m){ savedSet[m] = 1; });
             paintAcctBtn(); paintSaves();
-          }).catch(function(e){ if (t !== token) return; if (e && e.message === "auth") { token = ""; try { localStorage.removeItem("re_user_token"); } catch(e2){} } me = null; paintAcctBtn(); });
+          }).catch(function(e){ if (t !== token) return; if (e && e.message === "auth") { dropToken(); } me = null; paintAcctBtn(); });
         }
         function showAccount(){
           if (!me) return;
@@ -2129,6 +2155,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             '<button type="button" class="btn btn-spruce" id="fxDone" style="flex:1">' + tt("close") + '</button></div>');
           document.getElementById("fxDone").addEventListener("click", closeFx);
           document.getElementById("fxOut").addEventListener("click", function(){
+            try { api("/api/user/logout", "POST", {}).catch(function(){}); } catch(e){} // Pack DP12: kill the server session and clear its cookies (fire-and-forget; the local clear below is immediate either way)
             token = ""; me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {};
             try { localStorage.removeItem("re_user_token"); } catch(e){}
             paintAcctBtn(); paintSaves(); closeFx();
@@ -2158,7 +2185,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             }).catch(function(er){
               b.disabled = false;
               var code = er && er.message;
-              if (code === "auth") { token = ""; me = null; try { localStorage.removeItem("re_user_token"); } catch(e2){} paintAcctBtn(); closeFx(); toast(tt("sessionExpired")); }
+              if (code === "auth") { dropToken(); me = null; paintAcctBtn(); closeFx(); toast(tt("sessionExpired")); }
               else if (code === "not_found") { mySearches = mySearches.filter(function(s){ return String(s.id) !== String(sid); }); toast(tt("searchGone")); showAccount(); }
               else if (code === "unavailable") toast(tt("errBusy"));
               else toast(tt("errGeneric"));
@@ -2346,6 +2373,9 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             });
           });
         }
+        // Pack DP12 (F-048): one-time silent migration of a legacy localStorage session onto the httpOnly cookie — same token, same expiry; the stored copy is dropped once the exchange lands and never written again on the web.
+        if (token && !APP_ORIGIN) { try { api("/api/user/session-exchange", "POST", {}).then(function(){ try { localStorage.removeItem("re_user_token"); } catch(e){} }, function(){}); } catch(e){} }
+        tsRenderAll(); // Pack DP12 (F-047): renders the chat widget the chat block injected into #aiPanel (and any other .fx-ts present at boot)
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
     })();
