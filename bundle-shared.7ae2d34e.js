@@ -1486,6 +1486,32 @@
     for (var L13 in I18N13) { if (I18N[L13]) { for (var k13 in I18N13[L13]) I18N[L13][k13] = I18N13[L13][k13]; } }
     var lang = "en";
     try { var saved = localStorage.getItem("erfan-re-lang"); if (saved && I18N[saved]) lang = saved; } catch(e){}
+    /* ---------- EH_RULES: the site's regulatory constants (F-050, SB-4) ----------
+       Single source of truth for the figures Canadian housing rules
+       fix: the stress-test benchmark, the GDS/TDS caps, the insured-
+       mortgage ceiling and down-payment tiers, the CMHC premium
+       schedule, the FHSA amounts — plus the seller-report data
+       vintages (F-085). Calculator code reads these values from here.
+       Prose that states the same figures (KB answers, the stress /
+       calc_warn_insure strings) is pinned to this table by the SB-4
+       drift-guard check. When a rule changes: change it HERE, update
+       the prose to match, and set reviewedOn to the verification date. */
+    window.EH_RULES = {
+      reviewedOn: "2026-11-16",
+      stressBenchmarkPct: 5.25,
+      gdsMax: 0.39,
+      tdsMax: 0.44,
+      insureCeiling: 1500000,
+      downTier1: 500000,
+      cmhcPremiumLtv85: 0.028,
+      cmhcPremiumLtv90: 0.031,
+      cmhcPremiumLtv95: 0.04,
+      cmhcAmortSurcharge: 0.002,
+      fhsaAnnual: 8000,
+      fhsaLifetime: 40000,
+      fhsaYears: 15,
+      sellerData: { censusYear: 2021, incomeYear: 2020, schoolYear: "2025/26" }
+    };
     var _Tmemo = {};
     function T(){
       if (lang === "en" || !I18N[lang]) return I18N.en;

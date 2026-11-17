@@ -14,21 +14,21 @@
           rate = parseFloat($("cRate").value) || 0, years = parseInt($("cAmort").value, 10) || 25,
           freq = $("cFreq").value, perYear = freq === "weekly" ? 52 : freq === "biweekly" ? 26 : 12, t = T();
       var down = price * downPct / 100, base = price - down, ltv = 100 - downPct, premRate = 0;
-      if (price >= 1500000) premRate = 0; /* insured mortgages are not available at $1.5M or more */
-      else if (ltv > 80 && ltv <= 85) premRate = 0.028; else if (ltv > 85 && ltv <= 90) premRate = 0.031; else if (ltv > 90) premRate = 0.04;
-      if (premRate > 0 && years > 25) premRate += 0.002; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
+      if (price >= EH_RULES.insureCeiling) premRate = 0; /* insured mortgages are not available at $1.5M or more */
+      else if (ltv > 80 && ltv <= 85) premRate = EH_RULES.cmhcPremiumLtv85; else if (ltv > 85 && ltv <= 90) premRate = EH_RULES.cmhcPremiumLtv90; else if (ltv > 90) premRate = EH_RULES.cmhcPremiumLtv95;
+      if (premRate > 0 && years > 25) premRate += EH_RULES.cmhcAmortSurcharge; /* CMHC adds 0.20 pts when amortization exceeds 25 years */
       var premium = base * premRate, principal = base + premium;
       var pay = paymentFor(principal, rate, years, perYear), total = pay * years * perYear;
       $("payLabel").textContent = t["pay_" + freq];
       $("oPay").textContent = fmt(pay); $("oMort").textContent = fmt(principal);
       $("cmhcRow").style.display = premium > 0 ? "" : "none"; $("oCmhc").textContent = fmt(premium);
       $("oInt").textContent = fmt(total - principal); $("oTotal").textContent = fmt(total);
-      var qual = paymentFor(principal, Math.max(rate + 2, 5.25), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
+      var qual = paymentFor(principal, Math.max(rate + 2, EH_RULES.stressBenchmarkPct), years, 12); /* qualifying rate: contract + 2% or the 5.25% federal benchmark, whichever is higher */
       $("stressNote").textContent = fill(t.stress, {x: fmt(qual)});
       var cw = $("calcWarn");
       if (cw) {
-        var minDown = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
-        if (price > 0 && price >= 1500000 && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
+        var minDown = price <= EH_RULES.downTier1 ? price * 0.05 : price < EH_RULES.insureCeiling ? 25000 + (price - EH_RULES.downTier1) * 0.10 : price * 0.20;
+        if (price > 0 && price >= EH_RULES.insureCeiling && downPct < 20) { cw.textContent = t.calc_warn_insure; cw.style.display = ""; }
         else if (price > 0 && down < minDown - 0.01) { cw.textContent = fill(t.calc_warn_min, {x: fmt(minDown)}); cw.style.display = ""; }
         else cw.style.display = "none";
       }
@@ -150,13 +150,14 @@
 
     /* ---------- home buying assistant: site brain first, live AI + web search second ---------- */
     var AS_FALLBACK = {
-      en:"I don't have a specific answer for that yet, and my live lookup is unavailable right now. I can help with the steps to buy a home in BC, minimum down payments, property transfer tax and the first-time buyer exemption, annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, the site's neighbourhood guides, and typical rents. You can also read the <a href='#guide'>first-time buyer guide</a> or try the <a href='#calculator'>mortgage calculator</a> and <a href='#afford'>affordability estimator</a>.",
-      fa:"برای این پرسش هنوز پاسخ مشخصی ندارم و جست‌وجوی زنده‌ام هم الان در دسترس نیست. می‌توانم درباره‌ی مراحل خرید خانه در BC، حداقل پیش‌پرداخت، مالیات انتقال ملک و معافیت خریدار اولی، مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، راهنماهای محله‌ی سایت و اجاره‌های معمول کمک کنم. همچنین می‌توانید <a href='#guide'>راهنمای خریدار اولی</a> را بخوانید یا <a href='#calculator'>ماشین‌حساب وام</a> و <a href='#afford'>برآوردگر توان خرید</a> را امتحان کنید.",
-      hi:"इस प्रश्न का मेरे पास अभी कोई विशिष्ट उत्तर नहीं है और मेरी लाइव खोज अभी उपलब्ध नहीं है। मैं BC में घर खरीदने के चरणों, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और पहली बार खरीदार छूट, वार्षिक संपत्ति कर, समापन लागतों, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तों, स्ट्राटा शुल्क, साइट की इलाका मार्गदर्शिकाओं और सामान्य किराए में मदद कर सकता हूँ। आप <a href='#guide'>पहली बार खरीदार मार्गदर्शिका</a> भी पढ़ सकते हैं या <a href='#calculator'>मॉर्गेज कैलकुलेटर</a> और <a href='#afford'>खरीद क्षमता अनुमानक</a> आज़मा सकते हैं।",
-      zh:"我暂时还没有这个问题的具体答案,而且我的实时查询目前不可用。我可以帮您了解在 BC 买房的步骤、最低首付、房产转让税与首次购房者减免、年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、本站的社区指南和典型租金。您也可以阅读<a href='#guide'>首次购房指南</a>,或试试<a href='#calculator'>房贷计算器</a>和<a href='#afford'>负担能力估算器</a>。"
+      en:"I don't have a specific answer for that yet. I can help with the steps to buy a home in BC, minimum down payments, property transfer tax and the first-time buyer exemption, annual property taxes, closing costs, the FHSA, the stress test, GDS/TDS ratios, CMHC insurance, offer subjects, strata fees, the site's neighbourhood guides, and typical rents. You can also read the <a href='#guide'>first-time buyer guide</a> or try the <a href='#calculator'>mortgage calculator</a> and <a href='#afford'>affordability estimator</a>.",
+      fa:"برای این پرسش هنوز پاسخ مشخصی ندارم. می‌توانم درباره‌ی مراحل خرید خانه در BC، حداقل پیش‌پرداخت، مالیات انتقال ملک و معافیت خریدار اولی، مالیات سالانه‌ی ملک، هزینه‌های پایانی، FHSA، تست استرس، نسبت‌های GDS/TDS، بیمه‌ی CMHC، شروط پیشنهاد، شارژ ساختمان، راهنماهای محله‌ی سایت و اجاره‌های معمول کمک کنم. همچنین می‌توانید <a href='#guide'>راهنمای خریدار اولی</a> را بخوانید یا <a href='#calculator'>ماشین‌حساب وام</a> و <a href='#afford'>برآوردگر توان خرید</a> را امتحان کنید.",
+      hi:"इस प्रश्न का मेरे पास अभी कोई विशिष्ट उत्तर नहीं है। मैं BC में घर खरीदने के चरणों, न्यूनतम डाउन पेमेंट, संपत्ति हस्तांतरण कर और पहली बार खरीदार छूट, वार्षिक संपत्ति कर, समापन लागतों, FHSA, स्ट्रेस टेस्ट, GDS/TDS अनुपात, CMHC बीमा, ऑफ़र की शर्तों, स्ट्राटा शुल्क, साइट की इलाका मार्गदर्शिकाओं और सामान्य किराए में मदद कर सकता हूँ। आप <a href='#guide'>पहली बार खरीदार मार्गदर्शिका</a> भी पढ़ सकते हैं या <a href='#calculator'>मॉर्गेज कैलकुलेटर</a> और <a href='#afford'>खरीद क्षमता अनुमानक</a> आज़मा सकते हैं।",
+      zh:"我暂时还没有这个问题的具体答案。我可以帮您了解在 BC 买房的步骤、最低首付、房产转让税与首次购房者减免、年度地税、过户费用、FHSA、压力测试、GDS/TDS 比率、CMHC 保险、报价条件、物业管理费、本站的社区指南和典型租金。您也可以阅读<a href='#guide'>首次购房指南</a>,或试试<a href='#calculator'>房贷计算器</a>和<a href='#afford'>负担能力估算器</a>。",
+      es: "Todavía no tengo una respuesta específica para eso. Puedo ayudarte con estos temas: los pasos para comprar una vivienda en BC, la cuota inicial mínima, el impuesto de transferencia de propiedad y la exención para compradores primerizos, los impuestos anuales a la propiedad, los costos de cierre, la FHSA, la prueba de estrés, las proporciones GDS/TDS, el seguro de la CMHC, los subjects de una oferta, las cuotas de strata, las guías de barrios de este sitio y las rentas habituales. También puedes leer la <a href='#guide'>guía para compradores primerizos</a> o probar la <a href='#calculator'>calculadora de hipoteca</a> y el <a href='#afford'>estimador de capacidad de compra</a>."
     };
     var KB = [
-      { id:"fthb",
+      { id:"fthb", rev:"2026-11-16",
         kw:{en:["first-time buyer exemption","first time buyer exemption","ptt exemption","tax exemption","exemption","rebate"],
             fa:["معافیت خریدار اولی","معافیت مالیاتی","معافیت"],
             hi:["पहली बार खरीदार छूट","कर छूट","छूट"],
@@ -165,7 +166,7 @@
              fa:"خریداران اولی واجد شرایط در BC برای خانه‌های تا ۸۳۵ هزار دلار، روی ۵۰۰ هزار دلار اول قیمت هیچ مالیات انتقال ملکی نمی‌پردازند — تا ۸٬۰۰۰ دلار صرفه‌جویی — و تا ۸۶۰ هزار دلار معافیت نسبی می‌گیرند (سقف‌ها طبق اکتبر ۲۰۲۶). باید شهروند یا مقیم دائم کانادا و ساکن BC باشید و هرگز در هیچ‌کجای دنیا مالک محل سکونت اصلی نبوده باشید. قواعد را استان تعیین می‌کند و در طول زمان تغییر می‌کنند — آستانه‌های جاری را در gov.bc.ca بررسی کنید. <a href='#guide'>یادداشت معافیت در راهنما را ببینید</a>",
              hi:"BC में पात्र पहली बार खरीदार $835,000 तक के घरों पर कीमत के पहले $500,000 पर कोई संपत्ति हस्तांतरण कर नहीं देते — $8,000 तक की बचत — और $860,000 तक आंशिक छूट मिलती है (सीमाएँ अक्टूबर 2026 के अनुसार)। आपको कनाडा का नागरिक या स्थायी निवासी, BC निवासी होना चाहिए और दुनिया में कहीं भी कभी मुख्य निवास का मालिक नहीं होना चाहिए। नियम प्रांत तय करता है और वे समय के साथ बदलते हैं — gov.bc.ca पर वर्तमान सीमाएँ जाँचें। <a href='#guide'>मार्गदर्शिका में छूट नोट देखें</a>",
              zh:"符合条件的 BC 首次购房者购买 $835,000 以内的房屋,首 $500,000 部分免缴房产转让税——最高可省 $8,000;$860,000 以内可获部分减免(门槛截至 2026 年 10 月)。您必须是加拿大公民或永久居民、BC 居民,且从未在世界任何地方拥有过主要居所。规则由省政府制定且会随时间变化——请到 gov.bc.ca 核实当前门槛。<a href='#guide'>查看指南中的减免说明</a>"}},
-      { id:"subjects",
+      { id:"subjects", rev:"2026-11-16",
         kw:{en:["subject","subjects","offer conditions","conditional offer"],
             fa:["شروط","شرط","سابجکت","subjects"],
             hi:["शर्तें","शर्त","subjects","सब्जेक्ट"],
@@ -174,7 +175,7 @@
              fa:"«شروط» (subjects) شرط‌هایی هستند که در پیشنهاد خرید در BC نوشته می‌شوند و باید تا مهلت مشخصی برآورده شوند تا معامله قطعی شود. رایج‌ترین‌ها: شرط تأمین مالی (تأیید کامل وام توسط وام‌دهنده)، شرط بازرسی (بازرسی خانه با نتیجه‌ی رضایت‌بخش) و برای ملک‌های دارای مدیریت ساختمان، شرط بررسی اسناد ساختمان — صورت‌جلسه‌ها، صورت‌های مالی، گزارش استهلاک و هزینه‌های ویژه (levy). اگر شرطی برآورده نشود، معمولاً می‌توانید از معامله کنار بکشید و ودیعه‌تان را پس بگیرید.",
              hi:"“Subjects” वे शर्तें हैं जो BC के ऑफ़र में लिखी जाती हैं और एक तय समय-सीमा तक पूरी होनी चाहिए, तभी सौदा पक्का होता है। आम शर्तें हैं: वित्तपोषण की शर्त (ऋणदाता मॉर्गेज को पूरी तरह मंज़ूरी दे), निरीक्षण की शर्त (ऐसा गृह निरीक्षण जिससे आप संतुष्ट हों), और स्ट्राटा प्रॉपर्टी के लिए स्ट्राटा दस्तावेज़ों की समीक्षा की शर्त — कार्यवृत्त, वित्तीय विवरण, मूल्यह्रास रिपोर्ट और कोई विशेष शुल्क। यदि कोई शर्त पूरी न हो, तो आप सामान्यतः सौदे से हट सकते हैं और जमा वापस पा सकते हैं।",
              zh:"“Subjects”(附带条件)是写在 BC 购房报价中的条件,必须在约定期限前满足,交易才能成为定局。常见的有:贷款条件(贷款机构完全批准房贷)、验房条件(验房结果令您满意),以及对于物业管理类房产,审阅物业文件——会议记录、财务报表、折旧报告和任何特别征费。如果某项条件无法满足,您通常可以退出交易并取回定金。"}},
-      { id:"completion",
+      { id:"completion", rev:"2026-11-16",
         kw:{en:["completion day","possession day","completion","possession","closing day","get the keys"],
             fa:["روز تکمیل","روز تحویل","تکمیل معامله","تحویل خانه","کلیدها"],
             hi:["समापन दिवस","कब्ज़े का दिन","समापन","कब्ज़ा","चाबियाँ"],
@@ -183,7 +184,7 @@
              fa:"روز تکمیل (completion) و روز تحویل (possession) در خرید خانه در BC دو تاریخ متفاوت‌اند. در روز تکمیل، وکیل یا دفتر اسناد رسمی شما انتقال را ثبت می‌کند و پول به فروشنده پرداخت می‌شود — از نظر قانونی مالک خانه می‌شوید. روز تحویل معمولاً یک یا دو روز بعد است؛ آن روز کلیدها را می‌گیرید و می‌توانید اسباب‌کشی کنید، پس برنامه‌ی اسباب‌کشی و خدمات را بر اساس روز تحویل بچینید، نه روز تکمیل.",
              hi:"BC की खरीद में समापन दिवस (completion day) और कब्ज़े का दिन (possession day) दो अलग तिथियाँ हैं। समापन दिवस पर आपका वकील या नोटरी हस्तांतरण पंजीकृत करता है और विक्रेता को भुगतान होता है — कानूनी रूप से घर आपका हो जाता है। कब्ज़े का दिन आमतौर पर एक-दो दिन बाद होता है: तब आपको चाबियाँ मिलती हैं और आप शिफ़्ट कर सकते हैं, इसलिए मूवर्स और सेवाओं की योजना कब्ज़े की तिथि के अनुसार बनाएँ, समापन की नहीं।",
              zh:"在 BC 购房中,成交日(completion day)和交房日(possession day)是两个不同的日期。成交日当天,您的律师或公证人登记过户并向卖方付款——您在法律上成为房主。交房日通常在一两天后:那天您拿到钥匙并可以搬入,因此搬家和开通服务应按交房日安排,而不是成交日。"}},
-      { id:"stress",
+      { id:"stress", rev:"2026-11-16",
         kw:{en:["stress test","qualifying rate","qualify"],
             fa:["تست استرس","استرس تست","نرخ احتسابی"],
             hi:["स्ट्रेस टेस्ट","योग्यता दर"],
@@ -192,7 +193,7 @@
              fa:"تست استرس وام یعنی باید با نرخی بالاتر از نرخ واقعی‌تان واجد شرایط شوید: نرخ قرارداد + ۲٪، یا نرخ معیار فدرال — هرکدام بیشتر باشد. وام‌دهنده بررسی می‌کند که با آن نرخ احتسابی هم از پس اقساط برمی‌آیید؛ این کار اگر تا زمان تمدید وام نرخ‌ها بالا برود، از شما محافظت می‌کند. <a href='#calculator'>قسط احتسابی را در ماشین‌حساب ببینید</a>",
              hi:"मॉर्गेज स्ट्रेस टेस्ट का मतलब है कि आपको उस दर से ऊँची दर पर योग्य होना होगा जो आप वास्तव में चुकाएँगे: आपकी अनुबंध दर + 2%, या संघीय बेंचमार्क दर — जो भी अधिक हो। ऋणदाता जाँचता है कि उस योग्यता दर पर भी आप किस्तें चुका सकते हैं, ताकि नवीनीकरण तक दरें बढ़ने पर आप सुरक्षित रहें। <a href='#calculator'>कैलकुलेटर में योग्यता किस्त देखें</a>",
              zh:"房贷压力测试意味着您必须按高于实际利率的水平通过审核:合同利率 + 2%,或联邦基准利率,以较高者为准。贷款机构会核查您在该审核利率下仍能负担月供,这样即使续约时利率上升,您也有缓冲。<a href='#calculator'>在计算器中查看审核月供</a>"}},
-      { id:"cmhc",
+      { id:"cmhc", rev:"2026-11-16",
         kw:{en:["cmhc","mortgage insurance","default insurance","insurance premium"],
             fa:["cmhc","بیمه وام","بیمه نکول","بیمه cmhc"],
             hi:["cmhc","मॉर्गेज बीमा","बीमा प्रीमियम"],
@@ -201,7 +202,7 @@
              fa:"وقتی پیش‌پرداخت کمتر از ۲۰٪ باشد، بیمه‌ی نکول وام (معمولاً از طریق CMHC) الزامی است. حق بیمه به میزان پیش‌پرداخت بستگی دارد — تقریباً ۴٫۰۰٪ وام با پیش‌پرداخت ۵ تا ۱۰٪، ۳٫۱۰٪ با ۱۰ تا ۱۵٪، و ۲٫۸۰٪ با ۱۵ تا ۲۰٪ — و به‌جای پرداخت نقدی، به مانده‌ی وام اضافه می‌شود. خانه‌های ۱٫۵ میلیون دلار و بیشتر نمی‌توانند وام بیمه‌شده بگیرند. <a href='#calculator'>ماشین‌حساب حق بیمه را برایتان برآورد می‌کند</a>",
              hi:"जब डाउन पेमेंट 20% से कम हो, तो मॉर्गेज चूक बीमा (आमतौर पर CMHC के माध्यम से) अनिवार्य है। प्रीमियम आपके डाउन पेमेंट पर निर्भर करता है — 5–10% डाउन पर मॉर्गेज का लगभग 4.00%, 10–15% डाउन पर 3.10%, और 15–20% डाउन पर 2.80% — और यह नकद चुकाने के बजाय आपके मॉर्गेज बकाये में जुड़ जाता है। $1.5M या अधिक के घरों को बीमित मॉर्गेज नहीं मिल सकता। <a href='#calculator'>कैलकुलेटर आपके लिए प्रीमियम का अनुमान लगाता है</a>",
              zh:"当首付低于 20% 时,必须购买房贷违约保险(通常通过 CMHC)。保费取决于首付比例——首付 5–10% 时约为贷款额的 4.00%,首付 10–15% 时为 3.10%,首付 15–20% 时为 2.80%——保费会计入贷款余额,无需现金支付。房价 $150 万或以上的房屋无法获得保险型房贷。<a href='#calculator'>计算器会为您估算保费</a>"}},
-      { id:"gds",
+      { id:"gds", rev:"2026-11-16",
         kw:{en:["gds","tds","debt service","how much can i afford","ratios"],
             fa:["gds","tds","نسبت بدهی","نسبت‌های بدهی","توان خرید"],
             hi:["gds","tds","ऋण सेवा","अनुपात","खरीद क्षमता"],
@@ -210,7 +211,7 @@
              fa:"وام‌دهنده‌های کانادایی برای تعیین بودجه‌ی شما از دو نسبت استفاده می‌کنند: GDS ‏(خدمات بدهی ناخالص) مجموع هزینه‌های مسکن — قسط وام، مالیات ملک، گرمایش و ۵۰٪ شارژ ساختمان — را حداکثر ۳۹٪ درآمد ناخالص نگه می‌دارد؛ و TDS ‏(مجموع خدمات بدهی) همه‌ی بدهی‌ها، از جمله اقساط خودرو و کارت اعتباری، را حداکثر ۴۴٪ نگه می‌دارد. هر نسبتی عدد کمتری بدهد، سقف قیمت خانه‌ی شما را تعیین می‌کند. <a href='#afford'>برآوردگر توان خرید را امتحان کنید</a>",
              hi:"कनाडाई ऋणदाता आपका बजट तय करने के लिए दो अनुपात इस्तेमाल करते हैं। GDS (Gross Debt Service) कुल आवास लागत — मॉर्गेज किस्त, संपत्ति कर, हीटिंग और स्ट्राटा शुल्क का 50% — को आपकी सकल आय के 39% तक रखता है। TDS (Total Debt Service) आपके सभी ऋणों, जिनमें कार किस्तें और क्रेडिट कार्ड शामिल हैं, को 44% तक रखता है। जो अनुपात कम आंकड़ा दे, वही आपके घर की अधिकतम कीमत तय करता है। <a href='#afford'>खरीद क्षमता अनुमानक आज़माएँ</a>",
              zh:"加拿大贷款机构用两个比率来确定您的预算:GDS(总债务偿还比率)将住房总成本——月供、地税、取暖费和 50% 的管理费——控制在总收入的 39% 以内;TDS(总债务比率)将您的全部债务(包括车贷和信用卡)控制在 44% 以内。两者中较低的数字决定您能买的最高房价。<a href='#afford'>试试负担能力估算器</a>"}},
-      { id:"down",
+      { id:"down", rev:"2026-11-16",
         kw:{en:["down payment","minimum down","how much down","downpayment"],
             fa:["پیش‌پرداخت","حداقل پیش‌پرداخت"],
             hi:["डाउन पेमेंट","न्यूनतम डाउन"],
@@ -219,7 +220,7 @@
              fa:"حداقل پیش‌پرداخت به قیمت بستگی دارد: برای خانه‌های زیر ۵۰۰ هزار دلار، ۵٪؛ برای ۵۰۰ هزار تا ۱٬۴۹۹٬۹۹۹ دلار، ۵٪ از ۵۰۰ هزار دلار اول به‌علاوه‌ی ۱۰٪ از بخش بالاتر؛ و برای ۱٫۵ میلیون دلار و بیشتر، ۲۰٪. با پیش‌پرداخت کمتر از ۲۰٪، بیمه‌ی CMHC الزامی است و حق بیمه به وام اضافه می‌شود. <a href='#guide'>جزئیات بیشتر در راهنما</a>",
              hi:"न्यूनतम डाउन पेमेंट कीमत पर निर्भर करता है: $500,000 से कम के घरों पर 5%; $500,000 से $1,499,999 तक — पहले $500,000 का 5% और उससे ऊपर के हिस्से का 10%; और $1,500,000 या अधिक पर 20%। 20% से कम डाउन पेमेंट पर CMHC मॉर्गेज बीमा अनिवार्य है और प्रीमियम आपके मॉर्गेज में जुड़ जाता है। <a href='#guide'>मार्गदर्शिका में और जानें</a>",
              zh:"最低首付取决于房价:$500,000 以下为 5%;$500,000 至 $1,499,999 的房屋,首 $500,000 按 5%、超出部分按 10% 计算;$1,500,000 及以上为 20%。首付低于 20% 时必须购买 CMHC 房贷保险,保费将计入贷款。<a href='#guide'>在指南中了解更多</a>"}},
-      { id:"ptt",
+      { id:"ptt", rev:"2026-11-16",
         kw:{en:["property transfer tax","transfer tax","ptt"],
             fa:["مالیات انتقال","مالیات نقل و انتقال"],
             hi:["हस्तांतरण कर","ट्रांसफर टैक्स"],
@@ -228,7 +229,7 @@
              fa:"مالیات انتقال ملک BC ‏(PTT) این‌طور حساب می‌شود: ۱٪ روی ۲۰۰ هزار دلار اول قیمت، ۲٪ روی بخش بین ۲۰۰ هزار تا ۲ میلیون دلار، و ۳٪ روی بخش بالاتر از ۲ میلیون دلار — و ممکن است ۲٪ اضافی روی بخش مسکونی بالای ۳ میلیون دلار اعمال شود. این مالیات در روز تکمیل، علاوه بر پیش‌پرداخت، پرداخت می‌شود. <a href='#guide'>بخش مالیات راهنما را ببینید</a>",
              hi:"BC का संपत्ति हस्तांतरण कर (PTT) इस प्रकार लगता है: कीमत के पहले $200,000 पर 1%, $200,000 से $2,000,000 के हिस्से पर 2%, और $2,000,000 से ऊपर के हिस्से पर 3% — $3,000,000 से ऊपर के आवासीय हिस्से पर अतिरिक्त 2% लग सकता है। यह समापन दिवस पर, डाउन पेमेंट के अतिरिक्त चुकाया जाता है। <a href='#guide'>मार्गदर्शिका का कर अनुभाग देखें</a>",
              zh:"BC 房产转让税(PTT)的计算方式为:房价首 $200,000 部分按 1%,$200,000 至 $2,000,000 部分按 2%,$2,000,000 以上部分按 3% 征收——$3,000,000 以上的住宅部分可能另加 2%。该税在成交日缴纳,在首付之外另行支付。<a href='#guide'>查看指南中的税费部分</a>"}},
-      { id:"closing",
+      { id:"closing", rev:"2026-11-16",
         kw:{en:["closing cost","closing fees","extra costs","costs of buying"],
             fa:["هزینه‌های پایانی","هزینه پایانی","هزینه بستن معامله"],
             hi:["समापन लागत","क्लोज़िंग कॉस्ट","अतिरिक्त लागत"],
@@ -237,7 +238,7 @@
              fa:"یک قاعده‌ی سرانگشتی این است که برای هزینه‌های پایانی، علاوه بر پیش‌پرداخت، حدود ۱٫۵ تا ۴٪ قیمت خرید را کنار بگذارید. این هزینه‌ها شامل مالیات انتقال ملک، هزینه‌ی وکیل یا دفتر اسناد رسمی، بازرسی و ارزیابی خانه، بیمه‌ی مالکیت و هزینه‌های ثبت، مالیات GST برای خانه‌های نوساز (خانه‌های دست‌دوم معاف‌اند) و تعدیل‌هایی مثل مالیات ملک و شارژ پیش‌پرداخت‌شده است. <a href='#guide'>فهرست کامل هزینه‌های پایانی</a>",
              hi:"एक सामान्य नियम है कि डाउन पेमेंट के अलावा समापन लागतों के लिए खरीद कीमत का लगभग 1.5%–4% बजट रखें। इनमें संपत्ति हस्तांतरण कर, वकील या नोटरी शुल्क, गृह निरीक्षण और मूल्यांकन, टाइटल बीमा और पंजीकरण शुल्क, नए बने घरों पर GST (पुनर्विक्रय घर छूट प्राप्त हैं), और पूर्व-चुकता संपत्ति कर व स्ट्राटा शुल्क जैसे समायोजन शामिल हैं। <a href='#guide'>समापन लागतों की पूरी सूची</a>",
              zh:"一个常见的经验法则是:除首付外,过户费用约为房价的 1.5%–4%。这些费用包括房产转让税、律师或公证费、验房和评估费、产权保险和登记费、新建房屋的 GST(二手房免征),以及预付地税和管理费等调整项。<a href='#guide'>过户费用完整清单</a>"}},
-      { id:"fhsa",
+      { id:"fhsa", rev:"2026-11-16",
         kw:{en:["fhsa","first home savings"],
             fa:["fhsa","حساب پس‌انداز خانه","پس‌انداز خانه اول"],
             hi:["fhsa","प्रथम गृह बचत"],
@@ -246,7 +247,7 @@
              fa:"حساب FHSA ‏(پس‌انداز خانه‌ی اول) به خریداران اولی کمک می‌کند: هر سال ۸٬۰۰۰ دلار فضای مشارکت می‌گیرید تا سقف مادام‌العمر ۴۰٬۰۰۰ دلار؛ مشارکت‌ها از مالیات کسر می‌شوند و برداشت برای خرید خانه‌ی اول واجد شرایط بدون مالیات است. حساب باید حداکثر ۱۵ سال پس از بازشدن بسته شود (یا تا پایان سالی که ۷۱ ساله می‌شوید، یا پایان سالِ پس از اولین برداشت واجد شرایط — هرکدام زودتر باشد). قواعد ممکن است تغییر کنند — آن‌ها را از CRA در canada.ca بررسی کنید. <a href='#fhsa'>ردیاب FHSA در همین صفحه</a>",
              hi:"FHSA (First Home Savings Account) पहली बार खरीदारों की मदद करता है: हर वर्ष आपको $8,000 की योगदान सीमा मिलती है, जीवनकाल सीमा $40,000 तक; योगदान कर-कटौती योग्य हैं और पात्र पहले घर के लिए निकासी कर-मुक्त है। खाता खोलने के 15 वर्षों के भीतर बंद करना होगा (या जिस वर्ष आप 71 के होते हैं उसके अंत तक, या आपकी पहली पात्र निकासी के अगले वर्ष के अंत तक — जो भी पहले हो)। नियम बदल सकते हैं — CRA से canada.ca पर जाँचें। <a href='#fhsa'>इस पेज पर FHSA ट्रैकर आज़माएँ</a>",
              zh:"FHSA(首次购房储蓄账户)帮助首次购房者存钱:每年获得 $8,000 供款额度,终身上限 $40,000;供款可抵税,用于购买符合条件的首套住房时取款免税。账户必须在开设后 15 年内关闭(或在您年满 71 岁那年的年底前,或在您首次符合条件取款的次年年底前关闭——以较早者为准)。规则可能变更——请到加拿大税务局网站 canada.ca 核实。<a href='#fhsa'>试试本页的 FHSA 追踪器</a>"}},
-      { id:"strata",
+      { id:"strata", rev:"2026-11-16",
         kw:{en:["strata"],
             fa:["شارژ ساختمان","شارژ","استراتا"],
             hi:["स्ट्राटा"],
@@ -255,7 +256,7 @@
              fa:"شارژ ساختمان (strata fee) مبلغ ماهانه‌ای است که مالکان آپارتمان و تاون‌هاوس به شرکت مدیریت ساختمان می‌پردازند برای هزینه‌های مشترک — بیمه‌ی ساختمان، نگهداری فضاهای مشترک، امکانات، و واریز به صندوق ذخیره‌ی احتیاطی برای تعمیرات اساسی آینده. مبلغ شارژ از ساختمانی به ساختمان دیگر بسیار فرق می‌کند و پیش از برداشتن شروط، در اسناد ساختمان بررسی می‌شود؛ وام‌دهنده‌ها هم ۵۰٪ شارژ را در نسبت GDS حساب می‌کنند. ساختمان‌های قدیمی‌تر یا تعمیرات بزرگ پیش‌رو می‌تواند یعنی هزینه‌های ویژه (levy) علاوه بر شارژ ماهانه.",
              hi:"स्ट्राटा शुल्क वह मासिक राशि है जो कॉन्डो और टाउनहाउस मालिक अपनी स्ट्राटा कॉर्पोरेशन को साझा खर्चों के लिए देते हैं — भवन बीमा, साझा क्षेत्रों का रखरखाव, सुविधाएँ, और भविष्य की बड़ी मरम्मत के लिए आकस्मिक आरक्षित निधि में योगदान। शुल्क हर भवन में बहुत अलग होता है और शर्तें हटाने से पहले स्ट्राटा दस्तावेज़ों में इसकी समीक्षा होती है; ऋणदाता GDS अनुपात में शुल्क का 50% भी गिनते हैं। पुरानी इमारतों या आगामी बड़ी मरम्मत का मतलब मासिक शुल्क के ऊपर विशेष शुल्क (levy) भी हो सकता है।",
              zh:"物业管理费(strata fee)是公寓和联排别墅业主每月向物业公司缴纳的共享费用——包括建筑保险、公共区域维护、配套设施,以及为未来重大维修设立的应急储备金。费用因建筑而异,在移除条件前应通过物业文件仔细核查;贷款机构还会在 GDS 比率中计入 50% 的管理费。较旧的建筑或即将进行的大修可能意味着月费之外还有特别征费。"}},
-      { id:"steps",
+      { id:"steps", rev:"2026-11-16",
         kw:{en:["steps to buy","buying steps","how to buy","buying process","where do i start"],
             fa:["مراحل خرید","مراحل","چطور بخرم","فرایند خرید","از کجا شروع"],
             hi:["खरीदने के चरण","चरण","कैसे खरीदें","खरीद प्रक्रिया","कहाँ से शुरू"],
@@ -264,7 +265,7 @@
              fa:"خرید خانه در BC هشت مرحله دارد: (۱) پیش‌تأیید وام، (۲) پس‌انداز پیش‌پرداخت و هزینه‌های پایانی، (۳) تعیین معیارهای جست‌وجو، (۴) بازدید و مقایسه‌ی خانه‌ها — و برای آپارتمان و تاون‌هاوس خواندن اسناد ساختمان، (۵) نوشتن پیشنهاد همراه با شروط، (۶) برداشتن شروط و پرداخت ودیعه، (۷) تکمیل خرید نزد وکیل یا دفتر اسناد رسمی، و (۸) روز تحویل که کلیدها را می‌گیرید. <a href='#guide'>راهنمای کامل را ببینید</a>",
              hi:"BC में घर खरीदने के आठ चरण हैं: (1) मॉर्गेज पूर्व-अनुमोदन, (2) डाउन पेमेंट और समापन लागत की बचत, (3) अपने खोज मानदंड तय करना, (4) घर देखना और तुलना करना — कॉन्डो और टाउनहाउस के लिए स्ट्राटा दस्तावेज़ पढ़ना, (5) शर्तों के साथ ऑफ़र लिखना, (6) शर्तें हटाना और जमा देना, (7) वकील या नोटरी के साथ खरीद पूरी करना, और (8) कब्ज़े का दिन, जब आपको चाबियाँ मिलती हैं। <a href='#guide'>पूरी मार्गदर्शिका देखें</a>",
              zh:"在 BC 买房共有八个步骤:(1)取得房贷预批,(2)存够首付和过户费用,(3)确定您的搜索标准,(4)看房并比较——公寓和联排别墅要阅读物业文件,(5)提交附带条件的报价,(6)移除条件并支付定金,(7)通过律师或公证人完成交易,(8)交房日拿到钥匙。<a href='#guide'>查看完整指南</a>"}},
-      { id:"listings",
+      { id:"listings", rev:"2026-11-16",
         kw:{en:["listing","listings","mls","homes for sale","houses for sale","properties"],
             fa:["فایل","آگهی","لیستینگ","خانه برای فروش"],
             hi:["लिस्टिंग","प्रॉपर्टी","बिक्री के लिए घर","mls"],
@@ -273,7 +274,7 @@
              fa:"تنها ملک‌هایی که می‌شناسم همان فایل‌های همین صفحه‌اند که از فید داده‌ی MLS® می‌آیند: {list} نمی‌توانم ملکی فراتر از این صفحه را جست‌وجو کنم — اما دستیار تطبیق در بالا می‌تواند همین فایل‌ها را بر اساس بودجه، تعداد خواب، شهر و نوع ملک پالایه کند. <a href='#listings'>مشاهده‌ی فایل‌ها</a>",
              hi:"मैं केवल इस पेज की लिस्टिंग जानता हूँ, जो MLS® डेटा फ़ीड से आती हैं: {list} मैं इस पेज से बाहर की कोई प्रॉपर्टी नहीं खोज सकता — लेकिन ऊपर का मैच सहायक इन लिस्टिंग को बजट, बेडरूम, शहर और प्रकार से फ़िल्टर कर सकता है। <a href='#listings'>लिस्टिंग देखें</a>",
              zh:"我只了解本页的房源,它们来自 MLS® 数据馈送:{list}我无法查询本页之外的房产——不过上方的匹配助手可以按预算、卧室数、城市和类型筛选这些房源。<a href='#listings'>查看房源</a>"}},
-      { id:"proptax",
+      { id:"proptax", rev:"2026-11-16",
         kw:{en:["property tax","municipal tax","mill rate","annual tax","taxes on a home","home owner grant"],
             fa:["مالیات ملک","مالیات سالانه","مالیات شهرداری","مالیات خانه","مالیات املاک"],
             hi:["संपत्ति कर","नगरपालिका कर","वार्षिक कर","प्रॉपर्टी टैक्स"],
@@ -282,7 +283,7 @@
              fa:"مالیات سالانه‌ی ملک، مالیات شهرداری سالانه‌ای است که برای خانه‌ای که مالکش هستید می‌پردازید — با مالیات انتقال ملک که یک‌بار هنگام خرید پرداخت می‌شود فرق دارد. این مالیات از ضرب ارزش ارزیابی‌شده‌ی خانه‌تان (که هر سال BC Assessment تعیین می‌کند) در نرخ مالیاتی (mill rate) شهرتان به دست می‌آید و کمک‌هزینه‌ی مالک خانه‌ی BC ‏(Home Owner Grant) می‌تواند آن را برای محل سکونت اصلی‌تان کمتر کند. نرخ واحدی برای مترو ونکوور وجود ندارد — بر اساس شهر، نوع ملک و ارزش ارزیابی فرق می‌کند — اما برای یک تصور کلی، بسیاری از خانه‌ها اینجا چند هزار دلار در سال مالیات می‌دهند؛ ماشین‌حساب‌های همین سایت ۴٬۲۰۰ دلار در سال را به‌عنوان مثال کاری استفاده می‌کنند. برگه‌های مالیات معمولاً اواخر بهار می‌رسند و پرداخت اوایل ژوئیه سررسید است. مبلغ دقیق را از شهرداری شهرتان و BC Assessment ‏(bcassessment.ca) بررسی کنید. <a href='#buyvsrent'>مالیات ملک را در ماشین‌حساب خرید یا اجاره ببینید</a>",
              hi:"वार्षिक संपत्ति कर वह सालाना नगरपालिका कर है जो आपके अपने घर पर लगता है — यह खरीदते समय एक बार दिए जाने वाले संपत्ति हस्तांतरण कर से अलग है। इसकी गणना आपके घर के मूल्यांकित मूल्य (जो हर वर्ष BC Assessment तय करता है) को आपके शहर की कर (mill) दर से गुणा करके होती है, और BC Home Owner Grant आपके मुख्य निवास पर इसे घटा सकता है। मेट्रो वैंकूवर के लिए कोई एक दर नहीं है — यह शहर, प्रॉपर्टी वर्ग और मूल्यांकित मूल्य के अनुसार बदलती है — लेकिन मोटे अनुमान के तौर पर, यहाँ कई घर सालाना कुछ हज़ार डॉलर कर देते हैं; इस साइट के कैलकुलेटर कार्य-उदाहरण के रूप में $4,200/वर्ष इस्तेमाल करते हैं। कर नोटिस आमतौर पर वसंत के अंत में आते हैं और भुगतान जुलाई की शुरुआत में देय होता है। अपनी सटीक राशि अपने शहर और BC Assessment (bcassessment.ca) से जाँचें। <a href='#buyvsrent'>खरीद बनाम किराया कैलकुलेटर में संपत्ति कर देखें</a>",
              zh:"年度地税是您对所拥有的房屋每年缴纳的市政税——与购房时一次性缴纳的房产转让税不同。它的计算方式是：房屋的评估价值（由 BC Assessment 每年评定）乘以您所在城市的税率（mill rate）；BC 业主补助金（Home Owner Grant）可为您主要居所减免部分税额。温哥华都会区没有统一税率——因城市、物业类别和评估价值而异——但作为大致参考，这里的许多房屋每年缴纳几千加元；本站的计算器以每年 $4,200 作为示例数字。税单通常在春末寄达，须在 7 月初之前缴纳。请向您所在城市和 BC Assessment（bcassessment.ca）核实确切金额。<a href='#buyvsrent'>在买房 vs 租房计算器中查看地税</a>"}},
-      { id:"rent",
+      { id:"rent", rev:"2026-11-16",
         kw:{en:["rental","renting","rents"," rent ","rent in ","rent for ","rent is ","lease","typical rent"],
             fa:["اجاره","اجاره‌بها","اجاره بها","کرایه"],
             hi:["किराया","किराए","रेंट"],
@@ -291,7 +292,7 @@
              fa:"اجاره‌ها در مترو ونکوور بر اساس شهر، متراژ و سن ساختمان خیلی فرق می‌کنند. برای یک تصور کلی از گزارش‌های اخیر بازار (۲۰۲۵–۲۰۲۶): آپارتمان یک‌خوابه معمولاً حدود ۲٬۱۰۰ تا ۲٬۸۰۰ دلار در ماه در ونکوور، ۱٬۹۰۰ تا ۲٬۴۰۰ دلار در برنابی، و ۱٬۷۰۰ تا ۲٬۲۰۰ دلار در ساری، کوکیتلام و پورت کوکیتلام اجاره می‌رود؛ دوخوابه‌ها معمولاً حدود ۷۰۰ تا ۹۰۰ دلار در ماه بیشترند. این‌ها فقط بازه‌های کلی برای جهت‌یابی‌اند — قیمت هیچ خانه‌ی مشخصی نیستند. برای ارقام جاری، آگهی‌های زنده‌ی اجاره و داده‌های بازار اجاره‌ی CMHC را ببینید. ماشین‌حساب خرید یا اجاره‌ی این سایت ۲٬۶۰۰ دلار در ماه را به‌عنوان اجاره‌ی مثال استفاده می‌کند: <a href='#buyvsrent'>اجاره را با خرید مقایسه کنید</a>. در BC افزایش سالانه‌ی اجاره برای اجاره‌نشینان فعلی هم سقف دارد — سقف افزایش برای ۲۰۲۶ برابر ۲٫۳٪ و برای ۲۰۲۷ برابر ۲٫۲٪ است؛ سقف جاری را در gov.bc.ca بررسی کنید.",
              hi:"मेट्रो वैंकूवर में किराए शहर, आकार और इमारत की उम्र के अनुसार बहुत बदलते हैं। हालिया बाज़ार रिपोर्टिंग (2025–2026) के मोटे अनुमान के तौर पर: 1-बेडरूम अपार्टमेंट का किराया अक्सर वैंकूवर में लगभग $2,100–$2,800/माह, बर्नाबी में $1,900–$2,400, और सरी, कोक्विटलम व पोर्ट कोक्विटलम में $1,700–$2,200 रहता है; 2-बेडरूम आमतौर पर लगभग $700–$900/माह अधिक होता है। ये केवल दिशा-निर्देश के लिए सामान्य सीमाएँ हैं — किसी विशिष्ट घर के भाव नहीं। वर्तमान आंकड़ों के लिए लाइव रेंटल लिस्टिंग और CMHC के रेंटल बाज़ार डेटा देखें। इस साइट का खरीद बनाम किराया कैलकुलेटर $2,600/माह को उदाहरण किराए के रूप में इस्तेमाल करता है: <a href='#buyvsrent'>किराए की तुलना खरीद से करें</a>। BC मौजूदा किरायेदारियों पर वार्षिक किराया वृद्धि की सीमा भी तय करता है — 2026 की सीमा 2.3% और 2027 की 2.2% है; वर्तमान सीमा gov.bc.ca पर जाँचें।",
              zh:"温哥华都会区的租金因城市、面积和楼龄差异很大。根据近期市场报道（2025–2026）的大致参考：一卧公寓在温哥华的月租通常约为 $2,100–$2,800，在本拿比约为 $1,900–$2,400，在素里、高贵林和高贵林港约为 $1,700–$2,200；两卧通常每月多出约 $700–$900。这些只是供参考的一般范围，并非任何具体房屋的报价。最新数字请查看实时租房房源和 CMHC 的租赁市场数据。本站的买房 vs 租房计算器以每月 $2,600 作为示例租金：<a href='#buyvsrent'>比较租房与买房</a>。BC 还对现有租约的年涨幅设上限——2026 年上限为 2.3%,2027 年为 2.2%；请到 gov.bc.ca 核实当前上限。"}},
-      { id:"areas",
+      { id:"areas", rev:"2026-11-16",
         kw:{en:["neighbourhood","neighborhood","neighbourhoods","neighborhoods","which area","where to live","best area","areas"],
             fa:["محله","محله‌ها","کدام شهر","کجا زندگی","منطقه","محله ها"],
             hi:["इलाका","इलाके","मोहल्ला","कहाँ रहें","क्षेत्र"],
@@ -300,7 +301,7 @@
              fa:"مرکز دانش این سایت راهنمای ساده‌زبانی برای شش منطقه‌ی مترو ونکوور دارد. برنابی — متروتاون: زندگی بلندمرتبه و حمل‌ونقل‌محور دور یک مرکز خرید بزرگ و ایستگاه اسکای‌ترین. کوکیتلام — مرکز کوکیتلام: مرکزی خانوادگی با هر دو گزینه‌ی اسکای‌ترین و قطار West Coast Express، کنار دریاچه‌ی لافارژ. ساری — مرکز شهر ساری: مرکز شهری جوان و پررشد با دو ایستگاه اسکای‌ترین و یک پردیس دانشگاهی. ونکوور — مرکز شهر: هسته‌ی شهری. ریچموند: شهری مسطح و دارای حمل‌ونقل عمومی در جنوب ونکوور. پورت کوکیتلام: حس‌وحال شهری کوچک‌تر با قطار West Coast Express. هر راهنما شخصیت منطقه، رفت‌وآمد، نوع خانه‌ها و اینکه برای چه کسانی مناسب است را پوشش می‌دهد. <a href='#knowledge'>راهنماهای محله را بخوانید</a>",
              hi:"इस साइट के ज्ञान केंद्र में मेट्रो वैंकूवर के छह इलाकों की सरल-भाषा मार्गदर्शिकाएँ हैं। बर्नाबी — मेट्रोटाउन: एक बड़े शॉपिंग सेंटर और स्काईट्रेन हब के आसपास ऊँची इमारतों वाली, ट्रांज़िट-प्रथम जीवनशैली। कोक्विटलम — कोक्विटलम सेंटर: लाफ़ार्ज झील के पास, स्काईट्रेन और West Coast Express दोनों वाला परिवार-गति वाला केंद्र। सरी — सरी सिटी सेंटर: दो स्काईट्रेन स्टेशनों और विश्वविद्यालय परिसर वाला युवा, तेज़ी से बढ़ता डाउनटाउन। वैंकूवर — डाउनटाउन: शहरी केंद्र। रिचमंड: वैंकूवर के दक्षिण में समतल, ट्रांज़िट-सेवित शहर। पोर्ट कोक्विटलम: West Coast Express सेवा वाला छोटे-शहर जैसा माहौल। हर मार्गदर्शिका इलाके का स्वरूप, आवाजाही, घरों के प्रकार और यह किसके लिए उपयुक्त है, बताती है। <a href='#knowledge'>इलाका मार्गदर्शिकाएँ पढ़ें</a>",
              zh:"本站的知识中心有六个温哥华都会区社区的通俗指南。本拿比——Metrotown：围绕大型购物中心和天车枢纽的高层、公交优先生活。高贵林——Coquitlam Centre：节奏偏家庭的中心，同时有天车和 West Coast Express 通勤火车，毗邻 Lafarge 湖。素里——Surrey City Centre：年轻、快速成长的市中心，有两个天车站和一所大学校园。温哥华——市中心：城市核心区。列治文：位于温哥华以南、地势平坦、公交便利的城市。高贵林港：小城市氛围，有 West Coast Express 服务。每个指南都介绍该社区的特点、交通、房屋类型和适合人群。<a href='#knowledge'>阅读社区指南</a>"}},
-      { id:"market",
+      { id:"market", rev:"2026-11-16",
         kw:{en:["housing market","real estate market","home prices","house prices","market conditions","how is the market","property prices"],
             fa:["بازار مسکن","بازار املاک","قیمت خانه‌ها","قیمت مسکن","بازار ملک"],
             hi:["आवास बाज़ार","रियल एस्टेट बाज़ार","घरों की कीमतें","प्रॉपर्टी की कीमतें"],
@@ -493,11 +494,11 @@ Object.assign(I18N.hi.cities, {"North Vancouver":"नॉर्थ वैंक�
 Object.assign(I18N.zh.cities, {"North Vancouver":"北温哥华","West Vancouver":"西温哥华","Langley":"兰里","Abbotsford":"阿伯茨福德","Delta":"三角洲","New Westminster":"新西敏","Port Moody":"满地宝","Maple Ridge":"枫树岭","Pitt Meadows":"匹特草原","White Rock":"白石","Mission":"米逊","Chilliwack":"奇利瓦克"});
 Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouver":"West Vancouver","Langley":"Langley","Abbotsford":"Abbotsford","Delta":"Delta","New Westminster":"New Westminster","Port Moody":"Port Moody","Maple Ridge":"Maple Ridge","Pitt Meadows":"Pitt Meadows","White Rock":"White Rock","Mission":"Mission","Chilliwack":"Chilliwack"});
     var CHIPS = [
-      {q:{en:"What are the steps to buy a home in BC?", fa:"مراحل خرید خانه در BC چیست؟", hi:"BC में घर खरीदने के चरण क्या हैं?", zh:"在 BC 买房有哪些步骤？"}},
-      {q:{en:"How much down payment do I need?", fa:"چقدر پیش‌پرداخت نیاز دارم؟", hi:"मुझे कितना डाउन पेमेंट चाहिए?", zh:"我需要多少首付？"}},
-      {q:{en:"How is the property transfer tax calculated?", fa:"مالیات انتقال ملک چگونه محاسبه می‌شود؟", hi:"संपत्ति हस्तांतरण कर कैसे लगाया जाता है?", zh:"房产转让税如何计算？"}},
-      {q:{en:"What is the mortgage stress test?", fa:"تست استرس وام چیست؟", hi:"मॉर्गेज स्ट्रेस टेस्ट क्या है?", zh:"什么是房贷压力测试？"}},
-      {q:{en:"What do subjects mean in an offer?", fa:"«شروط» در یک پیشنهاد خرید یعنی چه؟", hi:"ऑफ़र में शर्तों (subjects) का क्या मतलब होता है?", zh:"报价中的“附带条件”是什么意思？"}}
+      {q:{en:"What are the steps to buy a home in BC?", fa:"مراحل خرید خانه در BC چیست؟", hi:"BC में घर खरीदने के चरण क्या हैं?", zh:"在 BC 买房有哪些步骤？", es:"¿Cuáles son los pasos para comprar una vivienda en BC?"}},
+      {q:{en:"How much down payment do I need?", fa:"چقدر پیش‌پرداخت نیاز دارم؟", hi:"मुझे कितना डाउन पेमेंट चाहिए?", zh:"我需要多少首付？", es:"¿Cuánta cuota inicial necesito?"}},
+      {q:{en:"How is the property transfer tax calculated?", fa:"مالیات انتقال ملک چگونه محاسبه می‌شود؟", hi:"संपत्ति हस्तांतरण कर कैसे लगाया जाता है?", zh:"房产转让税如何计算？", es:"¿Cómo se calcula el impuesto de transferencia de propiedad?"}},
+      {q:{en:"What is the mortgage stress test?", fa:"تست استرس وام چیست؟", hi:"मॉर्गेज स्ट्रेस टेस्ट क्या है?", zh:"什么是房贷压力测试？", es:"¿Qué es la prueba de estrés hipotecario?"}},
+      {q:{en:"What do subjects mean in an offer?", fa:"«شروط» در یک پیشنهاد خرید یعنی چه؟", hi:"ऑफ़र में शर्तों (subjects) का क्या मतलब होता है?", zh:"报价中的“附带条件”是什么意思？", es:"¿Qué significan los subjects en una oferta?"}}
     ];
     var welcomeEls = [];
     function postMsg(cls, html){
@@ -518,9 +519,21 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     function listingsSummary(){
       return LISTINGS.map(function(l){ return "MLS® " + esc(l.mls) + " — " + esc(T()["type_" + l.type] || l.type) + ", " + esc(T().cities[l.city] || l.city) + ", " + fmt(l.price); }).join("; ") + ".";
     }
+    function asLinks(html){
+      /* F-057 (SB-4): KB and fallback answers carry anchors (#guide,
+         #calculator, …) that only exist as sections of the assistant
+         page; rewrite them through PAGE_OF — the same per-page,
+         per-language map the search results already use — so they
+         land on the right page from anywhere on the site. Anchors
+         PAGE_OF does not know are left untouched. */
+      return String(html).replace(/href=(['"])#([a-z][a-z0-9-]*)\1/g, function(m, q, id){
+        var t = PAGE_OF[id];
+        return t ? "href=\"" + t + "\"" : m;
+      });
+    }
     function kbAnswer(entry){
       var a = entry.ans[lang] || entry.ans.en;
-      return a.split("{list}").join(listingsSummary());
+      return asLinks(a.split("{list}").join(listingsSummary()));
     }
     /* --- listing search: understand city / type / budget / bedrooms in the question --- */
     function normDigits(s){
@@ -551,6 +564,28 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     var LIST_INTENT = ["listing", "for sale", "buy", "purchase", "فایل", "آگهی", "برای فروش", "खरीद", "बिक्री", "लिस्टिंग", "房源", "在售", "出售"];
     var FA_NUM = {"یک":1, "دو":2, "سه":3, "چهار":4, "پنج":5};
     var ZH_NUM = {"一":1, "二":2, "两":2, "三":3, "四":4, "五":5};
+    /* F-074 (SB-4) helpers: budget keywords legitimise a bare figure
+       as a cap; savings/income words in the figure's own clause
+       disqualify it. Latin words match on word boundaries. */
+    var BUDGET_KW_LATIN = ["under", "below", "max", "maximum", "up to", "less than", "budget", "around", "about", "approx", "approximately", "within", "menos de", "hasta", "máximo", "presupuesto", "alrededor"];
+    var BUDGET_KW_SUB = ["زیر", "کمتر از", "حداکثر", "بودجه", "حدود", "से कम", "बजट", "अधिकतम", "以内", "以下", "不超过", "预算", "左右"];
+    var SAVINGS_KW = ["saved", "saving", "savings", "save up", "deposit", "down payment", "salary", "income", "earn", "earned", "earnings", "پس‌انداز", "پس انداز", "ذخیره", "درآمد", "حقوق", "बचत", "बचाया", "बचाए", "वेतन", "आय", "存款", "存了", "攒", "积蓄", "工资", "收入", "ahorrado", "ahorrados", "ahorros", "ahorro", "sueldo", "ingresos", "ingreso", "tengo"];
+    function kwHit(msg, latin, sub){
+      for (var i = 0; i < sub.length; i++) if (msg.indexOf(sub[i]) !== -1) return true;
+      for (var j = 0; j < latin.length; j++){
+        if (new RegExp("(^|[^a-záéíóúñ])" + latin[j].replace(/ /g, "\\s") + "([^a-záéíóúñ]|$)").test(msg)) return true;
+      }
+      return false;
+    }
+    function budgetKw(msg){ return kwHit(msg, BUDGET_KW_LATIN, BUDGET_KW_SUB); }
+    function savingsCtx(msg, idx, len){
+      var pre = msg.slice(0, idx), post = msg.slice(idx + len);
+      var pb = Math.max(pre.lastIndexOf(","), pre.lastIndexOf(";"), pre.lastIndexOf("،"), pre.lastIndexOf("؛"), pre.lastIndexOf("."), pre.lastIndexOf("，"), pre.lastIndexOf("。"), pre.lastIndexOf("；"), pre.lastIndexOf("、"), pre.lastIndexOf("！"), pre.lastIndexOf("？"), pre.lastIndexOf("．"));
+      var pa = post.search(/[,.;،؛，；。、！？．]/);
+      var clause = msg.slice(pb + 1, idx + len + (pa === -1 ? post.length : pa));
+      for (var i = 0; i < SAVINGS_KW.length; i++) if (clause.indexOf(SAVINGS_KW[i]) !== -1) return true;
+      return false;
+    }
     function parseListingQuery(text){
       var msg = normText(normDigits(text));
       var crit = {};
@@ -571,9 +606,8 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (!crit.beds){
         for (var zw in ZH_NUM){ if (msg.indexOf(zw + "卧") !== -1){ crit.beds = ZH_NUM[zw]; break; } }
       }
-      var pm = msg.match(/(?:under|below|max|up to|less than|زیر|کمتر از|以内|以下|不超过|से कम)\s*\$?\s*([\d][\d.,]*)\s*(k|m)?/)
-            || msg.match(/\$\s*([\d][\d.,]*)\s*(k|m)?/)
-            || msg.match(/([\d][\d.,]*)\s*(k|m)\b/);
+      var pmA = msg.match(/(?:under|below|max|up to|less than|زیر|کمتر از|以内|以下|不超过|से कम)\s*\$?\s*([\d][\d.,]*)\s*(k|m)?/);
+      var pm = pmA || msg.match(/\$\s*([\d][\d.,]*)\s*(k|m)?/) || msg.match(/([\d][\d.,]*)\s*(k|m)\b/);
       if (pm){
         var val = parseFloat(pm[1].replace(/,/g, ""));
         var after = msg.slice(pm.index + pm[0].length, pm.index + pm[0].length + 8);
@@ -586,6 +620,13 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           else if (/^\s*लाख/.test(after)) val = val * 100000;
           else if (/^\s*هزار/.test(after)) val = val * 1000;
           else if (pm[0].indexOf("$") === -1 && val < 10000) val = null; /* a bare small number is not a budget */
+          /* F-074 (SB-4): a figure mentioned as savings or income
+             ("I have $20000 saved", "saved up to 20000") is not a
+             budget cap, and neither is a bare $/k figure with no
+             budget keyword anywhere in the message. A cap needs the
+             keyword-governed phrase above or a budget keyword. */
+          if (val !== null && savingsCtx(msg, pm.index, pm[0].length)) val = null;
+          if (val !== null && !pmA && !budgetKw(msg)) val = null;
           if (val !== null) crit.max = val;
         }
       }
@@ -664,7 +705,74 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       found = found.slice(0, 4);
       return esc(T().sr_intro) + "<br>" + found.map(function(f){ return "• " + f.html; }).join("<br>");
     }
+    /* F-072 (SB-4): a rent question carrying a city and a bedroom
+       count otherwise parses as a purchase search and returns
+       for-sale listings. Route rent intent to the KB rent entry
+       BEFORE the listings matcher — unless the message carries an
+       AFFIRMATIVE buy intent ("I rent now and want to buy…"), in
+       which case the purchase reading wins. A NEGATED buy word is
+       not buy intent ("I don't want to buy, I want to rent…",
+       "not buying", "no quiero comprar"): a Latin buy word counts
+       as affirmative only when no negation stands within the three
+       words before it in its clause; a substring-matched buy word
+       only when its clause carries no negation marker. Detection
+       keywords only, all five languages; Latin words match on word
+       boundaries so "parents", "currently" or "please" never trip
+       the guard. Persian کرایه means both "rent" and "fare": it
+       counts as a rent hit only when no vehicle/fare word scopes
+       it to transport (a taxi fare is not a home-rent question). */
+    var RENT_KW_LATIN = ["rent", "rental", "rentals", "renting", "rents", "lease", "leasing", "leased", "renta", "rentas", "rentar", "alquiler", "alquilar", "alquilo", "arrendamiento"];
+    var RENT_KW_SUB = ["اجاره", "اجاره‌بها", "اجاره بها", "किराया", "किराए", "किराये", "租金", "租房", "房租", "租房子", "出租"];
+    var BUY_KW_LATIN = ["buy", "buying", "purchase", "purchasing", "comprar", "compra"];
+    var BUY_KW_SUB = ["خرید", "खरीद", "买房", "购买"];
+    var NEG_WORDS = ["not", "no", "never", "nor", "cannot", "without", "nunca", "sin", "dont", "doesnt", "didnt", "isnt", "arent", "wasnt", "werent", "cant", "wont", "wouldnt", "shouldnt", "couldnt", "havent", "hasnt", "hadnt"];
+    var NEG_SUB = ["نمی", "نیست", "नहीं", "不", "没"];
+    var FARE_CTX = ["تاکسی", "اسنپ", "اتومبیل", "دوچرخه", "قایق", "کامیون", "کرایه ماشین", "کرایه خودرو", "کرایه اتوبوس"];
+    function clauseStart(msg, pos){
+      var pre = msg.slice(0, pos);
+      return Math.max(pre.lastIndexOf(","), pre.lastIndexOf(";"), pre.lastIndexOf("،"), pre.lastIndexOf("؛"), pre.lastIndexOf("."), pre.lastIndexOf("，"), pre.lastIndexOf("。"), pre.lastIndexOf("；"), pre.lastIndexOf("、"), pre.lastIndexOf("！"), pre.lastIndexOf("？"), pre.lastIndexOf("．")) + 1;
+    }
+    function rentKwHit(msg){
+      if (kwHit(msg, RENT_KW_LATIN, [])) return true;
+      for (var i = 0; i < RENT_KW_SUB.length; i++) if (msg.indexOf(RENT_KW_SUB[i]) !== -1) return true;
+      if (msg.indexOf("کرایه") !== -1){
+        for (var j = 0; j < FARE_CTX.length; j++) if (msg.indexOf(FARE_CTX[j]) !== -1) return false;
+        return true;
+      }
+      return false;
+    }
+    function buyAffirmative(msg){
+      for (var j = 0; j < BUY_KW_LATIN.length; j++){
+        var rx = new RegExp("(^|[^a-záéíóúñ])" + BUY_KW_LATIN[j] + "([^a-záéíóúñ]|$)", "g");
+        var m;
+        while ((m = rx.exec(msg)) !== null){
+          var start = m.index + m[1].length;
+          var pre = msg.slice(clauseStart(msg, start), start);
+          var words = pre.split(/\s+/).filter(Boolean).slice(-3);
+          var neg = false;
+          for (var k = 0; k < words.length; k++) if (NEG_WORDS.indexOf(words[k]) !== -1 || /n't$/.test(words[k])) neg = true;
+          if (!neg) return true;
+        }
+      }
+      for (var i = 0; i < BUY_KW_SUB.length; i++){
+        var idx = msg.indexOf(BUY_KW_SUB[i]);
+        if (idx === -1) continue;
+        var cs = clauseStart(msg, idx);
+        var ce = msg.slice(idx).search(/[,.;،؛，；。、！？．]/);
+        var clause = msg.slice(cs, ce === -1 ? msg.length : idx + ce);
+        var negd = false;
+        for (var n = 0; n < NEG_SUB.length; n++) if (clause.indexOf(NEG_SUB[n]) !== -1) negd = true;
+        if (!negd) return true;
+      }
+      return false;
+    }
+    function rentIntent(msg){
+      return rentKwHit(msg) && !buyAffirmative(msg);
+    }
     function findAnswer(text){
+      if (rentIntent(normText(normDigits(text)))){
+        for (var ri = 0; ri < KB.length; ri++){ if (KB[ri].id === "rent") return kbAnswer(KB[ri]); }
+      }
       var crit = parseListingQuery(text);
       if (crit) return searchListings(crit);
       var msg = normText(normDigits(text));
@@ -759,10 +867,10 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
     /* Pure greetings / thanks get a warm, human reply locally (the old brain
        answered "سلام" with a canned paragraph). A greeting attached to a real
        question is not treated as social — the question itself is answered. */
-    var GREET_WORDS = ["hello", "hey", "hi", "salam", "سلام علیکم", "سلام", "درود", "وقت بخیر", "صبح بخیر", "عصر بخیر", "روز بخیر", "नमस्ते", "नमस्कार", "你好", "您好", "早上好", "早安"];
-    var THANKS_WORDS = ["thank you", "thanks", "thank", "مرسی", "ممنون", "تشکر", "سپاس", "धन्यवाद", "शुक्रिया", "谢谢", "感谢"];
+    var GREET_WORDS = ["hello", "hey", "hi", "salam", "سلام علیکم", "سلام", "درود", "وقت بخیر", "صبح بخیر", "عصر بخیر", "روز بخیر", "नमस्ते", "नमस्कार", "你好", "您好", "早上好", "早安", "hola", "buenas tardes", "buenas noches", "buenos días", "buenas"];
+    var THANKS_WORDS = ["thank you", "thanks", "thank", "مرسی", "ممنون", "تشکر", "سپاس", "धन्यवाद", "शुक्रिया", "谢谢", "感谢", "gracias"];
     function socialKind(text){
-      var m = " " + text.toLowerCase().replace(/[!?؟.,،؛:。]/g, " ") + " ";
+      var m = " " + text.toLowerCase().replace(/[!?؟¡¿.,،؛:。]/g, " ") + " ";
       function hit(words){ for (var i = 0; i < words.length; i++){ var w = words[i]; if (/^[\x00-\x7F ]+$/.test(w)){ if (m.indexOf(" " + w + " ") !== -1) return true; } else if (m.indexOf(w) !== -1) return true; } return false; }
       var g = hit(GREET_WORDS), th = hit(THANKS_WORDS);
       if (!g && !th) return null;
@@ -882,7 +990,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
       if (chatBusy){
         var fb0 = findAnswer(text);
         if (fb0){ postMsg("bot", fb0); pushHistory("assistant", plainOf(fb0)); }
-        else { var eh0 = T().ai_err ? esc(T().ai_err) : (AS_FALLBACK[lang] || AS_FALLBACK.en); postMsg("bot", eh0); pushHistory("assistant", plainOf(eh0)); }
+        else { var eh0 = T().ai_err ? esc(T().ai_err) : asLinks(AS_FALLBACK[lang] || AS_FALLBACK.en); postMsg("bot", eh0); pushHistory("assistant", plainOf(eh0)); }
         return;
       }
       chatBusy = true;
@@ -902,7 +1010,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
             postMsg("bot", fb);
             pushHistory("assistant", plainOf(fb));
           } else {
-            var errHtml = T().ai_err ? esc(T().ai_err) : (AS_FALLBACK[lang] || AS_FALLBACK.en);
+            var errHtml = T().ai_err ? esc(T().ai_err) : asLinks(AS_FALLBACK[lang] || AS_FALLBACK.en);
             postMsg("bot", errHtml);
             pushHistory("assistant", plainOf(errHtml));
           }
