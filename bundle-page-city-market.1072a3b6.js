@@ -122,7 +122,7 @@
   "colMonth": "महीना"
  },
  "zh": {
-  "regionNote": "局方区域数据——{board}",
+  "regionNote": "地产局区域数据——{board}",
   "asOf": "截至{month}的统计",
   "sourceLine": "来源：{source}",
   "tBenchmark": "基准价格",
@@ -143,7 +143,7 @@
   "typeApartment": "公寓",
   "trendMom": "基准价格与上月对比",
   "trendYoy": "基准价格与去年同月对比",
-  "conditionsLabel": "局方描述",
+  "conditionsLabel": "地产局描述",
   "loadFail": "最新统计暂时无法加载。请检查您的网络连接并重新加载——本页不会显示过期或编造的数字。",
   "errForm": "请填写您的姓名以及电子邮件地址或电话号码。",
   "errSend": "提交未成功——请检查您的网络连接后重试。",
