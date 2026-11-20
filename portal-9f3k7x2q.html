@@ -922,6 +922,11 @@
         <button class="small" id="protProbeBtn">Probe legs</button>
         <div id="protProbeOut" style="margin-top:10px"><div class="empty">Not run yet — the verdicts appear here.</div></div>
       </div>
+      <div class="card" style="margin-top:12px"><h2>Brain door provisioning</h2>
+        <div class="mut" style="margin-bottom:8px">Per-consumer secrets for the Brain Service door (POST /api/brain/call) — the credential each out-of-worker Brain consumer presents instead of any provider key. Each secret is minted by the worker and shown exactly once, here, when it is provisioned or rotated; it is never stored in this page and no screen can display it again. Place it into that consumer's runner environment right away.</div>
+        <div id="protDoorOut"><div class="empty">Loading…</div></div>
+        <div id="protDoorSecret"></div>
+      </div>
       <div class="card" style="margin-top:12px"><h2>Standing approvals</h2>
         <div class="mut" style="margin-bottom:8px">This registry is the platform's control record of your standing approvals for the receptionist's automatic messages. Toggling an entry updates this record only — the receptionist is a separate system, and its behaviour changes only when its own configuration changes.</div>
         <div id="protStanding"><div class="empty">Loading…</div></div>
@@ -5265,6 +5270,7 @@
   // comes from the one aggregator GET /api/admin/eb/protection.
   function protEta(h){ if (h === null || h === undefined) return "—"; if (h === 0) return "now"; if (h < 1) return Math.round(h * 60) + "m"; if (h < 48) return (Math.round(h * 10) / 10) + "h"; return (Math.round(h / 24 * 10) / 10) + "d"; }
   function loadProtection(){
+    ebDoorLoad();
     api(API_URL, "/api/admin/eb/protection", { fresh: true }).then(function(d){
       var q = $("protQuota"), s = $("protStanding"), b = $("protBlocks");
       if (!q || !s || !b) return;
@@ -5358,6 +5364,80 @@
     });
   }
   $("protProbeBtn").addEventListener("click", function(){ ebProbeLegs(); });
+
+  // Pack PORTAL-BRAINDOOR (2026-11-20): Brain door provisioning —
+  // per-consumer secrets for the Brain Service door (POST
+  // /api/brain/call) are minted worker-side by POST
+  // /api/admin/eb/braindoor/provision and returned exactly once, in
+  // that response, over this owner session; GET
+  // /api/admin/eb/braindoor/status reports booleans + mint
+  // timestamps only. The minted value is rendered once, in a
+  // read-only field, from a function-local variable: it is never
+  // stored in this page (no local/session storage; the service
+  // worker never caches POSTs), never re-sent, and every re-render
+  // of this card clears it. Rotation sends rotate:true only after
+  // a native confirm — the old secret dies immediately. Loaded via
+  // loadProtection() above, like Quota Weather.
+  var EB_DOOR_ORDER = ["failover-triage", "lead-drafts", "nightly-regression", "qc-first-pass"];
+  var EB_DOOR_NAMES = { "failover-triage": "Failover triage", "lead-drafts": "Lead drafts", "nightly-regression": "Nightly regression", "qc-first-pass": "QC first pass" };
+  var ebDoorBusy = false;
+  function ebDoorClearSecret(){ var s = $("protDoorSecret"); if (s) s.innerHTML = ""; }
+  function ebDoorRender(d){
+    var out = $("protDoorOut");
+    if (!out) return;
+    ebDoorClearSecret();
+    if (!d || !d.ok || !d.consumers || typeof d.consumers !== "object") { out.innerHTML = '<div class="empty">Could not load Brain door status — nothing is shown from an earlier load. Use Refresh to try again.</div>'; return; }
+    out.innerHTML = EB_DOOR_ORDER.map(function(id){
+      var e = d.consumers[id] || {};
+      var prov = !!e.provisioned;
+      var col = prov ? "#22c55e" : "#8a8378";
+      var mt = (typeof e.mintedAt === "string" && e.mintedAt) ? (fmtDate(e.mintedAt) || e.mintedAt) : "";
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="width:11px;height:11px;border-radius:50%;background:' + col + ';flex:none"></span><div><b>' + esc(EB_DOOR_NAMES[id] || id) + '</b> <span class="mut">(' + esc(id) + ')</span> <span style="text-transform:uppercase;font-size:11px;color:' + col + '">' + (prov ? "Provisioned" : "Not provisioned") + '</span>' + (mt ? '<div class="mut">Minted ' + esc(mt) + '</div>' : "") + '</div><button class="small" style="margin-left:auto" data-door="' + esc(id) + '" data-provisioned="' + (prov ? "1" : "0") + '"' + (ebDoorBusy ? " disabled" : "") + '>' + (prov ? "Rotate" : "Provision") + '</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(out.querySelectorAll("[data-door]"), function(btn){
+      btn.addEventListener("click", function(){ ebDoorProvision(btn.getAttribute("data-door"), btn.getAttribute("data-provisioned") === "1", btn); });
+    });
+  }
+  function ebDoorLoad(){
+    var out = $("protDoorOut");
+    if (!out) return Promise.resolve(false);
+    ebDoorClearSecret();
+    out.innerHTML = '<div class="empty">Loading…</div>';
+    return api(API_URL, "/api/admin/eb/braindoor/status", { fresh: true, timeoutMs: 30000 }).then(function(d){
+      if (!d || !d.ok || !d.consumers || typeof d.consumers !== "object") { ebDoorRender(null); return false; }
+      ebDoorRender(d);
+      return true;
+    }).catch(function(){ ebDoorRender(null); return false; });
+  }
+  function ebDoorShowSecret(id, secret){
+    var box = $("protDoorSecret");
+    if (!box) return;
+    box.innerHTML = '<div style="margin-top:10px;padding:8px;border:1px solid var(--line)"><b>New secret for ' + esc(EB_DOOR_NAMES[id] || id) + ' (' + esc(id) + ') — shown once</b><div class="mut" style="margin:4px 0">This value will never be shown again, and it is not stored in this page. Place it into that consumer\'s runner environment now as BRAIN_SERVICE_SECRET (the door URL is the same for every consumer), then hide it.</div><input type="text" readonly value="' + esc(secret) + '" style="width:100%;box-sizing:border-box;font-family:monospace"><div style="margin-top:6px"><button class="small" id="protDoorHide">Hide secret</button></div></div>';
+    $("protDoorHide").addEventListener("click", function(){ ebDoorClearSecret(); });
+  }
+  function ebDoorProvision(id, provisioned, btn){
+    if (ebDoorBusy || !id) return;
+    if (provisioned && !window.confirm("Rotate the Brain door secret for " + (EB_DOOR_NAMES[id] || id) + " (" + id + ")? The current secret stops working immediately, and any runner still using it will fail until it is updated. The new secret is shown exactly once.")) return;
+    ebDoorBusy = true;
+    if (btn) { btn.disabled = true; btn.textContent = "Working…"; }
+    var body = { consumer: id };
+    if (provisioned) body.rotate = true;
+    api(API_URL, "/api/admin/eb/braindoor/provision", { method: "POST", body: JSON.stringify(body), timeoutMs: 30000 }).then(function(d){
+      ebDoorBusy = false;
+      var secret = (d && d.ok && typeof d.secret === "string") ? d.secret : "";
+      if (secret) {
+        ebDoorLoad().then(function(){ ebDoorShowSecret(id, secret); });
+        return;
+      }
+      if (d && d.error === "already_provisioned") alert("Already provisioned — use Rotate to replace this consumer's secret.");
+      else alert("Provisioning failed: " + ((d && d.error) || "failed"));
+      ebDoorLoad();
+    }).catch(function(){
+      ebDoorBusy = false;
+      alert("Provisioning failed — please retry.");
+      ebDoorLoad();
+    });
+  }
 
   /* ---------- Pack EB-3: Control tab (Approval Inbox + SLA + Promises) ---------- */
   function ctlAct(ref, action, extra){
