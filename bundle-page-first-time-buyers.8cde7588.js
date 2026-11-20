@@ -1464,9 +1464,11 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
         var token = ""; // Pack DP12 (F-048): on the web the session token lives ONLY in this memory variable — the worker owns the durable copy in an httpOnly cookie. A legacy localStorage token is read once here, used for the one-time session-exchange at boot, then removed and never written again. APP_ORIGIN (Capacitor / localhost) keeps the legacy persistence: a WebView's cross-site cookies cannot be relied on there.
         var APP_ORIGIN = (location.protocol === "capacitor:" || location.hostname === "localhost");
         try { token = localStorage.getItem("re_user_token") || ""; if (token && !/^u_[0-9a-f]{32}$/.test(token)) { token = ""; localStorage.removeItem("re_user_token"); } } catch(e){}
-        function csrfVal(){ var m = /(?:^|; )ehcsrf=([0-9a-f]{32})/.exec(document.cookie || ""); return m ? m[1] : ""; }
+        var csrfMem = ""; // Pack DP12-P2 (03-H1 client): the csrf value the worker returns in session response bodies (login / register / google-exchange / session-exchange / /api/user/me), held in memory next to the token and captured by csrfTake(). The ehcsrf cookie lives on the API host, so document.cookie on this origin can never read it — csrfVal() tries memory first and keeps the cookie read only as a fallback (it starts working if the API ever becomes first-party).
+        function csrfVal(){ if (csrfMem) return csrfMem; var m = /(?:^|; )ehcsrf=([0-9a-f]{32})/.exec(document.cookie || ""); return m ? m[1] : ""; }
+        function csrfTake(d){ if (d && typeof d.csrf === "string" && /^[0-9a-f]{32}$/.test(d.csrf)) csrfMem = d.csrf; }
         function persistToken(){ if (APP_ORIGIN && token) { try { localStorage.setItem("re_user_token", token); } catch(e){} } }
-        function dropToken(){ token = ""; try { localStorage.removeItem("re_user_token"); } catch(e){} }
+        function dropToken(){ token = ""; csrfMem = ""; try { localStorage.removeItem("re_user_token"); } catch(e){} }
         // Google sign-in return: pick up the session token (or error) from the URL hash
         try {
           var gh = String(location.hash || "");
@@ -1478,7 +1480,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
                 .then(function(res){
                   if (res.s === 401 && n < 1) { setTimeout(function(){ exTry(n + 1); }, 1500); return; }
                   var d = res.d;
-                  if (d && d.ok && /^u_[0-9a-f]{32}$/.test(d.token || "")) { token = d.token; persistToken(); me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {}; paintAcctBtn(); loadMe().then(function(){ if (me) toast(tt("signedIn")); else toast(tt("errGeneric")); }); }
+                  if (d && d.ok && /^u_[0-9a-f]{32}$/.test(d.token || "")) { token = d.token; csrfTake(d); persistToken(); me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {}; paintAcctBtn(); loadMe().then(function(){ if (me) toast(tt("signedIn")); else toast(tt("errGeneric")); }); }
                   else { toast(tt("errGeneric")); }
                 }).catch(function(){ toast(tt("errGeneric")); });
               };
@@ -1521,7 +1523,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           var mth = method || "GET";
           if (mth !== "GET") { var cv = csrfVal(); if (cv) h["X-CSRF-Token"] = cv; } // Pack DP12: double-submit header for cookie-authed mutations (the worker enforces it only for cookie sessions)
           return fetch(API + path, { method: mth, headers: h, credentials: "include", body: body ? JSON.stringify(body) : undefined })
-            .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (!r.ok) throw new Error(d.error || "request"); return d; }); });
+            .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (!r.ok) throw new Error(d.error || "request"); csrfTake(d); return d; }); });
         }
         var acctBtn = document.createElement("button");
         acctBtn.type = "button"; acctBtn.className = "navbtn"; acctBtn.id = "acctBtn";
@@ -1637,7 +1639,7 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           document.getElementById("fxDone").addEventListener("click", closeFx);
           document.getElementById("fxOut").addEventListener("click", function(){
             try { api("/api/user/logout", "POST", {}).catch(function(){}); } catch(e){} // Pack DP12: kill the server session and clear its cookies (fire-and-forget; the local clear below is immediate either way)
-            token = ""; me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {};
+            csrfMem = ""; token = ""; me = null; savedSet = {}; mySearches = []; myProfile = {}; myRecent = []; myDrops = {};
             try { localStorage.removeItem("re_user_token"); } catch(e){}
             paintAcctBtn(); paintSaves(); closeFx();
           });
@@ -1855,7 +1857,14 @@ Object.assign(I18N.es.cities, {"North Vancouver":"North Vancouver","West Vancouv
           });
         }
         // Pack DP12 (F-048): one-time silent migration of a legacy localStorage session onto the httpOnly cookie — same token, same expiry; the stored copy is dropped once the exchange lands and never written again on the web.
-        if (token && !APP_ORIGIN) { try { api("/api/user/session-exchange", "POST", {}).then(function(){ try { localStorage.removeItem("re_user_token"); } catch(e){} }, function(){}); } catch(e){} }
+        if (token && !APP_ORIGIN) { try {
+          api("/api/user/session-exchange", "POST", {})
+            .then(function(){
+              // Pack DP12-P2 (03-H2): prove the cookie session with a cookie-only /me BEFORE dropping the stored token. Raw fetch on purpose — api() would attach the memory Bearer header and the call could succeed on Bearer alone, proving nothing about the cookie. If the proof fails (third-party cookies blocked), the stored token stays and the next boot retries.
+              return fetch(API + "/api/user/me", { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" })
+                .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (r.ok && d && d.user) { csrfTake(d); try { localStorage.removeItem("re_user_token"); } catch(e){} } }); }, function(){});
+            }, function(){});
+        } catch(e){} }
         tsRenderAll(); // Pack DP12 (F-047): renders the chat widget the chat block injected into #aiPanel (and any other .fx-ts present at boot)
         loadMe();
       } catch(e){ try { console.warn("fx init", e); } catch(_e){} }
