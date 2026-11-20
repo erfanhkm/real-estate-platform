@@ -917,6 +917,11 @@
         <button class="ghost small" id="protRefresh">Refresh</button>
       </div>
       <div class="card"><h2>Quota Weather</h2><div id="protQuota"><div class="empty">Loading…</div></div></div>
+      <div class="card" style="margin-top:12px"><h2>Brain leg probe</h2>
+        <div class="mut" style="margin-bottom:8px">Force each of the four Executive Brain legs (Brain Groq + Gemini, Backup Groq + Gemini) to answer one tiny live call, and see the per-leg verdicts here. The probe runs under its own small daily cap and changes no configuration.</div>
+        <button class="small" id="protProbeBtn">Probe legs</button>
+        <div id="protProbeOut" style="margin-top:10px"><div class="empty">Not run yet — the verdicts appear here.</div></div>
+      </div>
       <div class="card" style="margin-top:12px"><h2>Standing approvals</h2>
         <div class="mut" style="margin-bottom:8px">This registry is the platform's control record of your standing approvals for the receptionist's automatic messages. Toggling an entry updates this record only — the receptionist is a separate system, and its behaviour changes only when its own configuration changes.</div>
         <div id="protStanding"><div class="empty">Loading…</div></div>
@@ -5308,6 +5313,51 @@
   }
   $("protRefresh").addEventListener("click", function(){ loadProtection(); });
   $("protConsentBtn").addEventListener("click", function(){ protConsentLookup(); });
+
+  // Pack PORTAL-PROBE-BUTTON (2026-11-19): Brain leg probe — one tap
+  // forces each of the four Executive Brain legs through the Brain
+  // Service (POST /api/admin/eb/probe-legs, owner-session only; the
+  // api() helper carries the admin token, exactly like the other EB
+  // POSTs above). Verdicts render in place; any failure renders as
+  // an error, never as a success. The probe has its own daily cap
+  // (the leg-probe consumer), reported back as callsToday / capToday.
+  var ebProbeBusy = false;
+  function ebProbeLegs(){
+    var btn = $("protProbeBtn"), out = $("protProbeOut");
+    if (!btn || !out || ebProbeBusy) return;
+    ebProbeBusy = true;
+    btn.disabled = true;
+    btn.textContent = "Probing…";
+    out.innerHTML = '<div class="empty">Probing — each leg gets one tiny live call…</div>';
+    api(API_URL, "/api/admin/eb/probe-legs", { method: "POST", body: JSON.stringify({}), timeoutMs: 90000 }).then(function(d){
+      ebProbeBusy = false;
+      btn.disabled = false;
+      btn.textContent = "Probe legs";
+      if (!d || !d.ok || !d.legs) { out.innerHTML = '<div class="empty">Probe failed — the worker returned no verdicts.</div>'; return; }
+      var names = { "groq": "Brain · Groq", "gemini": "Brain · Gemini", "backup-groq": "Backup · Groq", "backup-gemini": "Backup · Gemini" };
+      var words = { ok: "OK", error: "Error", dormant: "Dormant", refused: "Refused", unconfigured: "Not configured" };
+      var cols = { ok: "#22c55e", error: "#ef4444", dormant: "#eab308", refused: "#ef4444", unconfigured: "#8a8378" };
+      var rows = ["groq", "gemini", "backup-groq", "backup-gemini"].map(function(k){
+        var v = d.legs[k];
+        if (!v) return "";
+        var meta = [];
+        if (v.model) meta.push(esc(v.model));
+        if (typeof v.latencyMs === "number") meta.push(v.latencyMs + " ms");
+        if (v.attempts) meta.push("attempts " + v.attempts);
+        if (v.httpStatus) meta.push("HTTP " + v.httpStatus);
+        var line = '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="width:11px;height:11px;border-radius:50%;background:' + (cols[v.status] || "#8a8378") + ';flex:none"></span><div><b>' + esc(names[k] || k) + '</b> <span style="text-transform:uppercase;font-size:11px;color:' + (cols[v.status] || "#8a8378") + '">' + esc(words[v.status] || v.status || "—") + '</span>' + (meta.length ? '<div class="mut">' + meta.join(" · ") + '</div>' : "") + '</div></div>';
+        if (v.status !== "ok" && (v.errorClass || v.detail)) line += '<div class="mut" style="padding:2px 0 6px">' + esc(v.errorClass || "") + (v.detail ? " — " + esc(v.detail) : "") + '</div>';
+        return line;
+      }).join("");
+      out.innerHTML = (rows || '<div class="empty">Probe returned no leg verdicts.</div>') + '<div class="mut" style="margin-top:6px">Probed ' + esc(d.at || "") + ' · probe calls today: ' + (d.callsToday || 0) + ' / ' + (d.capToday || 0) + ' (daily cap).</div>';
+    }).catch(function(e){
+      ebProbeBusy = false;
+      btn.disabled = false;
+      btn.textContent = "Probe legs";
+      out.innerHTML = '<div class="empty">Probe failed — ' + esc((e && e.message) || "network error") + '. Nothing was retried automatically.</div>';
+    });
+  }
+  $("protProbeBtn").addEventListener("click", function(){ ebProbeLegs(); });
 
   /* ---------- Pack EB-3: Control tab (Approval Inbox + SLA + Promises) ---------- */
   function ctlAct(ref, action, extra){
