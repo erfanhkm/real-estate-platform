@@ -480,6 +480,28 @@
       .skip-link:focus{top:0}
 header.hdr-b .langnav{display:inline-flex;gap:9px;margin-inline-start:10px;vertical-align:middle}
 header.hdr-b .langnav a{color:#C9A24B;font-size:12px;font-weight:600;letter-spacing:.05em;text-decoration:none}
+      /* SITE-HEADER-MOBILE-FIX (2026-11-26): the util bar is a
+         no-wrap flex row (Contact / Sign in / .langbox) inside
+         .wrap (20px side padding). Fix SB-1+SB-2 put the five-link
+         .langnav inside .langbox next to the <select>, taking the
+         pill's one-line min-content to ~330px and the bar's to
+         ~495px — wider than a phone's content box (~350px at a
+         390px viewport) — so the pill is crushed, its contents
+         stack and it balloons vertically while Contact and Sign in
+         are squeezed. At the page CSS's existing 640px breakpoint
+         the redundant .langnav is hidden (the <select> still
+         switches language and the links stay in the DOM for
+         crawlers), the remaining items are held on one line, and
+         the pill is allowed to shrink. Nothing outside this media
+         query changes; desktop rendering is untouched. */
+      @media (max-width:640px){
+        header.hdr-b .langnav{display:none}
+        .hb-util{gap:12px}
+        .hb-phone{white-space:nowrap}
+        header.hdr-b .hb-util .navbtn{white-space:nowrap}
+        header.hdr-b .langbox{min-width:0}
+        header.hdr-b .langbox select{min-width:0}
+      }
       /* CONCEPT-B-CSS:END */
     </style>
     <script>
